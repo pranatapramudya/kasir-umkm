@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model product {
+  id         Int      @id @default(autoincrement())
+  userId     String   // Identifikasi tenant (Clerk User ID)
+  kodeBarang String?  // SKU/Barcode barang (opsional)
+  name       String
+  hpp        Int      @default(0) // Harga Pokok Penjualan (Modal)
+  hargaJual  Int      // Harga yang ditampilkan ke pelanggan (dulu price)
+  category   String   @default("Umum")
+  stock      Int      @default(0)
+  discount            Int      @default(0) // Potongan harga bawaan produk
+  image               String   @default("")
+  brand               String?
+  variant             String?
+  minStockThreshold   Int      @default(5)
+  isService           Boolean  @default(false)
+  employeeCommission  Int?     @default(0)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now()) // Harus ada baris ini!
+
+  // Memastikan kodeBarang bersifat unik di dalam satu tenant (userId)
+  @@unique([userId, kodeBarang]) 
+}
+
+model Transaction {
+  id           String            @id
+  userId       String            // Identifikasi tenant
+  timestamp    BigInt
+  customerName String
+  cashierId    String?
+  cashier      Employee?         @relation("CashierTransactions", fields: [cashierId], references: [id])
+  tableId      String?
+  table        DiningTable?      @relation(fields: [tableId], references: [id])
+  discount     Int               @default(0) // Potongan harga oleh kasir
+  total        Int
+  method       String
+  status       String            @default("pending")
+  createdAt    DateTime          @default(now())
+  items        TransactionItem[]
+}
+
+model TransactionItem {
+  id                 Int         @id @default(autoincrement())
+  transactionId      String
+  transaction        Transaction @relation(fields: [transactionId], references: [id])
+  productId          Int
+  qty                Int
+  price              Int         // Harga barang pada saat transaksi terjadi
+  note               String?
+  workerId           String?
+  worker             Employee?   @relation("WorkerItems", fields: [workerId], references: [id])
+  serviceDuration    Int?        @default(0)
+  commissionSnapshot Int         @default(0) // Snapshot komisi pada saat transaksi terjadi
+}
+
+model Expense {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  amount    Int
+  category  String
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name               String
+  category           String
+  phone              String?   @default("")
+  subscriptionPlan   String    @default("FREE")
+  subscriptionEndsAt DateTime?
+  createdAt          DateTime  @default(now())
+}
+
+model Employee {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  tenantId    String
+  name        String
+  email               String
+  createdAt           DateTime          @default(now())
+  cashierTransactions Transaction[]     @relation("CashierTransactions")
+  workerItems         TransactionItem[] @relation("WorkerItems")
+}
+
+model DiningTable {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  capacity     Int           @default(4)
+  status       String        @default("Tersedia")
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  action    String
+  details   Json
+  createdAt DateTime @default(now())
+}
