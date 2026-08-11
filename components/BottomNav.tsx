@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, PackageSearch, Store, BarChart, Settings, ShoppingCart, Wallet, Users, FileText, Grid, X, CreditCard } from "lucide-react";
+import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, FileText, Grid, X, CreditCard } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export function BottomNav() {
@@ -51,14 +51,16 @@ export function BottomNav() {
               <div key={item.name} className="flex justify-center flex-1 h-full relative">
                 <Link
                   href={item.href}
+                  // PRD-v210 C: Tutup drawer INSTAN sebelum navigasi
                   onClick={() => setIsMoreOpen(false)}
-                  className={`flex flex-col items-center w-full h-full group transition-all duration-300 ${isActive ? 'justify-end pb-2' : 'justify-center'}`}
+                  // PRD-v210 B: active:scale-95 + touch-manipulation untuk zero-delay feedback
+                  className={`flex flex-col items-center w-full h-full group touch-manipulation active:scale-95 transition-all duration-150 ${isActive ? 'justify-end pb-2' : 'justify-center'}`}
                 >
-                  <div className={`flex items-center justify-center transition-all duration-300 ${isActive
+                  <div className={`flex items-center justify-center transition-all duration-200 ${isActive
                     ? 'absolute -top-5 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm border-4 border-slate-50'
                     : 'w-auto h-auto bg-transparent shadow-none mb-1'
                     }`}>
-                    <Icon className={`transition-all duration-300 ${isActive ? 'w-6 h-6 text-white' : 'w-5 h-5 text-slate-400 group-hover:text-slate-600'}`} />
+                    <Icon className={`transition-all duration-200 ${isActive ? 'w-6 h-6 text-white' : 'w-5 h-5 text-slate-400 group-hover:text-slate-600'}`} />
                   </div>
                   <span className={`text-[10px] transition-colors ${isActive ? "font-bold text-blue-600" : "font-medium text-slate-400 group-hover:text-slate-600"}`}>
                     {item.name}
@@ -73,13 +75,14 @@ export function BottomNav() {
             <div className="flex justify-center flex-1 h-full relative">
               <button
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
-                className={`flex flex-col items-center justify-center w-full h-full group transition-all duration-300 ${isMoreActive && !isMoreOpen ? 'pb-2' : ''}`}
+                // PRD-v210 B: active state + touch-manipulation
+                className={`flex flex-col items-center justify-center w-full h-full group touch-manipulation active:scale-95 transition-all duration-150 ${isMoreActive && !isMoreOpen ? 'pb-2' : ''}`}
               >
-                <div className={`flex items-center justify-center transition-all duration-300 ${(isMoreActive && !isMoreOpen) || isMoreOpen
+                <div className={`flex items-center justify-center transition-all duration-200 ${(isMoreActive && !isMoreOpen) || isMoreOpen
                   ? 'absolute -top-5 w-14 h-14 rounded-full bg-slate-800 shadow-lg shadow-slate-700/50 border-4 border-slate-50'
                   : 'w-auto h-auto bg-transparent shadow-none mb-1'
                   }`}>
-                  <Grid className={`transition-all duration-300 ${(isMoreActive && !isMoreOpen) || isMoreOpen ? 'w-6 h-6 text-white' : 'w-5 h-5 text-slate-400 group-hover:text-slate-600'}`} />
+                  <Grid className={`transition-all duration-200 ${(isMoreActive && !isMoreOpen) || isMoreOpen ? 'w-6 h-6 text-white' : 'w-5 h-5 text-slate-400 group-hover:text-slate-600'}`} />
                 </div>
                 <span className={`text-[10px] transition-colors ${(isMoreActive && !isMoreOpen) || isMoreOpen ? "font-bold text-slate-800" : "font-medium text-slate-400 group-hover:text-slate-600"}`}>
                   Lainnya
@@ -102,7 +105,7 @@ export function BottomNav() {
               <h3 className="font-bold text-lg text-slate-800">Menu Lainnya</h3>
               <button
                 onClick={() => setIsMoreOpen(false)}
-                className="p-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-full transition-colors"
+                className="p-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-full touch-manipulation active:scale-90 transition-all duration-150"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -116,10 +119,12 @@ export function BottomNav() {
                   <Link
                     key={item.name}
                     href={item.href}
+                    // PRD-v210 C: Tutup drawer INSTAN sebelum navigasi (zero-delay feel)
                     onClick={() => setIsMoreOpen(false)}
-                    className="flex flex-col items-center gap-2 group"
+                    // PRD-v210 B: touch-manipulation + active feedback
+                    className="flex flex-col items-center gap-2 group touch-manipulation active:scale-90 transition-all duration-150"
                   >
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-50 text-slate-600 group-hover:bg-slate-100'
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-150 ${isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-50 text-slate-600 group-hover:bg-slate-100 active:bg-blue-50'
                       }`}>
                       <Icon className="w-6 h-6" />
                     </div>
