@@ -16,8 +16,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PJTECH-KASIR POS UMKM",
-  description: "Sistem Manajemen Kasir & POS UMKM Berbasis Cloud",
+  title: {
+    template: '%s | PJTECH Kasir UMKM',
+    default: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail & Jasa Terbaik',
+  },
+  description: "Tingkatkan omset bisnis UMKM Anda dengan PJTECH. Aplikasi kasir (POS) multi-bisnis terlengkap untuk restoran, toko kelontong, dan jasa. Pantau laba rugi secara real-time dari mana saja.",
+  keywords: ['Aplikasi Kasir', 'POS UMKM', 'Kasir F&B', 'Kasir Retail', 'Aplikasi Salon', 'Software Kasir Indonesia', 'SaaS POS Terbaik'],
+  authors: [{ name: 'PJTECH' }],
+  openGraph: {
+    title: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail & Jasa Terbaik',
+    description: 'Tingkatkan omset bisnis UMKM Anda dengan PJTECH. Aplikasi kasir (POS) multi-bisnis terlengkap.',
+    siteName: 'PJTECH Kasir UMKM',
+    locale: 'id_ID',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
