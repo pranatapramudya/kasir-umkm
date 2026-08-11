@@ -7,31 +7,33 @@ datasource db {
 }
 
 model product {
-  id         Int      @id @default(autoincrement())
-  userId     String   // Identifikasi tenant (Clerk User ID)
-  kodeBarang String?  // SKU/Barcode barang (opsional)
-  name       String
-  hpp        Int      @default(0) // Harga Pokok Penjualan (Modal)
-  hargaJual  Int      // Harga yang ditampilkan ke pelanggan (dulu price)
-  category   String   @default("Umum")
-  stock      Int      @default(0)
-  discount            Int      @default(0) // Potongan harga bawaan produk
-  image               String   @default("")
-  brand               String?
-  variant             String?
-  minStockThreshold   Int      @default(5)
-  isService           Boolean  @default(false)
-  employeeCommission  Int?     @default(0)
-  isActive            Boolean  @default(true)
-  createdAt           DateTime @default(now()) // Harus ada baris ini!
+  id                 Int      @id @default(autoincrement())
+  userId             String // Identifikasi tenant (Clerk User ID)
+  kodeBarang         String? // SKU/Barcode barang (opsional)
+  name               String
+  hpp                Int      @default(0) // Harga Pokok Penjualan (Modal)
+  hargaJual          Int // Harga yang ditampilkan ke pelanggan (dulu price)
+  category           String   @default("Umum")
+  stock              Int      @default(0)
+  discount           Int      @default(0) // Potongan harga bawaan produk
+  image              String   @default("")
+  brand              String?
+  variant            String?
+  minStockThreshold  Int      @default(5)
+  isService          Boolean  @default(false)
+  employeeCommission Int?     @default(0)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now()) // Harus ada baris ini!
 
   // Memastikan kodeBarang bersifat unik di dalam satu tenant (userId)
-  @@unique([userId, kodeBarang]) 
+  @@unique([userId, kodeBarang])
+  @@index([userId])
+  @@index([category])
 }
 
 model Transaction {
   id           String            @id
-  userId       String            // Identifikasi tenant
+  userId       String // Identifikasi tenant
   timestamp    BigInt
   customerName String
   cashierId    String?
@@ -44,6 +46,9 @@ model Transaction {
   status       String            @default("pending")
   createdAt    DateTime          @default(now())
   items        TransactionItem[]
+
+  @@index([userId, createdAt])
+  @@index([status])
 }
 
 model TransactionItem {
@@ -52,12 +57,16 @@ model TransactionItem {
   transaction        Transaction @relation(fields: [transactionId], references: [id])
   productId          Int
   qty                Int
-  price              Int         // Harga barang pada saat transaksi terjadi
+  price              Int // Harga barang pada saat transaksi terjadi
   note               String?
   workerId           String?
   worker             Employee?   @relation("WorkerItems", fields: [workerId], references: [id])
   serviceDuration    Int?        @default(0)
   commissionSnapshot Int         @default(0) // Snapshot komisi pada saat transaksi terjadi
+
+  @@index([transactionId])
+  @@index([productId])
+  @@index([workerId])
 }
 
 model Expense {
@@ -68,6 +77,8 @@ model Expense {
   category  String
   date      DateTime @default(now())
   createdAt DateTime @default(now())
+
+  @@index([userId, date])
 }
 
 model Tenant {
@@ -80,27 +91,33 @@ model Tenant {
   subscriptionStatus String    @default("ACTIVE")
   subscriptionEndsAt DateTime?
   createdAt          DateTime  @default(now())
+
+  @@index([subscriptionStatus])
 }
 
 model Employee {
-  id          String   @id @default(cuid())
-  clerkUserId String   @unique
-  tenantId    String
-  name        String
+  id                  String            @id @default(cuid())
+  clerkUserId         String            @unique
+  tenantId            String
+  name                String
   email               String
   createdAt           DateTime          @default(now())
   cashierTransactions Transaction[]     @relation("CashierTransactions")
   workerItems         TransactionItem[] @relation("WorkerItems")
+
+  @@index([tenantId])
 }
 
 model DiningTable {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
+  id           String        @id @default(cuid())
+  userId       String
+  name         String
   capacity     Int           @default(4)
   status       String        @default("Tersedia")
   createdAt    DateTime      @default(now())
   transactions Transaction[]
+
+  @@index([userId])
 }
 
 model AuditLog {
@@ -110,4 +127,6 @@ model AuditLog {
   action    String
   details   Json
   createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt])
 }
