@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, PackageSearch, Store, BarChart, Settings, ShoppingCart, Wallet, Users, FileText, Grid, X } from "lucide-react";
+import { LayoutDashboard, PackageSearch, Store, BarChart, Settings, ShoppingCart, Wallet, Users, FileText, Grid, X, CreditCard } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export function BottomNav() {
@@ -32,6 +32,7 @@ export function BottomNav() {
     { name: "Laporan", href: "/laporan-kasir", icon: FileText },
     { name: "Karyawan", href: "/admin/karyawan", icon: Users },
     { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet },
+    { name: "Langganan", href: "/admin/subscription", icon: CreditCard },
     { name: "Pengaturan", href: "/admin/settings", icon: Settings },
   ];
 

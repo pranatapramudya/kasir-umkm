@@ -112,27 +112,27 @@ export default function AnalyticsPage() {
           </div>
           
           {hasAccess && (
-            <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 shadow-sm mt-4 md:mt-0 shrink-0">
-              <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 shadow-sm mt-4 md:mt-0 shrink-0 w-full md:w-auto">
+              <div className="flex flex-1 items-center justify-center gap-2 bg-white border border-slate-200 rounded-lg px-2 py-2 sm:py-1 shadow-sm">
                  <input 
                    type="date" 
                    value={dateRange.from}
                    onChange={(e) => setDateRange(prev => ({...prev, from: e.target.value}))}
-                   className="bg-transparent text-sm font-medium text-slate-700 outline-none w-full sm:w-auto"
+                   className="bg-transparent text-sm font-medium text-slate-700 outline-none w-full"
                  />
                  <span className="text-slate-400 text-sm font-bold">-</span>
                  <input 
                    type="date" 
                    value={dateRange.to}
                    onChange={(e) => setDateRange(prev => ({...prev, to: e.target.value}))}
-                   className="bg-transparent text-sm font-medium text-slate-700 outline-none w-full sm:w-auto"
+                   className="bg-transparent text-sm font-medium text-slate-700 outline-none w-full text-right sm:text-left"
                  />
               </div>
               
               <button 
                 onClick={handleExport}
                 disabled={isExporting}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out font-bold py-2 px-4 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out font-bold py-2 px-4 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto shrink-0"
               >
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 Unduh Excel

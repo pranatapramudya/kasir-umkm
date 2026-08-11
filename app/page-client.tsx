@@ -697,7 +697,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input 
                                 type="text" 
-                                placeholder={isJasa ? "Cari layanan..." : isFNB ? "Cari menu..." : "Cari produk..."}
+                                placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : "Cari produk atau barcode..."}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
