@@ -6,7 +6,7 @@ export async function checkSubscriptionStatus() {
   const role = (sessionClaims?.metadata as any)?.role as string | undefined;
   
   if (!userId) {
-    return { isExpired: true, plan: null };
+    return { isExpired: true, plan: null, status: null };
   }
 
   let ownerSearchKey = userId;
@@ -31,7 +31,7 @@ export async function checkSubscriptionStatus() {
   });
 
   if (!tenant) {
-    return { isExpired: true, plan: null };
+    return { isExpired: true, plan: null, status: null };
   }
 
   const endsAt = tenant.subscriptionEndsAt;
@@ -49,6 +49,7 @@ export async function checkSubscriptionStatus() {
   return { 
     isExpired, 
     plan: tenant.subscriptionPlan,
+    status: tenant.subscriptionStatus,
     endsAt: endsAt ? endsAt.toISOString() : null,
     storeName: tenant.name
   };

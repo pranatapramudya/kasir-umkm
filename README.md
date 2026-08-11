@@ -17,9 +17,11 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 
 ## ✨ Fitur & Arsitektur Utama
 
+- **Production-Ready Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.
+- **Sistem Pembayaran Dinamis & Manual ACC:** Dukungan instruksi QRIS DANA Bisnis yang terintegrasi secara pintar pada menu *Pricing*, serta alur pendaftaran *Manual ACC* dengan status *Pending Approval* yang dikelola via Dasbor Superadmin.
+- **Optimasi SEO & UI Nasional:** Injeksi SEO pada *Landing Page* untuk pencarian organik maksimal, dipadukan dengan desain *glassmorphism* modern dan responsif.
 - **Dukungan Multi-Bisnis:** Logika dinamis untuk bisnis Retail (barang fisik), F&B (manajemen meja & pesanan), hingga Jasa/Servis (tanpa batas stok).
-- **Role-Based Access Control (RBAC):** Pemisahan hak akses ketat antara *Owner/Superadmin* dan *Karyawan/Kasir* menggunakan proteksi route tingkat server (Middleware & API).
-- **Arsitektur Multi-Tenant:** Isolasi data yang terjamin aman per tenant menggunakan *foreign keys* Clerk `userId` & `tenantId` pada setiap kueri database.
+- **Role-Based Access Control (RBAC):** Pemisahan hak akses ketat antara *Owner/Superadmin* dan *Karyawan/Kasir* menggunakan proteksi route tingkat server (Middleware & API), termasuk halaman panduan khusus karyawan.
 - **Manajemen Karyawan & Sistem Komisi:** Pelacakan performa staf dan kalkulasi komisi otomatis berdasarkan transaksi yang diselesaikan (sangat cocok untuk bisnis Jasa/Salon/Bengkel).
 - **Manajemen Meja (Dining Table):** Visualisasi ketersediaan dan status meja secara real-time untuk bisnis F&B.
 - **Keamanan Transaksi & Data (Soft Delete):** Menggunakan flag `isActive` pada produk untuk menjaga integritas data historis transaksi (mencegah isu *Time-of-Check to Time-of-Use / TOCTOU*).

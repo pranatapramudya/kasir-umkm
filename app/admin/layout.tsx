@@ -10,7 +10,11 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isExpired } = await checkSubscriptionStatus();
+  const { isExpired, status } = await checkSubscriptionStatus();
+  
+  if (status === 'PENDING') {
+    redirect('/pending-approval');
+  }
   
   const { userId, sessionClaims } = await auth();
   

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Store, BarChart3, Receipt, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
+import { MiniChart } from '@/components/MiniChart';
 
 export const dynamic = 'force-dynamic';
 
@@ -103,18 +104,21 @@ export default async function POSApp() {
                 style={{ transform: 'rotateY(12deg) rotateX(8deg) scale(0.85)', transformStyle: 'preserve-3d' }}
               >
                 {/* Dummy Dashboard UI */}
-                <div className="col-span-2 row-span-2 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl border border-blue-100/60 p-5 flex flex-col justify-between shadow-sm transition-transform duration-300 hover:-translate-y-1">
-                  <div className="flex justify-between items-center mb-4">
+                <div className="col-span-2 row-span-2 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl border border-blue-100/60 p-5 flex flex-col justify-between shadow-sm transition-transform duration-300 hover:-translate-y-1 overflow-hidden relative">
+                  <div className="flex justify-between items-center mb-4 relative z-10">
                     <span className="text-sm font-bold text-slate-700">Total Pendapatan</span>
                     <div className="p-2 bg-white rounded-lg shadow-sm">
                       <BarChart3 className="w-4 h-4 text-blue-600" />
                     </div>
                   </div>
-                  <div>
+                  <div className="relative z-10">
                     <h3 className="text-4xl font-black tracking-tighter text-blue-950 mb-1">Rp 14.500.000</h3>
                     <div className="inline-flex items-center gap-1 bg-green-100/80 px-2 py-1 rounded-md text-xs font-bold text-green-700">
                       +12.5% vs bulan lalu
                     </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 w-full overflow-hidden rounded-b-2xl">
+                    <MiniChart />
                   </div>
                 </div>
 
@@ -130,7 +134,7 @@ export default async function POSApp() {
                   <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-3">
                     <Users className="w-5 h-5 text-purple-600" />
                   </div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Staf Aktif</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">STAFF AKTIF</p>
                   <p className="text-xl font-black text-slate-800">12</p>
                 </div>
 

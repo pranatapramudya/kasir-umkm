@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { Building2, Users, PieChart, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import ExportButton from "@/components/ExportButton";
+import AccTenantButton from "./AccTenantButton";
+import ManualOverrideButton from "./ManualOverrideButton";
+import SearchBar from "./SearchBar";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +14,11 @@ export default async function SuperAdminPage(props: {
   const searchParams = await props.searchParams;
   const pageStr = searchParams?.page;
   const categoryStr = searchParams?.kategori;
+  const searchQuery = searchParams?.search;
+
   const page = typeof pageStr === 'string' ? parseInt(pageStr, 10) || 1 : 1;
   const category = typeof categoryStr === 'string' ? categoryStr : "Semua";
+  const search = typeof searchQuery === 'string' ? searchQuery : "";
 
   const take = 10;
   const skip = (page - 1) * take;
@@ -27,6 +33,16 @@ export default async function SuperAdminPage(props: {
     } else {
       whereClause = { category: { contains: category } };
     }
+  }
+
+  if (search) {
+    whereClause = {
+      ...whereClause,
+      OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search } }
+      ]
+    };
   }
 
   // Fetch Data
@@ -51,7 +67,7 @@ export default async function SuperAdminPage(props: {
   // Fetch omset (Total GMV) untuk tenant yang sedang ditampilkan
   const transactionsAggr = await prisma.transaction.groupBy({
     by: ['userId'],
-    where: { 
+    where: {
       userId: { in: tenants.map(t => t.userId) },
       status: { in: ['completed', 'COMPLETED', 'paid', 'PAID', 'selesai', 'SELESAI'] },
       createdAt: {
@@ -72,13 +88,13 @@ export default async function SuperAdminPage(props: {
   // KPI Calculations
   const totalTenants = allTenantsForStats.length;
   const totalUsers = totalTenants + employeeCount;
-  
+
   // Calculate most popular category
   const categoryCounts = allTenantsForStats.reduce((acc, tenant) => {
     acc[tenant.category] = (acc[tenant.category] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-  
+
   let mostPopularCategory = "-";
   let maxCount = 0;
   Object.entries(categoryCounts).forEach(([cat, count]) => {
@@ -92,7 +108,7 @@ export default async function SuperAdminPage(props: {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      
+
       <div>
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">Overview</h1>
         <p className="text-slate-500 mt-1">Pantau performa global dan pendaftaran tenant baru.</p>
@@ -145,34 +161,38 @@ export default async function SuperAdminPage(props: {
 
       {/* Master Data Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Master Data Tenant</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Daftar seluruh toko/usaha yang menggunakan platform PJTECH SUPER ADMIN.</p>
-            </div>
-            <div className="mt-2 sm:mt-0">
-              <ExportButton />
-            </div>
+        <div className="p-5 border-b border-slate-100">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-slate-900">Master Data Tenant</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Daftar seluruh toko/usaha yang menggunakan platform PJTECH SUPER ADMIN.</p>
           </div>
           
-          <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-200 overflow-x-auto mt-4">
-            {filterCategories.map(cat => (
-              <Link 
-                key={cat} 
-                href={`/superadmin?page=1&kategori=${encodeURIComponent(cat)}`}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md whitespace-nowrap transition-all ${
-                  category === cat 
-                    ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' 
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {cat}
-              </Link>
-            ))}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+            <div className="w-full md:w-auto">
+              <SearchBar />
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+              <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-200 overflow-x-auto w-full sm:w-auto">
+                {filterCategories.map(cat => (
+                  <Link
+                    key={cat}
+                    href={`/superadmin?page=1&kategori=${encodeURIComponent(cat)}`}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-md whitespace-nowrap transition-all ${category === cat
+                        ? 'bg-white text-indigo-600 shadow-sm border border-slate-200'
+                        : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                  >
+                    {cat}
+                  </Link>
+                ))}
+              </div>
+              <div className="w-full sm:w-auto">
+                <ExportButton />
+              </div>
+            </div>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -184,42 +204,60 @@ export default async function SuperAdminPage(props: {
                 <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Daftar</th>
                 <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status Langganan</th>
                 <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Omset (Bulan Ini)</th>
+                <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {tenants.map((tenant, index) => {
                 const rowNumber = skip + index + 1;
                 const omset = omsetMap[tenant.userId] || 0;
+                const isDeleted = tenant.subscriptionStatus === 'DELETED_BY_USER';
                 return (
-                <tr key={tenant.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-2 px-3 text-sm text-slate-500 text-center">{rowNumber}</td>
-                  <td className="py-2 px-3 text-sm font-semibold text-slate-800">{tenant.name}</td>
-                  <td className="py-2 px-3">
-                    <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-semibold">
-                      {tenant.category}
-                    </span>
-                  </td>
-                  <td className="py-2 px-3 text-slate-600 text-xs">{tenant.phone || "-"}</td>
-                  <td className="py-2 px-3 text-slate-600 text-xs">
-                    {new Date(tenant.createdAt).toLocaleDateString('id-ID', {
-                      day: 'numeric', month: 'short', year: 'numeric'
-                    })}
-                  </td>
-                  <td className="py-2 px-3">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      tenant.subscriptionPlan === 'FREE' ? 'bg-orange-100 text-orange-700' :
-                      tenant.subscriptionPlan?.includes('PRO') ? 'bg-indigo-100 text-indigo-700' :
-                      'bg-slate-100 text-slate-700'
-                    }`}>
-                      {tenant.subscriptionPlan}
-                    </span>
-                  </td>
-                  <td className="py-2 px-3 text-right">
-                    <span className="text-green-600 font-semibold text-sm whitespace-nowrap">
-                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(omset)}
-                    </span>
-                  </td>
-                </tr>
+                  <tr key={tenant.id} className={`transition-colors ${isDeleted ? 'bg-red-50/50 opacity-75' : 'hover:bg-slate-50/50'}`}>
+                    <td className="py-2 px-3 text-sm text-slate-500 text-center">{rowNumber}</td>
+                    <td className="py-2 px-3 text-sm font-semibold text-slate-800">
+                      <span className={isDeleted ? 'line-through text-red-600' : ''}>{tenant.name}</span>
+                      {isDeleted && <span className="ml-2 text-[10px] text-red-500 font-bold px-1.5 py-0.5 bg-red-100 rounded-md">DELETED</span>}
+                    </td>
+                    <td className="py-2 px-3">
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-semibold">
+                        {tenant.category}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 text-slate-600 text-xs">{tenant.phone || "-"}</td>
+                    <td className="py-2 px-3 text-slate-600 text-xs">
+                      {new Date(tenant.createdAt).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                      })}
+                    </td>
+                    <td className="py-2 px-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${tenant.subscriptionPlan === 'FREE' ? 'bg-orange-100 text-orange-700' :
+                          tenant.subscriptionPlan?.includes('PRO') ? 'bg-indigo-100 text-indigo-700' :
+                            'bg-slate-100 text-slate-700'
+                        }`}>
+                        {tenant.subscriptionPlan}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 text-right">
+                      <span className="text-green-600 font-semibold text-sm whitespace-nowrap">
+                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(omset)}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {tenant.subscriptionStatus === 'PENDING' ? (
+                          <AccTenantButton tenantId={tenant.id} plan={tenant.subscriptionPlan} />
+                        ) : (
+                          <span className="text-xs text-slate-400 font-medium px-2 py-1">{tenant.subscriptionStatus}</span>
+                        )}
+                        <ManualOverrideButton
+                          tenantId={tenant.id}
+                          currentPlan={tenant.subscriptionPlan}
+                          currentStatus={tenant.subscriptionStatus}
+                        />
+                      </div>
+                    </td>
+                  </tr>
                 );
               })}
               {tenants.length === 0 && (
@@ -232,34 +270,34 @@ export default async function SuperAdminPage(props: {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">
-              Menampilkan {tenants.length} dari {totalFilteredTenants} data
+          <span className="text-xs font-medium text-slate-500">
+            Menampilkan {tenants.length} dari {totalFilteredTenants} data
+          </span>
+          <div className="flex items-center gap-2">
+            <Link
+              href={page > 1 ? `/superadmin?page=${page - 1}&kategori=${encodeURIComponent(category)}` : '#'}
+              className={`p-1.5 rounded-lg border border-slate-200 transition-colors ${page > 1 ? 'hover:bg-slate-50 text-slate-700' : 'opacity-50 cursor-not-allowed text-slate-400'}`}
+              aria-disabled={page <= 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Link>
+            <span className="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+              {page} / {totalPages}
             </span>
-            <div className="flex items-center gap-2">
-              <Link 
-                href={page > 1 ? `/superadmin?page=${page - 1}&kategori=${encodeURIComponent(category)}` : '#'}
-                className={`p-1.5 rounded-lg border border-slate-200 transition-colors ${page > 1 ? 'hover:bg-slate-50 text-slate-700' : 'opacity-50 cursor-not-allowed text-slate-400'}`}
-                aria-disabled={page <= 1}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Link>
-              <span className="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                {page} / {totalPages}
-              </span>
-              <Link 
-                href={page < totalPages ? `/superadmin?page=${page + 1}&kategori=${encodeURIComponent(category)}` : '#'}
-                className={`p-1.5 rounded-lg border border-slate-200 transition-colors ${page < totalPages ? 'hover:bg-slate-50 text-slate-700' : 'opacity-50 cursor-not-allowed text-slate-400'}`}
-                aria-disabled={page >= totalPages}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
+            <Link
+              href={page < totalPages ? `/superadmin?page=${page + 1}&kategori=${encodeURIComponent(category)}` : '#'}
+              className={`p-1.5 rounded-lg border border-slate-200 transition-colors ${page < totalPages ? 'hover:bg-slate-50 text-slate-700' : 'opacity-50 cursor-not-allowed text-slate-400'}`}
+              aria-disabled={page >= totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </div>
-      
+
     </div>
   );
 }

@@ -71,12 +71,13 @@ model Expense {
 }
 
 model Tenant {
-  id        String   @id @default(cuid())
-  userId    String   @unique
+  id                 String    @id @default(cuid())
+  userId             String    @unique
   name               String
   category           String
   phone              String?   @default("")
   subscriptionPlan   String    @default("FREE")
+  subscriptionStatus String    @default("ACTIVE")
   subscriptionEndsAt DateTime?
   createdAt          DateTime  @default(now())
 }

@@ -63,7 +63,10 @@ export default function SubscriptionClient({ initialStatus }: { initialStatus: a
               Status Akun{initialStatus.storeName ? ` - ${initialStatus.storeName.toUpperCase()}` : ''}
             </h3>
             <div className={`text-2xl md:text-3xl font-black ${isExpired ? 'text-red-700' : 'text-white'}`}>
-              {status.plan === 'PRO' || status.plan === 'PREMIUM' || status.plan === 'BASIC' || status.plan === 'MONTHLY' || status.plan === 'YEARLY' ? 'Paket Pro' : 'Free Trial'}
+              {status.plan === 'PRO_YEARLY_BUNDLE' ? 'Pro 1 Tahun + Hardware' :
+               status.plan === 'PRO_YEARLY' ? 'Pro 1 Tahun' :
+               status.plan === 'PRO_SEMI_ANNUAL' ? 'Pro 6 Bulan' :
+               'Free Trial'}
             </div>
             {status.endsAt && (
               <div className={`text-xs mt-1.5 font-medium ${isExpired ? 'text-red-500' : 'text-slate-400'}`}>

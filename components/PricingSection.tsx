@@ -17,10 +17,17 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
   const [selectedPlan, setSelectedPlan] = useState<{ days: number; plan: string; title: string; price: string } | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   
-  // NEW STATES
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isTnCOpen, setIsTnCOpen] = useState(false);
-  const [isBundle, setIsBundle] = useState(false);
+  const [isBundle, setIsBundle] = useState(currentPlan === 'PRO_YEARLY_BUNDLE');
+
+  const getWaText = (plan: typeof selectedPlan) => {
+    if (!plan) return '';
+    if (plan.plan === 'PRO_YEARLY_BUNDLE') {
+      return `Halo Tim PJTECH, saya ingin mengonfirmasi pembayaran langganan aplikasi kasir + Hardware.\n\n*Nama Toko:* [Nama Toko/User]\n*Paket:* Pro Tahunan (Bundle)\n*Total:* Rp 2.988.000\n\n*Data Pengiriman Hardware:*\n- Nama Penerima: \n- No. HP Penerima: \n- Alamat Lengkap (Jalan, RT/RW, Kota/Kabupaten, Kode Pos): \n\nBerikut saya lampirkan bukti transfernya.`;
+    }
+    return `Halo Tim PJTECH, saya ingin mengonfirmasi pembayaran langganan aplikasi kasir.\n\n*Nama Toko:* [Nama Toko/User]\n*Paket:* ${plan.title}\n*Total:* ${plan.price}\n\nBerikut saya lampirkan bukti transfernya.`;
+  };
 
   const handleCopy = async () => {
     try {
@@ -55,6 +62,41 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
     } catch (error) {
       console.error(error);
       alert('Terjadi kesalahan jaringan.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleWhatsAppCheckout = async () => {
+    if (!selectedPlan) return;
+    setIsLoading(true);
+    
+    // Buka tab baru sebelum fetch untuk mitigasi popup blocker
+    const newTab = window.open('about:blank', '_blank');
+
+    try {
+      const res = await fetch('/api/subscription/pending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: selectedPlan.plan }),
+      });
+
+      if (res.ok) {
+        const waLink = `https://wa.me/6285723256427?text=${encodeURIComponent(getWaText(selectedPlan))}`;
+        if (newTab) {
+          newTab.location.href = waLink;
+        } else {
+          window.open(waLink, '_blank');
+        }
+        router.push('/pending-approval');
+      } else {
+        if (newTab) newTab.close();
+        alert('Gagal memproses pendaftaran paket.');
+      }
+    } catch (err) {
+      if (newTab) newTab.close();
+      console.error(err);
+      alert('Terjadi kesalahan saat memproses.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -129,7 +171,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                   <Loader2 className="w-5 h-5 animate-spin" />
                   <span>Memproses...</span>
                 </>
-              ) : (currentPlan === 'TRIAL' || currentPlan === 'FREE' ? 'Paket Saat Ini' : 'Gunakan Akses Trial')}
+              ) : (currentPlan === 'TRIAL' || currentPlan === 'FREE' ? 'Paket Anda Saat Ini' : 'Gunakan Akses Trial')}
             </button>
           </div>
 
@@ -177,7 +219,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (currentPlan === 'PRO_SEMI_ANNUAL' ? 'Paket Saat Ini' : 'Pilih 6 Bulan')}
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (currentPlan === 'PRO_SEMI_ANNUAL' ? 'Paket Anda Saat Ini' : 'Pilih 6 Bulan')}
             </button>
           </div>
 
@@ -267,7 +309,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                     : 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/30'
                   }`}
                 >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (currentPlan === targetPlanName ? 'Paket Saat Ini' : (isBundle ? 'Pilih Bundling' : 'Pilih Tahunan'))}
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (currentPlan === targetPlanName ? 'Paket Anda Saat Ini' : (isBundle ? 'Pilih Bundling' : 'Pilih Tahunan'))}
                 </button>
               )
             })()}
@@ -373,30 +415,40 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                   
                   <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
                       <div className="text-xs text-slate-500 mb-2">Atau scan via QRIS (DANA Bisnis)</div>
-                      <Image 
-                        src={selectedPlan.days === 180 ? '/qris-6bulan.jpeg' : '/qris-1tahun.jpeg'} 
-                        alt="QRIS DANA" 
-                        width={220}
-                        height={220}
-                        className="w-full h-auto max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
-                      />
+                      {selectedPlan.plan === 'PRO_YEARLY_BUNDLE' ? (
+                        <img 
+                          src="/qris-1tahun+hardware.jpeg" 
+                          alt="QRIS Bundle" 
+                          className="w-full h-auto max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
+                        />
+                      ) : (
+                        <Image 
+                          src={selectedPlan.days === 180 ? '/qris-6bulan.jpeg' : '/qris-1tahun.jpeg'} 
+                          alt="QRIS DANA" 
+                          width={220}
+                          height={220}
+                          className="w-full h-auto max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
+                        />
+                      )}
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3 mt-4">
-                <a
-                  href={`https://wa.me/6285723256427?text=${encodeURIComponent(`Halo Admin PJTECH, saya ingin konfirmasi pembayaran paket ${selectedPlan.title}.`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full bg-emerald-500 text-white py-3 rounded-xl font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                <button
+                  onClick={handleWhatsAppCheckout}
+                  disabled={isLoading}
+                  className="w-full bg-emerald-500 text-white py-3 rounded-xl font-bold hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                 >
-                  Kirim Bukti via WhatsApp
-                </a>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Memproses...
+                    </>
+                  ) : 'Kirim Bukti via WhatsApp'}
+                </button>
               </div>
             </div>
           </div>
-        </div>
       )}
     </>
   );
