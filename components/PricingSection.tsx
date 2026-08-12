@@ -381,15 +381,15 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
       {/* CHECKOUT MODAL UNTUK PAKET BERBAYAR */}
       {isCheckoutOpen && selectedPlan && selectedPlan.price !== 'Rp 0' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative">
+          <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90dvh] overflow-y-auto overscroll-contain shadow-2xl relative">
             <button 
               onClick={() => setIsCheckoutOpen(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors z-10"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8 pb-24 md:pb-24">
               <h2 className="text-xl font-bold text-slate-800 mb-4 text-center">Konfirmasi Pembayaran</h2>
               
               <div className="bg-slate-50 py-3 px-4 rounded-2xl border border-slate-100 mb-5 text-center">
@@ -443,7 +443,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                         alt="QRIS DANA" 
                         width={220}
                         height={220}
-                        className="w-full h-auto max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
+                        className="w-full h-auto max-h-80 max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
                       />
                   </div>
                 </div>
