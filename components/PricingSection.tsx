@@ -247,7 +247,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
 
             <div className="mb-6">
               <div className="text-2xl font-bold text-slate-800 flex items-end gap-1">
-                {isBundle ? 'Rp 2.988k' : 'Rp 1.188k'} <span className="text-sm font-normal text-slate-500 pb-0.5">/ tahun</span>
+                {isBundle ? 'Rp 2.988k' : 'Rp 990k'} <span className="text-sm font-normal text-slate-500 pb-0.5">/ tahun</span>
               </div>
               {isBundle ? (
                 <div className="text-[11px] font-bold text-orange-600 mt-2">
@@ -265,7 +265,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
             <div className="space-y-2 mb-8 flex-1 border-t border-slate-100 pt-4">
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Semua Fitur Pro 6 Bulan</span>
+                <span className="text-xs text-slate-600">Semua fitur di paket Dasar/Pro</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
@@ -293,7 +293,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
               // Dynamic properties based on bundle state
               const targetPlanName = isBundle ? 'PRO_YEARLY_BUNDLE' : 'PRO_YEARLY';
               const targetTitle = isBundle ? 'Pro Tahunan (Bundle)' : 'Pro Tahunan';
-              const targetPrice = isBundle ? 'Rp 2.988.000' : 'Rp 1.188.000';
+              const targetPrice = isBundle ? 'Rp 2.988.000' : 'Rp 990.000';
               const isDisabled = isLoading || currentPlan === targetPlanName;
 
               return (

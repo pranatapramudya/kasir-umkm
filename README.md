@@ -27,6 +27,8 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Keamanan Transaksi & Data (Soft Delete):** Menggunakan flag `isActive` pada produk untuk menjaga integritas data historis transaksi (mencegah isu *Time-of-Check to Time-of-Use / TOCTOU*).
 - **Point of Sales (POS) Responsif:** Antarmuka Kasir *Mobile-First* yang lancar digunakan pada tablet atau *smartphone*, dilengkapi fitur keranjang dan kalkulasi diskon otomatis.
 - **Dasbor Analitik Dinamis:** Perhitungan *real-time* untuk Laba Bersih, Pendapatan, dan Riwayat Transaksi berdasarkan HPP (Harga Pokok Penjualan).
+- **Universal Web Bluetooth Printer:** Pencetakan struk thermal nirkabel via API Web Bluetooth, memungkinkan kasir mencetak langsung dari browser mobile tanpa aplikasi pihak ketiga.
+- **Sistem Booking & Custom Tenant Slug:** Modul Jasa dengan halaman booking publik (contoh: `/book/nama-toko`) dan kalender interaktif (berbasis `react-big-calendar`) bagi owner untuk manajemen jadwal tanpa resiko double-booking.
 - **Ekspor Data & Backup:** Kemampuan *export* rekap transaksi dan komisi karyawan ke format Excel/CSV.
 
 ## 🛠️ Cara Menjalankan Lokal (Getting Started)

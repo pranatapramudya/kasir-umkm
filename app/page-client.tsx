@@ -10,9 +10,10 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { toast } from 'sonner';
 import { useAuth, SignInButton, UserButton, useUser } from '@clerk/nextjs';
-import { BottomNav } from '@/components/BottomNav';
+import { BottomNavClient } from '@/components/BottomNavClient';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
+import { printBluetoothReceipt, isBluetoothSupported } from '@/lib/bluetooth-printer';
 
 export const dynamic = 'force-dynamic';
 
@@ -365,6 +366,28 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     setTimeout(() => {
       window.print();
     }, 100);
+  };
+
+  const handleBluetoothPrint = async () => {
+    if (!lastTransaction) return;
+    const parsedCash = parseInt(cashGiven.replace(/[^0-9]/g, '') || '0');
+    await printBluetoothReceipt({
+      storeName: tenantName || 'PJTECH KASIR POS',
+      storeCategory: tenantCategory,
+      date: lastTransaction.date,
+      time: lastTransaction.time,
+      transactionId: lastTransaction.id,
+      customerName: lastTransaction.customerName,
+      tableId: lastTransaction.tableId,
+      items: lastTransaction.items.map(i => ({
+        name: i.name,
+        qty: i.qty,
+        price: i.hargaJual,
+      })),
+      total: lastTransaction.total,
+      method: lastTransaction.method,
+      cashGiven: lastTransaction.method === 'cash' ? parsedCash : undefined,
+    });
   };
 
   const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -807,7 +830,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         </div>
       )}
 
-      <BottomNav />
+      <BottomNavClient />
 
       {/* MOBILE CART MODAL (Full Screen) */}
       {isMobileCartOpen && (
@@ -832,6 +855,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               >
                 🖨️ Cetak Struk
               </button>
+              {/* Tombol Bluetooth Printer */}
+              {isBluetoothSupported() ? (
+                <button
+                  id="bluetooth-print-btn"
+                  onClick={handleBluetoothPrint}
+                  className="w-full py-3 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  🖨️ Cetak Struk (Bluetooth)
+                </button>
+              ) : (
+                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  ⚠️ Browser Anda tidak mendukung cetak via Bluetooth.
+                  Gunakan Chrome / Edge untuk fitur ini.
+                </p>
+              )}
               {isFNB && (
                 <button 
                   onClick={() => printReceipt('kitchen')} 

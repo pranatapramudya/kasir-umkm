@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package } from 'lucide-react';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
-import { BottomNav } from '@/components/BottomNav';
+import { BottomNavClient } from '@/components/BottomNavClient';
 
 export default function LaporanKasirClient({ sidebar, initialDate, initialData }: any) {
     const [selectedDate, setSelectedDate] = useState(initialDate);
@@ -258,7 +258,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData }
                     </div>
                 </div>
             )}
-            <BottomNav />
+            <BottomNavClient />
         </div>
     );
 }

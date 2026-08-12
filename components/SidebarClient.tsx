@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, PackageSearch, Store, BarChart, Settings, Wallet, Users, CreditCard } from "lucide-react";
+import { LayoutDashboard, PackageSearch, Store, BarChart, Settings, Wallet, Users, CreditCard, CalendarCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -49,6 +49,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
       items: [
         { name: kategoriUsaha === "Jasa / Servis" ? "Layanan" : "Produk", href: "/admin/products", icon: PackageSearch },
         ...(kategoriUsaha === "F&B / Kuliner" ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
+        ...(kategoriUsaha === "Jasa / Servis" ? [{ name: "Jadwal Booking", href: "/admin/booking", icon: CalendarCheck }] : []),
         { name: "Karyawan", href: "/admin/karyawan", icon: Users },
         { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet }
       ]

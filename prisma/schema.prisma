@@ -7,7 +7,7 @@ datasource db {
 }
 
 model product {
-  id                 Int      @id @default(autoincrement())
+  id                 Int       @id @default(autoincrement())
   userId             String // Identifikasi tenant (Clerk User ID)
   kodeBarang         String? // SKU/Barcode barang (opsional)
   name               String
@@ -24,6 +24,7 @@ model product {
   employeeCommission Int?     @default(0)
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now()) // Harus ada baris ini!
+  bookings           Booking[]
 
   // Memastikan kodeBarang bersifat unik di dalam satu tenant (userId)
   @@unique([userId, kodeBarang])
@@ -86,13 +87,16 @@ model Tenant {
   userId             String    @unique
   name               String
   category           String
+  slug               String?   @unique
   phone              String?   @default("")
   subscriptionPlan   String    @default("FREE")
   subscriptionStatus String    @default("ACTIVE")
   subscriptionEndsAt DateTime?
   createdAt          DateTime  @default(now())
+  bookings           Booking[]
 
   @@index([subscriptionStatus])
+  @@index([slug])
 }
 
 model Employee {
@@ -129,4 +133,27 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([tenantId, createdAt])
+}
+
+enum BookingStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  userId        String        // Identifikasi tenant (Multi-Tenant Isolation)
+  tenant        Tenant        @relation(fields: [userId], references: [userId])
+  customerName  String
+  customerPhone String
+  bookingDate   DateTime
+  notes         String?
+  status        BookingStatus @default(PENDING)
+  productId     Int?
+  product       product?      @relation(fields: [productId], references: [id])
+  createdAt     DateTime      @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status])
 }

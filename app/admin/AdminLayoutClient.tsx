@@ -5,16 +5,18 @@ import Link from "next/link";
 import { LayoutDashboard, PackageSearch, Settings, Store, BarChart, Menu } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BottomNav } from "@/components/BottomNav";
+
 import { CustomUserButton } from "@/components/CustomUserButton";
 
 export default function AdminLayoutClient({
   children,
   sidebar,
+  bottomNav,
   isExpired = false
 }: {
   children: React.ReactNode;
   sidebar: React.ReactNode;
+  bottomNav: React.ReactNode;
   isExpired?: boolean;
 }) {
   const pathname = usePathname();
@@ -72,7 +74,7 @@ export default function AdminLayoutClient({
       </div>
 
       {/* BOTTOM NAVIGATION BAR */}
-      <BottomNav />
+      {bottomNav}
     </div>
   );
 }

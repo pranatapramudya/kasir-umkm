@@ -1,4 +1,5 @@
 import { Sidebar } from "@/components/Sidebar";
+import { BottomNav } from "@/components/BottomNav";
 import AdminLayoutClient from "./AdminLayoutClient";
 import { checkSubscriptionStatus } from "@/lib/subscription";
 import { auth } from '@clerk/nextjs/server';
@@ -46,7 +47,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <AdminLayoutClient sidebar={<Sidebar />} isExpired={isExpired}>
+    <AdminLayoutClient sidebar={<Sidebar />} bottomNav={<BottomNav />} isExpired={isExpired}>
       {children}
     </AdminLayoutClient>
   );
