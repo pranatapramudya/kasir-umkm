@@ -5,6 +5,7 @@ import ExportButton from "@/components/ExportButton";
 import AccTenantButton from "./AccTenantButton";
 import ManualOverrideButton from "./ManualOverrideButton";
 import SearchBar from "./SearchBar";
+import CategoryFilter from "./CategoryFilter";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +105,6 @@ export default async function SuperAdminPage(props: {
     }
   });
 
-  const filterCategories = ["Semua", "F&B", "Retail", "Jasa/Servis"];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -172,20 +172,7 @@ export default async function SuperAdminPage(props: {
               <SearchBar />
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-200 overflow-x-auto w-full sm:w-auto">
-                {filterCategories.map(cat => (
-                  <Link
-                    key={cat}
-                    href={`/superadmin?page=1&kategori=${encodeURIComponent(cat)}`}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-md whitespace-nowrap transition-all ${category === cat
-                        ? 'bg-white text-indigo-600 shadow-sm border border-slate-200'
-                        : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                  >
-                    {cat}
-                  </Link>
-                ))}
-              </div>
+              <CategoryFilter />
               <div className="w-full sm:w-auto">
                 <ExportButton />
               </div>

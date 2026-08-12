@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { sendPushNotification } from "@/lib/webpush";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +76,49 @@ export async function POST(request: Request) {
         status: "PENDING",
       },
     });
+
+    // 6. Kirim Push Notification ke Owner & Super Admin
+    // Dibungkus try-catch: kegagalan push TIDAK boleh menggagalkan proses booking
+    try {
+      const superAdminIds = (process.env.SUPER_ADMIN_USER_IDS ?? "")
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      // Kumpulkan userId yang perlu dinotifikasi (Owner + Super Admin, tanpa duplikat)
+      const notifyUserIds = Array.from(
+        new Set([tenant.userId, ...superAdminIds])
+      );
+
+      const subscriptions = await prisma.pushSubscription.findMany({
+        where: { userId: { in: notifyUserIds } },
+      });
+
+      const bookingDateFormatted = requestedDateTime.toLocaleString("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "Asia/Jakarta",
+      });
+
+      const pushPayload = {
+        title: "📅 Booking Baru Masuk!",
+        body: `${customerName.trim()} — ${bookingDateFormatted}`,
+        url: "/admin/booking",
+        icon: "/icon-192x192.png",
+      };
+
+      await Promise.allSettled(
+        subscriptions.map((sub) =>
+          sendPushNotification(
+            { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+            pushPayload
+          )
+        )
+      );
+    } catch (pushError) {
+      // Log error tapi lanjutkan — booking sudah berhasil disimpan
+      console.error("[booking] Push notification error (non-fatal):", pushError);
+    }
 
     return NextResponse.json({ success: true, bookingId: booking.id }, { status: 201 });
   } catch (error) {

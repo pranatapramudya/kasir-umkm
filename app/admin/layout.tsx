@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/Sidebar";
 import { BottomNav } from "@/components/BottomNav";
 import AdminLayoutClient from "./AdminLayoutClient";
+import PushNotificationManager from "@/components/PushNotificationManager";
 import { checkSubscriptionStatus } from "@/lib/subscription";
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
@@ -48,6 +49,7 @@ export default async function AdminLayout({
 
   return (
     <AdminLayoutClient sidebar={<Sidebar />} bottomNav={<BottomNav />} isExpired={isExpired}>
+      <PushNotificationManager />
       {children}
     </AdminLayoutClient>
   );

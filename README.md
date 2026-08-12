@@ -30,6 +30,10 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Universal Web Bluetooth Printer:** Pencetakan struk thermal nirkabel via API Web Bluetooth, memungkinkan kasir mencetak langsung dari browser mobile tanpa aplikasi pihak ketiga.
 - **Sistem Booking & Custom Tenant Slug:** Modul Jasa dengan halaman booking publik (contoh: `/book/nama-toko`) dan kalender interaktif (berbasis `react-big-calendar`) bagi owner untuk manajemen jadwal tanpa resiko double-booking.
 - **Ekspor Data & Backup:** Kemampuan *export* rekap transaksi dan komisi karyawan ke format Excel/CSV.
+- 🚀 **Progressive Web App (PWA) Ready** — *Installable on mobile devices with standalone full-screen experience.* Dapat diinstal di homescreen perangkat Android & iOS, berjalan layaknya aplikasi native.
+- 🔔 **Real-Time Web Push Notifications** — *Instant alerts for new bookings without native app overhead.* Owner & Super Admin mendapat notifikasi push saat ada booking baru, bahkan saat browser ditutup.
+- 🖨️ **Universal Web Bluetooth Printing** — *Direct ESC/POS thermal receipt printing from the browser.* Cetak struk langsung via Bluetooth tanpa driver atau aplikasi tambahan.
+- 📅 **Dynamic Multi-Tenant Booking** — *Self-service appointment scheduling with Anti-Double Booking guard.* Setiap tenant punya halaman booking publik (`/book/[slug]`) dengan validasi slot real-time.
 
 ## 🛠️ Cara Menjalankan Lokal (Getting Started)
 

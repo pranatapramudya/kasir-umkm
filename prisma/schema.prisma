@@ -157,3 +157,14 @@ model Booking {
   @@index([userId, createdAt])
   @@index([status])
 }
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    String   // Clerk User ID (Owner atau Super Admin)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

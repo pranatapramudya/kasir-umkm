@@ -30,6 +30,15 @@ export const metadata: Metadata = {
     locale: 'id_ID',
     type: 'website',
   },
+  // PWA: Meta tags untuk perangkat Apple (iOS)
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PJTECH Kasir",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({

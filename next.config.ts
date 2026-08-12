@@ -1,15 +1,30 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
+
+// @serwist/next menggunakan webpack config.
+// SW hanya di-generate saat `next build` (production).
+// Saat `next dev`, Turbopack berjalan normal karena SW di-disable.
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  // Nonaktifkan di development — gunakan Turbopack (next dev) tanpa hambatan
+  disable: process.env.NODE_ENV !== "production",
+});
 
 const nextConfig: NextConfig = {
+  // turbopack: {} → beri tahu Next.js 16 bahwa kita tidak punya turbopack config khusus.
+  // Ini men-silence error "webpack config but no turbopack config" saat `next dev`.
+  // Production build menggunakan webpack (via --webpack flag di script "build").
+  turbopack: {},
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'placehold.co',
+        protocol: "https",
+        hostname: "placehold.co",
       },
     ],
     dangerouslyAllowSVG: true,
-  }
+  },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);
