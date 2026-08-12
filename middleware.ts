@@ -51,9 +51,10 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Abaikan file statis Next.js
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Eksekusi middleware selalu di rute API
+    // Skip Next.js internal files dan semua file statis
+    // Tambahan: sw.js, workbox-*, manifest, dan ikon PNG wajib di-skip agar PWA tidak terblokir Clerk
+    '/((?!_next|[^?]*\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)|sw\.js|workbox-.*|manifest\..*).*)',
+    // Tetap eksekusi middleware di rute API
     '/(api|trpc)(.*)',
   ],
 };
