@@ -39,10 +39,12 @@ export default function AdminLayoutClient({
       const isTrialActive = now < trialEndDate;
 
       if (user.publicMetadata?.plan !== 'pro' && !isTrialActive) {
-        router.push('/');
+        if (!pathname.startsWith('/admin/subscription') && !pathname.startsWith('/pricing')) {
+          router.push('/');
+        }
       }
     }
-  }, [isLoaded, user, router]);
+  }, [isLoaded, user, router, pathname]);
 
   if (!isLoaded) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">Memuat Dashboard...</div>;

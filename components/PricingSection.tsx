@@ -18,7 +18,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
   const [isCopied, setIsCopied] = useState(false);
   
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isTnCOpen, setIsTnCOpen] = useState(false);
+  const [tncType, setTncType] = useState<'software' | 'bundle' | null>(null);
   const [isBundle, setIsBundle] = useState(currentPlan === 'PRO_YEARLY_BUNDLE');
 
   const getWaText = (plan: typeof selectedPlan) => {
@@ -187,7 +187,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
               </div>
               <div className="text-xs font-semibold text-indigo-600 mt-1 mb-1">Wajib dibayar di awal: Rp 594.000 / 6 bulan</div>
               <div className="text-[11px] text-slate-500 italic mb-2">(Hanya Software)</div>
-              <button onClick={() => setIsTnCOpen(true)} className="text-[11px] font-bold text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
+              <button onClick={() => setTncType('software')} className="text-[11px] font-bold text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
             </div>
             <div className="space-y-2 mb-8 flex-1">
               <div className="flex items-start gap-2.5">
@@ -255,7 +255,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                     <li>Termasuk Tablet Kasir & Printer Thermal</li>
                     <li>Hak milik setelah 1 tahun</li>
                   </ul>
-                  <button onClick={() => setIsTnCOpen(true)} className="text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
+                  <button onClick={() => setTncType('bundle')} className="text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
                 </div>
               ) : (
                 <div className="text-xs font-bold text-orange-500 mt-1.5">Hemat 2 Bulan</div>
@@ -287,6 +287,18 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                 <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Database Pelanggan:</span> Kenali dan catat...</span>
               </div>
+              {isBundle && (
+                <div className="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span className="text-xs font-bold text-emerald-800">Gratis Peminjaman 1 Set Kasir (Tablet & Printer Bluetooth).</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span className="text-xs font-bold text-emerald-800">Perangkat menjadi HAK MILIK Anda sepenuhnya pada perpanjangan tahun berikutnya.</span>
+                  </div>
+                </div>
+              )}
             </div>
             
             {(() => {
@@ -319,34 +331,45 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
       </div>
 
       {/* T&C MODAL */}
-      {isTnCOpen && (
+      {tncType !== null && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl relative p-6 md:p-8">
             <button 
-              onClick={() => setIsTnCOpen(false)}
+              onClick={() => setTncType(null)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-6 pr-6 border-b pb-4">Syarat & Ketentuan Perangkat Kasir (Bundling)</h3>
+            <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-6 pr-6 border-b pb-4">
+              {tncType === 'bundle' ? 'Syarat & Ketentuan Perangkat Kasir (Bundling)' : 'Syarat & Ketentuan Lisensi Software'}
+            </h3>
             
             <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-8 text-sm text-slate-600 max-h-[60vh] overflow-y-auto">
-              <div className="flex-1 space-y-4">
-                <p>1. Hardware (Tablet Kasir & Printer Thermal) sepenuhnya menjadi hak milik pengguna setelah berlangganan selama <strong>1 Tahun penuh</strong>.</p>
-                <p>2. Kerusakan fisik pada perangkat keras (Hardware) di luar cacat pabrik menjadi tanggung jawab pengguna.</p>
-                <p>3. Jika pengguna membatalkan langganan sebelum genap 1 Tahun, pengguna wajib mengembalikan perangkat keras ke tim operasional PJTECH dalam kondisi berfungsi atau dikenakan biaya sisa nilai perangkat.</p>
-              </div>
-              <div className="flex-1 space-y-4">
-                <p>4. Klaim garansi perangkat yang cacat pabrik berlaku selama 30 hari sejak perangkat diterima.</p>
-                <p>5. Tim support tidak melayani kerusakan akibat force majeure seperti bencana alam, kebakaran, dan sejenisnya.</p>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-2">
-                  <p className="font-semibold text-slate-700 text-xs mb-1">Catatan Tambahan:</p>
-                  <p className="text-xs">Syarat dan ketentuan ini dapat berubah sewaktu-waktu. Pengguna akan diberitahu melalui notifikasi dashboard jika terdapat perubahan.</p>
+              {tncType === 'bundle' ? (
+                <>
+                  <div className="flex-1 space-y-4">
+                    <p>1. Hardware (Tablet Kasir & Printer Thermal) sepenuhnya menjadi hak milik pengguna setelah berlangganan selama <strong>1 Tahun penuh</strong>.</p>
+                    <p>2. Kerusakan fisik pada perangkat keras (Hardware) di luar cacat pabrik menjadi tanggung jawab pengguna.</p>
+                    <p>3. Jika pengguna membatalkan langganan sebelum genap 1 Tahun, pengguna wajib mengembalikan perangkat keras ke tim operasional PJTECH dalam kondisi berfungsi atau dikenakan biaya sisa nilai perangkat.</p>
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <p>4. Klaim garansi perangkat yang cacat pabrik berlaku selama 30 hari sejak perangkat diterima.</p>
+                    <p>5. Tim support tidak melayani kerusakan akibat force majeure seperti bencana alam, kebakaran, dan sejenisnya.</p>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-2">
+                      <p className="font-semibold text-slate-700 text-xs mb-1">Catatan Tambahan:</p>
+                      <p className="text-xs">Syarat dan ketentuan ini dapat berubah sewaktu-waktu. Pengguna akan diberitahu melalui notifikasi dashboard jika terdapat perubahan.</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="w-full space-y-4 text-center py-4">
+                  <p className="text-lg font-semibold text-slate-800">Paket ini hanya mencakup Lisensi Software PJTECH Kasir.</p>
+                  <p className="text-base text-slate-600">Tidak termasuk peminjaman perangkat keras (Tablet/Printer).</p>
                 </div>
-              </div>
+              )}
             </div>
             <button 
-              onClick={() => setIsTnCOpen(false)}
+              onClick={() => setTncType(null)}
               className="w-full mt-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
             >
               Mengerti
@@ -415,21 +438,13 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
                   
                   <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
                       <div className="text-xs text-slate-500 mb-2">Atau scan via QRIS (DANA Bisnis)</div>
-                      {selectedPlan.plan === 'PRO_YEARLY_BUNDLE' ? (
-                        <img 
-                          src="/qris-1tahun+hardware.jpeg" 
-                          alt="QRIS Bundle" 
-                          className="w-full h-auto max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
-                        />
-                      ) : (
-                        <Image 
-                          src={selectedPlan.days === 180 ? '/qris-6bulan.jpeg' : '/qris-1tahun.jpeg'} 
-                          alt="QRIS DANA" 
-                          width={220}
-                          height={220}
-                          className="w-full h-auto max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
-                        />
-                      )}
+                      <Image 
+                        src="/qris.jpeg" 
+                        alt="QRIS DANA" 
+                        width={220}
+                        height={220}
+                        className="w-full h-auto max-w-[220px] mx-auto object-contain rounded-md shadow-sm" 
+                      />
                   </div>
                 </div>
               </div>
