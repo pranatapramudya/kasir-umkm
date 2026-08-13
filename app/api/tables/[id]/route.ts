@@ -54,10 +54,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const { sessionClaims } = await auth();
     const role = (sessionClaims?.metadata as any)?.role;
-    if (role === 'CASHIER') {
-      return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menghapus meja." }, { status: 403 });
-    }
-    
     const tenantId = (sessionClaims?.metadata as any)?.tenantId;
     const targetUserId = role === 'CASHIER' ? tenantId : userId;
 

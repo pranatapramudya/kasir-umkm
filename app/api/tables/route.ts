@@ -37,9 +37,8 @@ export async function POST(request: Request) {
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
-    if (role === 'CASHIER') {
-      return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menambahkan meja." }, { status: 403 });
-    }
+    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
+    const targetUserId = role === 'CASHIER' ? tenantId : userId;
 
     const body = await request.json();
     const { name, capacity } = body;
@@ -50,7 +49,7 @@ export async function POST(request: Request) {
 
     const newTable = await prisma.diningTable.create({
       data: {
-        userId,
+        userId: targetUserId,
         name,
         capacity: Number(capacity) || 4,
         status: "Tersedia"

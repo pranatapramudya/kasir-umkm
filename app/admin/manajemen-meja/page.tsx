@@ -122,7 +122,6 @@ export default function ManajemenMejaPage() {
           </h1>
           <p className="text-slate-500 text-sm mt-1">Kelola tata letak dan ketersediaan meja restoran Anda.</p>
         </div>
-        {!isCashier && (
           <button 
             onClick={() => openModal()}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
@@ -130,7 +129,6 @@ export default function ManajemenMejaPage() {
             <Plus className="w-4 h-4" />
             Tambah Meja
           </button>
-        )}
       </div>
       
       {/* Table Data */}
@@ -145,7 +143,7 @@ export default function ManajemenMejaPage() {
                   Status
                   <span className="text-[10px] opacity-70 block mt-0.5 normal-case font-semibold">(Klik untuk ubah)</span>
                 </th>
-                {!isCashier && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>}
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -175,7 +173,6 @@ export default function ManajemenMejaPage() {
                         <RefreshCw className="w-3 h-3 opacity-70" />
                       </button>
                     </td>
-                    {!isCashier && (
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button onClick={() => openModal(table)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -186,7 +183,6 @@ export default function ManajemenMejaPage() {
                           </button>
                         </div>
                       </td>
-                    )}
                   </tr>
                 ))
               ) : (
