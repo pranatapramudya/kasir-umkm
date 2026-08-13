@@ -14,9 +14,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const role = (sessionClaims?.metadata as any)?.role;
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    const isEmployee = !!employee;
+    const activeTenantId = employee ? employee.tenantId : userId;
 
     const body = await request.json();
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const rawTotal = Math.round(Number(body.total));
     const baseTotal = rawTotal + rawDiscount;
 
-    if (rawDiscount > (baseTotal * 0.10) && role === 'CASHIER') {
+    if (rawDiscount > (baseTotal * 0.10) && isEmployee) {
       return NextResponse.json({ success: false, message: 'Diskon >10% dari total harus disetujui Admin/Owner' }, { status: 403 });
     }
 
@@ -42,7 +42,9 @@ export async function POST(request: Request) {
 
     // 1. Validasi cashierId (Mencegah Foreign Key Constraint Error)
     let validCashierId = null;
-    if (body.cashierId) {
+    if (isEmployee && employee) {
+      validCashierId = employee.id;
+    } else if (body.cashierId) {
       try {
         const emp = await prisma.employee.findFirst({
           where: {
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
       const newTransaction = await tx.transaction.create({
         data: {
           id: body.id, // e.g. "#1234"
-          userId: targetUserId, // Use targetUserId (Tenant ID)
+          userId: activeTenantId, // Use activeTenantId (Tenant ID)
           timestamp: Math.round(Number(body.timestamp)),
           customerName: body.customerName,
           tableId: body.tableId || null,
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
       // b. Pencegahan N+1 Query (Pre-fetch & Promise.all)
       const itemIds = body.items.map((i: any) => Math.round(Number(i.id)));
       const productsInCart = await tx.product.findMany({
-        where: { id: { in: itemIds }, userId: targetUserId }
+        where: { id: { in: itemIds }, userId: activeTenantId }
       });
 
       if (productsInCart.length !== itemIds.length) {
@@ -132,7 +134,7 @@ export async function POST(request: Request) {
       if (rawDiscount > (baseTotal * 0.10)) {
         await tx.auditLog.create({
           data: {
-            tenantId: targetUserId,
+            tenantId: activeTenantId,
             userId: userId,
             action: 'DISCOUNT_OVERRIDE',
             details: {
