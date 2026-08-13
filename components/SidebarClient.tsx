@@ -67,7 +67,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
         { name: "Analitik", href: "/admin/analytics", icon: BarChart },
         ...(isServiceBusiness ? [{ name: "Rekap Komisi", href: "/admin/rekap-komisi", icon: Wallet }] : []),
         { name: "Cek Langganan", href: "/admin/subscription", icon: CreditCard },
-        { name: "Informasi Toko", href: "/admin/settings", icon: Settings }
+        ...(isServiceBusiness ? [{ name: "Informasi Toko", href: "/admin/settings", icon: Settings }] : [])
       ]
     }
   ];

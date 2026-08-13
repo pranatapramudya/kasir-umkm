@@ -69,7 +69,9 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
     { name: "Karyawan", href: "/admin/karyawan", icon: Users },
     { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet },
     { name: "Langganan", href: "/admin/subscription", icon: CreditCard },
-    { name: "Informasi Toko", href: "/admin/settings", icon: Settings },
+    ...(isJasa
+      ? [{ name: "Informasi Toko", href: "/admin/settings", icon: Settings }]
+      : []),
   ];
 
   const mainNavItems = role === "CASHIER" ? cashierNavItems : ownerMainNavItems;
