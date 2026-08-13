@@ -1,6 +1,6 @@
 # PJTECH KASIR UMKM - SaaS Boilerplate
 
-PJTECH KASIR UMKM adalah sistem Point of Sales (POS) komprehensif berbasis SaaS (Software as a Service) yang dirancang khusus untuk memenuhi kebutuhan berbagai jenis bisnis: **F&B (Restoran/Kafe), Retail, dan Jasa/Servis**. 
+PJTECH KASIR UMKM adalah sistem Point of Sales (POS) komprehensif berbasis SaaS (Software as a Service) yang dirancang khusus untuk memenuhi kebutuhan berbagai jenis bisnis: **F&B (Restoran/Kafe), Retail, Jasa/Servis, dan Rental & Travel**. 
 Dibangun dengan fokus pada kecepatan, keamanan multi-tenant tingkat enterprise, dan antarmuka *Mobile-First*, boilerplate ini siap digunakan sebagai fondasi proyek SaaS skala besar.
 
 ## 🚀 Tech Stack Utama
@@ -27,13 +27,11 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Keamanan Transaksi & Data (Soft Delete):** Menggunakan flag `isActive` pada produk untuk menjaga integritas data historis transaksi (mencegah isu *Time-of-Check to Time-of-Use / TOCTOU*).
 - **Point of Sales (POS) Responsif:** Antarmuka Kasir *Mobile-First* yang lancar digunakan pada tablet atau *smartphone*, dilengkapi fitur keranjang dan kalkulasi diskon otomatis.
 - **Dasbor Analitik Dinamis:** Perhitungan *real-time* untuk Laba Bersih, Pendapatan, dan Riwayat Transaksi berdasarkan HPP (Harga Pokok Penjualan).
-- **Universal Web Bluetooth Printer:** Pencetakan struk thermal nirkabel via API Web Bluetooth, memungkinkan kasir mencetak langsung dari browser mobile tanpa aplikasi pihak ketiga.
-- **Sistem Booking & Custom Tenant Slug:** Modul Jasa dengan halaman booking publik (contoh: `/book/nama-toko`) dan kalender interaktif (berbasis `react-big-calendar`) bagi owner untuk manajemen jadwal tanpa resiko double-booking.
-- **Ekspor Data & Backup:** Kemampuan *export* rekap transaksi dan komisi karyawan ke format Excel/CSV.
-- 🚀 **Progressive Web App (PWA) Ready** — *Installable on mobile devices with standalone full-screen experience.* Dapat diinstal di homescreen perangkat Android & iOS, berjalan layaknya aplikasi native.
-- 🔔 **Real-Time Web Push Notifications** — *Instant alerts for new bookings without native app overhead.* Owner & Super Admin mendapat notifikasi push saat ada booking baru, bahkan saat browser ditutup.
-- 🖨️ **Universal Web Bluetooth Printing** — *Direct ESC/POS thermal receipt printing from the browser.* Cetak struk langsung via Bluetooth tanpa driver atau aplikasi tambahan.
-- 📅 **Dynamic Multi-Tenant Booking** — *Self-service appointment scheduling with Anti-Double Booking guard.* Setiap tenant punya halaman booking publik (`/book/[slug]`) dengan validasi slot real-time.
+- **Ekspor Data Excel Dinamis (Dynamic Excel Export):** Laporan otomatis menyesuaikan kolom dengan jenis kategori bisnis (F&B, Retail, Jasa, Rental) sehingga riwayat penjualan rapi tanpa kebocoran data.
+- **Progressive Web App (PWA) Ready:** *Installable on mobile devices with standalone full-screen experience.* Dapat diinstal di homescreen perangkat Android & iOS, berjalan layaknya aplikasi native.
+- **Real-Time Web Push Notifications:** *Instant alerts for new bookings without native app overhead.* Owner & Super Admin mendapat notifikasi push saat ada booking baru, bahkan saat browser ditutup.
+- **Universal Web Bluetooth Printing:** *Direct ESC/POS thermal receipt printing from the browser.* Cetak struk nirkabel secara langsung via Bluetooth tanpa driver atau aplikasi tambahan.
+- **Dynamic Multi-Tenant Booking (Rental & Travel/Jasa):** *Self-service appointment & date-range scheduling dengan Anti-Double Booking guard.* Setiap tenant memiliki halaman booking publik (`/book/[slug]`) dengan validasi slot kalender interaktif secara real-time.
 
 ## 🛠️ Cara Menjalankan Lokal (Getting Started)
 

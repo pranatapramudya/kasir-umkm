@@ -508,16 +508,29 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               <h2 className="text-2xl font-black text-slate-800 mb-2">Selamat Datang</h2>
               <p className="text-slate-500 mb-8 text-sm">Masuk ke dashboard untuk melanjutkan pengelolaan bisnis Anda.</p>
 
-              <SignInButton mode="modal">
-                <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-blue-600/20 transition-all duration-200 flex items-center justify-center gap-2">
-                  Mulai Sekarang
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                </button>
-              </SignInButton>
+              <div className="w-full space-y-3">
+                <SignInButton mode="modal">
+                  <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-blue-600/20 transition-all duration-200 flex items-center justify-center gap-2">
+                    Masuk (Owner)
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </button>
+                </SignInButton>
+                
+                <div>
+                  <SignInButton mode="modal">
+                    <button className="w-full bg-transparent text-slate-500 hover:text-slate-700 border-2 border-slate-200 hover:border-slate-300 py-3.5 rounded-2xl font-bold text-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2">
+                      Login sebagai Karyawan
+                    </button>
+                  </SignInButton>
+                  <p className="text-xs text-slate-500 text-center mt-2">
+                    *Gunakan email & password yang diberikan oleh atasan Anda.
+                  </p>
+                </div>
+              </div>
 
               <div className="mt-4 flex items-center justify-center gap-1 text-sm font-medium">
-                <span className="text-slate-500">Belum punya akun?</span>
-                <Link href="/sign-up" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">Daftar di sini</Link>
+                <span className="text-slate-500">Pemilik Bisnis Baru?</span>
+                <Link href="/sign-up" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">Daftar Toko di sini</Link>
               </div>
 
               <div className="mt-6 text-xs text-slate-400">

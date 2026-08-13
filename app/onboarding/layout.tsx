@@ -15,7 +15,7 @@ export default async function OnboardingLayout({
 
   // PRD: "Cek ke database: const existingTenant = await prisma.tenant.findUnique({ where: { userId } })"
   // "Jika existingTenant sudah ada, PENGGUNA DILARANG MELIHAT FORM INI. Langsung redirect mereka ke /admin"
-  const existingTenant = await prisma.tenant.findUnique({
+  const existingTenant = await prisma.tenant.findFirst({
     where: { userId }
   });
 

@@ -5,6 +5,26 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.2.21 – 0.2.32] — 2026-08-13
+
+### 🚀 Fitur Baru
+- **Implementasi Ekosistem "Rental & Travel":** Dukungan rentang tanggal (Date Range booking), form input armada (nama supir & plat nomor) di POS Kasir, dan integrasi cetak struk via Bluetooth khusus untuk Rental.
+- **Pemisahan UI Dual-Role Login:** Akses masuk ke sistem kini terpisah secara visual antara Pemilik Bisnis (Owner) dan Karyawan pada komponen Landing Page.
+- **Lokalisasi Bahasa Indonesia (Clerk Auth):** Seluruh antarmuka autentikasi Clerk (Sign In, Sign Up, User Profile, validasi form) menggunakan dialek ID (id-ID).
+- **Ekspor Excel Dinamis:** Kolom laporan Excel kini beradaptasi secara otomatis dengan kategori bisnis (*Dynamic Excel Export*).
+
+### ⚡ Optimasi & Pembaruan
+- **Navigasi Instan:** Implementasi *Prefetching* pada navigasi dan penambahan *Skeleton Loading* untuk meminimalisasi jeda pergantian rute.
+
+### 🐛 Perbaikan Bug (Bugfixes)
+- **Foreign Key Constraint:** Mencegah terjadinya error foreign key saat melakukan *checkout* (menyimpan transaksi) oleh Kasir.
+- **Server Components Render Error:** Perbaikan masalah *serialize data* (throw err object) saat penambahan data karyawan/kasir baru.
+- **Flickering Data Karyawan:** Menanggulangi hilangnya daftar produk yang kadang terjadi saat kasir/karyawan me-refresh halaman POS.
+- **Filter Kategori (Superadmin):** Mencegah efek layar terlempar ke atas (*scroll-to-top*) saat melakukan filter tabel data tenant.
+- **Invalid Prisma Invocation:** Mengubah eksekusi `findUnique` menjadi `findFirst` guna mencegah crash saat pendaftaran toko/tenant (Onboarding).
+
+---
+
 ## [0.2.13 – 0.2.20] — 2026-08-12
 
 ### 🚀 Fitur Baru

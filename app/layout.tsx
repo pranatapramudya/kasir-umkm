@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ClerkProvider } from '@clerk/nextjs';
+import { idID } from '@clerk/localizations';
 import { SWRProvider } from "@/components/SWRProvider";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -49,6 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider
+      localization={idID}
       appearance={{
         variables: {
           colorPrimary: '#3b82f6',
