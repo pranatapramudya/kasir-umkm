@@ -25,20 +25,18 @@ export default async function LaporanKasirPage(props: {
   const startOfDay = new Date(`${selectedDateStr}T00:00:00+07:00`);
   const endOfDay = new Date(`${selectedDateStr}T23:59:59.999+07:00`);
 
-  let targetUserIds = [userId];
-
-  if (role !== 'CASHIER') {
-    const cashiers = await prisma.employee.findMany({
-      where: { tenantId: userId },
-      select: { clerkUserId: true }
-    });
-    targetUserIds = [userId, ...cashiers.map(c => c.clerkUserId)];
-  }
+  const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+  const isEmployee = !!employee;
+  const activeTenantId = employee ? employee.tenantId : userId;
 
   let whereClause: any = {
     createdAt: { gte: startOfDay, lte: endOfDay },
-    userId: { in: targetUserIds }
+    userId: activeTenantId
   };
+
+  if (isEmployee) {
+    whereClause.cashierId = employee.id; // Hanya tampilkan transaksi kasir ini
+  }
 
   const [transactions, totalCount, aggResult, allTransactions] = await Promise.all([
     prisma.transaction.findMany({
@@ -60,9 +58,8 @@ export default async function LaporanKasirPage(props: {
     })
   ]);
 
-  const targetProductUserId = role === 'CASHIER' ? (sessionClaims?.metadata as any)?.tenantId : userId;
   const products = await prisma.product.findMany({
-    where: { userId: targetProductUserId },
+    where: { userId: activeTenantId },
     select: { id: true, name: true }
   });
   const productMap = new Map(products.map(p => [p.id, p.name]));
