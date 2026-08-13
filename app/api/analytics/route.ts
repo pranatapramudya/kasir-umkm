@@ -9,7 +9,8 @@ export async function GET(request: Request) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const role = (sessionClaims?.metadata as any)?.role;
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    const activeTenantId = employee ? employee.tenantId : userId;
 
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter') || 'bulan_ini';
@@ -46,31 +47,20 @@ export async function GET(request: Request) {
     let endDate = endOfDay;
 
     // 2. Tenant Scoping
-    let targetUserIds = [userId];
-
-    if (role !== 'CASHIER') {
-      // Owner: lihat transaksi dari dirinya sendiri & semua kasirnya
-      const cashiers = await prisma.employee.findMany({
-        where: { tenantId: userId },
-        select: { clerkUserId: true }
-      });
-      const cashierIds = cashiers.map(c => c.clerkUserId);
-      targetUserIds = [userId, ...cashierIds];
-    }
+    // All data belongs to activeTenantId
 
     // 3. Tarik data seringan mungkin (Hindari Payload Kiamat)
     const transactionsLight = await prisma.transaction.findMany({
       where: {
-        userId: { in: targetUserIds },
+        userId: activeTenantId,
         createdAt: { gte: startDate, lte: endDate },
       },
       select: { createdAt: true, total: true }
     });
 
     // 4. Kalkulasi HPP menggunakan groupBy di level DB (Sangat ringan)
-    const targetProductUserId = role === 'CASHIER' ? (sessionClaims?.metadata as any)?.tenantId : userId;
     const products = await prisma.product.findMany({
-      where: { userId: targetProductUserId },
+      where: { userId: activeTenantId },
       select: { id: true, hpp: true }
     });
     const productMap = new Map(products.map(p => [p.id, p.hpp]));
@@ -79,7 +69,7 @@ export async function GET(request: Request) {
       by: ['productId'],
       where: {
         transaction: {
-          userId: { in: targetUserIds },
+          userId: activeTenantId,
           createdAt: { gte: startDate, lte: endDate },
         }
       },
@@ -95,7 +85,7 @@ export async function GET(request: Request) {
     // Ambil data pengeluaran (Expense) untuk periode ini
     const expenses = await prisma.expense.findMany({
       where: {
-        userId: { in: targetUserIds },
+        userId: activeTenantId,
         date: { gte: startDate, lte: endDate },
       },
     });
