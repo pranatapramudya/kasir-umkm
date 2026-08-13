@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ClerkProvider } from '@clerk/nextjs';
 import { SWRProvider } from "@/components/SWRProvider";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -55,17 +56,18 @@ export default function RootLayout({
         }
       }}
     >
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        suppressHydrationWarning
-      >
-        <SWRProvider>
-          {children}
-          <Toaster position="top-center" richColors />
-        </SWRProvider>
-      </body>
-    </html>
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          suppressHydrationWarning
+        >
+          <SWRProvider>
+            {children}
+            <Toaster position="top-center" richColors />
+          </SWRProvider>
+          <Analytics />
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
