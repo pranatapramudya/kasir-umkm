@@ -121,6 +121,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
                     <Link
                       key={item.name}
                       href={item.href}
+                      prefetch={true}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 font-semibold text-sm touch-manipulation active:scale-[0.97] ${isActive
                         ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600 shadow-sm"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent active:bg-slate-100"

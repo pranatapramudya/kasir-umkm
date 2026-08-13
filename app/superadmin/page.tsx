@@ -268,6 +268,7 @@ export default async function SuperAdminPage(props: {
           <div className="flex items-center gap-2">
             <Link
               href={page > 1 ? `/superadmin?page=${page - 1}&kategori=${encodeURIComponent(category)}` : '#'}
+              scroll={false}
               className={`p-1.5 rounded-lg border border-slate-200 transition-colors ${page > 1 ? 'hover:bg-slate-50 text-slate-700' : 'opacity-50 cursor-not-allowed text-slate-400'}`}
               aria-disabled={page <= 1}
             >
@@ -278,6 +279,7 @@ export default async function SuperAdminPage(props: {
             </span>
             <Link
               href={page < totalPages ? `/superadmin?page=${page + 1}&kategori=${encodeURIComponent(category)}` : '#'}
+              scroll={false}
               className={`p-1.5 rounded-lg border border-slate-200 transition-colors ${page < totalPages ? 'hover:bg-slate-50 text-slate-700' : 'opacity-50 cursor-not-allowed text-slate-400'}`}
               aria-disabled={page >= totalPages}
             >

@@ -16,9 +16,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const role = (sessionClaims?.metadata as any)?.role;
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
+    let targetUserId = userId;
+
+    // 1.5. Cek apakah user yang sedang login adalah Karyawan (Cashier)
+    // Jangan hanya bergantung pada sessionClaims karena bisa delay/out-of-sync
+    const employeeInfo = await prisma.employee.findUnique({
+      where: { clerkUserId: userId },
+      select: { tenantId: true }
+    });
+
+    if (employeeInfo) {
+      targetUserId = employeeInfo.tenantId;
+    }
 
     // Ekstrak parameter paginasi & filter
     const { searchParams } = new URL(request.url);

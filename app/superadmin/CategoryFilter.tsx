@@ -30,7 +30,7 @@ export default function CategoryFilter() {
       params.set("kategori", selected);
     }
     params.set("page", "1"); // Reset ke halaman pertama saat filter berubah
-    router.push(`/superadmin?${params.toString()}`);
+    router.push(`/superadmin?${params.toString()}`, { scroll: false });
   }
 
   return (

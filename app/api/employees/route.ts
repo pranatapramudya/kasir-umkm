@@ -10,12 +10,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const role = (sessionClaims?.metadata as any)?.role;
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    
-    // Jika yang request adalah CASHIER, maka tenant-nya adalah parent (tenantId)
-    // Jika yang request adalah OWNER, maka tenant-nya adalah userId dia sendiri
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
+    let targetUserId = userId;
+
+    const employeeInfo = await prisma.employee.findUnique({
+      where: { clerkUserId: userId },
+      select: { tenantId: true }
+    });
+
+    if (employeeInfo) {
+      targetUserId = employeeInfo.tenantId;
+    }
 
     const employees = await prisma.employee.findMany({
       where: {

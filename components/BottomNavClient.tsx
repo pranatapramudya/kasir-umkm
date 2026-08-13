@@ -82,6 +82,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
               <div key={item.name} className="flex justify-center flex-1 h-full relative">
                 <Link
                   href={item.href}
+                  prefetch={true}
                   onClick={() => setIsMoreOpen(false)}
                   className={`flex flex-col items-center w-full h-full group touch-manipulation active:scale-95 transition-all duration-150 ${
                     isActive ? "justify-end pb-2" : "justify-center"
@@ -181,6 +182,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setIsMoreOpen(false)}
                     className="flex flex-col items-center gap-2 group touch-manipulation active:scale-90 transition-all duration-150"
                   >

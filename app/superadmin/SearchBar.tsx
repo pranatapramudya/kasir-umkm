@@ -21,7 +21,7 @@ export default function SearchBar() {
         params.delete("search");
       }
       params.set("page", "1"); // Reset ke halaman pertama saat mencari
-      router.push(`/superadmin?${params.toString()}`);
+      router.push(`/superadmin?${params.toString()}`, { scroll: false });
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
