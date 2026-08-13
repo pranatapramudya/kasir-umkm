@@ -51,13 +51,20 @@ export default function AdminDashboardPage() {
           <div className="relative">
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-between gap-2 px-3 py-2 text-sm font-medium bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-200 min-w-[140px]"
+              disabled={role === 'CASHIER'}
+              className={`flex items-center justify-between gap-2 px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-200 min-w-[140px] ${
+                role === 'CASHIER'
+                  ? 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-500'
+                  : 'bg-white hover:bg-slate-50 transition-colors'
+              }`}
             >
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-slate-500" />
-                <span className="text-slate-700">{dateFilterLabels[dateFilter]}</span>
+                <Calendar className={`w-4 h-4 ${role === 'CASHIER' ? 'text-slate-400' : 'text-slate-500'}`} />
+                <span className={role === 'CASHIER' ? 'text-slate-500 font-bold' : 'text-slate-700'}>
+                  {dateFilterLabels[dateFilter]}
+                </span>
               </div>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+              {role !== 'CASHIER' && <ChevronDown className="w-4 h-4 text-slate-400" />}
             </button>
 
             {isDropdownOpen && (
