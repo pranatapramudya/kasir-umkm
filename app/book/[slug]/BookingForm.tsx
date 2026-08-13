@@ -63,7 +63,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     setIsDownloading(true);
     try {
       const canvas = await html2canvas(ticketRef.current, {
-        background: "#0f172a", // slate-900 agar cocok dengan dark theme
+        background: "#ffffff", // white agar cocok dengan light theme
         scale: 2, // retina quality
         useCORS: true,
       } as any);
@@ -257,11 +257,11 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
   if (step === "success") {
     return (
-      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-8 text-center shadow-2xl">
+      <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center shadow-md">
         {/* Checkmark */}
-        <div className="w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center mx-auto mb-5">
+        <div className="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-5">
           <svg
-            className="w-10 h-10 text-emerald-400"
+            className="w-10 h-10 text-emerald-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -271,33 +271,33 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           </svg>
         </div>
 
-        <h2 className="text-2xl font-bold text-white mb-2">Jadwal Dibuat!</h2>
-        <p className="text-slate-400 text-sm mb-1">
-          Halo <span className="text-white font-semibold">{formData.customerName}</span>,
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Jadwal Dibuat!</h2>
+        <p className="text-slate-500 text-sm mb-1">
+          Halo <span className="text-slate-900 font-semibold">{formData.customerName}</span>,
         </p>
-        <p className="text-slate-400 text-sm mb-6">
+        <p className="text-slate-500 text-sm mb-6">
           Jadwal Anda di{" "}
-          <span className="text-blue-300 font-semibold">{tenantName}</span> telah
+          <span className="text-blue-600 font-semibold">{tenantName}</span> telah
           berhasil disimpan. Tim kami akan menghubungi Anda melalui nomor{" "}
-          <span className="text-white font-semibold">{formData.customerPhone}</span>.
+          <span className="text-slate-900 font-semibold">{formData.customerPhone}</span>.
         </p>
 
         {/* Ticket Container — captured by html2canvas */}
         <div
           id="ticket-container"
           ref={ticketRef}
-          className="bg-slate-800/80 rounded-2xl p-5 text-left text-sm space-y-3 mb-5 border border-white/10"
+          className="bg-slate-50 rounded-2xl p-5 text-left text-sm space-y-3 mb-5 border border-slate-200"
         >
           {/* Ticket Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div>
-              <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">
+              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-0.5">
                 Bukti Reservasi
               </p>
-              <p className="text-white font-bold text-base">{tenantName}</p>
+              <p className="text-slate-900 font-bold text-base">{tenantName}</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="w-10 h-10 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
@@ -306,17 +306,17 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           {/* Detail rows */}
           <div className="space-y-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-slate-400 text-xs">Nama</span>
-              <span className="text-white font-semibold text-xs">{formData.customerName}</span>
+              <span className="text-slate-500 text-xs">Nama</span>
+              <span className="text-slate-900 font-semibold text-xs">{formData.customerName}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-400 text-xs">No. HP</span>
-              <span className="text-white font-semibold text-xs">{formData.customerPhone}</span>
+              <span className="text-slate-500 text-xs">No. HP</span>
+              <span className="text-slate-900 font-semibold text-xs">{formData.customerPhone}</span>
             </div>
             {selectedService && (
               <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-xs">Layanan</span>
-                <span className="text-white font-semibold text-xs">{selectedService.name}</span>
+                <span className="text-slate-500 text-xs">Layanan</span>
+                <span className="text-slate-900 font-semibold text-xs">{selectedService.name}</span>
               </div>
             )}
             {/* === Baris khusus Rental === */}
@@ -324,19 +324,19 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
               <>
                 {rentalData.destination && (
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400 text-xs">Tujuan</span>
-                    <span className="text-white font-semibold text-xs">{rentalData.destination}</span>
+                    <span className="text-slate-500 text-xs">Tujuan</span>
+                    <span className="text-slate-900 font-semibold text-xs">{rentalData.destination}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-xs">Mulai Sewa</span>
-                  <span className="text-white font-semibold text-xs">
+                  <span className="text-slate-500 text-xs">Mulai Sewa</span>
+                  <span className="text-slate-900 font-semibold text-xs">
                     {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-xs">Selesai Sewa</span>
-                  <span className="text-white font-semibold text-xs">
+                  <span className="text-slate-500 text-xs">Selesai Sewa</span>
+                  <span className="text-slate-900 font-semibold text-xs">
                     {new Date(rentalData.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>
@@ -344,8 +344,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             ) : (
               <>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-xs">Tanggal</span>
-                  <span className="text-white font-semibold text-xs">
+                  <span className="text-slate-500 text-xs">Tanggal</span>
+                  <span className="text-slate-900 font-semibold text-xs">
                     {new Date(`${formData.bookingDate}T${formData.bookingTime}`).toLocaleDateString(
                       "id-ID",
                       { weekday: "long", year: "numeric", month: "long", day: "numeric" }
@@ -353,19 +353,19 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-xs">Jam</span>
-                  <span className="text-white font-semibold text-xs">{formData.bookingTime} WIB</span>
+                  <span className="text-slate-500 text-xs">Jam</span>
+                  <span className="text-slate-900 font-semibold text-xs">{formData.bookingTime} WIB</span>
                 </div>
               </>
             )}
           </div>
 
           {/* Barcode-style bottom strip */}
-          <div className="pt-3 border-t border-white/10 flex items-center justify-center gap-1 opacity-30">
+          <div className="pt-3 border-t border-slate-200 flex items-center justify-center gap-1 opacity-30">
             {Array.from({ length: 28 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-full"
+                className="bg-slate-800 rounded-full"
                 style={{ width: i % 3 === 0 ? 3 : 2, height: i % 5 === 0 ? 20 : 14 }}
               />
             ))}
@@ -415,7 +415,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             setStep("form");
             setFormData((prev) => ({ ...prev, customerName: "", customerPhone: "", notes: "" }));
           }}
-          className="text-blue-400 text-sm font-medium hover:text-blue-300 transition-colors"
+          className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
         >
           Buat jadwal baru
         </button>
@@ -427,17 +427,17 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-6 shadow-2xl space-y-5"
+      className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md space-y-5"
     >
       <div>
-        <h2 className="text-lg font-bold text-white mb-0.5">Isi Detail Jadwal</h2>
-        <p className="text-slate-400 text-xs">Semua field bertanda * wajib diisi</p>
+        <h2 className="text-lg font-bold text-slate-900 mb-0.5">Isi Detail Jadwal</h2>
+        <p className="text-slate-500 text-xs">Semua field bertanda * wajib diisi</p>
       </div>
 
       {/* Pilih Layanan */}
       {services.length > 0 && (
         <div className="space-y-1.5">
-          <label htmlFor="productId" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          <label htmlFor="productId" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Layanan *
           </label>
           <select
@@ -446,17 +446,17 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             value={formData.productId}
             onChange={handleChange}
             required
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/50 transition-all appearance-none"
+            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none"
           >
-            <option value="" className="bg-slate-800 text-slate-400">— Pilih Layanan —</option>
+            <option value="" className="bg-white text-slate-500">— Pilih Layanan —</option>
             {services.map((s) => (
-              <option key={s.id} value={s.id} className="bg-slate-800 text-white">
+              <option key={s.id} value={s.id} className="bg-white text-slate-900">
                 {s.name} — {formatRupiah(s.hargaJual)}
               </option>
             ))}
           </select>
           {selectedService && (
-            <p className="text-blue-400 text-xs font-medium pl-1">
+            <p className="text-blue-600 text-xs font-medium pl-1">
               Harga: {formatRupiah(selectedService.hargaJual)}
             </p>
           )}
@@ -466,7 +466,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       {/* Tanggal Kunjungan — hanya tampil untuk non-Rental */}
       {!isRental && (
         <div className="space-y-1.5">
-          <label htmlFor="bookingDate" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          <label htmlFor="bookingDate" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Tanggal Kunjungan *
           </label>
           <input
@@ -477,7 +477,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             min={todayISO}
             onChange={handleChange}
             required
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/50 transition-all [color-scheme:dark]"
+            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all [color-scheme:light]"
           />
         </div>
       )}
@@ -495,7 +495,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           <div className="grid grid-cols-2 gap-3">
             {/* Tanggal Mulai */}
             <div className="space-y-1.5">
-              <label htmlFor="rental-startDate" className="text-[10px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <label htmlFor="rental-startDate" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Mulai Sewa *
               </label>
               <input
@@ -514,13 +514,13 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                   setError(null);
                 }}
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all [color-scheme:dark]"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
               />
             </div>
 
             {/* Tanggal Selesai */}
             <div className="space-y-1.5">
-              <label htmlFor="rental-endDate" className="text-[10px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <label htmlFor="rental-endDate" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Selesai Sewa *
               </label>
               <input
@@ -533,14 +533,14 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                   setError(null);
                 }}
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all [color-scheme:dark]"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
               />
             </div>
           </div>
           
           {/* Tampilkan durasi jika ada */}
           {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
-            <p className="text-amber-300/70 text-xs">
+            <p className="text-amber-600 text-xs font-medium">
               Durasi sewa:{" "}
               {Math.round(
                 (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
@@ -552,7 +552,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
           {/* Tujuan */}
           <div className="space-y-1.5">
-            <label htmlFor="rental-destination" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <label htmlFor="rental-destination" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Tujuan Keberangkatan <span className="normal-case font-normal text-slate-500">(opsional)</span>
             </label>
             <input
@@ -564,7 +564,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 setError(null);
               }}
               placeholder="contoh: Bandara Ngurah Rai, Kuta Bali..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all"
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
             />
           </div>
         </div>
@@ -572,11 +572,11 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         /* ===== NON-RENTAL: Grid slot waktu 30 menit ===== */
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Jam Kunjungan *
             </label>
             {isCheckingSlots && (
-              <span className="flex items-center gap-1.5 text-xs text-blue-400">
+              <span className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
                 <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
@@ -605,16 +605,16 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                   className={`
                     relative py-2 px-1 rounded-xl text-xs font-semibold transition-all duration-150
                     ${isBooked
-                      ? "bg-slate-800/40 text-slate-600 border border-slate-700/50 cursor-not-allowed"
+                      ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
                       : isSelected
-                        ? "bg-blue-600 text-white border border-blue-500 shadow-lg shadow-blue-600/30 scale-[1.04]"
-                        : "bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 hover:text-white active:scale-95"
+                        ? "bg-blue-600 text-white border border-blue-600 shadow-lg shadow-blue-600/30 scale-[1.04]"
+                        : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 active:scale-95"
                     }
                   `}
                 >
                   {slot}
                   {isBooked && (
-                    <span className="block text-[9px] text-slate-600 font-normal leading-none mt-0.5">
+                    <span className="block text-[9px] text-slate-400 font-normal leading-none mt-0.5">
                       Penuh
                     </span>
                   )}
@@ -630,7 +630,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
       {/* Nama */}
       <div className="space-y-1.5">
-        <label htmlFor="customerName" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+        <label htmlFor="customerName" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           Nama Lengkap *
         </label>
         <input
@@ -642,13 +642,13 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           placeholder="contoh: Budi Santoso"
           required
           autoComplete="name"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/50 transition-all"
+          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
         />
       </div>
 
       {/* HP */}
       <div className="space-y-1.5">
-        <label htmlFor="customerPhone" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+        <label htmlFor="customerPhone" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           Nomor HP / WhatsApp *
         </label>
         <input
@@ -660,13 +660,13 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           placeholder="contoh: 08123456789"
           required
           autoComplete="tel"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/50 transition-all"
+          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
         />
       </div>
 
       {/* Catatan */}
       <div className="space-y-1.5">
-        <label htmlFor="notes" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+        <label htmlFor="notes" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           Catatan <span className="normal-case font-normal text-slate-500">(opsional)</span>
         </label>
         <textarea
@@ -676,13 +676,13 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           onChange={handleChange}
           placeholder="Ada permintaan khusus? tulis di sini..."
           rows={3}
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/50 transition-all resize-none"
+          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
         />
       </div>
 
       {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm">
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-600 text-sm font-medium">
           {error}
         </div>
       )}
@@ -693,8 +693,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         type="submit"
         disabled={isSubmitting || (!isRental && isCheckingSlots)}
         className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${isSubmitting || (!isRental && isCheckingSlots)
-            ? "bg-blue-700/50 text-blue-300/60 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 active:scale-[0.98]"
+            ? "bg-blue-100 text-blue-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30 active:scale-[0.98]"
           }`}
       >
         {isSubmitting ? (

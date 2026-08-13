@@ -65,14 +65,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
     employeeCommission: '0'
   });
 
-  const { data: serverCategories } = useSWR<string[]>('/api/categories', fetcher);
-  
-  const dynamicCategories = serverCategories && serverCategories.length > 0 
-    ? serverCategories 
-    : ["Makanan", "Minuman", "Cemilan", "Paket", "Lainnya"];
-    
-  const categories = ["Semua", ...dynamicCategories];
-  const formCategories = dynamicCategories;
+  const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+  const categories = ["Semua", ...uniqueCategories];
 
 
   const formatNumberInput = (val: string) => {
