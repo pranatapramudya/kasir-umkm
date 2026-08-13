@@ -48,6 +48,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
         { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
         { name: kasirLabel, href: "/", icon: Store },
         { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet }, // Digunakan Wallet atau FileText
+        ...(kategoriUsaha === "F&B / Kuliner" ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
         ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }] : [])
       ]
     },
@@ -55,7 +56,6 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
       group: "MANAJEMEN BISNIS",
       items: [
         { name: productMenuLabel, href: "/admin/products", icon: PackageSearch },
-        ...(kategoriUsaha === "F&B / Kuliner" ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
         ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }] : []),
         { name: "Karyawan", href: "/admin/karyawan", icon: Users },
         { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet }

@@ -46,6 +46,9 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
     ...(isJasa
       ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }]
       : []),
+    ...(isFnB
+      ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }]
+      : []),
   ];
 
   // OWNER Main Nav Items (4 items) — category-aware
