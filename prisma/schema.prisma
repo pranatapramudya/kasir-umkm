@@ -46,6 +46,12 @@ model Transaction {
   method       String
   status       String            @default("pending")
   createdAt    DateTime          @default(now())
+  // === Rental & Travel fields ===
+  startDate    DateTime?
+  endDate      DateTime?
+  destination  String?
+  driverName   String?
+  licensePlate String?
   items        TransactionItem[]
 
   @@index([userId, createdAt])
@@ -152,6 +158,10 @@ model Booking {
   status        BookingStatus @default(PENDING)
   productId     Int?
   product       product?      @relation(fields: [productId], references: [id])
+  // === Rental & Travel fields ===
+  startDate     DateTime?
+  endDate       DateTime?
+  destination   String?
   createdAt     DateTime      @default(now())
 
   @@index([userId, createdAt])

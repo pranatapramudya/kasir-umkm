@@ -40,6 +40,8 @@ export function PegawaiClient({ initialEmployees }: { initialEmployees: Employee
       if (res?.success) {
         setSuccess("Kasir berhasil ditambahkan.");
         setTimeout(() => setIsModalOpen(false), 1500);
+      } else {
+        setError(res?.message || "Gagal menambahkan kasir.");
       }
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan saat menambahkan kasir.");
@@ -57,6 +59,8 @@ export function PegawaiClient({ initialEmployees }: { initialEmployees: Employee
       if (res?.success) {
         setIsDeleteModalOpen(false);
         setSelectedEmployee(null);
+      } else {
+        alert(res?.message || "Gagal menghapus karyawan.");
       }
     } catch (err: any) {
       alert(err.message || "Terjadi kesalahan saat menghapus karyawan.");

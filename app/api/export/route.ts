@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { isServiceBusinessCategory, isRentalTravelCategory } from "@/lib/business-category";
 import * as xlsx from "xlsx";
 
 export async function GET(req: Request) {
@@ -37,6 +38,8 @@ export async function GET(req: Request) {
     
     const storeName = tenant?.name || "Toko";
     const category = tenant?.category || "Retail";
+    const isServiceBusiness = isServiceBusinessCategory(category);
+    const isRentalTravel = isRentalTravelCategory(category);
 
     // 2. Parse Period
     const url = new URL(req.url);
@@ -67,6 +70,7 @@ export async function GET(req: Request) {
       },
       include: {
         items: true,
+        cashier: { select: { name: true } }
       },
       orderBy: {
         createdAt: "asc"
@@ -79,19 +83,17 @@ export async function GET(req: Request) {
     });
     const productMap = new Map(products.map(p => [p.id, p]));
 
-    let headers: string[] = [];
-    if (category === 'F&B / Kuliner') {
-      headers = ["No", "Tanggal", "ID Transaksi", "No. Meja", "Nama Menu", "Catatan Pesanan", "Qty", "Harga Satuan", "Total Pendapatan", "Metode Pembayaran"];
-    } else if (category === 'Jasa / Servis') {
-      headers = ["No", "Tanggal", "ID Transaksi", "Nama Layanan", "Petugas/Karyawan", "Qty", "Total Pendapatan", "Metode Pembayaran"];
-    } else {
-      headers = ["No", "Tanggal", "ID Transaksi", "Nama Produk", "SKU/Kode", "Qty Terjual", "Harga Satuan", "Total HPP", "Total Pendapatan", "Laba Bersih", "Metode Pembayaran"];
+    let headers: string[] = ["No", "Tanggal Transaksi", "Nama Pelanggan", "Subtotal", "Total", "Metode Pembayaran", "Kasir"];
+    
+    if (isServiceBusiness) {
+      headers.push("Tanggal Booking", "Waktu (Slot)");
+    } else if (isRentalTravel) {
+      headers.push("Tgl Mulai Sewa", "Tgl Selesai Sewa", "Nama Supir", "Plat Nomor", "Tujuan");
     }
 
     let formattedData: any[] = [];
 
     if (transactions.length === 0) {
-      // Zero-Data Handling: still create the headers and add 1 note row
       const emptyRow: any = {};
       headers.forEach(h => emptyRow[h] = "");
       emptyRow[headers[0]] = "Belum ada data transaksi pada periode ini";
@@ -99,53 +101,30 @@ export async function GET(req: Request) {
     } else {
       let no = 1;
       transactions.forEach((t) => {
-        t.items.forEach(item => {
-          const p = productMap.get(item.productId);
-          if (category === 'F&B / Kuliner') {
-            formattedData.push({
-              "No": no++,
-              "Tanggal": t.createdAt.toLocaleString("id-ID"),
-              "ID Transaksi": t.id,
-              "No. Meja": t.tableId || "-",
-              "Nama Menu": p?.name || "-",
-              "Catatan Pesanan": item.note || "-",
-              "Qty": item.qty,
-              "Harga Satuan": item.price,
-              "Total Pendapatan": item.qty * item.price,
-              "Metode Pembayaran": t.method
-            });
-          } else if (category === 'Jasa / Servis') {
-            formattedData.push({
-              "No": no++,
-              "Tanggal": t.createdAt.toLocaleString("id-ID"),
-              "ID Transaksi": t.id,
-              "Nama Layanan": p?.name || "-",
-              "Petugas/Karyawan": t.customerName || "-",
-              "Qty": item.qty,
-              "Total Pendapatan": item.qty * item.price,
-              "Metode Pembayaran": t.method
-            });
-          } else {
-            const hpp = p?.hpp || 0;
-            const totalHpp = hpp * item.qty;
-            const pendapatan = item.qty * item.price;
-            const labaBersih = pendapatan - totalHpp;
-            
-            formattedData.push({
-              "No": no++,
-              "Tanggal": t.createdAt.toLocaleString("id-ID"),
-              "ID Transaksi": t.id,
-              "Nama Produk": p?.name || "-",
-              "SKU/Kode": p?.kodeBarang || "-",
-              "Qty Terjual": item.qty,
-              "Harga Satuan": item.price,
-              "Total HPP": totalHpp,
-              "Total Pendapatan": pendapatan,
-              "Laba Bersih": labaBersih,
-              "Metode Pembayaran": t.method
-            });
-          }
-        });
+        const rowData: any = {
+          "No": no++,
+          "Tanggal Transaksi": t.createdAt.toLocaleString("id-ID"),
+          "Nama Pelanggan": t.customerName || "-",
+          "Subtotal": t.total - (t.discount || 0), // Assuming total in DB is after discount. Or Subtotal is just total + discount
+          "Total": t.total,
+          "Metode Pembayaran": t.method,
+          "Kasir": t.cashier?.name || "Owner/Sistem"
+        };
+
+        if (isServiceBusiness) {
+          // You might need to map from your schema for Jasa/Servis if it exists in Transaction or Booking.
+          // Assuming these are mapped to startDate/endDate if they were added to Transaction
+          rowData["Tanggal Booking"] = t.startDate ? t.startDate.toLocaleDateString("id-ID") : "-";
+          rowData["Waktu (Slot)"] = t.startDate ? t.startDate.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' }) : "-";
+        } else if (isRentalTravel) {
+          rowData["Tgl Mulai Sewa"] = t.startDate ? t.startDate.toLocaleDateString("id-ID") : "-";
+          rowData["Tgl Selesai Sewa"] = t.endDate ? t.endDate.toLocaleDateString("id-ID") : "-";
+          rowData["Nama Supir"] = t.driverName || "-";
+          rowData["Plat Nomor"] = t.licensePlate || "-";
+          rowData["Tujuan"] = t.destination || "-";
+        }
+
+        formattedData.push(rowData);
       });
     }
 

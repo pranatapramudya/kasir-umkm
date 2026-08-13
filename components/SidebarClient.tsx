@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LayoutDashboard, PackageSearch, Store, BarChart, Settings, Wallet, Users, CreditCard, CalendarCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 
 interface SidebarClientProps {
   role: string | undefined;
@@ -14,6 +15,11 @@ interface SidebarClientProps {
 
 export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUsaha }: SidebarClientProps) {
   const kategoriUsaha = rawKategoriUsaha || 'Retail';
+  const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
+  const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
+  const kasirLabel = kategoriUsaha === "F&B / Kuliner" ? "Kasir Resto" : isRentalTravel ? "Kasir Rental" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";
+  const productMenuLabel = isRentalTravel ? "Data Armada" : isServiceBusiness ? "Layanan" : "Produk";
+  const bookingMenuLabel = isRentalTravel ? "Kalender Sewa" : "Jadwal Booking";
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,16 +46,16 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
       group: "MENU UTAMA",
       items: [
         { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        { name: kategoriUsaha === "F&B / Kuliner" ? "Kasir Resto" : kategoriUsaha === "Jasa / Servis" ? "Kasir Jasa" : "Kasir POS", href: "/", icon: Store },
+        { name: kasirLabel, href: "/", icon: Store },
         { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet } // Digunakan Wallet atau FileText
       ]
     },
     {
       group: "MANAJEMEN BISNIS",
       items: [
-        { name: kategoriUsaha === "Jasa / Servis" ? "Layanan" : "Produk", href: "/admin/products", icon: PackageSearch },
+        { name: productMenuLabel, href: "/admin/products", icon: PackageSearch },
         ...(kategoriUsaha === "F&B / Kuliner" ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
-        ...(kategoriUsaha === "Jasa / Servis" ? [{ name: "Jadwal Booking", href: "/admin/booking", icon: CalendarCheck }] : []),
+        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }] : []),
         { name: "Karyawan", href: "/admin/karyawan", icon: Users },
         { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet }
       ]
@@ -58,9 +64,9 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
       group: "SISTEM & LAPORAN",
       items: [
         { name: "Analitik", href: "/admin/analytics", icon: BarChart },
-        ...(kategoriUsaha === "Jasa / Servis" ? [{ name: "Rekap Komisi", href: "/admin/rekap-komisi", icon: Wallet }] : []),
+        ...(isServiceBusiness ? [{ name: "Rekap Komisi", href: "/admin/rekap-komisi", icon: Wallet }] : []),
         { name: "Cek Langganan", href: "/admin/subscription", icon: CreditCard },
-        { name: "Pengaturan", href: "/admin/settings", icon: Settings }
+        { name: isRentalTravel ? "Informasi Toko" : "Pengaturan", href: "/admin/settings", icon: Settings }
       ]
     }
   ];

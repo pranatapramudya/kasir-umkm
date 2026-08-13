@@ -1,5 +1,7 @@
 "use client";
 
+import { isRentalTravelCategory } from "@/lib/business-category";
+
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -57,6 +59,7 @@ interface Props {
   tenantName: string;
   bookingLink: string | null;
   tenantSlug: string | null;
+  tenantCategory?: string | null;
 }
 
 interface BookingCalendarEvent extends CalendarEvent {
@@ -126,7 +129,7 @@ const STATUS_MAP: Record<
 function eventStyleGetter(event: BookingCalendarEvent) {
   const status = event.resource.status;
   const styleMap: Record<BookingStatus, React.CSSProperties> = {
-    PENDING:   { backgroundColor: "#f59e0b", color: "#fff", borderRadius: "6px", border: "none" },
+    PENDING: { backgroundColor: "#f59e0b", color: "#fff", borderRadius: "6px", border: "none" },
     COMPLETED: { backgroundColor: "#10b981", color: "#fff", borderRadius: "6px", border: "none" },
     CANCELLED: { backgroundColor: "#ef4444", color: "#fff", borderRadius: "6px", border: "none" },
   };
@@ -138,6 +141,7 @@ export default function BookingDashboardClient({
   tenantName,
   bookingLink,
   tenantSlug,
+  tenantCategory,
 }: Props) {
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
@@ -229,7 +233,7 @@ export default function BookingDashboardClient({
   // Data untuk kalender
   const calendarEvents: BookingCalendarEvent[] = bookings.map((b) => {
     const start = new Date(b.bookingDate);
-    const end   = new Date(start.getTime() + 60 * 60 * 1000); // +1 jam
+    const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 jam
     return {
       title: `${b.customerName}${b.product ? ` — ${b.product.name}` : ""}`,
       start,
@@ -243,6 +247,28 @@ export default function BookingDashboardClient({
   );
 
   const pendingCount = bookings.filter((b) => b.status === "PENDING").length;
+
+  // === RENTAL & TRAVEL: Tampilkan placeholder khusus ===
+  if (isRentalTravelCategory(tenantCategory)) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <div className="w-24 h-24 rounded-3xl bg-amber-100 border-2 border-amber-200 flex items-center justify-center mb-6">
+            <CalendarDays className="w-12 h-12 text-amber-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">Kalender Sewa Harian</h1>
+          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-4 py-1.5 mb-4">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-amber-700 text-sm font-semibold">Under Construction</span>
+          </div>
+          <p className="text-slate-500 text-sm max-w-sm">
+            Fitur kalender sewa harian khusus Rental &amp; Travel sedang dalam pengembangan.
+            Segera hadir untuk memudahkan pengelolaan armada Anda.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto">
@@ -269,11 +295,10 @@ export default function BookingDashboardClient({
             <button
               id="view-list-btn"
               onClick={() => setViewMode("list")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                viewMode === "list"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${viewMode === "list"
                   ? "bg-white text-blue-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
-              }`}
+                }`}
             >
               <LayoutList className="w-4 h-4" />
               Daftar
@@ -281,11 +306,10 @@ export default function BookingDashboardClient({
             <button
               id="view-calendar-btn"
               onClick={() => setViewMode("calendar")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                viewMode === "calendar"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${viewMode === "calendar"
                   ? "bg-white text-blue-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
-              }`}
+                }`}
             >
               <CalendarDays className="w-4 h-4" />
               Kalender
@@ -373,13 +397,13 @@ export default function BookingDashboardClient({
             style={{ height: 600 }}
             culture="id-ID"
             messages={{
-              next:     "Selanjutnya",
+              next: "Selanjutnya",
               previous: "Sebelumnya",
-              today:    "Hari Ini",
-              month:    "Bulan",
-              week:     "Minggu",
-              day:      "Hari",
-              agenda:   "Agenda",
+              today: "Hari Ini",
+              month: "Bulan",
+              week: "Minggu",
+              day: "Hari",
+              agenda: "Agenda",
               noEventsInRange: "Tidak ada booking pada periode ini.",
               showMore: (count) => `+${count} lainnya`,
             }}
@@ -403,19 +427,18 @@ export default function BookingDashboardClient({
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
-                  filter === f
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${filter === f
                     ? "bg-blue-600 text-white shadow-sm"
                     : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 {f === "ALL"
                   ? `Semua (${bookings.length})`
                   : f === "PENDING"
-                  ? `Menunggu (${bookings.filter((b) => b.status === "PENDING").length})`
-                  : f === "COMPLETED"
-                  ? `Selesai (${bookings.filter((b) => b.status === "COMPLETED").length})`
-                  : `Dibatalkan (${bookings.filter((b) => b.status === "CANCELLED").length})`}
+                    ? `Menunggu (${bookings.filter((b) => b.status === "PENDING").length})`
+                    : f === "COMPLETED"
+                      ? `Selesai (${bookings.filter((b) => b.status === "COMPLETED").length})`
+                      : `Dibatalkan (${bookings.filter((b) => b.status === "CANCELLED").length})`}
               </button>
             ))}
           </div>
@@ -440,11 +463,10 @@ export default function BookingDashboardClient({
                 return (
                   <div
                     key={booking.id}
-                    className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${
-                      isPending
+                    className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${isPending
                         ? "border-amber-200 shadow-amber-100/50"
                         : "border-slate-200"
-                    }`}
+                      }`}
                   >
                     <div className="p-4">
                       {/* Top row */}
@@ -598,9 +620,8 @@ export default function BookingDashboardClient({
               {/* Status Badge */}
               <div className="flex items-center gap-2">
                 <span
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                    STATUS_MAP[selectedBooking.status].color
-                  } ${STATUS_MAP[selectedBooking.status].bg}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${STATUS_MAP[selectedBooking.status].color
+                    } ${STATUS_MAP[selectedBooking.status].bg}`}
                 >
                   {STATUS_MAP[selectedBooking.status].icon}
                   {STATUS_MAP[selectedBooking.status].label}

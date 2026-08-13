@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { isServiceBusinessCategory } from '@/lib/business-category';
 
 // [PUT] Memperbarui produk (Edit)
 export async function PUT(
@@ -32,7 +33,7 @@ export async function PUT(
     const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission } = body;
 
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
-    const isService = tenant?.category === 'Jasa / Servis';
+    const isService = isServiceBusinessCategory(tenant?.category);
 
     // 2 & 3. Eksekusi Atomic UpdateMany (Menghindari TOCTOU)
     const result = await prisma.product.updateMany({

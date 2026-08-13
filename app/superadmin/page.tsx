@@ -31,6 +31,8 @@ export default async function SuperAdminPage(props: {
       whereClause = { category: "Retail / Toko Kelontong" };
     } else if (category === "Jasa/Servis") {
       whereClause = { category: "Jasa / Servis" };
+    } else if (category === "Rental & Travel") {
+      whereClause = { category: "Rental & Travel" };
     } else {
       whereClause = { category: { contains: category } };
     }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { isServiceBusinessCategory } from '@/lib/business-category';
 
 export const dynamic = 'force-dynamic'; 
 
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
 
     // 2.5 Cek Kategori Usaha untuk set isService
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
-    const isService = tenant?.category === 'Jasa / Servis';
+    const isService = isServiceBusinessCategory(tenant?.category);
 
     // 3. Simpan ke database dengan menempelkan userId dari Clerk
     const newProduct = await prisma.product.create({

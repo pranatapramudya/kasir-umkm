@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import { PackageSearch, Plus, Edit2, Trash2, Loader2, PackageX, PackagePlus, ImagePlus, X, Search, Filter, Check } from 'lucide-react';
 import { Pagination } from '@/components/Pagination';
+import { isServiceBusinessCategory } from '@/lib/business-category';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ const fetcher = async (url: string) => {
 };
 
 export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsaha: string }) {
-  const isJasa = kategoriUsaha === 'Jasa / Servis';
+  const isJasa = isServiceBusinessCategory(kategoriUsaha);
   const isFNB = kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

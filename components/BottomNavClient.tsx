@@ -18,6 +18,7 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 
 interface BottomNavClientProps {
   kategoriUsaha?: string;
@@ -29,12 +30,17 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const role = user?.publicMetadata?.role;
-  const isJasa = (rawKategori ?? "Retail") === "Jasa / Servis";
-  const isFnB = (rawKategori ?? "Retail") === "F&B / Kuliner";
+  const kategoriUsaha = rawKategori ?? "Retail";
+  const isJasa = isServiceBusinessCategory(kategoriUsaha);
+  const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
+  const isFnB = kategoriUsaha === "F&B / Kuliner";
+  const kasirLabel = isRentalTravel ? "Kasir Rental" : "Kasir";
+  const productMenuLabel = isRentalTravel ? "Data Armada" : isJasa ? "Layanan" : "Produk";
+  const bookingMenuLabel = isRentalTravel ? "Kalender Sewa" : "Jadwal Booking";
 
   // CASHIER ONLY
   const cashierNavItems = [
-    { name: "Kasir", href: "/", icon: ShoppingCart },
+    { name: kasirLabel, href: "/", icon: ShoppingCart },
     { name: "Laporan", href: "/laporan-kasir", icon: FileText },
   ];
 
@@ -43,7 +49,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Kasir", href: "/", icon: ShoppingCart },
     {
-      name: isJasa ? "Layanan" : "Produk",
+      name: productMenuLabel,
       href: "/admin/products",
       icon: PackageSearch,
     },
@@ -54,12 +60,12 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const ownerMoreItems = [
     { name: "Laporan", href: "/laporan-kasir", icon: FileText },
     ...(isJasa
-      ? [{ name: "Jadwal Booking", href: "/admin/booking", icon: CalendarCheck }]
+      ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }]
       : []),
     { name: "Karyawan", href: "/admin/karyawan", icon: Users },
     { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet },
     { name: "Langganan", href: "/admin/subscription", icon: CreditCard },
-    { name: "Pengaturan", href: "/admin/settings", icon: Settings },
+    { name: isRentalTravel ? "Informasi Toko" : "Pengaturan", href: "/admin/settings", icon: Settings },
   ];
 
   const mainNavItems = role === "CASHIER" ? cashierNavItems : ownerMainNavItems;

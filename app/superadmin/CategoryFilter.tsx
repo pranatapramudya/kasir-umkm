@@ -8,6 +8,7 @@ const categories = [
   { value: "F&B", label: "F&B" },
   { value: "Retail", label: "Retail" },
   { value: "Jasa/Servis", label: "Jasa / Servis" },
+  { value: "Rental & Travel", label: "Rental & Travel" },
 ];
 
 export default function CategoryFilter() {

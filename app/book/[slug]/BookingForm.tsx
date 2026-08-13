@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { isRentalTravelCategory } from "@/lib/business-category";
 import html2canvas from "html2canvas";
 
 interface Service {
@@ -13,6 +14,7 @@ interface BookingFormProps {
   slug: string;
   tenantName: string;
   services: Service[];
+  tenantCategory?: string | null;
 }
 
 type FormStep = "form" | "success";
@@ -40,7 +42,7 @@ function getTodayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-export default function BookingForm({ slug, tenantName, services }: BookingFormProps) {
+export default function BookingForm({ slug, tenantName, services, tenantCategory }: BookingFormProps) {
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const todayISO = useMemo(() => getTodayISO(), []);
 
@@ -78,6 +80,19 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
   }
 
   function handleShareWA() {
+    if (isRental) {
+      // Teks WA khusus Rental
+      const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      const endLabel   = new Date(rentalData.endDate).toLocaleDateString("id-ID",   { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      const serviceText = selectedService ? ` untuk *${selectedService.name}*` : "";
+      const text =
+        `Halo, saya *${formData.customerName}*. Ini adalah bukti booking rental saya di *${tenantName}*${serviceText}.\n` +
+        `Tujuan: *${rentalData.destination || "-"}*\n` +
+        `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n` +
+        `Mohon konfirmasinya, terima kasih 🙏`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+      return;
+    }
     const dateLabel = new Date(
       `${formData.bookingDate}T${formData.bookingTime}`
     ).toLocaleDateString("id-ID", {
@@ -93,6 +108,8 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
   }
 
 
+  const isRental = isRentalTravelCategory(tenantCategory);
+
   const [formData, setFormData] = useState({
     productId: services[0]?.id?.toString() ?? "",
     bookingDate: todayISO,
@@ -100,6 +117,13 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
     customerName: "",
     customerPhone: "",
     notes: "",
+  });
+
+  // State khusus Rental & Travel
+  const [rentalData, setRentalData] = useState({
+    startDate: todayISO,
+    endDate: todayISO,
+    destination: "",
   });
 
   const selectedService = services.find(
@@ -164,21 +188,39 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
       setError("Nomor HP wajib diisi.");
       return;
     }
-    if (!formData.bookingDate) {
-      setError("Tanggal kunjungan wajib dipilih.");
-      return;
-    }
-    // Guard: chosen time might have been taken between page load and submit
-    if (bookedSlots.includes(formData.bookingTime)) {
-      setError("Jam yang Anda pilih sudah penuh. Pilih jam lain.");
-      return;
+
+    // === Validasi khusus Rental ===
+    if (isRental) {
+      if (!rentalData.startDate) {
+        setError("Tanggal mulai sewa wajib dipilih.");
+        return;
+      }
+      if (!rentalData.endDate) {
+        setError("Tanggal selesai sewa wajib dipilih.");
+        return;
+      }
+      if (rentalData.endDate < rentalData.startDate) {
+        setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+        return;
+      }
+    } else {
+      if (!formData.bookingDate) {
+        setError("Tanggal kunjungan wajib dipilih.");
+        return;
+      }
+      // Guard: chosen time might have been taken between page load and submit
+      if (bookedSlots.includes(formData.bookingTime)) {
+        setError("Jam yang Anda pilih sudah penuh. Pilih jam lain.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
     try {
-      const bookingDateTime = new Date(
-        `${formData.bookingDate}T${formData.bookingTime}:00`
-      );
+      // Untuk Rental: gunakan startDate sebagai bookingDate (wajib di schema)
+      const bookingDateTime = isRental
+        ? new Date(`${rentalData.startDate}T08:00:00`)
+        : new Date(`${formData.bookingDate}T${formData.bookingTime}:00`);
 
       const res = await fetch("/api/booking", {
         method: "POST",
@@ -190,6 +232,10 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
           bookingDate: bookingDateTime.toISOString(),
           notes: formData.notes.trim() || null,
           productId: formData.productId ? Number(formData.productId) : null,
+          // Field rental (null jika bukan Rental)
+          startDate: isRental ? new Date(`${rentalData.startDate}T00:00:00`).toISOString() : null,
+          endDate:   isRental ? new Date(`${rentalData.endDate}T23:59:59`).toISOString()   : null,
+          destination: isRental ? (rentalData.destination.trim() || null) : null,
         }),
       });
 
@@ -197,8 +243,7 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
 
       if (!res.ok) {
         setError(data.error ?? "Terjadi kesalahan. Coba lagi.");
-        // Refresh slots in case the slot was just taken
-        checkSlots(formData.bookingDate);
+        if (!isRental) checkSlots(formData.bookingDate);
         return;
       }
 
@@ -274,19 +319,45 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
                 <span className="text-white font-semibold text-xs">{selectedService.name}</span>
               </div>
             )}
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400 text-xs">Tanggal</span>
-              <span className="text-white font-semibold text-xs">
-                {new Date(`${formData.bookingDate}T${formData.bookingTime}`).toLocaleDateString(
-                  "id-ID",
-                  { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+            {/* === Baris khusus Rental === */}
+            {isRental ? (
+              <>
+                {rentalData.destination && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-xs">Tujuan</span>
+                    <span className="text-white font-semibold text-xs">{rentalData.destination}</span>
+                  </div>
                 )}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400 text-xs">Jam</span>
-              <span className="text-white font-semibold text-xs">{formData.bookingTime} WIB</span>
-            </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-xs">Mulai Sewa</span>
+                  <span className="text-white font-semibold text-xs">
+                    {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-xs">Selesai Sewa</span>
+                  <span className="text-white font-semibold text-xs">
+                    {new Date(rentalData.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-xs">Tanggal</span>
+                  <span className="text-white font-semibold text-xs">
+                    {new Date(`${formData.bookingDate}T${formData.bookingTime}`).toLocaleDateString(
+                      "id-ID",
+                      { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-xs">Jam</span>
+                  <span className="text-white font-semibold text-xs">{formData.bookingTime} WIB</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Barcode-style bottom strip */}
@@ -392,80 +463,170 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
         </div>
       )}
 
-      {/* Tanggal */}
-      <div className="space-y-1.5">
-        <label htmlFor="bookingDate" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-          Tanggal Kunjungan *
-        </label>
-        <input
-          id="bookingDate"
-          type="date"
-          name="bookingDate"
-          value={formData.bookingDate}
-          min={todayISO}
-          onChange={handleChange}
-          required
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/50 transition-all [color-scheme:dark]"
-        />
-      </div>
-
-      {/* Jam — dengan anti-double booking */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-            Jam Kunjungan *
+      {/* Tanggal Kunjungan — hanya tampil untuk non-Rental */}
+      {!isRental && (
+        <div className="space-y-1.5">
+          <label htmlFor="bookingDate" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            Tanggal Kunjungan *
           </label>
-          {isCheckingSlots && (
-            <span className="flex items-center gap-1.5 text-xs text-blue-400">
-              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-              </svg>
-              Mengecek ketersediaan...
-            </span>
-          )}
+          <input
+            id="bookingDate"
+            type="date"
+            name="bookingDate"
+            value={formData.bookingDate}
+            min={todayISO}
+            onChange={handleChange}
+            required
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/50 transition-all [color-scheme:dark]"
+          />
         </div>
+      )}
 
-        {/* Grid tombol jam */}
-        <div className="grid grid-cols-4 gap-2">
-          {timeSlots.map((slot) => {
-            const isBooked = bookedSlots.includes(slot);
-            const isSelected = formData.bookingTime === slot;
-            return (
-              <button
-                key={slot}
-                type="button"
-                disabled={isBooked || isCheckingSlots}
-                onClick={() => {
-                  if (!isBooked) {
-                    setFormData((prev) => ({ ...prev, bookingTime: slot }));
-                    setError(null);
-                  }
+      {/* Jam Kunjungan — hanya untuk non-Rental */}
+      {isRental ? (
+        /* ===== RENTAL: Date Range + Tujuan ===== */
+        <div className="space-y-4">
+          {/* Banner identitas rental */}
+          <div className="bg-blue-50 text-blue-800 border border-blue-200 p-3 rounded-lg text-sm font-semibold text-center flex items-center justify-center gap-2">
+            <span className="text-lg">🚗</span>
+            <span>INFORMASI SEWA KENDARAAN</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* Tanggal Mulai */}
+            <div className="space-y-1.5">
+              <label htmlFor="rental-startDate" className="text-[10px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Mulai Sewa *
+              </label>
+              <input
+                id="rental-startDate"
+                type="date"
+                value={rentalData.startDate}
+                min={todayISO}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setRentalData((prev) => ({
+                    ...prev,
+                    startDate: val,
+                    // Jika endDate < startDate baru, sesuaikan
+                    endDate: prev.endDate < val ? val : prev.endDate,
+                  }));
+                  setError(null);
                 }}
-                className={`
-                  relative py-2 px-1 rounded-xl text-xs font-semibold transition-all duration-150
-                  ${isBooked
-                    ? "bg-slate-800/40 text-slate-600 border border-slate-700/50 cursor-not-allowed"
-                    : isSelected
-                      ? "bg-blue-600 text-white border border-blue-500 shadow-lg shadow-blue-600/30 scale-[1.04]"
-                      : "bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 hover:text-white active:scale-95"
-                  }
-                `}
-              >
-                {slot}
-                {isBooked && (
-                  <span className="block text-[9px] text-slate-600 font-normal leading-none mt-0.5">
-                    Penuh
-                  </span>
-                )}
-              </button>
-            );
-          })}
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all [color-scheme:dark]"
+              />
+            </div>
+
+            {/* Tanggal Selesai */}
+            <div className="space-y-1.5">
+              <label htmlFor="rental-endDate" className="text-[10px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Selesai Sewa *
+              </label>
+              <input
+                id="rental-endDate"
+                type="date"
+                value={rentalData.endDate}
+                min={rentalData.startDate || todayISO}
+                onChange={(e) => {
+                  setRentalData((prev) => ({ ...prev, endDate: e.target.value }));
+                  setError(null);
+                }}
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-white text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all [color-scheme:dark]"
+              />
+            </div>
+          </div>
+          
+          {/* Tampilkan durasi jika ada */}
+          {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
+            <p className="text-amber-300/70 text-xs">
+              Durasi sewa:{" "}
+              {Math.round(
+                (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
+                  (1000 * 60 * 60 * 24)
+              ) + 1}{" "}
+              hari
+            </p>
+          )}
+
+          {/* Tujuan */}
+          <div className="space-y-1.5">
+            <label htmlFor="rental-destination" className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Tujuan Keberangkatan <span className="normal-case font-normal text-slate-500">(opsional)</span>
+            </label>
+            <input
+              id="rental-destination"
+              type="text"
+              value={rentalData.destination}
+              onChange={(e) => {
+                setRentalData((prev) => ({ ...prev, destination: e.target.value }));
+                setError(null);
+              }}
+              placeholder="contoh: Bandara Ngurah Rai, Kuta Bali..."
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all"
+            />
+          </div>
         </div>
-        <p className="text-slate-500 text-xs">
-          Jam berwarna abu-abu sudah terisi. Pilih jam yang tersedia.
-        </p>
-      </div>
+      ) : (
+        /* ===== NON-RENTAL: Grid slot waktu 30 menit ===== */
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Jam Kunjungan *
+            </label>
+            {isCheckingSlots && (
+              <span className="flex items-center gap-1.5 text-xs text-blue-400">
+                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Mengecek ketersediaan...
+              </span>
+            )}
+          </div>
+
+          {/* Grid tombol jam */}
+          <div className="grid grid-cols-4 gap-2">
+            {timeSlots.map((slot) => {
+              const isBooked = bookedSlots.includes(slot);
+              const isSelected = formData.bookingTime === slot;
+              return (
+                <button
+                  key={slot}
+                  type="button"
+                  disabled={isBooked || isCheckingSlots}
+                  onClick={() => {
+                    if (!isBooked) {
+                      setFormData((prev) => ({ ...prev, bookingTime: slot }));
+                      setError(null);
+                    }
+                  }}
+                  className={`
+                    relative py-2 px-1 rounded-xl text-xs font-semibold transition-all duration-150
+                    ${isBooked
+                      ? "bg-slate-800/40 text-slate-600 border border-slate-700/50 cursor-not-allowed"
+                      : isSelected
+                        ? "bg-blue-600 text-white border border-blue-500 shadow-lg shadow-blue-600/30 scale-[1.04]"
+                        : "bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 hover:text-white active:scale-95"
+                    }
+                  `}
+                >
+                  {slot}
+                  {isBooked && (
+                    <span className="block text-[9px] text-slate-600 font-normal leading-none mt-0.5">
+                      Penuh
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-slate-500 text-xs">
+            Jam berwarna abu-abu sudah terisi. Pilih jam yang tersedia.
+          </p>
+        </div>
+      )}
 
       {/* Nama */}
       <div className="space-y-1.5">
@@ -530,8 +691,8 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
       <button
         id="submit-booking-btn"
         type="submit"
-        disabled={isSubmitting || isCheckingSlots}
-        className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${isSubmitting || isCheckingSlots
+        disabled={isSubmitting || (!isRental && isCheckingSlots)}
+        className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${isSubmitting || (!isRental && isCheckingSlots)
             ? "bg-blue-700/50 text-blue-300/60 cursor-not-allowed"
             : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 active:scale-[0.98]"
           }`}
@@ -542,14 +703,14 @@ export default function BookingForm({ slug, tenantName, services }: BookingFormP
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
-            Menyimpan Jadwal...
+            Menyimpan...
           </>
         ) : (
           <>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            Buat Jadwal Sekarang
+            {isRental ? "Pesan Rental Sekarang" : "Buat Jadwal Sekarang"}
           </>
         )}
       </button>

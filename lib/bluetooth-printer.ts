@@ -22,6 +22,12 @@ export interface ReceiptData {
   transactionId: string;
   customerName: string;
   tableId?: string;
+  // Rental fields
+  destination?: string;
+  startDate?: string;
+  endDate?: string;
+  driverName?: string;
+  licensePlate?: string;
   items: ReceiptItem[];
   total: number;
   method: string;
@@ -175,6 +181,19 @@ export function buildReceiptBytes(data: ReceiptData, paperWidth = 32): Uint8Arra
   push(encodeText(`Pelanggan: ${data.customerName}`), nl);
   if (data.tableId) {
     push(encodeText(`No. Meja : ${data.tableId}`), nl);
+  }
+  // Data Rental
+  if (data.destination) {
+    push(encodeText(`Tujuan   : ${data.destination.slice(0, paperWidth - 11)}`), nl);
+  }
+  if (data.startDate || data.endDate) {
+    push(encodeText(`Tgl Sewa : ${data.startDate ?? '?'} - ${data.endDate ?? '?'}`.slice(0, paperWidth)), nl);
+  }
+  if (data.driverName) {
+    push(encodeText(`Supir    : ${data.driverName.slice(0, paperWidth - 11)}`), nl);
+  }
+  if (data.licensePlate) {
+    push(encodeText(`Plat Kend: ${data.licensePlate.slice(0, paperWidth - 11)}`), nl);
   }
   push(encodeText(`ID Trx   : ${data.transactionId}`), nl);
   push(encodeText(dashedLine(paperWidth)), nl);

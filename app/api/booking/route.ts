@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { slug, customerName, customerPhone, bookingDate, notes, productId } =
+    const { slug, customerName, customerPhone, bookingDate, notes, productId, startDate, endDate, destination } =
       body;
 
     // 1. Validasi kelengkapan data
@@ -67,13 +67,17 @@ export async function POST(request: Request) {
     // 5. Simpan booking dengan userId dari tenant (bukan dari slug langsung)
     const booking = await prisma.booking.create({
       data: {
-        userId: tenant.userId, // ← Multi-Tenant Isolation: dikunci ke owner toko
+        userId: tenant.userId,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         bookingDate: requestedDateTime,
         notes: notes?.trim() || null,
         productId: productId ? Number(productId) : null,
         status: "PENDING",
+        // Field rental (null untuk kategori non-Rental)
+        startDate:   startDate   ? new Date(startDate)   : null,
+        endDate:     endDate     ? new Date(endDate)     : null,
+        destination: destination?.trim() || null,
       },
     });
 

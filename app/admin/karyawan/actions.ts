@@ -8,12 +8,12 @@ export async function createCashier(formData: FormData) {
   const { userId, sessionClaims } = await auth();
 
   if (!userId) {
-    throw new Error("Unauthorized");
+    return { success: false, message: "Unauthorized" };
   }
 
   const role = sessionClaims?.role || (sessionClaims?.metadata as any)?.role;
   if (role === "CASHIER") {
-    throw new Error("Akses ditolak: Hanya Owner yang dapat membuat akun kasir.");
+    return { success: false, message: "Akses ditolak: Hanya Owner yang dapat membuat akun kasir." };
   }
 
   const name = formData.get("name") as string;
@@ -21,11 +21,11 @@ export async function createCashier(formData: FormData) {
   const password = formData.get("password") as string;
 
   if (!name || !email || !password) {
-    throw new Error("Semua kolom wajib diisi.");
+    return { success: false, message: "Semua kolom wajib diisi." };
   }
 
   if (password.length < 8) {
-    throw new Error("Password minimal 8 karakter.");
+    return { success: false, message: "Password minimal 8 karakter." };
   }
 
   // Cek batas maksimum kasir (MVP: 2)
@@ -34,7 +34,7 @@ export async function createCashier(formData: FormData) {
   });
 
   if (currentCashiers >= 2) {
-    throw new Error("Batas maksimum kasir tercapai (2 Kasir). Upgrade ke Pro untuk menambah lebih banyak.");
+    return { success: false, message: "Batas maksimum kasir tercapai (2 Kasir). Upgrade ke Pro untuk menambah lebih banyak." };
   }
 
   let newClerkUser: any = null;
@@ -81,7 +81,7 @@ export async function createCashier(formData: FormData) {
     }
 
     const errorMessage = error.errors?.[0]?.longMessage || error.message || "Gagal menyimpan data pegawai.";
-    throw new Error(errorMessage);
+    return { success: false, message: errorMessage };
   }
 }
 
@@ -89,12 +89,12 @@ export async function deleteEmployee(employeeId: string, clerkUserId: string) {
   const { userId, sessionClaims } = await auth();
 
   if (!userId) {
-    throw new Error("Unauthorized");
+    return { success: false, message: "Unauthorized" };
   }
 
   const role = sessionClaims?.role || (sessionClaims?.metadata as any)?.role;
   if (role === "CASHIER") {
-    throw new Error("Akses ditolak: Hanya Owner yang dapat menghapus akun kasir.");
+    return { success: false, message: "Akses ditolak: Hanya Owner yang dapat menghapus akun kasir." };
   }
 
   const client = await clerkClient();
@@ -115,6 +115,6 @@ export async function deleteEmployee(employeeId: string, clerkUserId: string) {
     return { success: true };
   } catch (error: any) {
     console.error("Gagal menghapus kasir:", error);
-    throw new Error(error.message || "Terjadi kesalahan saat menghapus karyawan.");
+    return { success: false, message: error.message || "Terjadi kesalahan saat menghapus karyawan." };
   }
 }

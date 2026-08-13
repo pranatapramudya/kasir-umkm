@@ -40,7 +40,29 @@ export async function POST(request: Request) {
     });
     const productMap = new Map(productsInfo.map(p => [p.id, p.employeeCommission || 0]));
 
-    // 1. Eksekusi Prisma Transaction (Atomic)
+    // 1. Validasi cashierId (Mencegah Foreign Key Constraint Error)
+    let validCashierId = null;
+    if (body.cashierId) {
+      try {
+        const emp = await prisma.employee.findFirst({
+          where: {
+            OR: [
+              { id: body.cashierId },
+              { clerkUserId: body.cashierId }
+            ]
+          }
+        });
+        if (emp) {
+          validCashierId = emp.id;
+        } else {
+          console.warn(`[WARNING] cashierId ${body.cashierId} tidak ditemukan di tabel Employee. Menggunakan null.`);
+        }
+      } catch (err) {
+        console.error("Gagal memvalidasi cashierId:", err);
+      }
+    }
+
+    // 2. Eksekusi Prisma Transaction (Atomic)
     const result = await prisma.$transaction(async (tx) => {
 
       const newTransaction = await tx.transaction.create({
@@ -52,7 +74,7 @@ export async function POST(request: Request) {
           tableId: body.tableId || null,
           total: rawTotal,
           discount: rawDiscount,
-          cashierId: body.cashierId || null,
+          cashierId: validCashierId,
           method: body.method,
           status: 'completed', // langsung completed untuk versi POS ini
           items: {

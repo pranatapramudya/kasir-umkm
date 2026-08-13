@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { getAnalyticsData } from "./actions";
 import Link from "next/link";
+import { isServiceBusinessCategory } from "@/lib/business-category";
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from "recharts";
@@ -98,6 +99,7 @@ export default function AnalyticsPage() {
   }
   
   const hasAccess = isPro || isTrialActive;
+  const isServiceBusiness = isServiceBusinessCategory(data?.category);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
@@ -192,8 +194,8 @@ export default function AnalyticsPage() {
                   <BarChart2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 leading-tight mb-1">{data?.category === 'Jasa / Servis' ? 'Analitik Layanan' : 'Analitik Produk'}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 pr-2">{data?.category === 'Jasa / Servis' ? 'Identifikasi layanan paling diminati.' : 'Identifikasi performa produk.'}</p>
+                  <h3 className="font-bold text-slate-800 leading-tight mb-1">{isServiceBusiness ? 'Analitik Layanan' : 'Analitik Produk'}</h3>
+                  <p className="text-xs text-slate-500 line-clamp-2 pr-2">{isServiceBusiness ? 'Identifikasi layanan paling diminati.' : 'Identifikasi performa produk.'}</p>
                 </div>
               </div>
               <div className="relative mt-1">
@@ -275,7 +277,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* 3. Peringatan Stok Cerdas */}
-        {data?.category !== 'Jasa / Servis' && (
+        {!isServiceBusiness && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group">
           {!hasAccess && <LockOverlay />}
           <div className={hasAccess ? "transition-opacity duration-300 h-full flex flex-col" : "opacity-40 h-full flex flex-col"}>

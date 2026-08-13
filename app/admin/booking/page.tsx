@@ -64,6 +64,7 @@ export default async function BookingDashboardPage() {
       tenantName={tenant.name}
       bookingLink={bookingLink}
       tenantSlug={tenantSlug}
+      tenantCategory={tenant.category}
     />
   );
 }

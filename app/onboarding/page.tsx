@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { completeOnboarding, selectSubscriptionPackage } from "./actions";
-import { Store, Check, Coffee, ShoppingBag, Wrench, MoreHorizontal } from "lucide-react";
+import { Store, Check, Coffee, ShoppingBag, Wrench, MoreHorizontal, CarFront } from "lucide-react";
 import { useEffect, useState, Suspense } from "react";
 
 import PricingSection from '@/components/PricingSection';
@@ -125,12 +125,13 @@ export default function OnboardingPage() {
                   Kategori Usaha
                 </label>
                 <input type="hidden" name="category" value={selectedCategory} />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
-                    { id: "F&B / Kuliner", label: "F&B / Kuliner", icon: <Coffee className="w-5 h-5 mb-2" /> },
-                    { id: "Retail / Toko Kelontong", label: "Retail", icon: <ShoppingBag className="w-5 h-5 mb-2" /> },
-                    { id: "Jasa / Servis", label: "Jasa / Servis", icon: <Wrench className="w-5 h-5 mb-2" /> },
-                    { id: "Lainnya", label: "Lainnya", icon: <MoreHorizontal className="w-5 h-5 mb-2" /> },
+                    { id: "F&B / Kuliner", label: "F&B / Kuliner", description: "", icon: <Coffee className="w-5 h-5 mb-2" /> },
+                    { id: "Retail / Toko Kelontong", label: "Retail", description: "", icon: <ShoppingBag className="w-5 h-5 mb-2" /> },
+                    { id: "Jasa / Servis", label: "Jasa / Servis", description: "", icon: <Wrench className="w-5 h-5 mb-2" /> },
+                    { id: "Rental & Travel", label: "Rental & Travel", description: "Sewa Mobil/Bus", icon: <CarFront className="w-5 h-5 mb-2" /> },
+                    { id: "Lainnya", label: "Lainnya", description: "", icon: <MoreHorizontal className="w-5 h-5 mb-2" /> },
                   ].map((cat) => (
                     <div
                       key={cat.id}
@@ -144,6 +145,9 @@ export default function OnboardingPage() {
                         {cat.icon}
                       </div>
                       <span className="text-sm font-medium">{cat.label}</span>
+                      {cat.description && (
+                        <span className="mt-0.5 text-xs text-slate-500">{cat.description}</span>
+                      )}
                     </div>
                   ))}
                 </div>
