@@ -34,20 +34,21 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
   const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
   const isFnB = kategoriUsaha === "F&B / Kuliner";
-  const kasirLabel = isRentalTravel ? "Kasir Rental" : "Kasir";
+  const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Kasir Rental" : isJasa ? "Kasir Jasa" : "Kasir POS";
   const productMenuLabel = isRentalTravel ? "Data Armada" : isJasa ? "Layanan" : "Produk";
   const bookingMenuLabel = isRentalTravel ? "Kalender Sewa" : "Jadwal Booking";
 
   // CASHIER ONLY
   const cashierNavItems = [
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: kasirLabel, href: "/", icon: ShoppingCart },
-    { name: "Laporan", href: "/laporan-kasir", icon: FileText },
+    { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
   ];
 
   // OWNER Main Nav Items (4 items) — category-aware
   const ownerMainNavItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Kasir", href: "/", icon: ShoppingCart },
+    { name: kasirLabel, href: "/", icon: ShoppingCart },
     {
       name: productMenuLabel,
       href: "/admin/products",
@@ -58,7 +59,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
 
   // OWNER More Drawer Items — category-aware
   const ownerMoreItems = [
-    { name: "Laporan", href: "/laporan-kasir", icon: FileText },
+    { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
     ...(isJasa
       ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }]
       : []),
