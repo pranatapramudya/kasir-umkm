@@ -43,6 +43,9 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: kasirLabel, href: "/", icon: ShoppingCart },
     { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
+    ...(isJasa
+      ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }]
+      : []),
   ];
 
   // OWNER Main Nav Items (4 items) — category-aware

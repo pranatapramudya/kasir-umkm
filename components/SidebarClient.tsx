@@ -47,7 +47,8 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
       items: [
         { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
         { name: kasirLabel, href: "/", icon: Store },
-        { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet } // Digunakan Wallet atau FileText
+        { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet }, // Digunakan Wallet atau FileText
+        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }] : [])
       ]
     },
     {
