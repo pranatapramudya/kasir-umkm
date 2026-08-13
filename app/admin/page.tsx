@@ -14,7 +14,7 @@ export default function AdminDashboardPage() {
   const { user } = useUser();
   const role = user?.publicMetadata?.role;
 
-  const [dateFilter, setDateFilter] = useState('bulan_ini');
+  const [dateFilter, setDateFilter] = useState(role === 'CASHIER' ? 'hari_ini' : 'bulan_ini');
   const [customDate, setCustomDate] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
