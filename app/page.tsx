@@ -8,7 +8,9 @@ import Link from 'next/link';
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Store, BarChart3, Receipt, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
-import { MiniChart } from '@/components/MiniChart';
+import nextDynamic from 'next/dynamic';
+
+const MiniChart = nextDynamic(() => import('@/components/MiniChart').then(mod => mod.MiniChart));
 
 export const dynamic = 'force-dynamic';
 

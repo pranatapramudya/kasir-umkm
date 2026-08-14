@@ -15,6 +15,15 @@ import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
 import { printBluetoothReceipt, isBluetoothSupported } from '@/lib/bluetooth-printer';
 import { isRentalTravelCategory } from '@/lib/business-category';
+import { humanizeError } from '@/lib/error-mapper';
+import nextDynamic from 'next/dynamic';
+
+const PrinterHelpModal = nextDynamic(() => import('@/components/PrinterHelpModal'), {
+  ssr: false,
+});
+const FnbModifierModal = nextDynamic(() => import('@/components/FnbModifierModal'), {
+  ssr: false,
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -94,6 +103,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // State Edukasi & Modifiers
+  const [isPrinterHelpOpen, setIsPrinterHelpOpen] = useState(false);
+  const [fnbSelectedProduct, setFnbSelectedProduct] = useState<Product | null>(null);
+  const [fnbModifierNote, setFnbModifierNote] = useState('');
+
   // State Rental & Travel
   const [rentalInfo, setRentalInfo] = useState({
     driverName: '',
@@ -171,7 +185,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     return product.stock - qtyInCart;
   };
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, note?: string) => {
     const remaining = getRemainingStock(product);
     if (remaining <= 0) {
       toast.error(`Stok ${product.name} telah habis!`);
@@ -180,16 +194,34 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
     setCart((prev) => {
       if (isJasa) {
-        return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1 }];
+        return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1, note }];
       }
 
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+      if (isFNB && note) {
+        return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1, note }];
       }
-      return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1 }];
+
+      const existing = prev.find((item) => item.id === product.id && !item.note);
+      if (existing) {
+        return prev.map((item) => item.id === product.id && !item.note ? { ...item, qty: item.qty + 1 } : item);
+      }
+      return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1, note }];
     });
     toast.success(`${product.name} ditambahkan ke keranjang!`);
+  };
+
+  const openFnbModal = (product: Product) => {
+    setFnbSelectedProduct(product);
+    setFnbModifierNote('');
+  };
+
+  const submitFnbModifier = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (fnbSelectedProduct) {
+      addToCart(fnbSelectedProduct, fnbModifierNote.trim());
+      setFnbSelectedProduct(null);
+      setFnbModifierNote('');
+    }
   };
 
   const updateQty = (cartItemId: string, delta: number) => {
@@ -356,7 +388,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         setIsModalOpen(true);
         toast.success("Mode Offline: Transaksi disimpan. Akan disinkronisasi otomatis saat online.");
       } else {
-        toast.error(err.message || "Terjadi kesalahan saat memproses transaksi");
+        toast.error(humanizeError(err));
         console.error("Checkout Error:", err);
       }
     } finally {
@@ -995,7 +1027,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     return (
                       <div
                         key={product.id}
-                        onClick={() => !isOutOfStock && addToCart(product)}
+                        onClick={() => !isOutOfStock && (isFNB ? openFnbModal(product) : addToCart(product))}
                         className={`group relative rounded-xl border p-3 flex flex-col transition-all duration-200 ${isOutOfStock ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90' : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500'}`}
                       >
                         {isOutOfStock && (
@@ -1081,13 +1113,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </button>
                 {/* Tombol Bluetooth Printer */}
                 {isBluetoothSupported() ? (
-                  <button
-                    id="bluetooth-print-btn"
-                    onClick={handleBluetoothPrint}
-                    className="w-full py-3 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
-                  >
-                    🖨️ Cetak Struk (Bluetooth)
-                  </button>
+                  <div className="space-y-1">
+                    <button
+                      id="bluetooth-print-btn"
+                      onClick={handleBluetoothPrint}
+                      className="w-full py-3 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                      🖨️ Cetak Struk (Bluetooth)
+                    </button>
+                    <button onClick={() => setIsPrinterHelpOpen(true)} className="text-xs text-blue-600 font-medium hover:underline w-full text-center py-1">
+                      Bingung Cara Print? Klik di sini
+                    </button>
+                  </div>
                 ) : (
                   <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                     ⚠️ Browser Anda tidak mendukung cetak via Bluetooth.
@@ -1246,7 +1283,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </>
         )}
       </div>
+      {/* Printer Help Modal */}
+      <PrinterHelpModal isOpen={isPrinterHelpOpen} onClose={() => setIsPrinterHelpOpen(false)} />
 
+      {/* F&B Modifier Modal */}
+      <FnbModifierModal 
+        isOpen={fnbSelectedProduct !== null}
+        product={fnbSelectedProduct}
+        onClose={() => setFnbSelectedProduct(null)}
+        modifierNote={fnbModifierNote}
+        setModifierNote={setFnbModifierNote}
+        onSubmit={submitFnbModifier}
+      />
     </>
   );
 }

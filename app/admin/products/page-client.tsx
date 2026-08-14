@@ -4,9 +4,15 @@ import React, { useState } from 'react';
 import useSWR from 'swr';
 import { toast } from 'sonner';
 import Image from 'next/image';
-import { PackageSearch, Plus, Edit2, Trash2, Loader2, PackageX, PackagePlus, ImagePlus, X, Search, Filter, Check } from 'lucide-react';
+import { PackageSearch, Plus, Edit2, Trash2, Loader2, PackageX, PackagePlus, ImagePlus, X, Search, Filter, Check, Upload, FileDown } from 'lucide-react';
+import nextDynamic from 'next/dynamic';
+
+const CsvImportModal = nextDynamic(() => import('@/components/CsvImportModal'), {
+  ssr: false,
+});
 import { Pagination } from '@/components/Pagination';
 import { isServiceBusinessCategory } from '@/lib/business-category';
+import { humanizeError } from '@/lib/error-mapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +49,9 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
   const { data, error, isLoading, mutate } = useSWR<{products: Product[], totalPages: number}>(queryUrl, fetcher);
@@ -121,6 +130,72 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
+  };
+
+  const closeImportModal = () => {
+    setIsImportModalOpen(false);
+    setImportFile(null);
+  };
+
+  const handleImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importFile) {
+      toast.error("Pilih file CSV terlebih dahulu");
+      return;
+    }
+    
+    setIsImporting(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        if (lines.length <= 1) {
+          throw new Error("File CSV kosong atau tidak ada data");
+        }
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const productsList = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          while (values.length < headers.length) values.push('');
+          
+          const product: any = {};
+          headers.forEach((header, index) => {
+            product[header] = values[index];
+          });
+          
+          if (!product.name) continue;
+          
+          product.isService = isJasa;
+          productsList.push(product);
+        }
+
+        if (productsList.length === 0) throw new Error("Tidak ada baris data yang valid ditemukan.");
+
+        const res = await fetch('/api/products/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ products: productsList })
+        });
+        
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Gagal import massal");
+        
+        toast.success(result.message || "Import berhasil");
+        mutate();
+        closeImportModal();
+      } catch (err: any) {
+        toast.error(humanizeError(err));
+      } finally {
+        setIsImporting(false);
+      }
+    };
+    reader.onerror = () => {
+      toast.error("Gagal membaca file");
+      setIsImporting(false);
+    };
+    reader.readAsText(importFile);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -221,7 +296,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
       closeModal();
     } catch (err: any) {
       console.error("Submit Error:", err);
-      toast.error(err.message || 'Gagal menyimpan produk');
+      toast.error(humanizeError(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -239,7 +314,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
       toast.success('Produk berhasil dihapus');
       mutate();
     } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan');
+      toast.error(humanizeError(err));
     } finally {
       setProductToDelete(null);
     }
@@ -261,13 +336,22 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
           <p className="text-slate-500 text-sm mt-1">Kelola daftar {isJasa ? "layanan" : isFNB ? "menu" : "produk"}, harga, dan {isJasa ? "ketersediaan" : "stok"} Anda.</p>
         </div>
         {(isLoading || (products && products.length > 0)) && (
-          <button 
-            onClick={() => openModal()}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
-          >
-            <Plus className="w-5 h-5" />
-            {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setIsImportModalOpen(true)}
+              className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+            >
+              <PackagePlus className="w-5 h-5 text-gray-500" />
+              <span className="hidden sm:inline">Import Data</span>
+            </button>
+            <button 
+              onClick={() => openModal()}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+            >
+              <Plus className="w-5 h-5" />
+              {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
+            </button>
+          </div>
         )}
       </div>
 
@@ -404,13 +488,22 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             </div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Belum ada {isJasa ? "layanan" : isFNB ? "menu" : "produk"}</h3>
             <p className="text-slate-500 max-w-sm mb-6">Anda belum menambahkan {isJasa ? "layanan" : isFNB ? "menu" : "produk"} apapun. Silakan tambah {isJasa ? "layanan" : isFNB ? "menu" : "produk"} pertama Anda untuk mulai berjualan.</p>
-            <button 
-              onClick={() => openModal()}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex items-center gap-2"
-            >
-              <PackagePlus className="w-5 h-5" />
-              {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => openModal()}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+              >
+                <Plus className="w-5 h-5" />
+                {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
+              </button>
+              <button 
+                onClick={() => setIsImportModalOpen(true)}
+                className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+              >
+                <Upload className="w-5 h-5 text-gray-500" />
+                Import CSV
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -660,6 +753,16 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
           </div>
         </div>
       )}
+
+      {/* Import Modal */}
+      <CsvImportModal 
+        isOpen={isImportModalOpen} 
+        onClose={closeImportModal} 
+        importFile={importFile}
+        setImportFile={setImportFile}
+        isImporting={isImporting}
+        handleImportSubmit={handleImportSubmit}
+      />
     </div>
   );
 }
