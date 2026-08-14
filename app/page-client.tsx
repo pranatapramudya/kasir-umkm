@@ -897,7 +897,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim()))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
           >
             {isCheckoutLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-            {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' : 'BAYAR SEKARANG'}
+            {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' : 
+              (isRental && isDownPayment && (parseInt(downPaymentInput.replace(/[^0-9]/g, '')) || 0) > 0 && remainingBalance > 0) ? 'SIMPAN & TAHAN JAMINAN' :
+              (isRental) ? 'LUNAS & SELESAI' :
+              'BAYAR SEKARANG'}
           </button>
         </div>
       </div>
@@ -993,25 +996,30 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       <div
                         key={product.id}
                         onClick={() => !isOutOfStock && addToCart(product)}
-                        className={`group relative rounded-xl border p-3 flex flex-col transition-all duration-200 ${isOutOfStock ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-75' : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500'}`}
+                        className={`group relative rounded-xl border p-3 flex flex-col transition-all duration-200 ${isOutOfStock ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90' : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500'}`}
                       >
+                        {isOutOfStock && (
+                          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-red-600">
+                            STOK HABIS
+                          </div>
+                        )}
                         <div className="relative mb-3 w-full h-32 rounded-lg overflow-hidden">
                           <Image
                             src={product.image || "https://placehold.co/400x300?text=No+Image"}
                             alt={product.name}
                             fill
-                            className={`object-cover ${isOutOfStock ? 'grayscale' : ''}`}
+                            className={`object-cover ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                           />
                           <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 ${isOutOfStock ? 'bg-red-600/90 text-white shadow-sm' : 'bg-black/60 text-white'}`}>
-                            {isOutOfStock ? 'Habis' : `Sisa: ${remaining}`}
+                            {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
                           </div>
                         </div>
                         <h3 className="font-bold text-sm h-10 line-clamp-2 mb-1 group-hover:text-blue-700 transition-colors">{product.name}</h3>
                         <div className="mt-auto flex items-center justify-between">
-                          <p className="text-blue-600 font-black text-sm">{formatRupiah(product.hargaJual)}</p>
+                          <p className={`font-black text-sm ${isOutOfStock ? 'text-gray-400 line-through' : 'text-blue-600'}`}>{formatRupiah(product.hargaJual)}</p>
                           {/* Action Icon Plus */}
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${isOutOfStock ? 'bg-gray-200 text-gray-400' : 'bg-blue-50 text-blue-600 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white'}`}>
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${isOutOfStock ? 'bg-gray-200 text-gray-400 opacity-50' : 'bg-blue-50 text-blue-600 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white'}`}>
                             <Plus className="w-4 h-4" />
                           </div>
                         </div>

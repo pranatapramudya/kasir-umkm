@@ -106,6 +106,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData }
                                 <div>
                                     <p className="text-xs font-bold text-gray-500">Tunai (Kas Laci)</p>
                                     <h3 className="text-xl font-black text-slate-800">{formatRupiah(metrics.totalCash)}</h3>
+                                    <p className="text-[10px] text-gray-400 mt-1 leading-tight">*Hanya menghitung uang Lunas dan DP masuk. Tidak termasuk sisa piutang.</p>
                                 </div>
                             </div>
                         </div>
@@ -175,10 +176,15 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData }
                                                     <td className="px-4 py-3">{time} WIB</td>
                                                     <td className="px-4 py-3 font-mono text-xs">{tx.id}</td>
                                                     <td className="px-4 py-3">{tx.customerName}</td>
-                                                    <td className="px-4 py-3">
+                                                    <td className="px-4 py-3 flex gap-1 flex-wrap">
                                                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${tx.method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
                                                             {tx.method}
                                                         </span>
+                                                        {tx.status === 'partial' && (
+                                                            <span className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700">
+                                                                BELUM LUNAS
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td className="px-4 py-3 font-bold text-right text-slate-700">{formatRupiah(tx.total)}</td>
                                                     <td className="px-4 py-3 text-center">
@@ -250,9 +256,27 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData }
                                 </div>
                             )}
 
-                            <div className="mt-2 pt-4 border-t flex justify-between items-center">
-                                <span className="font-bold text-slate-600">Total Pembayaran</span>
-                                <span className="text-xl font-black text-blue-600">{formatRupiah(selectedTx.total)}</span>
+                            <div className="mt-2 pt-4 border-t flex flex-col gap-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold text-slate-600">Total Pembayaran</span>
+                                    <span className="text-xl font-black text-blue-600">{formatRupiah(selectedTx.total)}</span>
+                                </div>
+                                {selectedTx.status === 'partial' && (
+                                    <button 
+                                        onClick={() => {
+                                            if (selectedTx.guarantee) {
+                                                if (!window.confirm(`PENTING: Pastikan Anda telah mengembalikan jaminan (${selectedTx.guarantee}) kepada pelanggan. Lanjutkan pelunasan?`)) return;
+                                            } else {
+                                                if (!window.confirm("Lanjutkan pelunasan transaksi ini?")) return;
+                                            }
+                                            // TODO: Call API to update status to 'completed'
+                                            alert("Simulasi pelunasan berhasil di sisi frontend.");
+                                        }}
+                                        className="w-full mt-2 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-lg shadow-sm hover:from-blue-700 hover:to-indigo-700 transition-all"
+                                    >
+                                        Ubah Status Menjadi Lunas
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
