@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 
     const allTransactions = await prisma.transaction.findMany({
       where: whereClause,
-      select: { total: true, method: true, items: true }
+      select: { total: true, method: true, items: true, status: true, downPayment: true }
     });
 
     const products = await prisma.product.findMany({
@@ -53,10 +53,13 @@ export async function GET(request: Request) {
     const soldSummary: Record<string, number> = {};
 
     allTransactions.forEach(t => {
-      totalGross += t.total;
+      const isPartial = t.status === 'partial';
+      const effectiveTotal = (isPartial && t.downPayment) ? t.downPayment : t.total;
+
+      totalGross += effectiveTotal;
       const methodStr = (t.method || '').toUpperCase();
-      if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += t.total;
-      if (methodStr === 'QRIS') totalQRIS += t.total;
+      if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += effectiveTotal;
+      if (methodStr === 'QRIS') totalQRIS += effectiveTotal;
       
       t.items.forEach(item => {
         const name = productMap.get(item.productId) || 'Produk Dihapus';

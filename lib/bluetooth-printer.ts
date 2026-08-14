@@ -28,10 +28,14 @@ export interface ReceiptData {
   endDate?: string;
   driverName?: string;
   licensePlate?: string;
+  serviceDate?: string;
+  guarantee?: string;
   items: ReceiptItem[];
   total: number;
   method: string;
   cashGiven?: number;
+  downPayment?: number;
+  remainingBalance?: number;
 }
 
 // --- KONSTANTA ESC/POS ---
@@ -182,6 +186,12 @@ export function buildReceiptBytes(data: ReceiptData, paperWidth = 32): Uint8Arra
   if (data.tableId) {
     push(encodeText(`No. Meja : ${data.tableId}`), nl);
   }
+  // Data Jasa
+  if (data.serviceDate) {
+    const sDate = new Date(data.serviceDate);
+    const dateStr = sDate.toLocaleString('id-ID', {dateStyle: 'short', timeStyle: 'short'});
+    push(encodeText(`Wkt Layan: ${dateStr.slice(0, paperWidth - 11)}`), nl);
+  }
   // Data Rental
   if (data.destination) {
     push(encodeText(`Tujuan   : ${data.destination.slice(0, paperWidth - 11)}`), nl);
@@ -194,6 +204,9 @@ export function buildReceiptBytes(data: ReceiptData, paperWidth = 32): Uint8Arra
   }
   if (data.licensePlate) {
     push(encodeText(`Plat Kend: ${data.licensePlate.slice(0, paperWidth - 11)}`), nl);
+  }
+  if (data.guarantee) {
+    push(encodeText(`Jaminan  : ${data.guarantee.slice(0, paperWidth - 11)}`), nl);
   }
   push(encodeText(`ID Trx   : ${data.transactionId}`), nl);
   push(encodeText(dashedLine(paperWidth)), nl);
@@ -219,11 +232,17 @@ export function buildReceiptBytes(data: ReceiptData, paperWidth = 32): Uint8Arra
   push(encodeText(paddedLine("TOTAL", fmtRp(data.total), paperWidth)), nl);
   push(CMD.BOLD_OFF);
 
+  if (data.downPayment && data.downPayment > 0) {
+    push(encodeText(paddedLine("DP", fmtRp(data.downPayment), paperWidth)), nl);
+    push(encodeText(paddedLine("Sisa", fmtRp(data.remainingBalance || 0), paperWidth)), nl);
+  }
+
   push(encodeText(paddedLine("Metode", data.method.toUpperCase(), paperWidth)), nl);
 
   if (data.method === "cash" && data.cashGiven !== undefined) {
     push(encodeText(paddedLine("Tunai", fmtRp(data.cashGiven), paperWidth)), nl);
-    const change = Math.max(0, data.cashGiven - data.total);
+    const expectedTotal = data.downPayment ? data.downPayment : data.total;
+    const change = Math.max(0, data.cashGiven - expectedTotal);
     push(CMD.BOLD_ON);
     push(encodeText(paddedLine("Kembalian", fmtRp(change), paperWidth)), nl);
     push(CMD.BOLD_OFF);

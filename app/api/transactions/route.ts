@@ -78,7 +78,16 @@ export async function POST(request: Request) {
           discount: rawDiscount,
           cashierId: validCashierId,
           method: body.method,
-          status: 'completed', // langsung completed untuk versi POS ini
+          status: (Math.round(Number(body.remainingBalance || 0)) > 0) ? 'partial' : 'completed',
+          driverName: body.driverName || null,
+          licensePlate: body.licensePlate || null,
+          destination: body.destination || null,
+          startDate: body.startDate ? new Date(body.startDate) : null,
+          endDate: body.endDate ? new Date(body.endDate) : null,
+          serviceDate: body.serviceDate ? new Date(body.serviceDate) : null,
+          guarantee: body.guarantee || null,
+          downPayment: Math.round(Number(body.downPayment || 0)),
+          remainingBalance: Math.round(Number(body.remainingBalance || 0)),
           items: {
             create: body.items.map((item: any) => {
               const pId = Math.round(Number(item.id));

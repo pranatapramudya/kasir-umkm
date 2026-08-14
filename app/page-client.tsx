@@ -56,6 +56,10 @@ type Transaction = {
   destination?: string;
   startDate?: string;
   endDate?: string;
+  serviceDate?: string;
+  guarantee?: string;
+  downPayment?: number;
+  remainingBalance?: number;
 };
 
 export default function POSApp({ sidebar, isExpired = false, initialData, tenantName, tenantCategory, tenantPhone }: { sidebar: React.ReactNode; isExpired?: boolean; initialData?: { products: Product[], totalPages: number }, tenantName?: string, tenantCategory?: string, tenantPhone?: string }) {
@@ -97,7 +101,16 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     destination: '',
     startDate: '',
     endDate: '',
+    guarantee: '',
   });
+
+  // State Jasa
+  const [serviceDate, setServiceDate] = useState("");
+
+  // State DP
+  const [isDownPayment, setIsDownPayment] = useState(false);
+  const [downPaymentInput, setDownPaymentInput] = useState("");
+
 
   // --- MANTRA AMBIL DATA DARI NEON (SWR Auto-Refresh) ---
   const fetcher = async (url: string) => {
@@ -215,8 +228,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const subTotal = cart.reduce((acc, item) => acc + item.hargaJual * item.qty, 0);
   const grandTotal = subTotal;
 
+  const parsedDownPayment = parseInt(downPaymentInput.replace(/[^0-9]/g, '') || "0");
+  const currentTotalToPay = isDownPayment ? parsedDownPayment : grandTotal;
+  const remainingBalance = isDownPayment ? Math.max(0, grandTotal - parsedDownPayment) : 0;
+
   const parsedCashGiven = parseInt(cashGiven.replace(/[^0-9]/g, '') || "0");
-  const isCashInsufficient = paymentMethod === 'cash' && cart.length > 0 && parsedCashGiven < grandTotal;
+  const isCashInsufficient = paymentMethod === 'cash' && cart.length > 0 && parsedCashGiven < currentTotalToPay;
 
   // --- OFFLINE SYNC LOGIC ---
   const syncOfflineTransactions = async () => {
@@ -286,8 +303,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       total: Math.round(grandTotal),
       method: paymentMethod,
       cashierId: userId || undefined,
-      status: 'pending',
+      status: remainingBalance > 0 ? 'pending' : 'completed', // Will be re-evaluated as 'partial' in backend
       ...(isFNB && { tableId }),
+      ...(isJasa && { serviceDate: serviceDate || undefined }),
       // Sertakan data rental jika mode Rental
       ...(isRental && {
         driverName: rentalInfo.driverName.trim() || undefined,
@@ -295,7 +313,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         destination: rentalInfo.destination.trim() || undefined,
         startDate: rentalInfo.startDate || undefined,
         endDate: rentalInfo.endDate || undefined,
+        guarantee: rentalInfo.guarantee.trim() || undefined,
       }),
+      downPayment: isDownPayment ? parsedDownPayment : 0,
+      remainingBalance: remainingBalance,
     };
 
     try {
@@ -351,7 +372,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     setCustomerName("");
     setTableId("");
     setCashGiven("");
-    setRentalInfo({ driverName: '', licensePlate: '', destination: '', startDate: '', endDate: '' });
+    setServiceDate("");
+    setIsDownPayment(false);
+    setDownPaymentInput("");
+    setRentalInfo({ driverName: '', licensePlate: '', destination: '', startDate: '', endDate: '', guarantee: '' });
   };
 
   const sendWhatsAppReceipt = () => {
@@ -363,12 +387,17 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     text += `Waktu : ${lastTransaction.date} ${lastTransaction.time}\n`;
     text += `Pelanggan : ${lastTransaction.customerName}\n`;
     if (lastTransaction.tableId) text += `Nomor Meja: ${lastTransaction.tableId}\n`;
+    // Data Jasa
+    if (lastTransaction.serviceDate) {
+       text += `Waktu Layanan: ${new Date(lastTransaction.serviceDate).toLocaleString('id-ID', {dateStyle: 'medium', timeStyle: 'short'})}\n`;
+    }
     // Data rental
     if (lastTransaction.destination) text += `Tujuan    : ${lastTransaction.destination}\n`;
     if (lastTransaction.startDate || lastTransaction.endDate)
       text += `Tgl Sewa  : ${lastTransaction.startDate ?? '?'} s/d ${lastTransaction.endDate ?? '?'}\n`;
     if (lastTransaction.driverName) text += `Supir     : ${lastTransaction.driverName}\n`;
     if (lastTransaction.licensePlate) text += `Plat Kend : ${lastTransaction.licensePlate}\n`;
+    if (lastTransaction.guarantee) text += `Jaminan   : ${lastTransaction.guarantee}\n`;
     text += `ID Transaksi: ${lastTransaction.id}\n`;
     text += `--------------------------------\n`;
 
@@ -381,12 +410,19 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     text += `--------------------------------\n`;
     text += `--------------------------------\n`;
     text += `*Total Belanja : ${formatRupiah(lastTransaction.total)}*\n`;
+    
+    if (lastTransaction.downPayment && lastTransaction.downPayment > 0) {
+      text += `Uang Muka (DP) : ${formatRupiah(lastTransaction.downPayment)}\n`;
+      text += `Sisa Tagihan   : ${formatRupiah(lastTransaction.remainingBalance || 0)}\n`;
+    }
+
     text += `Metode    : ${lastTransaction.method.toUpperCase()}\n`;
 
     if (lastTransaction.method === 'cash') {
       const cash = parseInt(cashGiven.replace(/[^0-9]/g, '') || "0");
       text += `Tunai     : ${formatRupiah(cash)}\n`;
-      text += `Kembalian : ${formatRupiah(cash - lastTransaction.total)}\n`;
+      const expectedTotal = lastTransaction.downPayment ? lastTransaction.downPayment : lastTransaction.total;
+      text += `Kembalian : ${formatRupiah(cash - expectedTotal)}\n`;
     }
 
     text += `--------------------------------\n`;
@@ -414,12 +450,16 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       transactionId: lastTransaction.id,
       customerName: lastTransaction.customerName,
       tableId: lastTransaction.tableId,
-      // Data rental
+      // Data rental & Jasa
       destination: lastTransaction.destination,
       startDate: lastTransaction.startDate,
       endDate: lastTransaction.endDate,
       driverName: lastTransaction.driverName,
       licensePlate: lastTransaction.licensePlate,
+      serviceDate: lastTransaction.serviceDate,
+      guarantee: lastTransaction.guarantee,
+      downPayment: lastTransaction.downPayment,
+      remainingBalance: lastTransaction.remainingBalance,
       items: lastTransaction.items.map(i => ({
         name: i.name,
         qty: i.qty,
@@ -549,7 +589,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       <div className="p-4 border-b flex justify-between items-center bg-white shadow-sm z-10 relative">
         <div className="font-bold flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-gray-700" />
-          <span>Keranjang</span>
+          <span>{isJasa ? 'Detail Layanan' : isRental ? 'Detail Sewa' : 'Keranjang'}</span>
         </div>
         <div className="flex items-center gap-2">
           {cart.length > 0 && (
@@ -662,6 +702,24 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
         )}
 
+        {/* Form Jasa Waktu Layanan */}
+        {isJasa && (
+          <div className="space-y-2.5 bg-blue-50 border border-blue-200 rounded-xl p-3">
+            <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1">
+              🗓️ Jadwal Layanan
+            </p>
+            <div>
+              <label className="text-xs font-bold text-gray-500 mb-1 block">Waktu Layanan *</label>
+              <input
+                type="datetime-local"
+                value={serviceDate}
+                onChange={(e) => setServiceDate(e.target.value)}
+                className="w-full p-2.5 bg-white border border-blue-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-lg text-sm transition-all"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Form Armada — Khusus Rental & Travel */}
         {isRental && (
           <div className="space-y-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3">
@@ -722,6 +780,17 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 />
               </div>
             </div>
+            {/* Jaminan */}
+            <div className="col-span-2">
+              <label className="text-xs font-bold text-gray-500 mb-1 block">Jaminan Diserahkan (Misal: KTP, KK) *</label>
+              <input
+                type="text"
+                placeholder="contoh: KTP Asli"
+                value={rentalInfo.guarantee}
+                onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
+                className="w-full p-2.5 bg-white border border-amber-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-400 rounded-lg text-sm transition-all"
+              />
+            </div>
           </div>
         )}
 
@@ -770,6 +839,37 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
         )}
 
+        {/* DP System */}
+        {(isJasa || isRental) && cart.length > 0 && (
+          <div className="pt-2 border-t border-gray-100">
+            <label className="flex items-center gap-2 cursor-pointer mb-2">
+              <input type="checkbox" checked={isDownPayment} onChange={(e) => setIsDownPayment(e.target.checked)} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
+              <span className="text-sm font-bold text-gray-700">Bayar Uang Muka (DP)</span>
+            </label>
+            {isDownPayment && (
+              <div className="ml-6 space-y-2">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
+                  <input
+                    type="text"
+                    placeholder="Nominal DP"
+                    className="w-full pl-9 pr-3 p-2 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all"
+                    value={downPaymentInput}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setDownPaymentInput(val ? parseInt(val).toLocaleString('id-ID') : "");
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs font-medium text-gray-500 bg-gray-50 p-2 rounded">
+                  <span>Sisa Tagihan:</span>
+                  <span className="text-red-500 font-bold">{formatRupiah(remainingBalance)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Total & Tombol Bayar */}
         <div className="pt-3 border-t border-dashed space-y-2">
           <div className="flex justify-between items-center text-sm">
@@ -786,7 +886,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             <div className={`flex justify-between items-center pt-2 border-t border-dashed ${isCashInsufficient ? 'text-red-500' : 'text-green-600'}`}>
               <span className="font-bold text-sm">Kembalian</span>
               <span className="font-black text-lg">
-                {parsedCashGiven >= grandTotal ? formatRupiah(parsedCashGiven - grandTotal) : '-'}
+                {parsedCashGiven >= currentTotalToPay ? formatRupiah(parsedCashGiven - currentTotalToPay) : '-'}
               </span>
             </div>
           )}
