@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowSVG: true,
   },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts', 'date-fns']
+  }
 };
 
 export default withSerwist(nextConfig);

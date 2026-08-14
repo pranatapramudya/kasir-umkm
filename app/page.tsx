@@ -8,9 +8,7 @@ import Link from 'next/link';
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Store, BarChart3, Receipt, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
-import nextDynamic from 'next/dynamic';
-
-const MiniChart = nextDynamic(() => import('@/components/MiniChart').then(mod => mod.MiniChart));
+import { MiniChartWrapper } from '@/components/MiniChartWrapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,7 +118,7 @@ export default async function POSApp() {
                     </div>
                   </div>
                   <div className="absolute bottom-0 left-0 w-full overflow-hidden rounded-b-2xl">
-                    <MiniChart />
+                    <MiniChartWrapper />
                   </div>
                 </div>
 
@@ -178,14 +176,14 @@ export default async function POSApp() {
             <p className="text-slate-500 font-medium text-center mb-10">Masuk atau daftar untuk mulai mengelola bisnis Anda dengan cerdas.</p>
 
             <div className="w-full space-y-3">
-              <SignInButton mode="modal" fallbackRedirectUrl="/admin" forceRedirectUrl="/admin">
+              <SignInButton fallbackRedirectUrl="/admin" forceRedirectUrl="/admin">
                 <button className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all border-0 flex items-center justify-center gap-2 text-lg active:scale-95">
                   Masuk (Owner) <ArrowRight className="w-5 h-5" />
                 </button>
               </SignInButton>
               
               <div>
-                <SignInButton mode="modal" fallbackRedirectUrl="/admin" forceRedirectUrl="/admin">
+                <SignInButton fallbackRedirectUrl="/admin" forceRedirectUrl="/admin">
                   <button className="w-full py-4 bg-transparent border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg active:scale-95">
                     Login sebagai Karyawan
                   </button>
@@ -197,7 +195,7 @@ export default async function POSApp() {
             </div>
 
             <p className="text-center text-sm text-slate-600 mt-6">
-              Pemilik Bisnis Baru? <SignUpButton mode="modal" fallbackRedirectUrl="/onboarding" forceRedirectUrl="/onboarding"><button className="text-blue-600 font-semibold hover:underline">Daftar Toko di sini</button></SignUpButton>
+              Pemilik Bisnis Baru? <SignUpButton fallbackRedirectUrl="/onboarding" forceRedirectUrl="/onboarding"><button className="text-blue-600 font-semibold hover:underline">Daftar Toko di sini</button></SignUpButton>
             </p>
           </div>
 
