@@ -370,17 +370,17 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
           <p className="text-slate-500 text-sm mt-1">Kelola daftar {isJasa ? "layanan" : isFNB ? "menu" : "produk"}, harga, dan {isJasa ? "ketersediaan" : "stok"} Anda.</p>
         </div>
         {(isLoading || (products && products.length > 0)) && (
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button 
               onClick={() => setIsImportModalOpen(true)}
-              className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+              className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
             >
               <PackagePlus className="w-5 h-5 text-gray-500" />
-              <span className="hidden sm:inline">Import Data</span>
+              <span>Import Data</span>
             </button>
             <button 
               onClick={() => openModal()}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
             >
               <Plus className="w-5 h-5" />
               {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
@@ -527,20 +527,20 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             </div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Belum ada {isJasa ? "layanan" : isFNB ? "menu" : "produk"}</h3>
             <p className="text-slate-500 max-w-sm mb-6">Anda belum menambahkan {isJasa ? "layanan" : isFNB ? "menu" : "produk"} apapun. Silakan tambah {isJasa ? "layanan" : isFNB ? "menu" : "produk"} pertama Anda untuk mulai berjualan.</p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <button 
                 onClick={() => openModal()}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
               >
                 <Plus className="w-5 h-5" />
                 {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
               </button>
               <button 
                 onClick={() => setIsImportModalOpen(true)}
-                className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex items-center gap-2 active:scale-95 shrink-0"
+                className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
               >
                 <Upload className="w-5 h-5 text-gray-500" />
-                Import CSV
+                Import Data
               </button>
             </div>
           </div>
