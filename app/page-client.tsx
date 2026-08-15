@@ -1053,7 +1053,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             </div>
 
             {/* CART SIDEBAR (Desktop Only) */}
-            <div className="hidden lg:flex w-[380px] bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20">
+            <div className="hidden lg:flex w-[420px] bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20">
               {renderCartContent(false)}
             </div>
           </div>
