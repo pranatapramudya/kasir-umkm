@@ -20,17 +20,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     template: '%s | PJTECH Kasir UMKM',
-    default: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail & Jasa Terbaik',
+    default: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail, Jasa & Rental',
   },
-  description: "Tingkatkan omset bisnis UMKM Anda dengan PJTECH. Aplikasi kasir (POS) multi-bisnis terlengkap untuk restoran, toko kelontong, dan jasa. Pantau laba rugi secara real-time dari mana saja.",
-  keywords: ['Aplikasi Kasir', 'POS UMKM', 'Kasir F&B', 'Kasir Retail', 'Aplikasi Salon', 'Software Kasir Indonesia', 'SaaS POS Terbaik'],
+  description: "Premium SaaS Boilerplate & Aplikasi Kasir POS UMKM modern. Mendukung penuh operasional bisnis Retail, F&B, Jasa (Salon/Klinik), dan kalender jadwal Booking untuk Rental/Travel.",
+  keywords: ['Aplikasi kasir rental mobil', 'Sistem POS travel', 'Aplikasi kasir jasa', 'SaaS premium boilerplate', 'Kasir Retail UMKM', 'Software booking operasional', 'POS F&B'],
   authors: [{ name: 'PJTECH' }],
   openGraph: {
-    title: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail & Jasa Terbaik',
-    description: 'Tingkatkan omset bisnis UMKM Anda dengan PJTECH. Aplikasi kasir (POS) multi-bisnis terlengkap.',
+    title: 'PJTECH Kasir UMKM - Aplikasi POS 4 Pilar Bisnis',
+    description: 'Premium SaaS Boilerplate & Aplikasi Kasir POS UMKM modern. Mendukung penuh operasional bisnis Retail, F&B, Jasa, dan Rental/Travel.',
     siteName: 'PJTECH Kasir UMKM',
     locale: 'id_ID',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PJTECH Kasir UMKM - Aplikasi POS 4 Pilar Bisnis',
+    description: 'Premium SaaS Boilerplate & Aplikasi Kasir POS UMKM modern untuk Retail, F&B, Jasa, dan Rental/Travel.',
   },
   // PWA: Meta tags untuk perangkat Apple (iOS)
   appleWebApp: {

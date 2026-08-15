@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     // Ambil employeeCommission untuk snapshot
     const productIds = body.items.map((item: any) => Math.round(Number(item.id)));
     const productsInfo = await prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: productIds }, userId: activeTenantId },
       select: { id: true, employeeCommission: true }
     });
     const productMap = new Map(productsInfo.map(p => [p.id, p.employeeCommission || 0]));
@@ -64,6 +64,7 @@ export async function POST(request: Request) {
       try {
         const emp = await prisma.employee.findFirst({
           where: {
+            tenantId: activeTenantId,
             OR: [
               { id: body.cashierId },
               { clerkUserId: body.cashierId }

@@ -440,6 +440,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     let text = `*STRUK PEMBELIAN*\n*${storeName}*\n`;
     text += `--------------------------------\n`;
     text += `Waktu : ${lastTransaction.date} ${lastTransaction.time}\n`;
+    text += `Kasir : ${user?.fullName || user?.firstName || 'Kasir'}\n`;
     text += `Pelanggan : ${lastTransaction.customerName}\n`;
     if (lastTransaction.tableId) text += `Nomor Meja: ${getTableName(lastTransaction.tableId)}\n`;
     // Data Jasa
@@ -1159,7 +1160,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           <>
             <div className="mb-4">
               <p>Waktu : {lastTransaction.date} {lastTransaction.time}</p>
-              <p>Kasir : Admin</p>
+              <p>Kasir : {user?.fullName || user?.firstName || 'Kasir'}</p>
               <p>Pelanggan : {lastTransaction.customerName}</p>
               {lastTransaction.tableId && <p>No. Meja : {getTableName(lastTransaction.tableId)}</p>}
               <p>ID Transaksi : {lastTransaction.id}</p>
