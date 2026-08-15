@@ -15,11 +15,6 @@ interface SidebarClientProps {
 
 export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUsaha }: SidebarClientProps) {
   const kategoriUsaha = rawKategoriUsaha || 'Retail';
-  const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
-  const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
-  const kasirLabel = kategoriUsaha === "F&B / Kuliner" ? "Kasir Resto" : isRentalTravel ? "Kasir Rental" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";
-  const productMenuLabel = isRentalTravel ? "Data Armada" : isServiceBusiness ? "Layanan" : "Produk";
-  const bookingMenuLabel = isRentalTravel ? "Kalender Sewa" : "Jadwal Booking";
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 

@@ -8,7 +8,6 @@ import {
   X,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 import { getNavigationMenu } from "@/lib/navigation";
 
 interface BottomNavClientProps {
