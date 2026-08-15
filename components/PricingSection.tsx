@@ -125,7 +125,51 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
           <p className="text-slate-500 mt-2 max-w-2xl mx-auto text-sm md:text-base">Tingkatkan ke Pro untuk melihat laporan keuntungan harian Anda, melacak tren penjualan, dan fitur analitik premium lainnya.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+          {/* Card 0: Mulai Usaha */}
+          <div className="border border-slate-200 rounded-3xl p-5 flex flex-col hover:border-slate-300 transition-all">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-slate-800">Mulai Usaha</h3>
+              <p className="text-[13px] text-slate-500 mt-1.5">Pengguna baru yang ragu dan ingin mencoba.</p>
+            </div>
+            <div className="mb-6">
+              <div className="text-2xl font-bold text-slate-800">Rp 0</div>
+              <div className="text-[13px] text-slate-500 mt-1">Gratis 14 Hari Pertama</div>
+            </div>
+            <div className="space-y-2 mb-8 flex-1">
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <span className="text-xs text-slate-600">Akses Kasir Penuh (POS)</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <span className="text-xs text-slate-600">Manajemen Produk Dasar</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <span className="text-xs text-slate-600">Dasbor Analitik (Terbatas)</span>
+              </div>
+            </div>
+            <button
+              disabled={isLoading || currentPlan === 'TRIAL' || currentPlan === 'FREE'}
+              onClick={() => {
+                handleExtend(14, 'TRIAL');
+              }}
+              className={`w-full py-2 text-sm rounded-xl font-bold transition-colors flex items-center justify-center gap-2 ${
+                currentPlan === 'TRIAL' || currentPlan === 'FREE' 
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' 
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Memproses...</span>
+                </>
+              ) : (currentPlan === 'TRIAL' || currentPlan === 'FREE' ? 'Paket Anda Saat Ini' : 'Gunakan Akses Trial')}
+            </button>
+          </div>
 
           {/* Card 1: Pro 1 Bulan (Decoy) */}
           <div className="border border-slate-200 rounded-3xl p-5 flex flex-col hover:border-slate-300 transition-all">
