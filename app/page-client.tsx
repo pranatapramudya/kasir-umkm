@@ -35,6 +35,7 @@ type Product = {
   category: string;
   image: string;
   stock: number;
+  discount: number;
 };
 
 type CartItem = Product & { cartItemId: string; qty: number; note?: string; workerId?: string; serviceDuration?: number; };
@@ -192,20 +193,23 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       return;
     }
 
+    const finalPrice = (product.discount && product.discount > 0) ? product.hargaJual - product.discount : product.hargaJual;
+    const cartProduct = { ...product, hargaJual: finalPrice };
+
     setCart((prev) => {
       if (isJasa) {
-        return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1, note }];
+        return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note }];
       }
 
       if (isFNB && note) {
-        return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1, note }];
+        return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note }];
       }
 
-      const existing = prev.find((item) => item.id === product.id && !item.note);
+      const existing = prev.find((item) => item.id === cartProduct.id && !item.note);
       if (existing) {
-        return prev.map((item) => item.id === product.id && !item.note ? { ...item, qty: item.qty + 1 } : item);
+        return prev.map((item) => item.id === cartProduct.id && !item.note ? { ...item, qty: item.qty + 1 } : item);
       }
-      return [...prev, { ...product, cartItemId: crypto.randomUUID(), qty: 1, note }];
+      return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note }];
     });
     toast.success(`${product.name} ditambahkan ke keranjang!`);
   };
@@ -1046,10 +1050,24 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                           <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 ${isOutOfStock ? 'bg-red-600/90 text-white shadow-sm' : 'bg-black/60 text-white'}`}>
                             {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
                           </div>
+                          {(product.discount && product.discount > 0) ? (
+                            <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 bg-red-600/90 text-white shadow-sm">
+                              Promo
+                            </div>
+                          ) : null}
                         </div>
                         <h3 className="font-bold text-sm h-10 line-clamp-2 mb-1 group-hover:text-blue-700 transition-colors">{product.name}</h3>
                         <div className="mt-auto flex items-center justify-between">
-                          <p className={`font-black text-sm ${isOutOfStock ? 'text-gray-400 line-through' : 'text-blue-600'}`}>{formatRupiah(product.hargaJual)}</p>
+                          <div className="flex flex-col">
+                            {(product.discount && product.discount > 0) ? (
+                              <>
+                                <span className={`text-[10px] line-through ${isOutOfStock ? 'text-gray-400' : 'text-gray-400'}`}>{formatRupiah(product.hargaJual)}</span>
+                                <span className={`font-black text-sm ${isOutOfStock ? 'text-gray-400' : 'text-red-600'}`}>{formatRupiah(product.hargaJual - product.discount)}</span>
+                              </>
+                            ) : (
+                              <span className={`font-black text-sm ${isOutOfStock ? 'text-gray-400' : 'text-blue-600'}`}>{formatRupiah(product.hargaJual)}</span>
+                            )}
+                          </div>
                           {/* Action Icon Plus */}
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${isOutOfStock ? 'bg-gray-200 text-gray-400 opacity-50' : 'bg-blue-50 text-blue-600 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white'}`}>
                             <Plus className="w-4 h-4" />

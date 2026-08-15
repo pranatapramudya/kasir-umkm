@@ -44,6 +44,9 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
+  const [quickRestockProduct, setQuickRestockProduct] = useState<Product | null>(null);
+  const [quickRestockAmount, setQuickRestockAmount] = useState<string>('');
+  const [isRestocking, setIsRestocking] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [searchQuery, setSearchQuery] = useState("");
@@ -320,6 +323,37 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
     }
   };
 
+  const handleQuickRestock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickRestockProduct) return;
+
+    const amount = parseInt(quickRestockAmount, 10);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Jumlah stok masuk tidak valid');
+      return;
+    }
+
+    setIsRestocking(true);
+    try {
+      const res = await fetch(`/api/products/${quickRestockProduct.id}/stock`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Gagal menambah stok');
+
+      toast.success(`Stok ${quickRestockProduct.name} berhasil ditambahkan!`);
+      mutate();
+      setQuickRestockProduct(null);
+      setQuickRestockAmount('');
+    } catch (err: any) {
+      toast.error(humanizeError(err));
+    } finally {
+      setIsRestocking(false);
+    }
+  };
+
   const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
   if (error) return <div className="text-red-500 p-4 bg-red-50 rounded-xl border border-red-100">Error: Gagal memuat data produk</div>;
@@ -439,6 +473,11 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                       <div className="text-[11px] text-slate-500 font-mono mt-1">{product.kodeBarang || 'Tanpa SKU'}</div>
                     </div>
                     <div className="flex gap-1 shrink-0">
+                      {!isJasa && (
+                        <button onClick={() => { setQuickRestockProduct(product); setQuickRestockAmount(''); }} className="p-1.5 text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors" title="Tambah Stok Cepat">
+                          <PackagePlus className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <button onClick={() => openModal(product)} className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors" title="Edit">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -729,6 +768,56 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                 {isSubmitting ? 'Menyimpan...' : (isJasa ? 'Simpan Layanan' : isFNB ? 'Simpan Menu' : 'Simpan Produk')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Restock Modal */}
+      {quickRestockProduct && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
+              <h2 className="text-lg font-bold text-gray-900 truncate pr-4">
+                Tambah Stok: {quickRestockProduct.name}
+              </h2>
+              <button onClick={() => setQuickRestockProduct(null)} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full shrink-0">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleQuickRestock} className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Sisa Stok Saat Ini</label>
+                <div className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 font-bold">
+                  {quickRestockProduct.stock}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Jumlah Stok Masuk <span className="text-red-500">*</span></label>
+                <input 
+                  type="number" 
+                  min="1"
+                  required
+                  autoFocus
+                  value={quickRestockAmount} 
+                  onChange={(e) => setQuickRestockAmount(e.target.value)} 
+                  className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-bold"
+                  placeholder="Misal: 10"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  type="submit"
+                  disabled={isRestocking || !quickRestockAmount}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isRestocking ? <Loader2 className="w-5 h-5 animate-spin" /> : <PackagePlus className="w-5 h-5" />}
+                  {isRestocking ? 'Menyimpan...' : 'Simpan Stok'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
