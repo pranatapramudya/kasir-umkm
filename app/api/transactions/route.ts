@@ -19,16 +19,18 @@ export async function POST(request: Request) {
 
     let isEmployee = false;
     let activeTenantId = userId;
+    let validCashierId = null;
 
-    if (role === 'CASHIER' && metaTenantId) {
-      isEmployee = true;
-      activeTenantId = metaTenantId;
-    }
-
+    // Prioritaskan Database (Tabel Employee) untuk menghindari isu stale JWT
     const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
     if (employee) {
       isEmployee = true;
       activeTenantId = employee.tenantId;
+      validCashierId = employee.id;
+    } else if (role === 'CASHIER' && metaTenantId) {
+      // Fallback ke Metadata jika DB belum tersinkronisasi
+      isEmployee = true;
+      activeTenantId = metaTenantId;
     }
 
     const body = await request.json();
@@ -54,10 +56,7 @@ export async function POST(request: Request) {
     const productMap = new Map(productsInfo.map(p => [p.id, p.employeeCommission || 0]));
 
     // 1. Validasi cashierId (Mencegah Foreign Key Constraint Error)
-    let validCashierId = null;
-    if (isEmployee && employee) {
-      validCashierId = employee.id;
-    } else if (body.cashierId) {
+    if (!validCashierId && body.cashierId) {
       try {
         const emp = await prisma.employee.findFirst({
           where: {

@@ -109,6 +109,24 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [fnbSelectedProduct, setFnbSelectedProduct] = useState<Product | null>(null);
   const [fnbModifierNote, setFnbModifierNote] = useState('');
 
+  const [tables, setTables] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isFNB) {
+      fetch('/api/tables')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setTables(data);
+        })
+        .catch(err => console.error("Gagal load tables:", err));
+    }
+  }, [isFNB]);
+
+  const getTableName = (id: string) => {
+    const t = tables.find(x => x.id === id);
+    return t ? t.name : id;
+  };
+
   // State Rental & Travel
   const [rentalInfo, setRentalInfo] = useState({
     driverName: '',
@@ -422,7 +440,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     text += `--------------------------------\n`;
     text += `Waktu : ${lastTransaction.date} ${lastTransaction.time}\n`;
     text += `Pelanggan : ${lastTransaction.customerName}\n`;
-    if (lastTransaction.tableId) text += `Nomor Meja: ${lastTransaction.tableId}\n`;
+    if (lastTransaction.tableId) text += `Nomor Meja: ${getTableName(lastTransaction.tableId)}\n`;
     // Data Jasa
     if (lastTransaction.serviceDate) {
        text += `Waktu Layanan: ${new Date(lastTransaction.serviceDate).toLocaleString('id-ID', {dateStyle: 'medium', timeStyle: 'short'})}\n`;
@@ -485,7 +503,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       time: lastTransaction.time,
       transactionId: lastTransaction.id,
       customerName: lastTransaction.customerName,
-      tableId: lastTransaction.tableId,
+      tableId: lastTransaction.tableId ? getTableName(lastTransaction.tableId) : undefined,
       // Data rental & Jasa
       destination: lastTransaction.destination,
       startDate: lastTransaction.startDate,
@@ -728,13 +746,16 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         {isFNB && (
           <div>
             <label className="text-xs font-bold text-gray-500 mb-1 block">Nomor Meja</label>
-            <input
-              type="text"
-              placeholder="Contoh: Meja 1, Takeaway..."
+            <select
               value={tableId}
               onChange={(e) => setTableId(e.target.value)}
               className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all"
-            />
+            >
+              <option value="">Pilih Meja / Takeaway</option>
+              {tables.map(t => (
+                <option key={t.id} value={t.id}>{t.name} (Kapasitas: {t.capacity})</option>
+              ))}
+            </select>
           </div>
         )}
 
@@ -1179,11 +1200,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
         {lastTransaction && (
           <>
-            <div className="mb-4">
+          <div className="mb-4">
               <p>Waktu : {lastTransaction.date} {lastTransaction.time}</p>
               <p>Kasir : Admin</p>
               <p>Pelanggan : {lastTransaction.customerName}</p>
-              {lastTransaction.tableId && <p>No. Meja : {lastTransaction.tableId}</p>}
+              {lastTransaction.tableId && <p>No. Meja : {getTableName(lastTransaction.tableId)}</p>}
               <p>ID Transaksi : {lastTransaction.id}</p>
             </div>
 
@@ -1262,7 +1283,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           <>
             <div className="text-center mb-6 border-b-2 border-black pb-4">
               <h1 className="text-2xl font-black uppercase mb-2">PESANAN DAPUR</h1>
-              <h2 className="text-3xl font-black">{lastTransaction.tableId ? `MEJA ${lastTransaction.tableId}` : 'TAKEAWAY'}</h2>
+              <h2 className="text-3xl font-black">{lastTransaction.tableId ? `MEJA ${getTableName(lastTransaction.tableId)}` : 'TAKEAWAY'}</h2>
             </div>
 
             <div className="mb-6">
