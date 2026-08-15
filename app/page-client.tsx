@@ -671,16 +671,16 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         ) : (
           cart.map(item => (
             <div key={item.cartItemId || item.id} className="flex flex-col bg-white border p-3 rounded-xl shadow-sm group hover:border-blue-200 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex flex-col pr-2">
-                  <span className="font-bold text-sm text-gray-800 leading-tight">{item.name}</span>
+              <div className="flex flex-row justify-between items-start mb-2 gap-2">
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="font-bold text-sm text-gray-800 leading-tight truncate">{item.name}</span>
                   <span className="text-gray-500 font-medium text-xs mt-0.5">{formatRupiah(item.hargaJual)}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => { setEditingNoteId(item.cartItemId); setTempNote(item.note || ""); }} className="text-gray-400 hover:text-blue-500 transition-colors" title="+ Catatan">
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => { setEditingNoteId(item.cartItemId); setTempNote(item.note || ""); }} className="text-gray-400 hover:text-blue-500 transition-colors bg-gray-50 p-1.5 rounded-md" title="+ Catatan">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => removeFromCart(item.cartItemId)} className="text-gray-400 hover:text-red-500 transition-colors">
+                  <button onClick={() => removeFromCart(item.cartItemId)} className="text-gray-400 hover:text-red-500 transition-colors bg-red-50 p-1.5 rounded-md">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -727,9 +727,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <p className="text-xs text-gray-500 italic mb-2">Catatan: {item.note}</p>
               ) : null}
 
-              <div className="flex justify-between items-center">
-                <p className="text-xs font-black text-blue-600">{formatRupiah(item.hargaJual * item.qty)}</p>
-                <div className="flex items-center gap-1">
+              <div className="flex flex-row justify-between items-center mt-2 border-t pt-2 border-dashed border-gray-100">
+                <p className="text-sm font-black text-blue-600">{formatRupiah(item.hargaJual * item.qty)}</p>
+                <div className="flex items-center gap-2 shrink-0">
                   <button onClick={() => updateQty(item.cartItemId, -1)} className="p-1.5 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 active:scale-95 transition-all text-gray-600"><Minus className="w-3 h-3" /></button>
                   <span className="font-bold w-6 text-center text-sm">{item.qty}</span>
                   <button onClick={() => updateQty(item.cartItemId, 1)} disabled={item.qty >= item.stock} className="p-1.5 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 active:scale-95 transition-all text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><Plus className="w-3 h-3" /></button>
@@ -1053,7 +1053,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             </div>
 
             {/* CART SIDEBAR (Desktop Only) */}
-            <div className="hidden lg:flex w-[420px] bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20">
+            <div className="hidden lg:flex w-[450px] min-w-[450px] shrink-0 bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20">
               {renderCartContent(false)}
             </div>
           </div>
