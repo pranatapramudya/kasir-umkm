@@ -193,7 +193,7 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
         </div>
 
         {/* Booking Link Display */}
-        {bookingLink && !isEditing && tenantCategory && (tenantCategory.toUpperCase().includes('JASA') || tenantCategory.toUpperCase().includes('RENTAL') || tenantCategory.toUpperCase().includes('SERVIS') || tenantCategory.toUpperCase().includes('TRAVEL')) && (
+        {bookingLink && !isEditing && (
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
             <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">
               Link Booking Publik Toko
@@ -209,14 +209,18 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
                 {bookingLink}
               </a>
             </div>
-            <div className="mt-4 p-3 rounded-lg bg-white border border-blue-100 flex items-start gap-3 shadow-sm">
-              <div>
-                <p className="text-xs text-blue-600 leading-relaxed">
-                  {(tenantCategory.toUpperCase().includes('JASA') || tenantCategory.toUpperCase().includes('SERVIS'))
-                    ? "💡 Tips: Bagikan link ini di bio Instagram atau WhatsApp Anda. Pelanggan dapat melihat layanan Anda dan memesan slot waktu secara mandiri, sehingga Anda tidak perlu membalas chat satu per satu."
-                    : "💡 Tips: Berikan link ini kepada calon penyewa. Mereka dapat melihat armada/barang mana yang sedang tersedia dan langsung melakukan *booking* sesuai tanggal, sehingga Anda terhindar dari bentrok jadwal penyewaan."}
-                </p>
-              </div>
+          </div>
+        )}
+
+        {/* Education Tips Display */}
+        {!isEditing && tenantCategory && (tenantCategory.toUpperCase().includes('JASA') || tenantCategory.toUpperCase().includes('RENTAL') || tenantCategory.toUpperCase().includes('SERVIS') || tenantCategory.toUpperCase().includes('TRAVEL')) && (
+          <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 flex items-start gap-3 shadow-sm">
+            <div>
+              <p className="text-xs text-blue-700 leading-relaxed">
+                {(tenantCategory.toUpperCase().includes('JASA') || tenantCategory.toUpperCase().includes('SERVIS'))
+                  ? "💡 Tips: Bagikan link ini di bio Instagram atau WhatsApp Anda. Pelanggan dapat melihat layanan Anda dan memesan slot waktu secara mandiri, sehingga Anda tidak perlu membalas chat satu per satu."
+                  : "💡 Tips: Berikan link ini kepada calon penyewa. Mereka dapat melihat armada/barang mana yang sedang tersedia dan langsung melakukan *booking* sesuai tanggal, sehingga Anda terhindar dari bentrok jadwal penyewaan."}
+              </p>
             </div>
           </div>
         )}
