@@ -13,8 +13,16 @@ export async function GET(request: Request) {
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
+    const metaTenantId = (sessionClaims?.metadata as any)?.tenantId;
+
+    let targetUserId = userId;
+    if (role === 'CASHIER' && metaTenantId) {
+      targetUserId = metaTenantId;
+    }
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    if (employee) {
+      targetUserId = employee.tenantId;
+    }
 
     const tables = await prisma.diningTable.findMany({
       where: { userId: targetUserId },
@@ -37,8 +45,16 @@ export async function POST(request: Request) {
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
+    const metaTenantId = (sessionClaims?.metadata as any)?.tenantId;
+
+    let targetUserId = userId;
+    if (role === 'CASHIER' && metaTenantId) {
+      targetUserId = metaTenantId;
+    }
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    if (employee) {
+      targetUserId = employee.tenantId;
+    }
 
     const body = await request.json();
     const { name, capacity } = body;

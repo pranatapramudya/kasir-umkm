@@ -18,8 +18,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { sessionClaims } = await auth();
     const role = (sessionClaims?.metadata as any)?.role;
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
+    const metaTenantId = (sessionClaims?.metadata as any)?.tenantId;
+
+    let targetUserId = userId;
+    if (role === 'CASHIER' && metaTenantId) {
+      targetUserId = metaTenantId;
+    }
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    if (employee) {
+      targetUserId = employee.tenantId;
+    }
 
     const dataToUpdate: any = {};
     if (name !== undefined) dataToUpdate.name = name;
@@ -54,8 +62,16 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const { sessionClaims } = await auth();
     const role = (sessionClaims?.metadata as any)?.role;
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
+    const metaTenantId = (sessionClaims?.metadata as any)?.tenantId;
+
+    let targetUserId = userId;
+    if (role === 'CASHIER' && metaTenantId) {
+      targetUserId = metaTenantId;
+    }
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    if (employee) {
+      targetUserId = employee.tenantId;
+    }
 
     const result = await prisma.diningTable.deleteMany({
       where: { id, userId: targetUserId }
