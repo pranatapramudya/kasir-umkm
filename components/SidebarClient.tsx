@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, PackageSearch, Store, BarChart, Settings, Wallet, Users, CreditCard, CalendarCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
+import { getNavigationMenu } from "@/lib/navigation";
+import { Store } from "lucide-react";
 
 interface SidebarClientProps {
   role: string | undefined;
@@ -40,46 +40,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
   }, [pathname]);
 
   const isCashier = role === 'CASHIER';
-
-  const menuGroups = [
-    {
-      group: "MENU UTAMA",
-      items: [
-        { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        { name: kasirLabel, href: "/", icon: Store },
-        { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet }, // Digunakan Wallet atau FileText
-        ...(kategoriUsaha === "F&B / Kuliner" ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
-        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }] : [])
-      ]
-    },
-    {
-      group: "MANAJEMEN BISNIS",
-      items: [
-        { name: productMenuLabel, href: "/admin/products", icon: PackageSearch },
-        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }] : []),
-        { name: "Karyawan", href: "/admin/karyawan", icon: Users },
-        { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet }
-      ]
-    },
-    {
-      group: "SISTEM & LAPORAN",
-      items: [
-        { name: "Analitik", href: "/admin/analytics", icon: BarChart },
-        ...(isServiceBusiness ? [{ name: "Rekap Komisi", href: "/admin/rekap-komisi", icon: Wallet }] : []),
-        { name: "Cek Langganan", href: "/admin/subscription", icon: CreditCard },
-        ...(isServiceBusiness ? [{ name: "Informasi Toko", href: "/admin/settings", icon: Settings }] : [])
-      ]
-    }
-  ];
-
-  const filteredMenuGroups = menuGroups.map(group => {
-    // Karyawan HANYA boleh melihat grup "MENU UTAMA"
-    if (isCashier && group.group !== "MENU UTAMA") {
-      return { ...group, items: [] };
-    }
-    // Jika ada filter spesifik lain untuk item, bisa ditaruh di sini
-    return group;
-  }).filter(group => group.items.length > 0);
+  const filteredMenuGroups = getNavigationMenu(kategoriUsaha, role);
 
   return (
     <>

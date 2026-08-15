@@ -4,21 +4,12 @@ import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import Link from "next/link";
 import {
-  LayoutDashboard,
-  PackageSearch,
-  BarChart,
-  Settings,
-  ShoppingCart,
-  Wallet,
-  Users,
-  FileText,
   Grid,
   X,
-  CreditCard,
-  CalendarCheck,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
+import { getNavigationMenu } from "@/lib/navigation";
 
 interface BottomNavClientProps {
   kategoriUsaha?: string;
@@ -29,56 +20,20 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const { user } = useUser();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
-  const role = user?.publicMetadata?.role;
+  const role = user?.publicMetadata?.role as string | undefined;
   const kategoriUsaha = rawKategori ?? "Retail";
-  const isJasa = isServiceBusinessCategory(kategoriUsaha);
-  const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
-  const isFnB = kategoriUsaha === "F&B / Kuliner";
-  const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Kasir Rental" : isJasa ? "Kasir Jasa" : "Kasir POS";
-  const productMenuLabel = isRentalTravel ? "Data Armada" : isJasa ? "Layanan" : "Produk";
-  const bookingMenuLabel = isRentalTravel ? "Kalender Sewa" : "Jadwal Booking";
 
-  // CASHIER ONLY
-  const cashierNavItems = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: kasirLabel, href: "/", icon: ShoppingCart },
-    { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
-    ...(isJasa
-      ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }]
-      : []),
-    ...(isFnB
-      ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }]
-      : []),
-  ];
+  // Use the Single Source of Truth
+  const menuGroups = getNavigationMenu(kategoriUsaha, role);
+  
+  // Flatten all items from all groups
+  const allNavItems = menuGroups.flatMap(group => group.items);
+  
+  // First 4 items go to the bottom bar, the rest go to the "More" modal
+  const mainNavItems = allNavItems.slice(0, 4);
+  const moreItems = allNavItems.slice(4);
 
-  // OWNER Main Nav Items (4 items) — category-aware
-  const ownerMainNavItems = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: kasirLabel, href: "/", icon: ShoppingCart },
-    {
-      name: productMenuLabel,
-      href: "/admin/products",
-      icon: PackageSearch,
-    },
-    { name: "Analitik", href: "/admin/analytics", icon: BarChart },
-  ];
-
-  // OWNER More Drawer Items — category-aware
-  const ownerMoreItems = [
-    { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
-    ...(isJasa
-      ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }]
-      : []),
-    { name: "Karyawan", href: "/admin/karyawan", icon: Users },
-    { name: "Pengeluaran", href: "/admin/pengeluaran", icon: Wallet },
-    { name: "Langganan", href: "/admin/subscription", icon: CreditCard },
-    ...(isJasa
-      ? [{ name: "Informasi Toko", href: "/admin/settings", icon: Settings }]
-      : []),
-  ];
-
-  const mainNavItems = role === "CASHIER" ? cashierNavItems : ownerMainNavItems;
-  const isMoreActive = ownerMoreItems.some((item) => item.href === pathname);
+  const isMoreActive = moreItems.some((item) => item.href === pathname);
 
   return (
     <>
@@ -126,8 +81,8 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
             );
           })}
 
-          {/* TOMBOL LAINNYA UNTUK OWNER */}
-          {role !== "CASHIER" && (
+          {/* TOMBOL LAINNYA JIKA ADA SISA MENU */}
+          {moreItems.length > 0 && (
             <div className="flex justify-center flex-1 h-full relative">
               <button
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
@@ -166,7 +121,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
       </nav>
 
       {/* MORE DRAWER (BOTTOM SHEET) */}
-      {role !== "CASHIER" && isMoreOpen && (
+      {moreItems.length > 0 && isMoreOpen && (
         <div className="fixed inset-0 z-30 flex items-end justify-center lg:hidden">
           <div
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200"
@@ -184,7 +139,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
             </div>
 
             <div className="grid grid-cols-4 gap-4">
-              {ownerMoreItems.map((item) => {
+              {moreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
