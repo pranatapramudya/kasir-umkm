@@ -752,9 +752,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all"
             >
               <option value="">Pilih Meja / Takeaway</option>
-              {tables.map(t => (
-                <option key={t.id} value={t.id}>{t.name} (Kapasitas: {t.capacity})</option>
-              ))}
+              {tables.map(t => {
+                const isOccupied = t.status?.toUpperCase() === 'TERISI' || t.status?.toUpperCase() === 'OCCUPIED';
+                return (
+                  <option key={t.id} value={t.id} disabled={isOccupied}>
+                    {t.name} (Kapasitas: {t.capacity}){isOccupied ? ' - TERISI' : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
         )}
