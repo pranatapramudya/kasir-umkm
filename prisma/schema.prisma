@@ -23,6 +23,7 @@ model product {
   isService          Boolean  @default(false)
   employeeCommission Int?     @default(0)
   isActive           Boolean  @default(true)
+  isArchived         Boolean  @default(false)
   createdAt          DateTime @default(now()) // Harus ada baris ini!
   bookings           Booking[]
 

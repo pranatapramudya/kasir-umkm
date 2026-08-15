@@ -48,7 +48,7 @@ export default async function BookingPage({ params }: PageProps) {
 
   // Ambil layanan (produk dengan isService=true) milik tenant ini
   const services = await prisma.product.findMany({
-    where: { userId: tenant.userId, isService: true, isActive: true },
+    where: { userId: tenant.userId, isService: true, isArchived: false },
     orderBy: { name: "asc" },
     select: { id: true, name: true, hargaJual: true },
   });

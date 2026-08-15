@@ -105,7 +105,7 @@ export async function DELETE(
     // 2. Keamanan dan Eksekusi Atomic (Soft Delete / Arsip)
     const result = await prisma.product.updateMany({
       where: { id: productId, userId },
-      data: { isActive: false }
+      data: { isArchived: true }
     });
 
     if (result.count === 0) {

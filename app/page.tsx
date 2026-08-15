@@ -47,11 +47,11 @@ export default async function POSApp() {
 
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
-        where: { userId: targetUserId },
+        where: { userId: targetUserId, isArchived: false },
         orderBy: { createdAt: 'desc' },
         take: 10
       }),
-      prisma.product.count({ where: { userId: targetUserId } })
+      prisma.product.count({ where: { userId: targetUserId, isArchived: false } })
     ]);
 
     return (

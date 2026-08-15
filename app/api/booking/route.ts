@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     // 3. Validasi productId jika dikirim
     if (productId) {
       const product = await prisma.product.findFirst({
-        where: { id: Number(productId), userId: tenant.userId, isActive: true },
+        where: { id: Number(productId), userId: tenant.userId, isArchived: false },
       });
       if (!product) {
         revalidatePath('/', 'layout');

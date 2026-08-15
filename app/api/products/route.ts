@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
 
-    const whereClause: any = { userId: targetUserId, isActive: true };
+    const whereClause: any = { userId: targetUserId, isArchived: false };
     
     if (search) {
       whereClause.OR = [

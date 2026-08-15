@@ -16,7 +16,7 @@ export async function GET() {
     const targetUserId = role === 'CASHIER' ? tenantId : userId;
 
     const categories = await prisma.product.findMany({
-      where: { userId: targetUserId },
+      where: { userId: targetUserId, isArchived: false },
       select: { category: true },
       distinct: ['category']
     });

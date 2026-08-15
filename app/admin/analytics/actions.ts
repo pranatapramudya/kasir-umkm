@@ -110,7 +110,7 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
 
     // 3. Stok Menipis
     const lowStock = await prisma.product.findMany({
-      where: { userId: targetUserId, stock: { lte: 10 } },
+      where: { userId: targetUserId, stock: { lte: 10 }, isArchived: false },
       select: { name: true, stock: true },
       orderBy: { stock: 'asc' },
       take: 10
