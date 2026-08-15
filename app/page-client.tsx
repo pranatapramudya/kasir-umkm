@@ -647,7 +647,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           <div className="flex items-center gap-2">
             <span>{isJasa ? 'Detail Layanan' : isRental ? 'Detail Sewa' : 'Keranjang'}</span>
             {cart.length > 0 && (
-              <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm">
+              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
                 {cart.reduce((acc, item) => acc + item.qty, 0)}
               </span>
             )}
