@@ -67,7 +67,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                     />
                   </div>
                   <span
-                    className={`text-[10px] transition-colors ${
+                    className={`text-[10px] whitespace-nowrap text-center transition-colors ${
                       isActive
                         ? "font-bold text-blue-600"
                         : "font-medium text-slate-400 group-hover:text-slate-600"
