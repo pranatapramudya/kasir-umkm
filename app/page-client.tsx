@@ -644,7 +644,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       <div className="p-4 border-b flex justify-between items-center bg-white shadow-sm z-10 relative">
         <div className="font-bold flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-gray-700" />
-          <span>{isJasa ? 'Detail Layanan' : isRental ? 'Detail Sewa' : 'Keranjang'}</span>
+          <div className="flex items-center gap-2">
+            <span>{isJasa ? 'Detail Layanan' : isRental ? 'Detail Sewa' : 'Keranjang'}</span>
+            {cart.length > 0 && (
+              <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm">
+                {cart.reduce((acc, item) => acc + item.qty, 0)}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {cart.length > 0 && (
