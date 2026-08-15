@@ -670,7 +670,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
         ) : (
           cart.map(item => (
-            <div key={item.cartItemId || item.id} className="flex flex-col bg-white border p-3 rounded-xl shadow-sm group hover:border-blue-200 transition-colors">
+            <div key={item.cartItemId || item.id} className="flex flex-col overflow-hidden bg-white border p-3 rounded-xl shadow-sm group hover:border-blue-200 transition-colors">
               <div className="flex flex-row justify-between items-start mb-2 gap-2">
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-bold text-sm text-gray-800 leading-tight truncate">{item.name}</span>
@@ -727,7 +727,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <p className="text-xs text-gray-500 italic mb-2">Catatan: {item.note}</p>
               ) : null}
 
-              <div className="flex flex-row justify-between items-center mt-2 border-t pt-2 border-dashed border-gray-100">
+              <div className="flex flex-row flex-wrap justify-between items-center mt-2 border-t pt-2 border-dashed border-gray-100 gap-2">
                 <p className="text-sm font-black text-blue-600">{formatRupiah(item.hargaJual * item.qty)}</p>
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={() => updateQty(item.cartItemId, -1)} className="p-1.5 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 active:scale-95 transition-all text-gray-600"><Minus className="w-3 h-3" /></button>
@@ -847,7 +847,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         )}
 
         {/* DP System */}
-        {(isJasa || isRental) && cart.length > 0 && (
+        {(isRental) && cart.length > 0 && (
           <div className="pt-2 border-t border-gray-100">
             <label className="flex items-center gap-2 cursor-pointer mb-2">
               <input type="checkbox" checked={isDownPayment} onChange={(e) => setIsDownPayment(e.target.checked)} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
