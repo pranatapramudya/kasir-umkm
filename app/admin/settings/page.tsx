@@ -36,7 +36,7 @@ export default async function AdminSettingsPage() {
       </div>
 
       {/* ── Bagian Kustom: Informasi Toko ── */}
-      <SlugForm initialSlug={tenant?.slug ?? null} appUrl={appUrl} />
+      <SlugForm initialSlug={tenant?.slug ?? null} appUrl={appUrl} tenantCategory={tenant?.category} />
     </div>
   );
 }

@@ -6,9 +6,10 @@ import { Store, CheckCircle2, AlertCircle, Link2, Loader2, Pencil } from "lucide
 interface Props {
   initialSlug: string | null;
   appUrl: string;
+  tenantCategory?: string | null;
 }
 
-export default function SlugForm({ initialSlug, appUrl }: Props) {
+export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props) {
   const [slug, setSlug] = useState(initialSlug ?? "");
   const [inputValue, setInputValue] = useState(initialSlug ?? "");
   const [isEditing, setIsEditing] = useState(false);
@@ -208,9 +209,19 @@ export default function SlugForm({ initialSlug, appUrl }: Props) {
                 {bookingLink}
               </a>
             </div>
-            <p className="text-xs text-blue-500 mt-2">
-              Bagikan link ini ke pelanggan agar mereka bisa melakukan booking langsung.
-            </p>
+            <div className="mt-4 p-3 rounded-lg bg-white border border-blue-100 flex items-start gap-3 shadow-sm">
+              <div className="text-xl">💡</div>
+              <div>
+                <p className="text-xs font-bold text-blue-800 mb-1">Tips Edukasi Booking</p>
+                <p className="text-xs text-blue-600 leading-relaxed">
+                  {tenantCategory?.includes('Jasa') || tenantCategory?.includes('Servis')
+                    ? "Bagikan link ini di bio Instagram/WhatsApp Anda. Pelanggan dapat memilih layanan dan memilih slot waktu (jam) yang tersedia tanpa harus menelepon Anda."
+                    : tenantCategory?.includes('Rental') || tenantCategory?.includes('Travel')
+                    ? "Bagikan link ini ke penyewa. Mereka dapat melihat armada/barang yang tersedia dan melakukan booking harian berdasarkan tanggal, sehingga meminimalisir bentrok jadwal."
+                    : "Bagikan link ini ke pelanggan agar mereka bisa melihat katalog produk dan melakukan pemesanan (booking) secara mandiri."}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

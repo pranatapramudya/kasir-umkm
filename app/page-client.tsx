@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu
+  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -128,6 +128,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   };
 
   // State Rental & Travel
+  const [isRentalFormModalOpen, setIsRentalFormModalOpen] = useState(false);
   const [rentalInfo, setRentalInfo] = useState({
     driverName: '',
     licensePlate: '',
@@ -443,7 +444,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     if (lastTransaction.tableId) text += `Nomor Meja: ${getTableName(lastTransaction.tableId)}\n`;
     // Data Jasa
     if (lastTransaction.serviceDate) {
-       text += `Waktu Layanan: ${new Date(lastTransaction.serviceDate).toLocaleString('id-ID', {dateStyle: 'medium', timeStyle: 'short'})}\n`;
+      text += `Waktu Layanan: ${new Date(lastTransaction.serviceDate).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}\n`;
     }
     // Data rental
     if (lastTransaction.destination) text += `Tujuan    : ${lastTransaction.destination}\n`;
@@ -464,7 +465,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     text += `--------------------------------\n`;
     text += `--------------------------------\n`;
     text += `*Total Belanja : ${formatRupiah(lastTransaction.total)}*\n`;
-    
+
     if (lastTransaction.downPayment && lastTransaction.downPayment > 0) {
       text += `Uang Muka (DP) : ${formatRupiah(lastTransaction.downPayment)}\n`;
       text += `Sisa Tagihan   : ${formatRupiah(lastTransaction.remainingBalance || 0)}\n`;
@@ -609,7 +610,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                   </button>
                 </SignInButton>
-                
+
                 <div>
                   <SignInButton mode="modal">
                     <button className="w-full bg-transparent text-slate-500 hover:text-slate-700 border-2 border-slate-200 hover:border-slate-300 py-3.5 rounded-2xl font-bold text-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2">
@@ -782,77 +783,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
         )}
 
-        {/* Form Armada — Khusus Rental & Travel */}
+        {/* Tombol Lengkapi Data Sewa Khusus Rental */}
         {isRental && (
-          <div className="space-y-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3">
-            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
-              🚗 Data Armada & Sewa
-            </p>
-            {/* Nama Supir */}
-            <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Nama Supir *</label>
-              <input
-                type="text"
-                placeholder="contoh: Budi Santoso"
-                value={rentalInfo.driverName}
-                onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
-                className="w-full p-2.5 bg-white border border-amber-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-400 rounded-lg text-sm transition-all"
-              />
-            </div>
-            {/* Plat Nomor */}
-            <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Plat Nomor *</label>
-              <input
-                type="text"
-                placeholder="contoh: B 1234 ABC"
-                value={rentalInfo.licensePlate}
-                onChange={(e) => setRentalInfo(prev => ({ ...prev, licensePlate: e.target.value.toUpperCase() }))}
-                className="w-full p-2.5 bg-white border border-amber-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-400 rounded-lg text-sm transition-all font-mono tracking-widest"
-              />
-            </div>
-            {/* Tujuan */}
-            <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
-              <input
-                type="text"
-                placeholder="contoh: Bandara, Bali..."
-                value={rentalInfo.destination}
-                onChange={(e) => setRentalInfo(prev => ({ ...prev, destination: e.target.value }))}
-                className="w-full p-2.5 bg-white border border-amber-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-400 rounded-lg text-sm transition-all"
-              />
-            </div>
-            {/* Tanggal Sewa */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Tgl Mulai</label>
-                <input
-                  type="date"
-                  value={rentalInfo.startDate}
-                  onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full p-2 bg-white border border-amber-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-400 rounded-lg text-xs transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Tgl Selesai</label>
-                <input
-                  type="date"
-                  value={rentalInfo.endDate}
-                  onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full p-2 bg-white border border-amber-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-400 rounded-lg text-xs transition-all"
-                />
-              </div>
-            </div>
-            {/* Jaminan */}
-            <div className="col-span-2">
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Jaminan Diserahkan (Misal: KTP, KK) *</label>
-              <input
-                type="text"
-                placeholder="contoh: KTP Asli"
-                value={rentalInfo.guarantee}
-                onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
-                className="w-full p-2.5 bg-white border border-amber-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-400 rounded-lg text-sm transition-all"
-              />
-            </div>
+          <div className="mb-2">
+            <button
+              onClick={() => setIsRentalFormModalOpen(true)}
+              className={`w-full py-2.5 rounded-xl border-2 font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${rentalInfo.driverName && rentalInfo.licensePlate && rentalInfo.guarantee
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-400 hover:bg-emerald-100"
+                  : "bg-amber-50 text-amber-700 border-amber-400 hover:bg-amber-100 animate-pulse"
+                }`}
+            >
+              <Car className="w-5 h-5" />
+              {rentalInfo.driverName && rentalInfo.licensePlate && rentalInfo.guarantee
+                ? "Data Sewa Terisi (Ubah)"
+                : "⚠️ Lengkapi Data Sewa *"}
+            </button>
           </div>
         )}
 
@@ -959,10 +904,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim()))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
           >
             {isCheckoutLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-            {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' : 
+            {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' :
               (isRental && isDownPayment && (parseInt(downPaymentInput.replace(/[^0-9]/g, '')) || 0) > 0 && remainingBalance > 0) ? 'SIMPAN & TAHAN JAMINAN' :
-              (isRental) ? 'LUNAS & SELESAI' :
-              'BAYAR SEKARANG'}
+                (isRental) ? 'LUNAS & SELESAI' :
+                  'BAYAR SEKARANG'}
           </button>
         </div>
       </div>
@@ -1205,7 +1150,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
         {lastTransaction && (
           <>
-          <div className="mb-4">
+            <div className="mb-4">
               <p>Waktu : {lastTransaction.date} {lastTransaction.time}</p>
               <p>Kasir : Admin</p>
               <p>Pelanggan : {lastTransaction.customerName}</p>
@@ -1330,15 +1275,121 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       {/* Printer Help Modal */}
       <PrinterHelpModal isOpen={isPrinterHelpOpen} onClose={() => setIsPrinterHelpOpen(false)} />
 
-      {/* F&B Modifier Modal */}
-      <FnbModifierModal 
-        isOpen={fnbSelectedProduct !== null}
-        product={fnbSelectedProduct}
-        onClose={() => setFnbSelectedProduct(null)}
-        modifierNote={fnbModifierNote}
-        setModifierNote={setFnbModifierNote}
-        onSubmit={submitFnbModifier}
-      />
+      {/* Modal F&B */}
+      {fnbSelectedProduct && (
+        <FnbModifierModal
+          product={fnbSelectedProduct}
+          isOpen={!!fnbSelectedProduct}
+          onClose={() => setFnbSelectedProduct(null)}
+          modifierNote={fnbModifierNote}
+          setModifierNote={setFnbModifierNote}
+          onSubmit={submitFnbModifier}
+        />
+      )}
+
+      {/* Modal Data Armada & Sewa (Khusus Rental) */}
+      {isRentalFormModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-amber-50 to-orange-50">
+              <h2 className="text-lg font-black text-amber-900 flex items-center gap-2">
+                <Car className="w-5 h-5 text-amber-600" />
+                Lengkapi Data Sewa
+              </h2>
+              <button
+                onClick={() => setIsRentalFormModalOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[70vh] space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Nama Supir *</label>
+                  <input
+                    type="text"
+                    placeholder="contoh: Budi Santoso"
+                    value={rentalInfo.driverName}
+                    onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Plat Nomor *</label>
+                  <input
+                    type="text"
+                    placeholder="contoh: B 1234 ABC"
+                    value={rentalInfo.licensePlate}
+                    onChange={(e) => setRentalInfo(prev => ({ ...prev, licensePlate: e.target.value.toUpperCase() }))}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all font-mono tracking-widest"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
+                <input
+                  type="text"
+                  placeholder="contoh: Bandara, Bali..."
+                  value={rentalInfo.destination}
+                  onChange={(e) => setRentalInfo(prev => ({ ...prev, destination: e.target.value }))}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Mulai</label>
+                  <input
+                    type="date"
+                    value={rentalInfo.startDate}
+                    onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Selesai</label>
+                  <input
+                    type="date"
+                    value={rentalInfo.endDate}
+                    onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jaminan Diserahkan *</label>
+                <input
+                  type="text"
+                  placeholder="contoh: KTP Asli / Motor + STNK"
+                  value={rentalInfo.guarantee}
+                  onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  * Jaminan wajib diisi. Contoh: KTP, KK, atau kendaraan milik penyewa.
+                </p>
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setIsRentalFormModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => setIsRentalFormModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm shadow-amber-600/20 transition-all"
+              >
+                Simpan & Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
