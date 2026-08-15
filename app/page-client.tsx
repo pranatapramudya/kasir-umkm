@@ -1312,7 +1312,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     placeholder="contoh: Budi Santoso"
                     value={rentalInfo.driverName}
                     onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
                   />
                 </div>
                 <div>
@@ -1322,7 +1322,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     placeholder="contoh: B 1234 ABC"
                     value={rentalInfo.licensePlate}
                     onChange={(e) => setRentalInfo(prev => ({ ...prev, licensePlate: e.target.value.toUpperCase() }))}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all font-mono tracking-widest"
+                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all font-mono tracking-widest"
                   />
                 </div>
               </div>
@@ -1334,7 +1334,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   placeholder="contoh: Bandara, Bali..."
                   value={rentalInfo.destination}
                   onChange={(e) => setRentalInfo(prev => ({ ...prev, destination: e.target.value }))}
-                  className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                  className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
                 />
               </div>
 
@@ -1345,7 +1345,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     type="date"
                     value={rentalInfo.startDate}
                     onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
                   />
                 </div>
                 <div>
@@ -1354,7 +1354,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     type="date"
                     value={rentalInfo.endDate}
                     onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
                   />
                 </div>
               </div>
@@ -1366,7 +1366,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   placeholder="contoh: KTP Asli / Motor + STNK"
                   value={rentalInfo.guarantee}
                   onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
-                  className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm transition-all"
+                  className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
                 />
                 <p className="text-xs text-gray-500 mt-2">
                   * Jaminan wajib diisi. Contoh: KTP, KK, atau kendaraan milik penyewa.
