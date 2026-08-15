@@ -1,4 +1,4 @@
-import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck, Printer } from "lucide-react";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 
 export function getNavigationMenu(kategoriUsaha: string, role: string | undefined) {
@@ -36,6 +36,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
         { name: "Analitik", href: "/admin/analytics", icon: BarChart },
         ...(isServiceBusiness ? [{ name: "Rekap Komisi", href: "/admin/rekap-komisi", icon: Wallet }] : []),
         { name: "Langganan", href: "/admin/subscription", icon: CreditCard },
+        { name: "Rekomendasi Hardware", href: "/admin/hardware", icon: Printer },
         { name: "Keamanan", href: "/admin/settings/security", icon: ShieldCheck },
         ...(isServiceBusiness ? [{ name: "Informasi Toko", href: "/admin/settings", icon: Settings }] : [])
       ]

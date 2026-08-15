@@ -18,14 +18,10 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
   const [isCopied, setIsCopied] = useState(false);
   
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [tncType, setTncType] = useState<'software' | 'bundle' | null>(null);
-  const [isBundle, setIsBundle] = useState(currentPlan === 'PRO_YEARLY_BUNDLE');
+  const [isTncOpen, setIsTncOpen] = useState(false);
 
   const getWaText = (plan: typeof selectedPlan) => {
     if (!plan) return '';
-    if (plan.plan === 'PRO_YEARLY_BUNDLE') {
-      return `Halo Tim PJTECH, saya ingin mengonfirmasi pembayaran langganan aplikasi kasir + Hardware.\n\n*Nama Toko:* [Nama Toko/User]\n*Paket:* Pro Tahunan (Bundle)\n*Total:* Rp 2.988.000\n\n*Data Pengiriman Hardware:*\n- Nama Penerima: \n- No. HP Penerima: \n- Alamat Lengkap (Jalan, RT/RW, Kota/Kabupaten, Kode Pos): \n\nBerikut saya lampirkan bukti transfernya.`;
-    }
     return `Halo Tim PJTECH, saya ingin mengonfirmasi pembayaran langganan aplikasi kasir.\n\n*Nama Toko:* [Nama Toko/User]\n*Paket:* ${plan.title}\n*Total:* ${plan.price}\n\nBerikut saya lampirkan bukti transfernya.`;
   };
 
@@ -131,47 +127,47 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          {/* Card 1: Mulai Usaha */}
+          {/* Card 1: Pro 1 Bulan (Decoy) */}
           <div className="border border-slate-200 rounded-3xl p-5 flex flex-col hover:border-slate-300 transition-all">
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-800">Mulai Usaha</h3>
-              <p className="text-[13px] text-slate-500 mt-1.5">Pengguna baru yang ragu dan ingin mencoba.</p>
+              <h3 className="text-xl font-bold text-slate-800">Pro 1 Bulan</h3>
+              <p className="text-[13px] text-slate-500 mt-1.5">Untuk mencoba fitur lengkap kasir pintar.</p>
             </div>
             <div className="mb-6">
-              <div className="text-2xl font-bold text-slate-800">Rp 0</div>
-              <div className="text-[13px] text-slate-500 mt-1">Gratis 14 Hari Pertama</div>
+              <div className="text-2xl font-bold text-slate-800 flex items-end gap-1">
+                Rp 129k <span className="text-sm font-normal text-slate-500 pb-0.5">/ bulan</span>
+              </div>
+              <div className="text-xs font-semibold text-indigo-600 mt-1 mb-1">Total: Rp 129.000 / 1 bulan</div>
+              <div className="text-[11px] text-slate-500 italic mb-2">(Hanya Software)</div>
+              <button onClick={() => setIsTncOpen(true)} className="text-[11px] font-bold text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
             </div>
             <div className="space-y-2 mb-8 flex-1">
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Akses Kasir (Point of Sales) Penuh</span>
+                <span className="text-xs text-slate-600">Semua fitur Kasir &amp; Produk</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Manajemen Produk Dasar</span>
+                <span className="text-xs text-slate-600">Manajemen Stok &amp; Komisi</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Buka Kunci Dasbor Analitik (Terbatas)</span>
+                <span className="text-xs text-slate-600">Laporan Keuangan Dasar</span>
               </div>
             </div>
             <button
-              disabled={isLoading || currentPlan === 'TRIAL' || currentPlan === 'FREE'}
+              disabled={isLoading || currentPlan === 'PRO_MONTHLY'}
               onClick={() => {
-                handleExtend(14, 'TRIAL');
+                setSelectedPlan({ days: 30, plan: 'PRO_MONTHLY', title: 'Pro 1 Bulan', price: 'Rp 129.000' });
+                setIsCheckoutOpen(true);
               }}
               className={`w-full py-2 text-sm rounded-xl font-bold transition-colors flex items-center justify-center gap-2 ${
-                currentPlan === 'TRIAL' || currentPlan === 'FREE' 
+                currentPlan === 'PRO_MONTHLY' 
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' 
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Memproses...</span>
-                </>
-              ) : (currentPlan === 'TRIAL' || currentPlan === 'FREE' ? 'Paket Anda Saat Ini' : 'Gunakan Akses Trial')}
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (currentPlan === 'PRO_MONTHLY' ? 'Paket Anda Saat Ini' : 'Pilih 1 Bulan')}
             </button>
           </div>
 
@@ -183,11 +179,11 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
             </div>
             <div className="mb-6">
               <div className="text-2xl font-bold text-slate-800 flex items-end gap-1">
-                Rp 99rb <span className="text-sm font-normal text-slate-500 pb-0.5">/ bulan</span>
+                Rp 99k <span className="text-sm font-normal text-slate-500 pb-0.5">/ bulan</span>
               </div>
-              <div className="text-xs font-semibold text-indigo-600 mt-1 mb-1">Wajib dibayar di awal: Rp 594.000 / 6 bulan</div>
+              <div className="text-xs font-semibold text-indigo-600 mt-1 mb-1">Total: Rp 594.000 / 6 bulan</div>
               <div className="text-[11px] text-slate-500 italic mb-2">(Hanya Software)</div>
-              <button onClick={() => setTncType('software')} className="text-[11px] font-bold text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
+              <button onClick={() => setIsTncOpen(true)} className="text-[11px] font-bold text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
             </div>
             <div className="space-y-2 mb-8 flex-1">
               <div className="flex items-start gap-2.5">
@@ -197,10 +193,6 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                 <span className="text-xs text-slate-600">Laporan Pendapatan &amp; Laba Bersih</span>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Manajemen Stok Otomatis</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
@@ -223,156 +215,95 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
             </button>
           </div>
 
-          {/* Card 3: Pro Tahunan */}
-          <div className="border-2 border-orange-500 rounded-3xl p-5 flex flex-col relative shadow-[0_8px_30px_rgb(249,115,22,0.15)] bg-white mt-4 lg:mt-0">
-            <div className="absolute -top-3.5 right-6 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md tracking-wider">
-              PALING POPULER
+          {/* Card 3: Pro Tahunan (HERO) */}
+          <div className="border-2 border-orange-500 rounded-3xl p-5 flex flex-col relative shadow-[0_8px_30px_rgb(249,115,22,0.15)] bg-white mt-4 lg:mt-0 ring-2 ring-orange-500 ring-offset-2">
+            <div className="absolute -top-3.5 right-6 bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full shadow-lg tracking-widest uppercase">
+              PALING HEMAT!
             </div>
-            <div className="mb-4 mt-1">
-              <h3 className="text-xl font-bold text-slate-800">Pro Tahunan</h3>
-              <p className="text-[13px] text-slate-500 mt-1.5">Pemilik bisnis serius yang butuh data mendalam.</p>
+            <div className="mb-4 mt-2">
+              <h3 className="text-xl font-black text-slate-800">Pro 1 Tahun</h3>
+              <p className="text-[13px] text-slate-500 mt-1.5">Pemilik bisnis serius yang mencari nilai terbaik.</p>
             </div>
             
-            {/* TOGGLE SOFTWARE / BUNDLE */}
-            <div className="flex bg-slate-100 p-1.5 rounded-xl mb-4 shadow-inner">
-               <button 
-                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${!isBundle ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                 onClick={() => setIsBundle(false)}
-               >Software Saja</button>
-               <button 
-                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${isBundle ? 'bg-orange-500 shadow text-white' : 'text-slate-500 hover:text-slate-700'}`}
-                 onClick={() => setIsBundle(true)}
-               >+ Hardware</button>
-            </div>
-
             <div className="mb-6">
-              <div className="text-2xl font-bold text-slate-800 flex items-end gap-1">
-                {isBundle ? 'Rp 2.988k' : 'Rp 990k'} <span className="text-sm font-normal text-slate-500 pb-0.5">/ tahun</span>
+              <div className="text-2xl font-black text-slate-800 flex items-end gap-1">
+                Rp 82.5k <span className="text-sm font-bold text-slate-500 pb-0.5">/ bulan</span>
               </div>
-              {isBundle ? (
-                <div className="text-[11px] font-bold text-orange-600 mt-2">
-                  <ul className="list-disc pl-3 space-y-1 mb-2">
-                    <li>Termasuk Tablet Kasir & Printer Thermal</li>
-                    <li>Hak milik setelah 1 tahun</li>
-                  </ul>
-                  <button onClick={() => setTncType('bundle')} className="text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
-                </div>
-              ) : (
-                <div className="text-xs font-bold text-orange-500 mt-1.5">Hemat 2 Bulan</div>
-              )}
+              <div className="text-sm font-black text-orange-600 mt-2 mb-1">Total: Rp 990.000 / 12 bulan</div>
+              <div className="text-xs font-bold text-emerald-600 mt-1.5 bg-emerald-50 inline-block px-2 py-1 rounded-md">Hemat Rp 558.000 per tahun!</div>
+              <div className="mt-2">
+                <button onClick={() => setIsTncOpen(true)} className="text-[11px] font-bold text-blue-600 hover:underline">Lihat Syarat & Ketentuan</button>
+              </div>
             </div>
             
             <div className="space-y-2 mb-8 flex-1 border-t border-slate-100 pt-4">
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Semua fitur di paket Dasar/Pro</span>
+                <span className="text-xs text-slate-600 font-bold">Semua fitur tanpa batasan</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Analisis Jam Sibuk:</span> Pantau waktu...</span>
+                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Analitik Mendalam:</span> Lacak tren penjualan.</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Peringatan Stok Cerdas:</span> Notifikasi...</span>
+                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Database Pelanggan:</span> Rekam preferensi pelanggan.</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Laporan Multi-Kasir:</span> Lacak performa...</span>
+                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Akses Prioritas:</span> Customer Service khusus.</span>
               </div>
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Analitik Produk (ABC):</span> Deteksi produk...</span>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600"><span className="font-bold text-slate-700">Database Pelanggan:</span> Kenali dan catat...</span>
-              </div>
-              {isBundle && (
-                <div className="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl space-y-3">
-                  <div className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span className="text-xs font-bold text-emerald-800">Gratis Peminjaman 1 Set Kasir (Tablet & Printer Bluetooth).</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span className="text-xs font-bold text-emerald-800">Perangkat menjadi HAK MILIK Anda sepenuhnya pada perpanjangan tahun berikutnya.</span>
-                  </div>
-                </div>
-              )}
             </div>
             
-            {(() => {
-              // Dynamic properties based on bundle state
-              const targetPlanName = isBundle ? 'PRO_YEARLY_BUNDLE' : 'PRO_YEARLY';
-              const targetTitle = isBundle ? 'Pro Tahunan (Bundle)' : 'Pro Tahunan';
-              const targetPrice = isBundle ? 'Rp 2.988.000' : 'Rp 990.000';
-              const isDisabled = isLoading || currentPlan === targetPlanName;
-
-              return (
-                <button
-                  disabled={isDisabled}
-                  onClick={() => {
-                    setSelectedPlan({ days: 365, plan: targetPlanName, title: targetTitle, price: targetPrice });
-                    setIsCheckoutOpen(true);
-                  }}
-                  className={`w-full py-2 text-sm rounded-xl font-bold transition-colors flex items-center justify-center gap-2 ${
-                    isDisabled 
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border-none' 
-                    : 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/30'
-                  }`}
-                >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (currentPlan === targetPlanName ? 'Paket Anda Saat Ini' : (isBundle ? 'Pilih Bundling' : 'Pilih Tahunan'))}
-                </button>
-              )
-            })()}
+            <button
+              disabled={isLoading || currentPlan === 'PRO_YEARLY'}
+              onClick={() => {
+                setSelectedPlan({ days: 365, plan: 'PRO_YEARLY', title: 'Pro 1 Tahun', price: 'Rp 990.000' });
+                setIsCheckoutOpen(true);
+              }}
+              className={`w-full py-2.5 text-sm rounded-xl font-black transition-colors flex items-center justify-center gap-2 ${
+                isLoading || currentPlan === 'PRO_YEARLY' 
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border-none' 
+                : 'bg-orange-500 text-white hover:bg-orange-600 shadow-xl shadow-orange-500/40'
+              }`}
+            >
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (currentPlan === 'PRO_YEARLY' ? 'Paket Anda Saat Ini' : 'Pilih Paket Paling Hemat')}
+            </button>
           </div>
 
         </div>
       </div>
 
       {/* T&C MODAL */}
-      {tncType !== null && (
+      {isTncOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl relative p-6 md:p-8">
+          <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl relative p-6 md:p-8">
             <button 
-              onClick={() => setTncType(null)}
+              onClick={() => setIsTncOpen(false)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-6 pr-6 border-b pb-4">
-              {tncType === 'bundle' ? 'Syarat & Ketentuan Perangkat Kasir (Bundling)' : 'Syarat & Ketentuan Lisensi Software'}
+            <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-6 border-b pb-4">
+              Syarat & Ketentuan Layanan (T&C)
             </h3>
             
-            <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-8 text-sm text-slate-600 max-h-[60vh] overflow-y-auto">
-              {tncType === 'bundle' ? (
-                <>
-                  <div className="flex-1 space-y-4">
-                    <p>1. Hardware (Tablet Kasir & Printer Thermal) sepenuhnya menjadi hak milik pengguna setelah berlangganan selama <strong>1 Tahun penuh</strong>.</p>
-                    <p>2. Kerusakan fisik pada perangkat keras (Hardware) di luar cacat pabrik menjadi tanggung jawab pengguna.</p>
-                    <p>3. Jika pengguna membatalkan langganan sebelum genap 1 Tahun, pengguna wajib mengembalikan perangkat keras ke tim operasional PJTECH dalam kondisi berfungsi atau dikenakan biaya sisa nilai perangkat.</p>
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <p>4. Klaim garansi perangkat yang cacat pabrik berlaku selama 30 hari sejak perangkat diterima.</p>
-                    <p>5. Tim support tidak melayani kerusakan akibat force majeure seperti bencana alam, kebakaran, dan sejenisnya.</p>
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-2">
-                      <p className="font-semibold text-slate-700 text-xs mb-1">Catatan Tambahan:</p>
-                      <p className="text-xs">Syarat dan ketentuan ini dapat berubah sewaktu-waktu. Pengguna akan diberitahu melalui notifikasi dashboard jika terdapat perubahan.</p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="w-full space-y-4 text-center py-4">
-                  <p className="text-lg font-semibold text-slate-800">Paket ini hanya mencakup Lisensi Software PJTECH Kasir.</p>
-                  <p className="text-base text-slate-600">Tidak termasuk peminjaman perangkat keras (Tablet/Printer).</p>
-                </div>
-              )}
+            <div className="text-sm text-slate-600 max-h-[60vh] overflow-y-auto space-y-4 pr-2">
+              <p className="font-semibold text-slate-800">1. Lisensi Perangkat Lunak (Software)</p>
+              <p>Paket langganan ini hanya mencakup hak guna lisensi perangkat lunak PJTECH Kasir UMKM selama periode aktif yang dipilih.</p>
+              
+              <p className="font-semibold text-slate-800 mt-4">2. Pembebasan Tanggung Jawab Perangkat Keras (Hardware)</p>
+              <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 text-orange-800">
+                <p><strong>PJTECH KASIR UMKM hanya menyediakan layanan perangkat lunak (Software).</strong></p>
+                <p className="mt-2">Seluruh perangkat keras (Hardware) yang dibeli melalui tautan rekomendasi pihak ketiga (Affiliate/Rekomendasi) adalah tanggung jawab penuh dari penjual/toko/marketplace terkait. Kami tidak menerima klaim garansi, retur, atau dukungan teknis atas kerusakan perangkat keras fisik.</p>
+              </div>
             </div>
+            
             <button 
-              onClick={() => setTncType(null)}
-              className="w-full mt-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
+              onClick={() => setIsTncOpen(false)}
+              className="w-full mt-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
             >
-              Mengerti
+              Saya Mengerti dan Setuju
             </button>
           </div>
         </div>
