@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { ClerkProvider } from '@clerk/nextjs';
 import { idID } from '@clerk/localizations';
 import { SWRProvider } from "@/components/SWRProvider";
+import { SessionTimeoutGuard } from "@/components/SessionTimeoutGuard";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -112,7 +113,9 @@ export default function RootLayout({
           suppressHydrationWarning
         >
           <SWRProvider>
-            {children}
+            <SessionTimeoutGuard>
+              {children}
+            </SessionTimeoutGuard>
             <Toaster position="top-center" richColors />
           </SWRProvider>
           <Analytics />
