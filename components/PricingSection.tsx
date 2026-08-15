@@ -144,7 +144,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
             <div className="space-y-2 mb-8 flex-1">
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Semua fitur Kasir &amp; Produk</span>
+                <span className="text-xs text-slate-600 font-bold">Akses Penuh POS, Jasa & Rental</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
@@ -188,7 +188,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
             <div className="space-y-2 mb-8 flex-1">
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Semua fitur Kasir &amp; Produk</span>
+                <span className="text-xs text-slate-600 font-bold">Akses Penuh POS, Jasa & Rental</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />

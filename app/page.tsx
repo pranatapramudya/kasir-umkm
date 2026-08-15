@@ -91,7 +91,7 @@ export default async function POSApp() {
               Era Modern.
             </h2>
             <p className="text-lg text-slate-600 mb-6 max-w-xl leading-relaxed">
-              Kelola bisnis F&B, Retail, hingga Jasa Anda dengan satu platform yang dirancang untuk kecepatan, keamanan, dan skalabilitas di kelas *Enterprise*.
+              Kelola bisnis F&B, Retail, Jasa, hingga Rental & Travel Anda dengan satu platform yang dirancang untuk kecepatan, keamanan, dan skalabilitas di kelas <em className="text-blue-100 font-serif italic font-medium tracking-wide">Enterprise</em>.
             </p>
 
             {/* Isometric / Bento Grid Mockup */}
