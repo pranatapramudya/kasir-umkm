@@ -11,6 +11,17 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
   }
 
   try {
+    const { sessionClaims } = await auth();
+    let targetUserId = userId;
+    const role = (sessionClaims?.metadata as any)?.role;
+    const metaTenantId = (sessionClaims?.metadata as any)?.tenantId;
+    if (role === 'CASHIER' && metaTenantId) {
+      targetUserId = metaTenantId;
+    }
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    if (employee) {
+      targetUserId = employee.tenantId;
+    }
     let fromDate: Date;
     let toDate: Date;
     
@@ -31,7 +42,7 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
 
     // 1. Data Jam Sibuk
     const transactions = await prisma.transaction.findMany({
-      where: { userId, createdAt: dateFilter },
+      where: { userId: targetUserId, createdAt: dateFilter },
       select: { createdAt: true }
     });
 
@@ -39,8 +50,19 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
     for (let i = 0; i < 24; i++) hourCounts[i] = 0;
     
     transactions.forEach(t => {
-      const hour = t.createdAt.getHours();
-      hourCounts[hour]++;
+      // Konversi UTC ke UTC+7 (Asia/Jakarta)
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jakarta',
+        hour: 'numeric',
+        hour12: false
+      });
+      let hourStr = formatter.format(t.createdAt);
+      if (hourStr === '24') hourStr = '0'; // Handle '24' formatting issue in some JS engines
+      const hour = parseInt(hourStr, 10);
+      
+      if (!isNaN(hour) && hour >= 0 && hour <= 23) {
+        hourCounts[hour]++;
+      }
     });
     
     const busyHours = Object.keys(hourCounts)
@@ -51,38 +73,44 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
       .filter(h => h.count > 0);
 
     // 2. Data Analitik Produk (Top & Bottom)
+    // Tarik semua produk master untuk memastikan produk dengan 0 penjualan tetap masuk kalkulasi
+    const allProducts = await prisma.product.findMany({
+      where: { userId: targetUserId },
+      select: { id: true, name: true }
+    });
+
+    const statsMap = new Map<number, { name: string, qty: number }>();
+    allProducts.forEach(p => {
+      statsMap.set(p.id, { name: p.name, qty: 0 });
+    });
+
     const transactionItems = await prisma.transactionItem.groupBy({
       by: ['productId'],
       _sum: { qty: true },
       where: { 
         transaction: { 
-          userId,
+          userId: targetUserId,
           createdAt: dateFilter
         } 
       }
     });
     
-    const productIds = transactionItems.map(item => item.productId);
-    const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, name: true }
+    transactionItems.forEach(item => {
+      if (statsMap.has(item.productId)) {
+        statsMap.get(item.productId)!.qty += (item._sum.qty || 0);
+      } else {
+        statsMap.set(item.productId, { name: 'Produk Dihapus', qty: item._sum.qty || 0 });
+      }
     });
     
-    const productMap = new Map(products.map(p => [p.id, p.name]));
-    
-    const productStats = transactionItems
-      .map(item => ({
-        name: productMap.get(item.productId) || 'Produk Dihapus',
-        qty: item._sum.qty || 0
-      }))
-      .sort((a, b) => b.qty - a.qty);
+    const productStats = Array.from(statsMap.values());
 
-    const topProducts = productStats.slice(0, 5);
-    const bottomProducts = productStats.slice(-5).reverse();
+    const topProducts = [...productStats].sort((a, b) => b.qty - a.qty).slice(0, 5);
+    const bottomProducts = [...productStats].sort((a, b) => a.qty - b.qty).slice(0, 5);
 
     // 3. Stok Menipis
     const lowStock = await prisma.product.findMany({
-      where: { userId, stock: { lte: 10 } },
+      where: { userId: targetUserId, stock: { lte: 10 } },
       select: { name: true, stock: true },
       orderBy: { stock: 'asc' },
       take: 10
@@ -92,11 +120,11 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
     const cashierStats = await prisma.transaction.groupBy({
       by: ['userId'],
       _sum: { total: true },
-      where: { userId, createdAt: dateFilter }
+      where: { userId: targetUserId, createdAt: dateFilter }
     });
 
     const tenant = await prisma.tenant.findUnique({
-      where: { userId }
+      where: { userId: targetUserId }
     });
 
     return {
