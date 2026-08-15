@@ -4,6 +4,7 @@ import { isRentalTravelCategory } from "@/lib/business-category";
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   CalendarCheck,
   Clock,
@@ -364,9 +365,9 @@ export default function BookingDashboardClient({
             <p className="text-sm font-semibold text-amber-800">Slug toko belum diatur</p>
             <p className="text-xs text-amber-600 mt-0.5">
               Atur slug unik di{" "}
-              <a href="/admin/settings" className="underline font-semibold">
+              <Link href="/admin/settings" className="underline font-semibold">
                 Pengaturan
-              </a>{" "}
+              </Link>{" "}
               agar pelanggan bisa mengakses halaman booking Anda.
             </p>
           </div>

@@ -51,9 +51,9 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
       if (res.ok) {
         setIsRedirecting(true); // UX Fix
         if (onSuccessRedirect) {
-          window.location.href = onSuccessRedirect;
+          router.push(onSuccessRedirect);
         } else {
-          window.location.href = '/admin';
+          router.push('/admin');
         }
       } else {
         alert('Gagal memproses paket.');
