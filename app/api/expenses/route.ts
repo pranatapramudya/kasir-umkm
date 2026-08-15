@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
@@ -47,7 +48,8 @@ export async function POST(request: Request) {
   try {
     const { userId, sessionClaims } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
@@ -58,7 +60,8 @@ export async function POST(request: Request) {
     const { title, amount, category, date } = body;
 
     if (!title || amount === undefined || !category) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const newExpense = await prisma.expense.create({
@@ -71,9 +74,11 @@ export async function POST(request: Request) {
       }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json(newExpense, { status: 201 });
   } catch (error) {
     console.error("POST Expense error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Gagal menyimpan pengeluaran" }, { status: 500 });
   }
 }
@@ -82,12 +87,14 @@ export async function DELETE(request: Request) {
   try {
     const { userId, sessionClaims } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
     if (role === 'CASHIER') {
-      return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menghapus pengeluaran." }, { status: 403 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menghapus pengeluaran." }, { status: 403 });
     }
 
     const tenantId = (sessionClaims?.metadata as any)?.tenantId;
@@ -97,7 +104,8 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: "ID pengeluaran diperlukan" }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "ID pengeluaran diperlukan" }, { status: 400 });
     }
 
     // Verify ownership
@@ -106,16 +114,19 @@ export async function DELETE(request: Request) {
     });
 
     if (!expense || expense.userId !== targetUserId) {
-      return NextResponse.json({ error: "Pengeluaran tidak ditemukan atau akses ditolak" }, { status: 404 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Pengeluaran tidak ditemukan atau akses ditolak" }, { status: 404 });
     }
 
     await prisma.expense.delete({
       where: { id }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ message: "Berhasil menghapus pengeluaran" });
   } catch (error) {
     console.error("DELETE Expense error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Gagal menghapus pengeluaran" }, { status: 500 });
   }
 }

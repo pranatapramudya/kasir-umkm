@@ -10,7 +10,8 @@ export async function PATCH(request: Request) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -18,7 +19,8 @@ export async function PATCH(request: Request) {
 
     // 1. Validasi format slug: lowercase, alphanumeric, boleh pakai strip (-)
     if (!slug || typeof slug !== "string") {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Slug tidak boleh kosong." },
         { status: 400 }
       );
@@ -28,7 +30,8 @@ export async function PATCH(request: Request) {
 
     const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
     if (!slugRegex.test(slugTrimmed)) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         {
           error:
             "Format slug tidak valid. Gunakan huruf kecil, angka, dan tanda strip (-). Tidak boleh diawali/diakhiri strip.",
@@ -38,7 +41,8 @@ export async function PATCH(request: Request) {
     }
 
     if (slugTrimmed.length < 3 || slugTrimmed.length > 50) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Slug harus antara 3–50 karakter." },
         { status: 400 }
       );
@@ -54,7 +58,8 @@ export async function PATCH(request: Request) {
     });
 
     if (conflict) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Slug sudah digunakan oleh toko lain. Pilih slug yang berbeda." },
         { status: 409 }
       );
@@ -67,7 +72,8 @@ export async function PATCH(request: Request) {
     });
 
     if (!tenant) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Data toko tidak ditemukan." },
         { status: 404 }
       );
@@ -80,9 +86,11 @@ export async function PATCH(request: Request) {
       select: { slug: true, name: true },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, slug: updated.slug });
   } catch (error) {
     console.error("PATCH /api/tenant/slug error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json(
       { error: "Gagal menyimpan slug. Coba lagi." },
       { status: 500 }

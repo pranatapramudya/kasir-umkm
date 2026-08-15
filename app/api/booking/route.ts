@@ -14,7 +14,8 @@ export async function POST(request: Request) {
 
     // 1. Validasi kelengkapan data
     if (!slug || !customerName?.trim() || !customerPhone?.trim() || !bookingDate) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Data tidak lengkap. Isi semua field yang wajib." },
         { status: 400 }
       );
@@ -27,7 +28,8 @@ export async function POST(request: Request) {
     });
 
     if (!tenant) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Toko tidak ditemukan." },
         { status: 404 }
       );
@@ -39,7 +41,8 @@ export async function POST(request: Request) {
         where: { id: Number(productId), userId: tenant.userId, isActive: true },
       });
       if (!product) {
-        return NextResponse.json(
+        revalidatePath('/', 'layout');
+    return NextResponse.json(
           { error: "Layanan tidak ditemukan atau tidak aktif." },
           { status: 400 }
         );
@@ -58,7 +61,8 @@ export async function POST(request: Request) {
     });
 
     if (conflict) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Jadwal sudah tidak tersedia. Pilih jam lain." },
         { status: 400 }
       );
@@ -124,9 +128,11 @@ export async function POST(request: Request) {
       console.error("[booking] Push notification error (non-fatal):", pushError);
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, bookingId: booking.id }, { status: 201 });
   } catch (error) {
     console.error("POST /api/booking error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json(
       { error: "Gagal menyimpan jadwal. Coba lagi." },
       { status: 500 }
@@ -178,7 +184,8 @@ export async function PATCH(request: Request) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     let targetUserId = userId;
@@ -193,7 +200,8 @@ export async function PATCH(request: Request) {
     const { bookingId, status } = body;
 
     if (!bookingId || !["COMPLETED", "CANCELLED"].includes(status)) {
-      return NextResponse.json({ error: "Data tidak valid." }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Data tidak valid." }, { status: 400 });
     }
 
     // Pastikan booking ini memang milik tenant yang sedang login
@@ -203,7 +211,8 @@ export async function PATCH(request: Request) {
     });
 
     if (!booking) {
-      return NextResponse.json(
+      revalidatePath('/', 'layout');
+    return NextResponse.json(
         { error: "Booking tidak ditemukan atau akses ditolak." },
         { status: 404 }
       );
@@ -215,9 +224,11 @@ export async function PATCH(request: Request) {
       include: { product: { select: { name: true, hargaJual: true } } },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, booking: updated });
   } catch (error) {
     console.error("PATCH /api/booking error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json(
       { error: "Gagal memperbarui status booking." },
       { status: 500 }

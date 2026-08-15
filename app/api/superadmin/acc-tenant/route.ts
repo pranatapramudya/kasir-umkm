@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
@@ -6,19 +7,22 @@ export async function POST(request: Request) {
   try {
     const { userId, sessionClaims } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = sessionClaims?.role || (sessionClaims?.metadata as any)?.role;
     if (role !== 'SUPERADMIN') {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const body = await request.json();
     const { tenantId, plan } = body;
 
     if (!tenantId || !plan) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     let days = 0;
@@ -32,7 +36,8 @@ export async function POST(request: Request) {
     });
 
     if (!tenant) {
-      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
     const newEndsAt = new Date();
@@ -58,10 +63,12 @@ export async function POST(request: Request) {
       console.error("Failed updating clerk metadata", e);
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
 
   } catch (error: any) {
     console.error("ACC Tenant Error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

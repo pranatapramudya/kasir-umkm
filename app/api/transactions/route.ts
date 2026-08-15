@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma'; // Sesuaikan path alias jika diperlukan
 import { auth } from '@clerk/nextjs/server';
 
@@ -11,7 +12,8 @@ export async function POST(request: Request) {
     const { userId, sessionClaims } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
@@ -36,7 +38,8 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
-      return NextResponse.json({ success: false, message: 'Keranjang kosong' }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ success: false, message: 'Keranjang kosong' }, { status: 400 });
     }
 
     const rawDiscount = Math.round(Number(body.discount || 0));
@@ -44,7 +47,8 @@ export async function POST(request: Request) {
     const baseTotal = rawTotal + rawDiscount;
 
     if (rawDiscount > (baseTotal * 0.10) && isEmployee) {
-      return NextResponse.json({ success: false, message: 'Diskon >10% dari total harus disetujui Admin/Owner' }, { status: 403 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ success: false, message: 'Diskon >10% dari total harus disetujui Admin/Owner' }, { status: 403 });
     }
 
     // Ambil employeeCommission untuk snapshot
@@ -180,6 +184,7 @@ export async function POST(request: Request) {
 
     // Mengembalikan response sukses. 
     // Data dikembalikan dalam bentuk string/parsial untuk mencegah isu BigInt serialization di JSON
+    revalidatePath('/', 'layout');
     return NextResponse.json({
       success: true,
       message: 'Transaksi berhasil disimpan dan stok telah diperbarui',
@@ -192,6 +197,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("[TRANSACTION_ERROR]: ", error);
     // Jika error datang dari manual throw kita (stok kurang), message-nya akan terkirim
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: false, message: error.message || 'Terjadi kesalahan internal pada server' }, { status: 500 });
   }
 }

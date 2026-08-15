@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { isServiceBusinessCategory } from '@/lib/business-category';
@@ -76,12 +77,14 @@ export async function POST(request: Request) {
 
     // 1. Validasi Sesi
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
     if (role === 'CASHIER') {
-      return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menambahkan produk." }, { status: 403 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menambahkan produk." }, { status: 403 });
     }
 
     const body = await request.json();
@@ -89,7 +92,8 @@ export async function POST(request: Request) {
 
     // 2. Validasi Input Dasar (astikan name, hpp, dan hargaJual ada)
     if (!name || hpp === undefined || hargaJual === undefined) {
-      return NextResponse.json({ error: "Nama, HPP, dan Harga Jual wajib diisi" }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Nama, HPP, dan Harga Jual wajib diisi" }, { status: 400 });
     }
 
     // 2.5 Cek Kategori Usaha untuk set isService
@@ -118,15 +122,18 @@ export async function POST(request: Request) {
       }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: newProduct }, { status: 201 });
   } catch (error: any) {
     console.error("POST Product error:", error);
     
     // Penanganan error Prisma jika kodeBarang duplikat dalam satu tenant
     if (error?.code === 'P2002') {
-      return NextResponse.json({ error: "Kode Barang (SKU) sudah digunakan" }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Kode Barang (SKU) sudah digunakan" }, { status: 400 });
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Gagal menyimpan produk", details: error.message }, { status: 500 });
   }
 }

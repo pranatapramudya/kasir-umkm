@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
@@ -41,7 +42,8 @@ export async function POST(request: Request) {
     const { userId, sessionClaims } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
@@ -60,7 +62,8 @@ export async function POST(request: Request) {
     const { name, capacity } = body;
 
     if (!name) {
-      return NextResponse.json({ error: "Nama Meja wajib diisi" }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Nama Meja wajib diisi" }, { status: 400 });
     }
 
     const newTable = await prisma.diningTable.create({
@@ -72,9 +75,11 @@ export async function POST(request: Request) {
       }
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: newTable }, { status: 201 });
   } catch (error: any) {
     console.error("POST Table error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Gagal menyimpan meja", details: error.message }, { status: 500 });
   }
 }

@@ -64,7 +64,7 @@ export async function createCashier(formData: FormData) {
       },
     });
 
-    revalidatePath("/admin/karyawan");
+    revalidatePath("/", "layout");
     return { success: true };
 
   } catch (error: any) {
@@ -111,7 +111,7 @@ export async function deleteEmployee(employeeId: string, clerkUserId: string) {
       }
     });
 
-    revalidatePath("/admin/karyawan");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error: any) {
     console.error("Gagal menghapus kasir:", error);

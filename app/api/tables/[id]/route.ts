@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
@@ -8,7 +9,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const resolvedParams = await params;
@@ -40,12 +42,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     });
 
     if (result.count === 0) {
-      return NextResponse.json({ error: "Meja tidak ditemukan atau akses ditolak" }, { status: 404 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Meja tidak ditemukan atau akses ditolak" }, { status: 404 });
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, message: "Meja diperbarui" });
   } catch (error: any) {
     console.error("PUT Table error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Gagal memperbarui meja", details: error.message }, { status: 500 });
   }
 }
@@ -54,7 +59,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const resolvedParams = await params;
@@ -78,12 +84,15 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     });
 
     if (result.count === 0) {
-      return NextResponse.json({ error: "Meja tidak ditemukan atau akses ditolak" }, { status: 404 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Meja tidak ditemukan atau akses ditolak" }, { status: 404 });
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("DELETE Table error:", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Gagal menghapus meja", details: error.message }, { status: 500 });
   }
 }

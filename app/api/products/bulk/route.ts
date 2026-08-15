@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
@@ -6,13 +7,15 @@ export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { products } = await req.json();
 
     if (!Array.isArray(products) || products.length === 0) {
-      return NextResponse.json({ error: "Data produk tidak valid atau kosong" }, { status: 400 });
+      revalidatePath('/', 'layout');
+    return NextResponse.json({ error: "Data produk tidak valid atau kosong" }, { status: 400 });
     }
 
     // Prepare data for createMany
@@ -36,6 +39,7 @@ export async function POST(req: Request) {
       skipDuplicates: true, // IMPORTANT: to avoid failing the whole batch if one kodeBarang exists
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ 
       success: true, 
       message: `${result.count} produk berhasil ditambahkan.`,
@@ -43,6 +47,7 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("[BULK_PRODUCTS_POST]", error);
+    revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Gagal menyimpan data massal: " + error.message }, { status: 500 });
   }
 }
