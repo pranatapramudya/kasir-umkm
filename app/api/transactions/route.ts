@@ -14,9 +14,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
+    const role = (sessionClaims?.metadata as any)?.role;
+    const metaTenantId = (sessionClaims?.metadata as any)?.tenantId;
+
+    let isEmployee = false;
+    let activeTenantId = userId;
+
+    if (role === 'CASHIER' && metaTenantId) {
+      isEmployee = true;
+      activeTenantId = metaTenantId;
+    }
+
     const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
-    const isEmployee = !!employee;
-    const activeTenantId = employee ? employee.tenantId : userId;
+    if (employee) {
+      isEmployee = true;
+      activeTenantId = employee.tenantId;
+    }
 
     const body = await request.json();
 
@@ -178,7 +191,7 @@ export async function POST(request: Request) {
     }, { status: 200 });
 
   } catch (error: any) {
-    console.error("Gagal memproses transaksi:", error);
+    console.error("[TRANSACTION_ERROR]: ", error);
     // Jika error datang dari manual throw kita (stok kurang), message-nya akan terkirim
     return NextResponse.json({ success: false, message: error.message || 'Terjadi kesalahan internal pada server' }, { status: 500 });
   }
