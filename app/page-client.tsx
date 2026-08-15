@@ -741,7 +741,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       </div>
 
       {/* Bagian Bawah Keranjang (Checkout) */}
-      <div className="p-4 border-t bg-white space-y-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 relative">
+      <div className="shrink-0 p-4 border-t bg-white space-y-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 relative">
 
         {/* Input Nomor Meja (Khusus F&B) */}
         {isFNB && (
@@ -900,8 +900,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
           <button
             onClick={handleCheckout}
-            disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim()))}
-            className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim()))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
+            disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && cart.some(item => !item.workerId))}
+            className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
           >
             {isCheckoutLoading && <Loader2 className="w-5 h-5 animate-spin" />}
             {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' :
@@ -1053,7 +1053,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             </div>
 
             {/* CART SIDEBAR (Desktop Only) */}
-            <div className="hidden lg:flex w-[450px] min-w-[450px] shrink-0 bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20">
+            <div className="hidden lg:flex w-[450px] min-w-[450px] shrink-0 bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20 h-full min-h-0">
               {renderCartContent(false)}
             </div>
           </div>
