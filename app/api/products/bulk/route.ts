@@ -16,9 +16,9 @@ export async function POST(req: Request) {
     }
 
     // Prepare data for createMany
-    const productsToInsert = products.map((p: any) => ({
+    const productsToInsert = products.map((p: any, index: number) => ({
       userId,
-      kodeBarang: p.kodeBarang || undefined,
+      kodeBarang: p.kodeBarang || `SKU-${Date.now()}-${index}-${Math.floor(Math.random() * 1000)}`,
       name: p.name,
       hargaJual: typeof p.hargaJual === 'number' ? p.hargaJual : parseInt(p.hargaJual) || 0,
       hpp: typeof p.hpp === 'number' ? p.hpp : parseInt(p.hpp) || 0,

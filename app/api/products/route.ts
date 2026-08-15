@@ -96,11 +96,13 @@ export async function POST(request: Request) {
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
 
+    const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
     // 3. Simpan ke database dengan menempelkan userId dari Clerk
     const newProduct = await prisma.product.create({
       data: {
         userId,
-        kodeBarang: kodeBarang || "",
+        kodeBarang: finalKodeBarang,
         name,
         hpp: Number(hpp) || 0,
         hargaJual: Number(hargaJual) || 0,

@@ -579,11 +579,17 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                       name="category"
                       required
                       autoComplete="off"
+                      list="category-options"
                       placeholder="Masukkan nama kategori..."
                       value={formData.category} 
                       onChange={handleChange}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                     />
+                    <datalist id="category-options">
+                      {uniqueCategories.map(cat => (
+                        <option key={cat} value={cat} />
+                      ))}
+                    </datalist>
                   </div>
 
                   {!isFNB && !isJasa && (

@@ -35,11 +35,13 @@ export async function PUT(
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
 
+    const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
     // 2 & 3. Eksekusi Atomic UpdateMany (Menghindari TOCTOU)
     const result = await prisma.product.updateMany({
       where: { id: productId, userId },
       data: {
-        kodeBarang: kodeBarang || "",
+        kodeBarang: finalKodeBarang,
         name: name || "",
         hpp: parseInt(hpp, 10) || 0,
         hargaJual: parseInt(hargaJual, 10) || 0,

@@ -49,7 +49,7 @@ export default function FnbModifierModal({
               value={modifierNote}
               onChange={(e) => setModifierNote(e.target.value)}
               placeholder="Contoh: Less Sugar, Extra Shot, Oat Milk..."
-              className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 rounded-lg text-sm"
+              className="w-full p-2.5 bg-white border border-gray-300 focus:border-blue-500 rounded-lg text-sm text-gray-900 placeholder:text-gray-500"
               autoFocus
             />
           </div>
