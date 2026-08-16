@@ -1336,7 +1336,6 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   <label className="text-sm font-bold text-gray-700 mb-1.5 block">Nama Supir *</label>
                   <input
                     type="text"
-                    placeholder="contoh: Budi Santoso"
                     value={rentalInfo.driverName}
                     onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
                     className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
@@ -1346,7 +1345,6 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   <label className="text-sm font-bold text-gray-700 mb-1.5 block">Plat Nomor *</label>
                   <input
                     type="text"
-                    placeholder="contoh: B 1234 ABC"
                     value={rentalInfo.licensePlate}
                     onChange={(e) => setRentalInfo(prev => ({ ...prev, licensePlate: e.target.value.toUpperCase() }))}
                     className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all font-mono tracking-widest"
@@ -1358,7 +1356,6 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
                 <input
                   type="text"
-                  placeholder="contoh: Bandara, Bali..."
                   value={rentalInfo.destination}
                   onChange={(e) => setRentalInfo(prev => ({ ...prev, destination: e.target.value }))}
                   className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
@@ -1390,7 +1387,6 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jaminan Diserahkan *</label>
                 <input
                   type="text"
-                  placeholder="contoh: KTP Asli / Motor + STNK"
                   value={rentalInfo.guarantee}
                   onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
                   className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
