@@ -28,7 +28,7 @@ export default async function PesananOnlinePage() {
   const rawBookings = await prisma.booking.findMany({
     where: {
       userId: targetUserId,
-      status: { in: ["PENDING", "COMPLETED"] }
+      status: { in: ["PENDING", "IN_PROGRESS"] }
     },
     include: {
       product: { select: { name: true, hargaJual: true } }

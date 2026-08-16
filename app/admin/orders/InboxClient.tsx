@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Inbox, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
-import { approveOrder, rejectOrder, finishOrder } from "./actions";
+import { startOrder, rejectOrder, finishOrder } from "./actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -23,15 +23,15 @@ export default function InboxClient({ initialOrders }: { initialOrders: BookingI
   const [overtimeFee, setOvertimeFee] = useState<string>("0");
   const [isFinishing, setIsFinishing] = useState(false);
 
-  const handleApprove = async (id: string) => {
-    toast.loading("Menerima pesanan...", { id: "approve" });
-    const res = await approveOrder(id);
+  const handleStart = async (id: string) => {
+    toast.loading("Memulai perjalanan...", { id: "start" });
+    const res = await startOrder(id);
     if (res.success) {
-      toast.success("Pesanan berhasil diterima dan masuk ke Kalender Sewa!", { id: "approve" });
-      setOrders(orders.map(o => o.id === id ? { ...o, status: "COMPLETED" } : o));
+      toast.success("Perjalanan dimulai!", { id: "start" });
+      setOrders(orders.map(o => o.id === id ? { ...o, status: "IN_PROGRESS" } : o));
       router.refresh();
     } else {
-      toast.error("Gagal menerima pesanan", { id: "approve" });
+      toast.error("Gagal memulai perjalanan", { id: "start" });
     }
   };
 
@@ -108,22 +108,22 @@ export default function InboxClient({ initialOrders }: { initialOrders: BookingI
                   <td className="px-6 py-4 whitespace-nowrap">
                     {order.status === "PENDING" ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                        <Clock className="w-3.5 h-3.5" /> Menunggu
+                        <Clock className="w-3.5 h-3.5" /> Persiapan
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                        Sedang Jalan
+                        Sedang Dalam Perjalanan
                       </span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                     {order.status === "PENDING" ? (
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleApprove(order.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors tooltip" title="Terima Pesanan">
-                          <CheckCircle className="w-5 h-5" />
+                        <button onClick={() => handleStart(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors tooltip" title="Mulai Perjalanan/Start">
+                          Mulai Perjalanan / Start
                         </button>
-                        <button onClick={() => handleReject(order.id)} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors tooltip" title="Tolak Pesanan">
-                          <XCircle className="w-5 h-5" />
+                        <button onClick={() => handleReject(order.id)} className="px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors tooltip" title="Tolak Pesanan">
+                          Tolak
                         </button>
                       </div>
                     ) : (
@@ -131,7 +131,7 @@ export default function InboxClient({ initialOrders }: { initialOrders: BookingI
                         onClick={() => { setFinishingOrder(order); setOvertimeFee("0"); }} 
                         className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
                       >
-                        ? Tiba di Pool / Finish
+                        Tiba di Pool / Finish
                       </button>
                     )}
                   </td>

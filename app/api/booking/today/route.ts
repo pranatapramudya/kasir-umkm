@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       const bookings = await prisma.booking.findMany({
         where: {
           userId: targetUserId,
-          status: { in: ["COMPLETED", "IN_PROGRESS"] },
+          status: { in: ["PENDING", "IN_PROGRESS"] },
           bookingDate: {
             gte: startOfToday,
             lte: endOfToday,

@@ -440,6 +440,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       }),
       downPayment: isDownPayment ? parsedDownPayment : 0,
       remainingBalance: remainingBalance,
+      bookingId: activeBookingId,
     };
 
     try {
@@ -597,6 +598,29 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     });
   };
 
+  const handleProcessQueue = (booking: any) => {
+    setCustomerName(booking.customerName);
+    setActiveBookingId(booking.id);
+    
+    setCart([]);
+    if (booking.product) {
+      addToCart(booking.product, booking.notes);
+    }
+
+    if (isRental) {
+       setRentalInfo(prev => ({
+         ...prev,
+         pickupLocation: booking.pickupLocation || '',
+         dropoffLocation: booking.dropoffLocation || '',
+         startDate: booking.startDate ? booking.startDate.split('T')[0] : '',
+         endDate: booking.endDate ? booking.endDate.split('T')[0] : '',
+       }));
+    }
+
+    setIsQueueModalOpen(false);
+    toast.success("Data antrean berhasil ditarik ke keranjang");
+  };
+
   const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
   if (!isClient) return null;
@@ -740,14 +764,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col bg-slate-50">
-        {isJasa && (
+        {(isJasa || isRental) && (
           <div className="p-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between shadow-inner">
             <span className="text-sm font-medium text-blue-800">Ada antrean online?</span>
             <button
               onClick={() => setIsQueueModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
             >
-              📋 Tarik Antrean
+              📋 Tarik Antrean Online
             </button>
           </div>
         )}
@@ -889,8 +913,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             >
               <Car className="w-5 h-5" />
               {rentalInfo.driverName && rentalInfo.licensePlate && rentalInfo.guarantee
-                ? "Data Sewa Terisi (Ubah)"
-                : "⚠️ Lengkapi Data Sewa *"}
+                ? "Surat Jalan Terisi (Ubah)"
+                : "⚠️ Lengkapi Surat Jalan *"}
             </button>
           </div>
         )}
@@ -1387,6 +1411,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       {/* Printer Help Modal */}
       <PrinterHelpModal isOpen={isPrinterHelpOpen} onClose={() => setIsPrinterHelpOpen(false)} />
 
+      {/* Queue Modal */}
+      <QueueModal isOpen={isQueueModalOpen} onClose={() => setIsQueueModalOpen(false)} onProcess={handleProcessQueue} />
+
       {/* Modal F&B */}
       {fnbSelectedProduct && (
         <FnbModifierModal
@@ -1406,7 +1433,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-amber-50 to-orange-50">
               <h2 className="text-lg font-black text-amber-900 flex items-center gap-2">
                 <Car className="w-5 h-5 text-amber-600" />
-                Lengkapi Data Sewa
+                Lengkapi Surat Jalan
               </h2>
               <button
                 onClick={() => setIsRentalFormModalOpen(false)}
