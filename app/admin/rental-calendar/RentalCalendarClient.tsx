@@ -58,7 +58,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
     return initialBookings.filter(b => {
       const start = new Date(b.startDate).setHours(0, 0, 0, 0);
       const end = new Date(b.endDate).setHours(0, 0, 0, 0);
-      const check = day.getTime();
+      const check = new Date(day).setHours(0, 0, 0, 0);
       return check >= start && check <= end;
     });
   };
@@ -92,7 +92,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
           </div>
 
           {/* Days Header */}
-          <div className="grid grid-cols-7 sticky top-0 z-20 bg-white shadow-sm py-1 border-b border-slate-100">
+          <div className="grid grid-cols-7 gap-1 md:gap-2 sticky top-0 z-20 bg-white shadow-sm py-1 border-b border-slate-100">
             {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
               <div key={i} className="text-center text-xs font-bold text-slate-400 py-1">
                 {d}
@@ -102,7 +102,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-y-2">
+        <div className="grid grid-cols-7 gap-1 md:gap-2">
           {days.map((day, i) => {
             const isSelected = isSameDay(day, selectedDate);
             const isCurrentMonth = isSameMonth(day, monthStart);
