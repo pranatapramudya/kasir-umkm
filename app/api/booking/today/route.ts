@@ -19,11 +19,18 @@ export async function GET(request: Request) {
       targetUserId = employee.tenantId;
     }
 
-    const today = new Date();
-    const startOfToday = new Date(today);
+    const url = new URL(request.url);
+    const dateParam = url.searchParams.get("date");
+    
+    let targetDate = new Date();
+    if (dateParam) {
+      targetDate = new Date(dateParam);
+    }
+    
+    const startOfToday = new Date(targetDate);
     startOfToday.setHours(0, 0, 0, 0);
 
-    const endOfToday = new Date(today);
+    const endOfToday = new Date(targetDate);
     endOfToday.setHours(23, 59, 59, 999);
 
     const tenant = await prisma.tenant.findUnique({

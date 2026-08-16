@@ -79,8 +79,16 @@ type Transaction = {
 
 
 function QueueModal({ isOpen, onClose, onProcess }: { isOpen: boolean, onClose: () => void, onProcess: (b: any) => void }) {
+  const [selectedQueueDate, setSelectedQueueDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
+
   const fetcher = (url: string) => fetch(url).then(r => r.json());
-  const { data, error, isLoading } = useSWR(isOpen ? '/api/booking/today' : null, fetcher);
+  const { data, error, isLoading } = useSWR(isOpen ? `/api/booking/today?date=${selectedQueueDate}` : null, fetcher);
 
   if (!isOpen) return null;
 
@@ -89,11 +97,20 @@ function QueueModal({ isOpen, onClose, onProcess }: { isOpen: boolean, onClose: 
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
           <h2 className="text-lg font-bold text-gray-900 truncate pr-4 flex items-center gap-2">
-            📋 Antrean Online Hari Ini
+            📋 Tarik Antrean Online
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full shrink-0">
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        <div className="px-5 pt-4 pb-2 bg-slate-50 border-b border-gray-100">
+          <input 
+            type="date" 
+            value={selectedQueueDate}
+            onChange={(e) => setSelectedQueueDate(e.target.value)}
+            className="w-full p-2 border border-slate-300 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+          />
         </div>
 
         <div className="p-4 max-h-[60vh] overflow-y-auto bg-slate-50">
@@ -106,7 +123,7 @@ function QueueModal({ isOpen, onClose, onProcess }: { isOpen: boolean, onClose: 
             <div className="text-center p-8 text-red-500 font-medium">Gagal memuat antrean.</div>
           )}
           {data && data.length === 0 && (
-            <div className="text-center p-8 text-slate-500 font-medium">Belum ada antrean yang disetujui untuk hari ini.</div>
+            <div className="text-center p-8 text-slate-500 font-medium">Belum ada antrean untuk tanggal yang dipilih.</div>
           )}
           {data && data.length > 0 && (
             <div className="space-y-3">
