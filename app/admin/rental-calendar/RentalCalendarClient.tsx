@@ -47,9 +47,11 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
   const onDateClick = (day: Date) => setSelectedDate(day);
 
   // Check if a date has any active booking
-  const hasBooking = (day: Date) => {
-    return initialBookings.some(b => {
-      // Ignore time for checking day overlap
+  // Removed hasBooking as getBookingsForDate handles both logic
+
+  // Get bookings for selected date
+  const getBookingsForDate = (day: Date) => {
+    return initialBookings.filter(b => {
       const start = new Date(b.startDate).setHours(0,0,0,0);
       const end = new Date(b.endDate).setHours(0,0,0,0);
       const check = day.getTime();
@@ -57,13 +59,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
     });
   };
 
-  // Get bookings for selected date
-  const selectedDateBookings = initialBookings.filter(b => {
-    const start = new Date(b.startDate).setHours(0,0,0,0);
-    const end = new Date(b.endDate).setHours(0,0,0,0);
-    const check = selectedDate.getTime();
-    return check >= start && check <= end;
-  });
+  const selectedDateBookings = getBookingsForDate(selectedDate);
 
   return (
     <div className="flex flex-col h-full bg-slate-50 min-h-screen pb-24">
@@ -104,29 +100,42 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
             const isSelected = isSameDay(day, selectedDate);
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isToday = isSameDay(day, new Date());
-            const activeBooking = hasBooking(day);
+            const dayBookings = getBookingsForDate(day);
 
             return (
               <div 
                 key={i} 
                 onClick={() => onDateClick(day)}
-                className={`flex flex-col items-center justify-center py-1.5 cursor-pointer`}
+                className={`flex flex-col border border-slate-100 rounded-xl p-1 md:p-2 min-h-[60px] md:min-h-[100px] cursor-pointer transition-all ${
+                  isSelected ? "bg-blue-50/50 border-blue-200" : "hover:bg-slate-50"
+                }`}
               >
-                <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-all ${
-                  isSelected 
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" 
-                    : isToday
-                      ? "bg-blue-50 text-blue-700 border border-blue-200"
-                      : isCurrentMonth 
-                        ? "text-slate-700 hover:bg-slate-100" 
-                        : "text-slate-300"
-                }`}>
-                  {format(day, dateFormat)}
+                {/* Date Number */}
+                <div className="flex justify-end mb-1">
+                  <div className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full text-xs md:text-sm font-semibold transition-all ${
+                    isSelected 
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" 
+                      : isToday
+                        ? "bg-blue-100 text-blue-700"
+                        : isCurrentMonth 
+                          ? "text-slate-700" 
+                          : "text-slate-300"
+                  }`}>
+                    {format(day, dateFormat)}
+                  </div>
                 </div>
-                {/* Dot Indicator */}
-                <div className="h-2 mt-1">
-                  {activeBooking && (
-                    <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white" : "bg-amber-500"}`} />
+
+                {/* Event Badges */}
+                <div className="flex flex-col gap-1 w-full overflow-hidden">
+                  {dayBookings.slice(0, 2).map((b, idx) => (
+                    <div key={idx} className="truncate px-1.5 md:px-2 py-0.5 md:py-1 bg-amber-100 text-amber-800 rounded-md text-[9px] md:text-xs font-medium w-full">
+                      {b.customerName}
+                    </div>
+                  ))}
+                  {dayBookings.length > 2 && (
+                    <div className="text-[9px] md:text-xs text-slate-400 font-medium px-1">
+                      +{dayBookings.length - 2} lainnya
+                    </div>
                   )}
                 </div>
               </div>
