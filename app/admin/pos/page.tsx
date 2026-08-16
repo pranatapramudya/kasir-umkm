@@ -55,7 +55,7 @@ export default async function POSAppAdminRoute() {
   return (
     <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading POS...</div>}>
       <POSAppClient
-        sidebar={<Sidebar />}
+        sidebar={null}
         isExpired={isExpired}
         initialData={{
           products,
