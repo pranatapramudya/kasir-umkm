@@ -40,3 +40,66 @@ export async function rejectOrder(id: string) {
 
   return { success: true };
 }
+
+export async function finishOrder(id: string, overtimeFee: number) {
+  const { userId } = await auth();
+  if (!userId) return { success: false };
+
+  let targetUserId = userId;
+  const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+  if (employee) targetUserId = employee.tenantId;
+
+  const booking = await prisma.booking.findUnique({ 
+    where: { id },
+    include: { product: true }
+  });
+  if (!booking) return { success: false, error: "Booking tidak ditemukan" };
+
+  const start = booking.startDate ?? booking.bookingDate;
+  const end = booking.endDate ?? booking.bookingDate;
+  const diffTime = end.getTime() - start.getTime();
+  let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays < 1) diffDays = 1;
+
+  const basePrice = booking.product ? booking.product.hargaJual * diffDays : 0;
+  const total = basePrice + overtimeFee;
+
+  const transactionId = `TRX-${Date.now()}`;
+  
+  await prisma.$transaction(async (tx) => {
+    await tx.booking.update({
+      where: { id },
+      data: {
+        status: "FINISHED",
+        overtimeFee,
+      }
+    });
+
+    await tx.transaction.create({
+      data: {
+        id: transactionId,
+        userId: targetUserId,
+        timestamp: Date.now(),
+        customerName: booking.customerName,
+        cashierId: employee ? employee.id : null,
+        total: total,
+        method: "TUNAI",
+        status: "completed",
+        startDate: start,
+        endDate: end,
+        destination: booking.destination,
+        items: {
+          create: booking.productId ? [
+            {
+              productId: booking.productId,
+              qty: diffDays,
+              price: booking.product?.hargaJual || 0,
+            }
+          ] : []
+        }
+      }
+    });
+  });
+
+  return { success: true };
+}

@@ -50,6 +50,8 @@ export default async function BookingDashboardPage() {
     ...b,
     bookingDate: b.bookingDate.toISOString(),
     createdAt: b.createdAt.toISOString(),
+    startDate: b.startDate?.toISOString() || null,
+    endDate: b.endDate?.toISOString() || null,
   }));
 
 

@@ -115,6 +115,31 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     window.open(url, "_blank");
   }
 
+  function handleGeolocation() {
+    if (!navigator.geolocation) {
+      alert("Browser Anda tidak mendukung fitur lokasi.");
+      return;
+    }
+    const btn = document.getElementById('gps-btn');
+    if(btn) btn.innerHTML = "⏳";
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        setRentalData(prev => ({
+          ...prev,
+          destination: `https://maps.google.com/?q=${lat},${lon}`
+        }));
+        if(btn) btn.innerHTML = "📍 GPS";
+      },
+      (error) => {
+        alert("Gagal mendapatkan lokasi. Pastikan izin lokasi diberikan.");
+        if(btn) btn.innerHTML = "📍 GPS";
+      }
+    );
+  }
+
 
   const isRental = isRentalTravelCategory(tenantCategory);
 
@@ -576,10 +601,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
             <p className="text-amber-600 text-xs font-medium">
               Durasi sewa:{" "}
-              {Math.round(
+              {Math.max(1, Math.ceil(
                 (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
                   (1000 * 60 * 60 * 24)
-              ) + 1}{" "}
+              ))}{" "}
               hari
             </p>
           )}
@@ -587,19 +612,30 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           {/* Tujuan */}
           <div className="space-y-1.5">
             <label htmlFor="rental-destination" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Tujuan Keberangkatan <span className="normal-case font-normal text-slate-500">(opsional)</span>
+              Lokasi Penjemputan / Tujuan <span className="normal-case font-normal text-slate-500">(opsional)</span>
             </label>
-            <input
-              id="rental-destination"
-              type="text"
-              value={rentalData.destination}
-              onChange={(e) => {
-                setRentalData((prev) => ({ ...prev, destination: e.target.value }));
-                setError(null);
-              }}
-              placeholder="contoh: Bandara Ngurah Rai, Kuta Bali..."
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-            />
+            <div className="flex gap-2">
+              <input
+                id="rental-destination"
+                type="text"
+                value={rentalData.destination}
+                onChange={(e) => {
+                  setRentalData((prev) => ({ ...prev, destination: e.target.value }));
+                  setError(null);
+                }}
+                placeholder="contoh: Bandara Ngurah Rai atau Klik GPS"
+                className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+              />
+              <button 
+                id="gps-btn"
+                type="button" 
+                onClick={handleGeolocation} 
+                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
+                title="Gunakan Lokasi Saat Ini"
+              >
+                📍 GPS
+              </button>
+            </div>
           </div>
         </div>
       ) : (

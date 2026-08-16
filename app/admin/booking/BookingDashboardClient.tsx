@@ -37,7 +37,7 @@ const localizer = dateFnsLocalizer({
   locales: { "id-ID": idLocale },
 });
 
-type BookingStatus = "PENDING" | "COMPLETED" | "CANCELLED";
+type BookingStatus = "PENDING" | "COMPLETED" | "CANCELLED" | "FINISHED";
 
 interface BookingProduct {
   name: string;
@@ -53,6 +53,10 @@ interface Booking {
   status: BookingStatus;
   product: BookingProduct | null;
   createdAt: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  destination?: string | null;
+  overtimeFee?: number;
 }
 
 interface Props {
@@ -124,6 +128,12 @@ const STATUS_MAP: Record<
     bg: "bg-red-50 border-red-200",
     icon: <XCircle className="w-3.5 h-3.5" />,
   },
+  FINISHED: {
+    label: "Selesai (Pool)",
+    color: "text-slate-600",
+    bg: "bg-slate-50 border-slate-200",
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+  },
 };
 
 /** Warna event kalender berdasarkan status */
@@ -133,6 +143,7 @@ function eventStyleGetter(event: BookingCalendarEvent) {
     PENDING: { backgroundColor: "#f59e0b", color: "#fff", borderRadius: "6px", border: "none" },
     COMPLETED: { backgroundColor: "#10b981", color: "#fff", borderRadius: "6px", border: "none" },
     CANCELLED: { backgroundColor: "#ef4444", color: "#fff", borderRadius: "6px", border: "none" },
+    FINISHED: { backgroundColor: "#64748b", color: "#fff", borderRadius: "6px", border: "none" },
   };
   return { style: styleMap[status] ?? {} };
 }

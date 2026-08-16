@@ -156,6 +156,7 @@ enum BookingStatus {
   PENDING
   COMPLETED
   CANCELLED
+  FINISHED
 }
 
 model Booking {
@@ -173,6 +174,7 @@ model Booking {
   startDate     DateTime?
   endDate       DateTime?
   destination   String?
+  overtimeFee   Int           @default(0)
   createdAt     DateTime      @default(now())
 
   @@index([userId, createdAt])

@@ -702,7 +702,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Harga Jual <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? "Harga Sewa (Per Hari)" : "Harga Jual"} <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                       <input
