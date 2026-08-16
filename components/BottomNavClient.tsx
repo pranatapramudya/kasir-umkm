@@ -20,7 +20,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const hiddenPaths = ['/sign-in', '/sign-up', '/onboarding', '/pending-approval'];
-  if (hiddenPaths.includes(pathname) || pathname.startsWith('/admin/login') || pathname.startsWith('/superadmin') || pathname.startsWith('/auth-callback')) {
+  if (hiddenPaths.includes(pathname) || pathname.startsWith('/admin/login') || pathname.startsWith('/superadmin') || pathname.startsWith('/auth-callback') || pathname.startsWith('/book') || pathname.startsWith('/toko')) {
     return null;
   }
 
