@@ -11,7 +11,7 @@ const CsvImportModal = nextDynamic(() => import('@/components/CsvImportModal'), 
   ssr: false,
 });
 import { Pagination } from '@/components/Pagination';
-import { isServiceBusinessCategory } from '@/lib/business-category';
+import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
 import { humanizeError } from '@/lib/error-mapper';
 
 export const dynamic = 'force-dynamic';
@@ -39,6 +39,7 @@ const fetcher = async (url: string) => {
 
 export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsaha: string }) {
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
+  const isRental = isRentalTravelCategory(kategoriUsaha);
   const isFNB = kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,8 +58,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const [importFile, setImportFile] = useState<File | null>(null);
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
-  const { data, error, isLoading, mutate } = useSWR<{products: Product[], totalPages: number}>(queryUrl, fetcher);
-  
+  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(queryUrl, fetcher);
+
   const products = data?.products || [];
   const totalPages = data?.totalPages || 1;
 
@@ -146,7 +147,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
       toast.error("Pilih file CSV terlebih dahulu");
       return;
     }
-    
+
     setIsImporting(true);
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -156,20 +157,20 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         if (lines.length <= 1) {
           throw new Error("File CSV kosong atau tidak ada data");
         }
-        
+
         const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
         const productsList = [];
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
           while (values.length < headers.length) values.push('');
-          
+
           const product: any = {};
           headers.forEach((header, index) => {
             product[header] = values[index];
           });
-          
+
           if (!product.name) continue;
-          
+
           product.isService = isJasa;
           productsList.push(product);
         }
@@ -181,10 +182,10 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ products: productsList })
         });
-        
+
         const result = await res.json();
         if (!res.ok) throw new Error(result.error || "Gagal import massal");
-        
+
         toast.success(result.message || "Import berhasil");
         mutate();
         closeImportModal();
@@ -225,7 +226,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
           const canvas = document.createElement('canvas');
           let { width, height } = img;
           const MAX_DIM = 800;
-          
+
           if (width > height && width > MAX_DIM) {
             height = Math.round(height * (MAX_DIM / width));
             width = MAX_DIM;
@@ -233,12 +234,12 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             width = Math.round(width * (MAX_DIM / height));
             height = MAX_DIM;
           }
-          
+
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
-          
+
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
           setFormData(prev => ({ ...prev, image: compressedBase64 }));
         };
@@ -254,18 +255,18 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.hargaJual) {
       toast.error('Harga Jual wajib diisi!');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
       const method = editingProduct ? 'PUT' : 'POST';
-      
+
       const payload = {
         ...formData,
         hpp: parseInt(formData.hpp.toString().replace(/[^0-9]/g, ''), 10) || 0,
@@ -281,19 +282,19 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       let result;
       try {
         result = await res.json();
       } catch (parseErr) {
         throw new Error(`Error ${res.status}: Payload terlalu besar atau server bermasalah.`);
       }
-      
+
       if (!res.ok) {
         console.error("Server Error Response:", result);
         throw new Error(result?.error || (typeof result === 'object' ? JSON.stringify(result) : `Terjadi kesalahan (${res.status})`));
       }
-      
+
       toast.success(editingProduct ? 'Produk berhasil diperbarui!' : 'Produk baru ditambahkan!');
       mutate();
       closeModal();
@@ -307,13 +308,13 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
   const confirmDelete = async () => {
     if (!productToDelete) return;
-    
+
     try {
       const res = await fetch(`/api/products/${productToDelete}`, { method: 'DELETE' });
       const result = await res.json();
-      
+
       if (!res.ok) throw new Error(result.error || 'Gagal menghapus');
-      
+
       toast.success('Produk berhasil dihapus');
       mutate();
     } catch (err: any) {
@@ -371,14 +372,14 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         </div>
         {(isLoading || (products && products.length > 0)) && (
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button 
+            <button
               onClick={() => setIsImportModalOpen(true)}
               className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
             >
               <PackagePlus className="w-5 h-5 text-gray-500" />
               <span>Import Data</span>
             </button>
-            <button 
+            <button
               onClick={() => openModal()}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
             >
@@ -393,23 +394,22 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
       <div className="flex flex-row items-center gap-2 mb-2">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : "Cari produk atau barcode..."} 
+          <input
+            type="text"
+            placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : "Cari produk atau barcode..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
           />
         </div>
         <div className="relative shrink-0">
-          <button 
+          <button
             onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
             onBlur={() => setIsCategoryMenuOpen(false)}
-            className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${
-              selectedCategory === "Semua" 
-                ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50" 
+            className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedCategory === "Semua"
+                ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                 : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-            }`}
+              }`}
             title="Filter Kategori"
           >
             <Filter className={`w-4 h-4 ${selectedCategory === "Semua" ? "text-gray-500" : "text-blue-600"}`} />
@@ -417,7 +417,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
               {selectedCategory === "Semua" ? "Kategori" : selectedCategory}
             </span>
           </button>
-          
+
           {isCategoryMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
               <ul className="py-1 max-h-60 overflow-y-auto">
@@ -453,73 +453,73 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
           <div className="flex flex-col">
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/50">
               {products.map(product => (
-              <div key={product.id} className="bg-white p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-200 flex gap-4 hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:border-blue-200 transition-all">
-                {/* Product Image */}
-                {product.image ? (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50 relative">
-                    <Image src={product.image} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 5rem, 6rem" />
-                  </div>
-                ) : (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg shrink-0 border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300">
-                    <PackageSearch className="w-8 h-8 opacity-50" />
-                  </div>
-                )}
-                
-                {/* Product Details */}
-                <div className="flex-1 min-w-0 flex flex-col">
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-slate-900 truncate leading-tight">{product.name}</div>
-                      <div className="text-[11px] text-slate-500 font-mono mt-1 truncate">{product.kodeBarang || 'Tanpa SKU'}</div>
+                <div key={product.id} className="bg-white p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-200 flex gap-4 hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:border-blue-200 transition-all">
+                  {/* Product Image */}
+                  {product.image ? (
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50 relative">
+                      <Image src={product.image} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 5rem, 6rem" />
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      {!isJasa && (
-                        <button onClick={() => { setQuickRestockProduct(product); setQuickRestockAmount(''); }} className="p-1.5 text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors" title="Tambah Stok Cepat">
-                          <PackagePlus className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button onClick={() => openModal(product)} className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors" title="Edit">
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => setProductToDelete(product.id)} className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors" title="Hapus">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                  ) : (
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg shrink-0 border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300">
+                      <PackageSearch className="w-8 h-8 opacity-50" />
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[10px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md font-medium border border-slate-200">{product.category}</span>
-                    {product.discount > 0 && (
-                      <span className="text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-md border border-red-200">Diskon</span>
-                    )}
-                  </div>
-                  
-                  <div className="mt-auto pt-3 flex items-end justify-between">
-                    <div>
-                      {!isJasa && <div className="text-[10px] text-slate-400 font-medium mb-0.5">HPP: {formatRupiah(product.hpp)}</div>}
-                      {product.discount > 0 ? (
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-400 line-through leading-none mb-0.5">{formatRupiah(product.hargaJual)}</span>
-                          <span className="text-sm font-bold text-red-600 leading-none">{formatRupiah(product.hargaJual - product.discount)}</span>
-                        </div>
-                      ) : (
-                        <div className="text-sm font-bold text-blue-600 leading-none">{formatRupiah(product.hargaJual)}</div>
-                      )}
-                    </div>
-                    {!isJasa && (
-                      <div className="text-right">
-                        <span className={`inline-flex min-w-[3.5rem] justify-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${product.stock > (product.minStockThreshold || 5) ? 'bg-green-50 text-green-700 border-green-200' : product.stock > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                          Sisa: {product.stock}
-                        </span>
+                  )}
+
+                  {/* Product Details */}
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-slate-900 truncate leading-tight">{product.name}</div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-1 truncate">{product.kodeBarang || 'Tanpa SKU'}</div>
                       </div>
-                    )}
+                      <div className="flex gap-1 shrink-0">
+                        {!isJasa && (
+                          <button onClick={() => { setQuickRestockProduct(product); setQuickRestockAmount(''); }} className="p-1.5 text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors" title="Tambah Stok Cepat">
+                            <PackagePlus className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button onClick={() => openModal(product)} className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors" title="Edit">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setProductToDelete(product.id)} className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors" title="Hapus">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-[10px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md font-medium border border-slate-200">{product.category}</span>
+                      {product.discount > 0 && (
+                        <span className="text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-md border border-red-200">Diskon</span>
+                      )}
+                    </div>
+
+                    <div className="mt-auto pt-3 flex items-end justify-between">
+                      <div>
+                        {!isJasa && <div className="text-[10px] text-slate-400 font-medium mb-0.5">HPP: {formatRupiah(product.hpp)}</div>}
+                        {product.discount > 0 ? (
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-slate-400 line-through leading-none mb-0.5">{formatRupiah(product.hargaJual)}</span>
+                            <span className="text-sm font-bold text-red-600 leading-none">{formatRupiah(product.hargaJual - product.discount)}</span>
+                          </div>
+                        ) : (
+                          <div className="text-sm font-bold text-blue-600 leading-none">{formatRupiah(product.hargaJual)}</div>
+                        )}
+                      </div>
+                      {!isJasa && (
+                        <div className="text-right">
+                          <span className={`inline-flex min-w-[3.5rem] justify-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${product.stock > (product.minStockThreshold || 5) ? 'bg-green-50 text-green-700 border-green-200' : product.stock > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                            Sisa: {product.stock}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </div>
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        </div>
         ) : (
           <div className="p-16 flex flex-col items-center justify-center text-center">
             <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
@@ -528,14 +528,14 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             <h3 className="text-xl font-bold text-slate-800 mb-2">Belum ada {isJasa ? "layanan" : isFNB ? "menu" : "produk"}</h3>
             <p className="text-slate-500 max-w-sm mb-6">Anda belum menambahkan {isJasa ? "layanan" : isFNB ? "menu" : "produk"} apapun. Silakan tambah {isJasa ? "layanan" : isFNB ? "menu" : "produk"} pertama Anda untuk mulai berjualan.</p>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <button 
+              <button
                 onClick={() => openModal()}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
               >
                 <Plus className="w-5 h-5" />
                 {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
               </button>
-              <button 
+              <button
                 onClick={() => setIsImportModalOpen(true)}
                 className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
               >
@@ -559,7 +559,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="overflow-y-auto p-2">
               <form id="product-form" onSubmit={handleSubmit} className="p-3 space-y-4">
                 {/* Image Upload Area */}
@@ -588,39 +588,40 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                 {!isFNB && !isJasa && (
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">Kode Barang (SKU) <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                    <input 
-                      type="text" 
-                      name="kodeBarang" 
-                      value={formData.kodeBarang} 
-                      onChange={handleChange} 
+                    <input
+                      type="text"
+                      name="kodeBarang"
+                      value={formData.kodeBarang}
+                      onChange={handleChange}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                     />
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isJasa ? 'Nama Layanan' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
-                    <input 
-                      type="text" 
-                      name="name" 
-                      required 
-                      value={formData.name} 
-                      onChange={handleChange} 
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nomor Polisi / Nama Armada' : isJasa ? 'Nama Layanan' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder={isRental ? "misal: B 1234 ABC - Avanza" : ""}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Kategori <span className="text-red-500">*</span></label>
-                    <input 
-                      type="text" 
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Unit Kendaraan' : 'Kategori'} <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
                       name="category"
                       required
                       autoComplete="off"
                       list="category-options"
-                      placeholder="Masukkan nama kategori..."
-                      value={formData.category} 
+                      placeholder={isRental ? "contoh: Mini Bus, Big Bus, dll..." : "Masukkan nama kategori..."}
+                      value={formData.category}
                       onChange={handleChange}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                     />
@@ -635,21 +636,21 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 sm:col-span-2">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Merek <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                        <input 
-                          type="text" 
-                          name="brand" 
-                          value={formData.brand} 
-                          onChange={handleChange} 
+                        <input
+                          type="text"
+                          name="brand"
+                          value={formData.brand}
+                          onChange={handleChange}
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Varian / Ukuran <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                        <input 
-                          type="text" 
-                          name="variant" 
-                          value={formData.variant} 
-                          onChange={handleChange} 
+                        <input
+                          type="text"
+                          name="variant"
+                          value={formData.variant}
+                          onChange={handleChange}
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                         />
                       </div>
@@ -660,24 +661,24 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 sm:col-span-2">
                       <div className={isFNB ? 'sm:col-span-2' : ''}>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Stok Awal</label>
-                        <input 
-                          type="number" 
-                          name="stock" 
+                        <input
+                          type="number"
+                          name="stock"
                           min="0"
-                          value={formData.stock} 
-                          onChange={handleChange} 
+                          value={formData.stock}
+                          onChange={handleChange}
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                         />
                       </div>
                       {!isFNB && (
                         <div>
                           <label className="block text-sm font-bold text-slate-700 mb-1">Batas Stok Menipis <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                          <input 
-                            type="number" 
-                            name="minStockThreshold" 
+                          <input
+                            type="number"
+                            name="minStockThreshold"
                             min="0"
-                            value={formData.minStockThreshold} 
-                            onChange={handleChange} 
+                            value={formData.minStockThreshold}
+                            onChange={handleChange}
                             className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                           />
                         </div>
@@ -686,15 +687,15 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                   )}
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isJasa ? 'Biaya Bahan (Opsional)' : 'HPP (Modal)'}</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Biaya Operasional (Opsional)' : isJasa ? 'Biaya Bahan (Opsional)' : 'HPP (Modal)'}</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
-                      <input 
-                        type="text" 
-                        name="hpp" 
+                      <input
+                        type="text"
+                        name="hpp"
                         required={!isJasa}
-                        value={formData.hpp} 
-                        onChange={handleChange} 
+                        value={formData.hpp}
+                        onChange={handleChange}
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                       />
                     </div>
@@ -704,12 +705,12 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                     <label className="block text-sm font-bold text-slate-700 mb-1">Harga Jual <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
-                      <input 
-                        type="text" 
-                        name="hargaJual" 
-                        required 
-                        value={formData.hargaJual} 
-                        onChange={handleChange} 
+                      <input
+                        type="text"
+                        name="hargaJual"
+                        required
+                        value={formData.hargaJual}
+                        onChange={handleChange}
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                       />
                     </div>
@@ -717,18 +718,18 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                   {isJasa && (
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Komisi Pekerja (Rp)</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Driver (Rp)' : 'Komisi Pekerja (Rp)'}</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
-                        <input 
-                          type="text" 
-                          name="employeeCommission" 
-                          value={formData.employeeCommission} 
-                          onChange={handleChange} 
+                        <input
+                          type="text"
+                          name="employeeCommission"
+                          value={formData.employeeCommission}
+                          onChange={handleChange}
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">Nominal bagi hasil untuk pekerja per transaksi.</p>
+                      <p className="text-xs text-slate-500 mt-1">{isRental ? 'Nominal bagi hasil untuk driver per transaksi.' : 'Nominal bagi hasil untuk pekerja per transaksi.'}</p>
                     </div>
                   )}
 
@@ -736,11 +737,11 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                     <label className="block text-sm font-bold text-slate-700 mb-1">Diskon (Opsional)</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
-                      <input 
-                        type="text" 
-                        name="discount" 
-                        value={formData.discount} 
-                        onChange={handleChange} 
+                      <input
+                        type="text"
+                        name="discount"
+                        value={formData.discount}
+                        onChange={handleChange}
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                       />
                     </div>
@@ -751,14 +752,14 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             </div>
 
             <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0 rounded-b-2xl">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={closeModal}
                 className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors"
               >
                 Batal
               </button>
-              <button 
+              <button
                 type="submit"
                 form="product-form"
                 disabled={isSubmitting}
@@ -784,7 +785,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleQuickRestock} className="p-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Sisa Stok Saat Ini</label>
@@ -795,20 +796,20 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">Jumlah Stok Masuk <span className="text-red-500">*</span></label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   min="1"
                   required
                   autoFocus
-                  value={quickRestockAmount} 
-                  onChange={(e) => setQuickRestockAmount(e.target.value)} 
+                  value={quickRestockAmount}
+                  onChange={(e) => setQuickRestockAmount(e.target.value)}
                   className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-bold"
                   placeholder="Misal: 10"
                 />
               </div>
 
               <div className="pt-2">
-                <button 
+                <button
                   type="submit"
                   disabled={isRestocking || !quickRestockAmount}
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
@@ -832,13 +833,13 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             <h3 className="text-lg font-bold text-slate-800 mb-2">Hapus Produk?</h3>
             <p className="text-slate-500 text-sm mb-6">Tindakan ini tidak dapat dibatalkan. Produk akan dihapus secara permanen dari sistem.</p>
             <div className="flex gap-3 justify-center">
-              <button 
+              <button
                 onClick={() => setProductToDelete(null)}
                 className="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors w-full"
               >
                 Batal
               </button>
-              <button 
+              <button
                 onClick={confirmDelete}
                 className="px-5 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors w-full"
               >
@@ -850,9 +851,9 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
       )}
 
       {/* Import Modal */}
-      <CsvImportModal 
-        isOpen={isImportModalOpen} 
-        onClose={closeImportModal} 
+      <CsvImportModal
+        isOpen={isImportModalOpen}
+        onClose={closeImportModal}
         importFile={importFile}
         setImportFile={setImportFile}
         isImporting={isImporting}
