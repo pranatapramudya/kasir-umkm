@@ -66,6 +66,11 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
+  // Intercept root URL for authenticated users (CASHIER, ADMIN, dll)
+  if (userId && req.nextUrl.pathname === '/' && role !== 'SUPERADMIN') {
+    return NextResponse.redirect(new URL('/admin', req.url));
+  }
+
   // Penanganan rute /superadmin
   if (isSuperAdminRoute(req)) {
     // Gunakan auth.protect() agar Clerk dapat melakukan handshake dengan benar

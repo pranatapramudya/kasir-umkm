@@ -17,18 +17,22 @@ export function PwaInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    // Pengecekan localStorage agar tidak memunculkan prompt jika user sudah menolak
-    if (typeof window !== "undefined" && window.localStorage.getItem("pwa_prompt_dismissed") === "true") {
-      return;
-    }
-
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
+
+      // Cek localStorage, jika ditolak, jangan munculkan UI (tapi event tetap ditangkap)
+      if (typeof window !== "undefined" && window.localStorage.getItem("pwa_prompt_dismissed") === "true") {
+        return;
+      }
+
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Update UI notify the user they can install the PWA
-      setShowPrompt(true);
+      
+      // Update UI notify the user they can install the PWA (jeda 1.5 detik agar smooth)
+      setTimeout(() => {
+        setShowPrompt(true);
+      }, 1500);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);

@@ -4,7 +4,7 @@ export default function SignUpPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
       {/* Komponen bawaan Clerk untuk form Register */}
-      <SignUp routing="path" path="/sign-up" fallbackRedirectUrl="/onboarding" forceRedirectUrl="/onboarding" />
+      <SignUp routing="path" path="/sign-up" forceRedirectUrl="/admin" fallbackRedirectUrl="/admin" />
     </div>
   );
 }
