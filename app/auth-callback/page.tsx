@@ -30,10 +30,5 @@ export default async function AuthCallback() {
     redirect('/onboarding');
   }
 
-  const category = tenant.category;
-  if (category === 'Jasa / Servis' || category === 'Rental & Travel') {
-    redirect('/admin');
-  } else {
-    redirect('/');
-  }
+  redirect('/admin');
 }

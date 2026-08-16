@@ -1,9 +1,31 @@
-"use client";
-
 import React from 'react';
 import { ShoppingCart, ExternalLink, ShieldAlert, MonitorSmartphone, Printer, Inbox } from 'lucide-react';
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { isRentalTravelCategory } from "@/lib/business-category";
 
-export default function HardwarePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function HardwarePage() {
+  const { userId, sessionClaims } = await auth();
+
+  if (!userId) {
+    redirect('/sign-in');
+  }
+
+  const metadata = (sessionClaims?.metadata as Record<string, any>) || {};
+  const role = metadata.role as string | undefined;
+  const tenantId = metadata.tenantId as string | undefined;
+  const targetUserId = role === 'CASHIER' && tenantId ? tenantId : userId;
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { userId: targetUserId },
+    select: { category: true }
+  });
+
+  const isRental = isRentalTravelCategory(tenant?.category || "");
+
   const hardwareItems = [
     {
       id: 1,
@@ -16,10 +38,12 @@ export default function HardwarePage() {
     },
     {
       id: 2,
-      name: "Printer Thermal Bluetooth 58mm",
-      description: "Printer ringkas tanpa kabel. Langsung cetak struk dari tablet atau HP Anda via Bluetooth.",
-      price: "Mulai dari Rp 250.000",
-      icon: <Printer className="w-12 h-12 text-emerald-500 mb-4" />,
+      name: isRental ? "Printer Tinta/Dokumen A4" : "Printer Thermal Bluetooth 58mm",
+      description: isRental 
+        ? "Printer handal untuk mencetak Invoice, Surat Jalan, dan Perjanjian Sewa format A4 secara profesional." 
+        : "Printer ringkas tanpa kabel. Langsung cetak struk dari tablet atau HP Anda via Bluetooth.",
+      price: isRental ? "Mulai dari Rp 950.000" : "Mulai dari Rp 250.000",
+      icon: <Printer className={`w-12 h-12 mb-4 ${isRental ? 'text-indigo-500' : 'text-emerald-500'}`} />,
       linkTokopedia: "https://tokopedia.com",
       linkShopee: "https://shopee.co.id",
     },

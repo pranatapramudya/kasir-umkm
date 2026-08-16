@@ -24,6 +24,9 @@ const PrinterHelpModal = nextDynamic(() => import('@/components/PrinterHelpModal
 const FnbModifierModal = nextDynamic(() => import('@/components/FnbModifierModal'), {
   ssr: false,
 });
+const InvoiceRentalA4 = nextDynamic(() => import('@/components/InvoiceRentalA4'), {
+  ssr: false,
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -673,8 +676,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         {/* Empty State Keranjang */}
         {cart.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
-            <ShoppingCart className="w-16 h-16 opacity-30" />
-            <p className="text-sm font-medium text-center px-4">Keranjang masih kosong, silakan pilih {isJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}</p>
+            {!isRental && (
+              <>
+                <ShoppingCart className="w-16 h-16 opacity-30" />
+                <p className="text-sm font-medium text-center px-4">Keranjang masih kosong, silakan pilih {isJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}</p>
+              </>
+            )}
           </div>
         ) : (
           cart.map(item => (
@@ -1149,7 +1156,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       </div>
 
       {/* STRUK KASIR (HANYA TAMPIL SAAT DIPRINT) */}
-      <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} w-[58mm] sm:w-[80mm] p-4 bg-white text-black text-xs font-mono mx-auto`}>
+      {!isRental ? (
+        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} w-[58mm] sm:w-[80mm] p-4 bg-white text-black text-xs font-mono mx-auto`}>
         <div className="text-center mb-4 border-b border-dashed border-gray-400 pb-4">
           <h1 className="text-lg font-bold uppercase mb-1">{tenantName || "PJTECH KASIR POS"}</h1>
           {tenantCategory && <p className="mb-1 text-[10px] uppercase font-bold">{tenantCategory}</p>}
@@ -1233,7 +1241,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             </div>
           </>
         )}
-      </div>
+        </div>
+      ) : (
+        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'}`}>
+          <InvoiceRentalA4 
+            tenantName={tenantName || ""}
+            tenantCategory={tenantCategory || ""}
+            tenantPhone={tenantPhone || ""}
+            transaction={lastTransaction}
+            user={user}
+          />
+        </div>
+      )}
 
       {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT) */}
       <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} w-[58mm] sm:w-[80mm] p-4 bg-white text-black font-mono mx-auto`}>
