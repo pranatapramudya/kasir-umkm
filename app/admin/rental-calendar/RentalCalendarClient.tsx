@@ -77,32 +77,32 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
 
       {/* Calendar Area */}
       <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-200">
-        {/* Calendar Navigation & Days Header */}
-        <div className="bg-white pt-2 pb-2 mb-2">
-          <div className="flex justify-between items-center mb-4 px-2">
-            <button onClick={prevMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-              <ChevronLeft className="w-5 h-5 text-slate-600" />
-            </button>
-            <h2 className="font-bold text-slate-800 text-lg">
-              {format(currentDate, "MMMM yyyy", { locale: idLocale })}
-            </h2>
-            <button onClick={nextMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-              <ChevronRight className="w-5 h-5 text-slate-600" />
-            </button>
-          </div>
+        {/* Calendar Navigation */}
+        <div className="flex justify-between items-center mb-4 px-2">
+          <button onClick={prevMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+            <ChevronLeft className="w-5 h-5 text-slate-600" />
+          </button>
+          <h2 className="font-bold text-slate-800 text-lg">
+            {format(currentDate, "MMMM yyyy", { locale: idLocale })}
+          </h2>
+          <button onClick={nextMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+            <ChevronRight className="w-5 h-5 text-slate-600" />
+          </button>
+        </div>
 
+        {/* Inner Scroll Container */}
+        <div className="max-h-[55vh] overflow-y-auto border border-slate-200 rounded-xl bg-white shadow-inner relative">
           {/* Days Header */}
-          <div className="grid grid-cols-7 gap-1 md:gap-2 sticky top-0 z-20 bg-white shadow-sm py-1 border-b border-slate-100">
+          <div className="grid grid-cols-7 gap-1 md:gap-2 sticky top-0 z-30 bg-white shadow-sm py-2 px-1 md:px-2 border-b border-slate-200">
             {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
-              <div key={i} className="text-center text-xs font-bold text-slate-400 py-1">
+              <div key={i} className="text-center text-xs font-bold text-slate-500 py-1">
                 {d}
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-1 md:gap-2">
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-1 md:gap-2 p-1 md:p-2">
           {days.map((day, i) => {
             const isSelected = isSameDay(day, selectedDate);
             const isCurrentMonth = isSameMonth(day, monthStart);
@@ -146,6 +146,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
 
