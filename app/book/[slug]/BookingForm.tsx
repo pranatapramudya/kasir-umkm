@@ -682,18 +682,18 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             </p>
           )}
 
-          {/* Tujuan */}
+          {/* Lokasi Penjemputan */}
           <div className="space-y-1.5">
-            <label htmlFor="rental-destination" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Lokasi Penjemputan / Tujuan <span className="normal-case font-normal text-slate-500">(opsional)</span>
+            <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              LOKASI PENJEMPUTAN / TITIK AWAL <span className="normal-case font-normal text-slate-500">(opsional)</span>
             </label>
             <div className="flex gap-2">
               <input
-                id="rental-destination"
+                id="rental-pickup"
                 type="text"
-                value={rentalData.dropoffLocation}
+                value={rentalData.pickupLocation}
                 onChange={(e) => {
-                  setRentalData((prev) => ({ ...prev, destination: e.target.value }));
+                  setRentalData((prev) => ({ ...prev, pickupLocation: e.target.value }));
                   setError(null);
                 }}
                 placeholder="contoh: Bandara Ngurah Rai atau Klik GPS"
@@ -709,6 +709,24 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 📍 GPS
               </button>
             </div>
+          </div>
+
+          {/* Lokasi Tujuan */}
+          <div className="space-y-1.5">
+            <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              LOKASI TUJUAN / TITIK AKHIR <span className="normal-case font-normal text-slate-500">(opsional)</span>
+            </label>
+            <input
+              id="rental-dropoff"
+              type="text"
+              value={rentalData.dropoffLocation}
+              onChange={(e) => {
+                setRentalData((prev) => ({ ...prev, dropoffLocation: e.target.value }));
+                setError(null);
+              }}
+              placeholder="contoh: Hotel Aston Denpasar"
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+            />
           </div>
         </div>
       ) : (
