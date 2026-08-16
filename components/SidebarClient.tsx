@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getNavigationMenu } from "@/lib/navigation";
 import { Store } from "lucide-react";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface SidebarClientProps {
   role: string | undefined;
@@ -36,6 +39,11 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
 
   const isCashier = role === 'CASHIER';
   const filteredMenuGroups = getNavigationMenu(kategoriUsaha, role);
+
+  const { data } = useSWR<{ count: number }>('/api/booking/pending-count', fetcher, {
+    refreshInterval: 10000 // Poll every 10 seconds for real-time feel
+  });
+  const pendingCount = data?.count || 0;
 
   return (
     <>
@@ -84,8 +92,17 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent active:bg-slate-100"
                         }`}
                     >
-                      <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
-                      {item.name}
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-3">
+                          <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
+                          {item.name}
+                        </div>
+                        {item.name === "Pesanan Online" && pendingCount > 0 && (
+                          <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                            {pendingCount > 99 ? "99+" : pendingCount}
+                          </span>
+                        )}
+                      </div>
                     </Link>
                   );
                 })}

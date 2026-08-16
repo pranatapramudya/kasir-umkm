@@ -46,9 +46,22 @@ export default async function RentalCalendarPage() {
     orderBy: { startDate: "asc" }
   });
 
+  const rawTransactions = await prisma.transaction.findMany({
+    where: {
+      userId: targetUserId,
+      startDate: { not: null },
+      status: { not: "CANCELLED" }
+    },
+    include: {
+      items: true
+    },
+    orderBy: { startDate: "asc" }
+  });
+
+  const now = new Date();
+
   const bookings = rawBookings.map(b => {
     let derivedStatus = b.status as string;
-    const now = new Date();
     const start = b.startDate || b.bookingDate;
     const end = b.endDate || b.bookingDate;
 
@@ -58,7 +71,7 @@ export default async function RentalCalendarPage() {
       } else if (now >= start && now <= end) {
         derivedStatus = "ACTIVE";
       } else if (now < start) {
-        derivedStatus = "PENDING"; // Approved but not yet started (still booking)
+        derivedStatus = "PENDING";
       }
     }
 
@@ -69,8 +82,45 @@ export default async function RentalCalendarPage() {
       startDate: start.toISOString(),
       endDate: end.toISOString(),
       status: derivedStatus as "PENDING" | "ACTIVE" | "OVERDUE" | "COMPLETED",
+      destination: b.destination || undefined,
+      driverName: undefined,
+      licensePlate: undefined,
+      guarantee: undefined,
+      source: "ONLINE" as const
     };
   });
 
-  return <RentalCalendarClient initialBookings={bookings} />;
+  const txBookings = rawTransactions.map(tx => {
+    let derivedStatus = "COMPLETED";
+    const start = tx.startDate!;
+    const end = tx.endDate || tx.startDate!;
+
+    if (now > end) {
+      derivedStatus = "OVERDUE";
+    } else if (now >= start && now <= end) {
+      derivedStatus = "ACTIVE";
+    } else if (now < start) {
+      derivedStatus = "PENDING";
+    }
+
+    return {
+      id: tx.id,
+      customerName: tx.customerName || "Pelanggan POS",
+      itemName: tx.items.map(i => i.name).join(", ") || "Transaksi POS",
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      status: derivedStatus as "PENDING" | "ACTIVE" | "OVERDUE" | "COMPLETED",
+      destination: tx.destination || undefined,
+      driverName: tx.driverName || undefined,
+      licensePlate: tx.licensePlate || undefined,
+      guarantee: tx.guarantee || undefined,
+      source: "POS" as const
+    };
+  });
+
+  const allBookings = [...bookings, ...txBookings].sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  );
+
+  return <RentalCalendarClient initialBookings={allBookings} />;
 }

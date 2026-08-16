@@ -73,25 +73,28 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
 
       {/* Calendar Area */}
       <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-200">
-        <div className="flex justify-between items-center mb-4">
-          <button onClick={prevMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-            <ChevronLeft className="w-5 h-5 text-slate-600" />
-          </button>
-          <h2 className="font-bold text-slate-800 text-lg">
-            {format(currentDate, "MMMM yyyy", { locale: idLocale })}
-          </h2>
-          <button onClick={nextMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-            <ChevronRight className="w-5 h-5 text-slate-600" />
-          </button>
-        </div>
+        {/* Calendar Navigation & Days Header (Sticky) */}
+        <div className="sticky top-[68px] md:top-[72px] z-30 bg-white pt-2 pb-2 border-b border-slate-100 shadow-sm shadow-slate-100/50 mb-2">
+          <div className="flex justify-between items-center mb-4 px-2">
+            <button onClick={prevMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+              <ChevronLeft className="w-5 h-5 text-slate-600" />
+            </button>
+            <h2 className="font-bold text-slate-800 text-lg">
+              {format(currentDate, "MMMM yyyy", { locale: idLocale })}
+            </h2>
+            <button onClick={nextMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+              <ChevronRight className="w-5 h-5 text-slate-600" />
+            </button>
+          </div>
 
-        {/* Days Header */}
-        <div className="grid grid-cols-7 mb-2">
-          {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
-            <div key={i} className="text-center text-xs font-bold text-slate-400 py-1">
-              {d}
-            </div>
-          ))}
+          {/* Days Header */}
+          <div className="grid grid-cols-7">
+            {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
+              <div key={i} className="text-center text-xs font-bold text-slate-400 py-1">
+                {d}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Calendar Grid */}
@@ -195,6 +198,39 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
                     </span>
                   </div>
                 </div>
+
+                {/* Extra Details */}
+                {(b.destination || b.driverName || b.licensePlate || b.guarantee) && (
+                  <>
+                    <div className="border-t border-slate-200 border-dashed mt-1 mb-1" />
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      {b.destination && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Tujuan</span>
+                          <span className="text-xs text-slate-700 font-medium truncate">{b.destination}</span>
+                        </div>
+                      )}
+                      {b.driverName && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Supir</span>
+                          <span className="text-xs text-slate-700 font-medium truncate">{b.driverName}</span>
+                        </div>
+                      )}
+                      {b.licensePlate && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Plat No</span>
+                          <span className="text-xs text-slate-700 font-medium truncate">{b.licensePlate}</span>
+                        </div>
+                      )}
+                      {b.guarantee && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Jaminan</span>
+                          <span className="text-xs text-slate-700 font-medium truncate">{b.guarantee}</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))
