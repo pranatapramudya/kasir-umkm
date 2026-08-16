@@ -54,7 +54,7 @@ export function PwaInstallPrompt() {
       <div className="bg-white/70 backdrop-blur-md border border-white/20 shadow-2xl rounded-2xl p-4 flex flex-col gap-4 dark:bg-slate-900/70 dark:border-slate-800/50">
         <div className="flex items-start gap-4">
           <Image
-            src="/icon-192x192.png?v=4"
+            src="/icon-192x192.png"
             alt="PJTECH Logo"
             width={48}
             height={48}

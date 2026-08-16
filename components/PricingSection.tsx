@@ -321,16 +321,18 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
       {/* T&C MODAL */}
       {isTncOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl relative p-6 md:p-8">
-            <button 
-              onClick={() => setIsTncOpen(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-6 border-b pb-4">
-              Syarat & Ketentuan Layanan (T&C)
-            </h3>
+          <div className="bg-white rounded-2xl w-full max-w-[90vw] md:max-w-xl overflow-hidden shadow-2xl relative p-6 md:p-8">
+            <div className="flex justify-between items-start border-b pb-4 mb-6">
+              <h3 className="text-lg md:text-xl font-bold text-slate-800">
+                Syarat & Ketentuan Layanan (T&C)
+              </h3>
+              <button 
+                onClick={() => setIsTncOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors shrink-0 -mt-1 -mr-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
             
             <div className="text-sm text-slate-600 max-h-[60vh] overflow-y-auto space-y-4 pr-2">
               <p className="font-semibold text-slate-800">1. Lisensi Perangkat Lunak (Software)</p>

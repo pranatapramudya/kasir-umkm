@@ -71,8 +71,8 @@ export default function RekapKomisiPage() {
             <p className="text-slate-500 max-w-xl text-sm md:text-base">Pantau kinerja dan hitung bagi hasil karyawan Anda.</p>
           </div>
           
-          <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 shadow-sm mt-4 md:mt-0 shrink-0">
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm shrink-0">
+          <div className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 shadow-sm mt-4 md:mt-0 shrink-0 w-full sm:w-auto">
+            <div className="flex items-center justify-between sm:justify-start gap-2 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm shrink-0 w-full sm:w-auto">
               <input 
                 type="date" 
                 value={dateRange.from}
@@ -91,7 +91,7 @@ export default function RekapKomisiPage() {
             <button 
               disabled={true}
               title="Fitur Export akan segera hadir"
-              className="flex items-center gap-2 bg-gradient-to-r from-slate-200 to-slate-300 text-slate-500 shadow-sm border-0 transition-all duration-200 ease-in-out font-bold py-2 px-4 rounded-lg text-sm cursor-not-allowed"
+              className="w-full sm:w-auto flex justify-center items-center gap-2 bg-gradient-to-r from-slate-200 to-slate-300 text-slate-500 shadow-sm border-0 transition-all duration-200 ease-in-out font-bold py-2 px-4 rounded-lg text-sm cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
               Unduh Laporan
