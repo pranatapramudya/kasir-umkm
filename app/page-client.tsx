@@ -74,6 +74,7 @@ type Transaction = {
   guarantee?: string;
   downPayment?: number;
   remainingBalance?: number;
+  bookingId?: string | null;
 };
 
 
