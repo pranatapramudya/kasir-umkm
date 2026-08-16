@@ -672,8 +672,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
-        {/* Empty State Keranjang */}
+      <div className="flex-1 overflow-y-auto flex flex-col bg-slate-50">
+        <div className="p-4 space-y-3 flex-1">
+          {/* Empty State Keranjang */}
         {cart.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
             {!isRental && (
@@ -753,12 +754,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             </div>
           ))
         )}
-      </div>
+        </div>
 
-      {/* Bagian Bawah Keranjang (Checkout) */}
-      <div className="shrink-0 p-4 border-t bg-white space-y-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 relative">
+        {/* Form Inputs (Scrollable along with cart) */}
+        <div className="p-4 space-y-4 border-t bg-white mt-auto">
 
-        {/* Input Nomor Meja (Khusus F&B) */}
+          {/* Input Nomor Meja (Khusus F&B) */}
         {isFNB && (
           <div>
             <label className="text-xs font-bold text-gray-500 mb-1 block">Nomor Meja</label>
@@ -892,8 +893,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
         )}
 
-        {/* Total & Tombol Bayar */}
-        <div className="pt-3 border-t border-dashed space-y-2">
+        </div>
+      </div>
+
+      {/* Bagian Bawah Keranjang (Checkout Total & Tombol Bayar) */}
+      <div className="shrink-0 p-4 border-t bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 relative">
+        <div className="space-y-2">
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500">Subtotal</span>
             <span className="font-semibold text-gray-700">{formatRupiah(subTotal)}</span>

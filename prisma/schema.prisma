@@ -105,6 +105,12 @@ model Tenant {
   subscriptionEndsAt DateTime?
   createdAt          DateTime  @default(now())
   bookings           Booking[]
+  
+  // === Payment & Contact Info ===
+  adminWhatsApp      String?
+  bankName           String?
+  bankAccount        String?
+  bankAccountName    String?
 
   @@index([subscriptionStatus])
   @@index([slug])

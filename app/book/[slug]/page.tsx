@@ -23,7 +23,15 @@ export default async function BookingPage({ params }: PageProps) {
 
   const tenant = await prisma.tenant.findUnique({
     where: { slug },
-    select: { userId: true, name: true, category: true },
+    select: { 
+      userId: true, 
+      name: true, 
+      category: true,
+      adminWhatsApp: true,
+      bankName: true,
+      bankAccount: true,
+      bankAccountName: true,
+    },
   });
 
   if (!tenant) notFound();
@@ -87,6 +95,10 @@ export default async function BookingPage({ params }: PageProps) {
             tenantName={tenant.name}
             services={services}
             tenantCategory={tenant.category}
+            adminWhatsApp={tenant.adminWhatsApp}
+            bankName={tenant.bankName}
+            bankAccount={tenant.bankAccount}
+            bankAccountName={tenant.bankAccountName}
           />
         </div>
       </main>

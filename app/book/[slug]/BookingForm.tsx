@@ -15,6 +15,10 @@ interface BookingFormProps {
   tenantName: string;
   services: Service[];
   tenantCategory?: string | null;
+  adminWhatsApp?: string | null;
+  bankName?: string | null;
+  bankAccount?: string | null;
+  bankAccountName?: string | null;
 }
 
 type FormStep = "form" | "success";
@@ -42,7 +46,7 @@ function getTodayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-export default function BookingForm({ slug, tenantName, services, tenantCategory }: BookingFormProps) {
+export default function BookingForm({ slug, tenantName, services, tenantCategory, adminWhatsApp, bankName, bankAccount, bankAccountName }: BookingFormProps) {
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const todayISO = useMemo(() => getTodayISO(), []);
 
@@ -104,13 +108,11 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
              `Berikut bukti transfernya...`;
     }
     
-    // We assume tenantPhone is passed as a prop, but currently BookingFormProps doesn't have it.
-    // If we don't have the phone, we just open a general wa.me link which prompts for number, 
-    // or ideally the shop owner's phone.
-    // Wait, the PRD says: "Tombol tersebut harus mengarah ke URL https://wa.me/ nomor toko". 
-    // We need to add tenantPhone to BookingFormProps or just use a placeholder if not available.
-    // For now we'll format it.
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    const waNumber = adminWhatsApp ? adminWhatsApp.replace(/[^0-9]/g, '').replace(/^0/, '62') : '';
+    const url = waNumber 
+      ? `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
   }
 
 
@@ -394,8 +396,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
               <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-blue-100">
                 <div className="flex flex-col">
                   <span className="text-xs text-slate-500 font-medium">Transfer ke Rekening</span>
-                  <span className="font-bold text-slate-800 text-sm">BCA - 1234567890</span>
-                  <span className="text-[10px] text-slate-400">a.n. Pemilik Toko</span>
+                  <span className="font-bold text-slate-800 text-sm">{bankName || 'BCA'} - {bankAccount || '1234567890'}</span>
+                  <span className="text-[10px] text-slate-400">a.n. {bankAccountName || 'Pemilik Toko'}</span>
                 </div>
               </div>
             </div>

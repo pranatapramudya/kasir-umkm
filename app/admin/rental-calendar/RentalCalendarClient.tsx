@@ -77,8 +77,8 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
 
       {/* Calendar Area */}
       <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-200">
-        {/* Calendar Navigation & Days Header (Sticky) */}
-        <div className="sticky top-[68px] md:top-[72px] z-30 bg-white pt-2 pb-2 border-b border-slate-100 shadow-sm shadow-slate-100/50 mb-2">
+        {/* Calendar Navigation & Days Header */}
+        <div className="bg-white pt-2 pb-2 mb-2">
           <div className="flex justify-between items-center mb-4 px-2">
             <button onClick={prevMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
               <ChevronLeft className="w-5 h-5 text-slate-600" />
@@ -92,7 +92,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
           </div>
 
           {/* Days Header */}
-          <div className="grid grid-cols-7">
+          <div className="grid grid-cols-7 sticky top-0 z-20 bg-white shadow-sm py-1 border-b border-slate-100">
             {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
               <div key={i} className="text-center text-xs font-bold text-slate-400 py-1">
                 {d}

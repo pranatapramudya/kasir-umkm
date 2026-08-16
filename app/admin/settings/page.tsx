@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Settings } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import SlugForm from "./SlugForm";
+import PaymentSettingsForm from "./PaymentSettingsForm";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,15 @@ export default async function AdminSettingsPage() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { userId },
-    select: { slug: true, name: true, category: true },
+    select: { 
+      slug: true, 
+      name: true, 
+      category: true,
+      adminWhatsApp: true,
+      bankName: true,
+      bankAccount: true,
+      bankAccountName: true,
+    },
   });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
@@ -31,12 +40,20 @@ export default async function AdminSettingsPage() {
           Informasi Toko
         </h1>
         <p className="text-slate-500 text-sm">
-          Kelola informasi toko dan link booking publik Anda.
+          Kelola informasi toko, link booking, dan instruksi pembayaran Anda.
         </p>
       </div>
 
       {/* ── Bagian Kustom: Informasi Toko ── */}
       <SlugForm initialSlug={tenant?.slug ?? null} appUrl={appUrl} tenantCategory={tenant?.category} />
+      
+      {/* ── Bagian Kustom: Informasi Pembayaran ── */}
+      <PaymentSettingsForm 
+        initialWhatsApp={tenant?.adminWhatsApp ?? null}
+        initialBankName={tenant?.bankName ?? null}
+        initialBankAccount={tenant?.bankAccount ?? null}
+        initialBankAccountName={tenant?.bankAccountName ?? null}
+      />
     </div>
   );
 }
