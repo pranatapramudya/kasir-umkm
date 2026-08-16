@@ -55,14 +55,16 @@ export default function AdminLayoutClient({
           </div>
         )}
         {/* HEADER */}
-        <header className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Sistem Manajemen</h2>
-          </div>
-          <div className="flex items-center gap-4">
-            <CustomUserButton />
-          </div>
-        </header>
+        {!pathname.startsWith('/admin/pos') && (
+          <header className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-gray-800 tracking-tight">Sistem Manajemen</h2>
+            </div>
+            <div className="flex items-center gap-4">
+              <CustomUserButton />
+            </div>
+          </header>
+        )}
 
         {/* PAGE CONTENT */}
         <main className={`${pathname.startsWith('/admin/pos') ? '' : 'p-6'} flex-1 overflow-y-auto relative`}>
