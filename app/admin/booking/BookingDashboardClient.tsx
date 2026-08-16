@@ -107,41 +107,43 @@ function formatDateShort(iso: string) {
   });
 }
 
-const STATUS_MAP: Record<
+function getStatusMap(isJasa: boolean): Record<
   BookingStatus,
   { label: string; color: string; bg: string; icon: React.ReactNode }
-> = {
-  PENDING: {
-    label: "Menunggu",
-    color: "text-amber-600",
-    bg: "bg-amber-50 border-amber-200",
-    icon: <Clock className="w-3.5 h-3.5" />,
-  },
-  COMPLETED: {
-    label: "Siap Berangkat",
-    color: "text-blue-600",
-    bg: "bg-blue-50 border-blue-200",
-    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-  },
-  IN_PROGRESS: {
-    label: "Sedang Jalan",
-    color: "text-purple-600",
-    bg: "bg-purple-50 border-purple-200",
-    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-  },
-  CANCELLED: {
-    label: "Dibatalkan",
-    color: "text-red-500",
-    bg: "bg-red-50 border-red-200",
-    icon: <XCircle className="w-3.5 h-3.5" />,
-  },
-  FINISHED: {
-    label: "Selesai (Pool)",
-    color: "text-slate-600",
-    bg: "bg-slate-50 border-slate-200",
-    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-  },
-};
+> {
+  return {
+    PENDING: {
+      label: isJasa ? "Menunggu" : "Persiapan",
+      color: "text-amber-600",
+      bg: "bg-amber-50 border-amber-200",
+      icon: <Clock className="w-3.5 h-3.5" />,
+    },
+    COMPLETED: {
+      label: isJasa ? "Antrean Aktif" : "Siap Berangkat",
+      color: "text-blue-600",
+      bg: "bg-blue-50 border-blue-200",
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+    },
+    IN_PROGRESS: {
+      label: "Sedang Jalan",
+      color: "text-purple-600",
+      bg: "bg-purple-50 border-purple-200",
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+    },
+    CANCELLED: {
+      label: "Dibatalkan",
+      color: "text-red-500",
+      bg: "bg-red-50 border-red-200",
+      icon: <XCircle className="w-3.5 h-3.5" />,
+    },
+    FINISHED: {
+      label: isJasa ? "Selesai" : "Selesai / Tiba di Pool",
+      color: "text-emerald-600",
+      bg: "bg-emerald-50 border-emerald-200",
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+    },
+  };
+}
 
 /** Warna event kalender berdasarkan status */
 function eventStyleGetter(event: BookingCalendarEvent) {
@@ -163,6 +165,9 @@ export default function BookingDashboardClient({
   tenantSlug,
   tenantCategory,
 }: Props) {
+  const isJasa = tenantCategory === "Jasa / Servis";
+  const statusMap = getStatusMap(isJasa);
+
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -423,24 +428,31 @@ export default function BookingDashboardClient({
         <>
           {/* Filter Tabs */}
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {(["ALL", "PENDING", "COMPLETED", "CANCELLED"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${filter === f
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-              >
-                {f === "ALL"
-                  ? `Semua (${bookings.length})`
-                  : f === "PENDING"
-                    ? `Menunggu (${bookings.filter((b) => b.status === "PENDING").length})`
-                    : f === "COMPLETED"
-                      ? `Selesai (${bookings.filter((b) => b.status === "COMPLETED").length})`
-                      : `Dibatalkan (${bookings.filter((b) => b.status === "CANCELLED").length})`}
-              </button>
-            ))}
+            {(isJasa 
+              ? ["ALL", "PENDING", "COMPLETED", "FINISHED", "CANCELLED"] 
+              : ["ALL", "PENDING", "COMPLETED", "IN_PROGRESS", "FINISHED", "CANCELLED"]
+            ).map((f) => {
+              const label = f === "ALL" 
+                ? "Semua" 
+                : f === "PENDING" ? (isJasa ? "Menunggu" : "Persiapan")
+                : f === "COMPLETED" ? (isJasa ? "Antrean" : "Siap Berangkat")
+                : f === "IN_PROGRESS" ? "Sedang Jalan"
+                : f === "FINISHED" ? "Selesai"
+                : "Dibatalkan";
+              const count = f === "ALL" ? bookings.length : bookings.filter((b) => b.status === f).length;
+              return (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f as any)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${filter === f
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                >
+                  {`${label} (${count})`}
+                </button>
+              );
+            })}
           </div>
 
           {/* Booking Cards */}
@@ -457,7 +469,7 @@ export default function BookingDashboardClient({
           ) : (
             <div className="space-y-3">
               {filteredBookings.map((booking) => {
-                const statusInfo = STATUS_MAP[booking.status];
+                const statusInfo = statusMap[booking.status];
                 const isPending = booking.status === "PENDING";
 
                 return (
@@ -620,11 +632,11 @@ export default function BookingDashboardClient({
               {/* Status Badge */}
               <div className="flex items-center gap-2">
                 <span
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${STATUS_MAP[selectedBooking.status].color
-                    } ${STATUS_MAP[selectedBooking.status].bg}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${statusMap[selectedBooking.status].color
+                    } ${statusMap[selectedBooking.status].bg}`}
                 >
-                  {STATUS_MAP[selectedBooking.status].icon}
-                  {STATUS_MAP[selectedBooking.status].label}
+                  {statusMap[selectedBooking.status].icon}
+                  {statusMap[selectedBooking.status].label}
                 </span>
               </div>
 
