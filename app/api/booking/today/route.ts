@@ -26,10 +26,20 @@ export async function GET(request: Request) {
     const endOfToday = new Date(today);
     endOfToday.setHours(23, 59, 59, 999);
 
+    const tenant = await prisma.tenant.findUnique({
+      where: { userId: targetUserId },
+      select: { category: true }
+    });
+    const isJasa = tenant?.category === "Jasa / Servis";
+
+    const validStatuses = isJasa 
+      ? ["PENDING", "COMPLETED"] 
+      : ["COMPLETED", "IN_PROGRESS"];
+
       const bookings = await prisma.booking.findMany({
         where: {
           userId: targetUserId,
-          status: { in: ["PENDING", "IN_PROGRESS"] },
+          status: { in: validStatuses },
           bookingDate: {
             gte: startOfToday,
             lte: endOfToday,
