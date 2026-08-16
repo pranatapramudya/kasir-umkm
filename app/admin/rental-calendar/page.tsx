@@ -58,6 +58,13 @@ export default async function RentalCalendarPage() {
     orderBy: { startDate: "asc" }
   });
 
+  const productIds = Array.from(new Set(rawTransactions.flatMap(tx => tx.items.map(i => i.productId))));
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, name: true }
+  });
+  const productMap = new Map(products.map(p => [p.id, p.name]));
+
   const now = new Date();
 
   const bookings = rawBookings.map(b => {
@@ -106,7 +113,7 @@ export default async function RentalCalendarPage() {
     return {
       id: tx.id,
       customerName: tx.customerName || "Pelanggan POS",
-      itemName: tx.items.map(i => i.name).join(", ") || "Transaksi POS",
+      itemName: tx.items.map(i => productMap.get(i.productId) || `Produk ${i.productId}`).join(", ") || "Transaksi POS",
       startDate: start.toISOString(),
       endDate: end.toISOString(),
       status: derivedStatus as "PENDING" | "ACTIVE" | "OVERDUE" | "COMPLETED",

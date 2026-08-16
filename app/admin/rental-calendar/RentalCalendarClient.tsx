@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  format, addDays, subDays, startOfWeek, endOfWeek, 
-  startOfMonth, endOfMonth, isSameDay, isSameMonth, 
-  addMonths, subMonths, eachDayOfInterval 
+import {
+  format, addDays, subDays, startOfWeek, endOfWeek,
+  startOfMonth, endOfMonth, isSameDay, isSameMonth,
+  addMonths, subMonths, eachDayOfInterval
 } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, CalendarDays, Clock, User, CarFront } from "lucide-react";
@@ -18,6 +18,10 @@ interface Booking {
   startDate: string;
   endDate: string;
   status: BookingStatus;
+  destination?: string | null;
+  driverName?: string | null;
+  licensePlate?: string | null;
+  guarantee?: string | null;
 }
 
 interface Props {
@@ -52,8 +56,8 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
   // Get bookings for selected date
   const getBookingsForDate = (day: Date) => {
     return initialBookings.filter(b => {
-      const start = new Date(b.startDate).setHours(0,0,0,0);
-      const end = new Date(b.endDate).setHours(0,0,0,0);
+      const start = new Date(b.startDate).setHours(0, 0, 0, 0);
+      const end = new Date(b.endDate).setHours(0, 0, 0, 0);
       const check = day.getTime();
       return check >= start && check <= end;
     });
@@ -106,24 +110,22 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
             const dayBookings = getBookingsForDate(day);
 
             return (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 onClick={() => onDateClick(day)}
-                className={`flex flex-col border border-slate-100 rounded-xl p-1 md:p-2 min-h-[60px] md:min-h-[100px] cursor-pointer transition-all ${
-                  isSelected ? "bg-blue-50/50 border-blue-200" : "hover:bg-slate-50"
-                }`}
+                className={`flex flex-col border border-slate-100 rounded-xl p-1 md:p-2 min-h-[60px] md:min-h-[100px] cursor-pointer transition-all ${isSelected ? "bg-blue-50/50 border-blue-200" : "hover:bg-slate-50"
+                  }`}
               >
                 {/* Date Number */}
                 <div className="flex justify-end mb-1">
-                  <div className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full text-xs md:text-sm font-semibold transition-all ${
-                    isSelected 
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" 
-                      : isToday
-                        ? "bg-blue-100 text-blue-700"
-                        : isCurrentMonth 
-                          ? "text-slate-700" 
-                          : "text-slate-300"
-                  }`}>
+                  <div className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full text-xs md:text-sm font-semibold transition-all ${isSelected
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                    : isToday
+                      ? "bg-blue-100 text-blue-700"
+                      : isCurrentMonth
+                        ? "text-slate-700"
+                        : "text-slate-300"
+                    }`}>
                     {format(day, dateFormat)}
                   </div>
                 </div>
