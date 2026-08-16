@@ -852,9 +852,18 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2.5 items-start">
         <span className="text-amber-600 mt-0.5 text-base">⚠️</span>
         <div className="text-[11px] md:text-xs text-amber-800 space-y-1 leading-relaxed">
-          <p className="font-bold">Informasi Pembayaran & Konfirmasi:</p>
-          <p>Pesanan ini memerlukan <strong>Down Payment (DP) minimal 50%</strong> dari total tagihan.</p>
-          <p>Setelah form dikirim, Admin kami akan segera menghubungi Anda melalui WhatsApp untuk memberikan rincian pembayaran dan menyelesaikan proses booking.</p>
+          {tenantCategory === "Jasa / Servis" ? (
+            <>
+              <p className="font-bold">Informasi Kedatangan:</p>
+              <p>Silakan datang ke lokasi sesuai dengan jadwal yang telah Anda pilih. Pembayaran dapat dilakukan langsung di Kasir setelah pelayanan selesai.</p>
+            </>
+          ) : (
+            <>
+              <p className="font-bold">Informasi Pembayaran & Konfirmasi:</p>
+              <p>Pesanan ini memerlukan <strong>Down Payment (DP) minimal 50%</strong> dari total tagihan.</p>
+              <p>Setelah form dikirim, Admin kami akan segera menghubungi Anda melalui WhatsApp untuk memberikan rincian pembayaran dan menyelesaikan proses booking.</p>
+            </>
+          )}
         </div>
       </div>
 
