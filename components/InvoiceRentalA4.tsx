@@ -20,13 +20,11 @@ export default function InvoiceRentalA4({
   if (!transaction) return null;
 
   return (
-    <div className="bg-white text-black p-8 mx-auto w-full max-w-[210mm] text-sm font-sans print:w-[210mm] print:h-[297mm] print:m-0 print:p-8">
+    <div className="bg-white text-black p-8 mx-auto w-full max-w-[210mm] text-sm font-sans print:block print:w-full print:m-0 print:p-0">
       <style>{`
-        @media print {
-          @page {
-            size: A4;
-            margin: 1cm;
-          }
+        @media print { 
+          @page { size: A4; margin: 10mm; } 
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } 
         }
       `}</style>
       
@@ -45,8 +43,8 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Informasi Rental & Customer */}
-      <div className="grid grid-cols-2 gap-8 mb-8">
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+      <div className="flex flex-col md:flex-row gap-8 mb-8 print:flex-row print:flex print:justify-between print:w-full">
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex-1">
           <h3 className="font-bold text-slate-800 mb-3 uppercase text-xs tracking-wider border-b pb-2">Informasi Penyewa</h3>
           <table className="w-full text-sm">
             <tbody>
@@ -57,7 +55,7 @@ export default function InvoiceRentalA4({
             </tbody>
           </table>
         </div>
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex-1">
           <h3 className="font-bold text-slate-800 mb-3 uppercase text-xs tracking-wider border-b pb-2">Detail Sewa Kendaraan</h3>
           <table className="w-full text-sm">
             <tbody>
@@ -97,7 +95,7 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Ringkasan Biaya */}
-      <div className="flex justify-end mb-12">
+      <div className="flex justify-end mb-12 print:break-inside-avoid">
         <div className="w-72 bg-slate-50 p-4 rounded-xl border border-slate-100">
           <div className="flex justify-between py-1 text-sm">
             <span className="text-slate-600">Total Harga Sewa</span>
@@ -129,7 +127,7 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Footer Tanda Tangan */}
-      <div className="flex justify-between px-12 mt-16 pt-8 border-t-2 border-slate-100">
+      <div className="flex justify-between px-12 mt-16 pt-8 border-t-2 border-slate-100 print:break-inside-avoid">
         <div className="text-center">
           <p className="text-slate-500 mb-20 text-sm">Penyewa / Customer</p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-1 uppercase">{transaction.customerName || "............................"}</p>

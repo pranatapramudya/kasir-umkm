@@ -41,7 +41,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
 
   return (
     <>
-      <nav className="fixed bottom-0 w-full bg-white border-t shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] z-40 lg:hidden">
+      <nav className="fixed bottom-0 w-full bg-white border-t shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] z-40 lg:hidden print:hidden">
         <div className="flex justify-around items-center h-16 max-w-lg mx-auto relative px-2">
           {mainNavItems.map((item) => {
             const Icon = item.icon;

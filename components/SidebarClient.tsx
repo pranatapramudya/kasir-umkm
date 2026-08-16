@@ -57,7 +57,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
 
       <aside className={`
         fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r shadow-[4px_0_24px_-10px_rgba(0,0,0,0.05)] z-50 flex flex-col shrink-0
-        transition-transform duration-300 ease-in-out
+        transition-transform duration-300 ease-in-out print:hidden
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
       <div className="p-6 border-b border-slate-100">
