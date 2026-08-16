@@ -1,4 +1,4 @@
-import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck, Printer } from "lucide-react";
+import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck, Printer, Inbox } from "lucide-react";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 
 export function getNavigationMenu(kategoriUsaha: string, role: string | undefined) {
@@ -16,10 +16,11 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
       group: "MENU UTAMA",
       items: [
         { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        { name: kasirLabel, href: "/", icon: ShoppingCart },
+        { name: kasirLabel, href: "/admin/pos", icon: ShoppingCart },
         { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
         ...(isFnB ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
-        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: isRentalTravel ? "/admin/rental-calendar" : "/admin/booking", icon: CalendarCheck }] : [])
+        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: isRentalTravel ? "/admin/rental-calendar" : "/admin/booking", icon: CalendarCheck }] : []),
+        { name: "Pesanan Online", href: "/admin/orders", icon: Inbox }
       ]
     },
     {
