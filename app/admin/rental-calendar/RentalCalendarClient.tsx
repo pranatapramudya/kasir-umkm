@@ -68,7 +68,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
   return (
     <div className="flex flex-col h-full bg-slate-50 min-h-screen pb-24">
       {/* Header */}
-      <div className="bg-white p-4 border-b border-slate-200 sticky top-0 z-40 shadow-sm flex items-center justify-between">
+      <div className="bg-white p-4 border-b border-slate-200 shadow-sm flex items-center justify-between">
         <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
           <CalendarDays className="w-5 h-5 text-blue-600" />
           Kalender Sewa
@@ -93,7 +93,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
         {/* Inner Scroll Container */}
         <div className="max-h-[55vh] overflow-y-auto border border-slate-200 rounded-xl bg-white shadow-inner relative">
           {/* Days Header */}
-          <div className="grid grid-cols-7 gap-1 md:gap-2 sticky top-0 z-20 bg-white shadow-sm py-2 px-1 md:px-2 border-b border-slate-200">
+          <div className="grid grid-cols-7 gap-1 md:gap-2 sticky top-0 z-30 bg-white shadow-sm py-2 px-1 md:px-2 border-b border-slate-200">
             {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
               <div key={i} className="text-center text-xs font-bold text-slate-500 py-1">
                 {d}
