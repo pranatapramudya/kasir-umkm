@@ -38,7 +38,7 @@ export default async function RentalCalendarPage() {
   const rawBookings = await prisma.booking.findMany({
     where: {
       userId: targetUserId,
-      status: { not: "CANCELLED" }
+      status: "COMPLETED"
     },
     include: {
       product: { select: { name: true } }
@@ -52,11 +52,13 @@ export default async function RentalCalendarPage() {
     const start = b.startDate || b.bookingDate;
     const end = b.endDate || b.bookingDate;
 
-    if (b.status === "PENDING") {
+    if (b.status === "COMPLETED") {
       if (now > end) {
         derivedStatus = "OVERDUE";
       } else if (now >= start && now <= end) {
         derivedStatus = "ACTIVE";
+      } else if (now < start) {
+        derivedStatus = "PENDING"; // Approved but not yet started (still booking)
       }
     }
 

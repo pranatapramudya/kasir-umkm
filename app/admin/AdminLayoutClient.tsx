@@ -21,12 +21,7 @@ export default function AdminLayoutClient({
 }) {
   const pathname = usePathname();
 
-  const navItems = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Produk", href: "/admin/products", icon: PackageSearch },
-    { name: "Analitik", href: "/admin/analytics", icon: BarChart },
-    { name: "Pengaturan", href: "/admin/settings", icon: Settings },
-  ];
+
 
   const { user, isLoaded } = useUser();
   const router = useRouter();
