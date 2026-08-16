@@ -52,19 +52,53 @@ export async function POST(request: Request) {
 
     // 4. Backend double-booking guard (pengecekan ganda sebelum simpan)
     const requestedDateTime = new Date(bookingDate);
-    const conflict = await prisma.booking.findFirst({
-      where: {
-        userId: tenant.userId,
-        bookingDate: requestedDateTime,
-        status: { in: ["PENDING", "COMPLETED"] },
-      },
-      select: { id: true },
-    });
+    let isConflict = false;
+    let conflictMessage = "Jadwal sudah tidak tersedia.";
 
-    if (conflict) {
+    if (startDate && endDate) {
+      // Logic Rental (Berbasis Rentang Tanggal)
+      const newStart = new Date(startDate);
+      const newEnd = new Date(endDate);
+      newStart.setHours(0, 0, 0, 0);
+      newEnd.setHours(23, 59, 59, 999);
+
+      const conflictRental = await prisma.booking.findFirst({
+        where: {
+          userId: tenant.userId,
+          productId: productId ? Number(productId) : undefined,
+          status: { in: ["PENDING", "COMPLETED", "FINISHED"] },
+          startDate: { lte: newEnd },
+          endDate: { gte: newStart },
+        },
+        select: { id: true },
+      });
+
+      if (conflictRental) {
+        isConflict = true;
+        conflictMessage = "Armada sudah disewa pada tanggal tersebut.";
+      }
+    } else {
+      // Logic Jasa (Berbasis Slot Waktu)
+      const conflictJasa = await prisma.booking.findFirst({
+        where: {
+          userId: tenant.userId,
+          productId: productId ? Number(productId) : undefined,
+          bookingDate: requestedDateTime,
+          status: { in: ["PENDING", "COMPLETED", "FINISHED"] },
+        },
+        select: { id: true },
+      });
+
+      if (conflictJasa) {
+        isConflict = true;
+        conflictMessage = "Jadwal penuh, silakan pilih jam lain.";
+      }
+    }
+
+    if (isConflict) {
       revalidatePath('/', 'layout');
-    return NextResponse.json(
-        { error: "Jadwal sudah tidak tersedia. Pilih jam lain." },
+      return NextResponse.json(
+        { error: conflictMessage },
         { status: 400 }
       );
     }

@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
     const slug = searchParams.get("slug");
+    const productId = searchParams.get("productId");
 
     if (!date || !slug) {
       return NextResponse.json(
@@ -45,16 +46,22 @@ export async function GET(request: Request) {
     const startOfDay = new Date(`${date}T00:00:00.000Z`);
     const endOfDay = new Date(`${date}T23:59:59.999Z`);
 
-    // 3. Query semua booking aktif (PENDING / COMPLETED) pada tanggal itu
-    const bookings = await prisma.booking.findMany({
-      where: {
-        userId: tenant.userId,
-        bookingDate: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
-        status: { in: ["PENDING", "COMPLETED"] },
+    const whereClause: any = {
+      userId: tenant.userId,
+      bookingDate: {
+        gte: startOfDay,
+        lte: endOfDay,
       },
+      status: { in: ["PENDING", "COMPLETED", "FINISHED"] }, // Sertakan FINISHED untuk memastikan slot yang sudah selesai tidak bisa dibooking lagi jika diinginkan, tapi PRD minta PENDING, COMPLETED, atau FINISHED.
+    };
+
+    if (productId) {
+      whereClause.productId = Number(productId);
+    }
+
+    // 3. Query semua booking aktif (PENDING / COMPLETED / FINISHED) pada tanggal itu
+    const bookings = await prisma.booking.findMany({
+      where: whereClause,
       select: { bookingDate: true },
     });
 

@@ -58,6 +58,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   // Anti-double booking state
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [isCheckingSlots, setIsCheckingSlots] = useState(false);
+  const [bookedRentalRanges, setBookedRentalRanges] = useState<{startDate: string, endDate: string}[]>([]);
 
   // Receipt / ticket state
   const ticketRef = useRef<HTMLDivElement>(null);
@@ -169,7 +170,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       setIsCheckingSlots(true);
       try {
         const res = await fetch(
-          `/api/booking/check-slots?date=${encodeURIComponent(date)}&slug=${encodeURIComponent(slug)}`
+          `/api/booking/check-slots?date=${encodeURIComponent(date)}&slug=${encodeURIComponent(slug)}&productId=${encodeURIComponent(formData.productId)}`
         );
         if (res.ok) {
           const data = await res.json();
@@ -197,8 +198,59 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
   // Check slots on initial load and on date change
   useEffect(() => {
-    checkSlots(formData.bookingDate);
-  }, [formData.bookingDate, checkSlots]);
+    if (!isRental) {
+      checkSlots(formData.bookingDate);
+    }
+  }, [formData.bookingDate, formData.productId, checkSlots, isRental]);
+  
+  const checkRentalRanges = useCallback(
+    async (productId: string) => {
+      if (!isRental || !productId) return;
+      try {
+        const res = await fetch(
+          `/api/booking/check-rental?slug=${encodeURIComponent(slug)}&productId=${encodeURIComponent(productId)}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setBookedRentalRanges(data.bookedRanges ?? []);
+        }
+      } catch {
+        // silent fail
+      }
+    },
+    [isRental, slug]
+  );
+
+  useEffect(() => {
+    if (isRental) {
+      checkRentalRanges(formData.productId);
+    }
+  }, [formData.productId, isRental, checkRentalRanges]);
+
+  useEffect(() => {
+    if (isRental && rentalData.startDate && rentalData.endDate) {
+      const start = new Date(rentalData.startDate);
+      const end = new Date(rentalData.endDate);
+      start.setHours(0,0,0,0);
+      end.setHours(23,59,59,999);
+      
+      let isOverlap = false;
+      for (const range of bookedRentalRanges) {
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        if (start <= rangeEnd && end >= rangeStart) {
+          isOverlap = true;
+          break;
+        }
+      }
+
+      if (isOverlap) {
+        setError("Armada sudah disewa pada tanggal tersebut.");
+      } else {
+        setError(prev => prev === "Armada sudah disewa pada tanggal tersebut." ? null : prev);
+      }
+    }
+  }, [rentalData.startDate, rentalData.endDate, bookedRentalRanges, isRental]);
 
   function handleChange(
     e: React.ChangeEvent<
@@ -234,6 +286,25 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       }
       if (rentalData.endDate < rentalData.startDate) {
         setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+        return;
+      }
+      // Pengecekan overlap sebelum submit
+      const start = new Date(rentalData.startDate);
+      const end = new Date(rentalData.endDate);
+      start.setHours(0,0,0,0);
+      end.setHours(23,59,59,999);
+      
+      let isOverlap = false;
+      for (const range of bookedRentalRanges) {
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        if (start <= rangeEnd && end >= rangeStart) {
+          isOverlap = true;
+          break;
+        }
+      }
+      if (isOverlap) {
+        setError("Armada sudah disewa pada tanggal tersebut.");
         return;
       }
     } else {
