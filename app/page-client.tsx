@@ -619,6 +619,16 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const handleProcessQueue = (booking: any) => {
     setCustomerName(booking.customerName);
     setActiveBookingId(booking.id);
+
+    if (isJasa && booking.bookingDate) {
+      const d = new Date(booking.bookingDate);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const date = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      setServiceDate(`${year}-${month}-${date}T${hours}:${minutes}`);
+    }
     
     setCart([]);
     if (booking.product) {
@@ -1135,6 +1145,17 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col">
+                {(isJasa || isRental) && (
+                  <div className="lg:hidden p-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl flex flex-row items-center justify-between shadow-sm">
+                    <span className="text-sm font-medium text-blue-800">Ada antrean?</span>
+                    <button
+                      onClick={() => setIsQueueModalOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+                    >
+                      📋 Tarik Antrean Online
+                    </button>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-1 content-start">
                   {products.map(product => {
                     const remaining = getRemainingStock(product);
