@@ -16,7 +16,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
       group: "MENU UTAMA",
       items: [
         { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        { name: kasirLabel, href: "/", icon: ShoppingCart },
+        { name: kasirLabel, href: isRentalTravel ? "/admin/rental-pos" : "/", icon: ShoppingCart },
         { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
         ...(isFnB ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
         ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: isRentalTravel ? "/admin/rental-calendar" : "/admin/booking", icon: CalendarCheck }] : [])
