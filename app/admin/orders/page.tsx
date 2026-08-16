@@ -25,10 +25,16 @@ export default async function PesananOnlinePage() {
     targetUserId = employee.tenantId;
   }
 
+  const tenant = await prisma.tenant.findUnique({
+    where: { userId: targetUserId },
+    select: { category: true }
+  });
+  const isJasa = tenant?.category === "Jasa / Servis";
+
   const rawBookings = await prisma.booking.findMany({
     where: {
       userId: targetUserId,
-      status: { in: ["PENDING", "IN_PROGRESS"] }
+      status: { in: ["PENDING", "COMPLETED", "IN_PROGRESS"] }
     },
     include: {
       product: { select: { name: true, hargaJual: true } }
@@ -45,5 +51,5 @@ export default async function PesananOnlinePage() {
     total: b.product?.hargaJual || 0,
   }));
 
-  return <InboxClient initialOrders={bookings} />;
+  return <InboxClient initialOrders={bookings} isJasa={isJasa} />;
 }

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Inbox, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
-import { startOrder, rejectOrder, finishOrder } from "./actions";
+import { startOrder, rejectOrder, finishOrder, approveOrder } from "./actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -15,13 +15,25 @@ interface BookingItem {
   total: number;
 }
 
-export default function InboxClient({ initialOrders }: { initialOrders: BookingItem[] }) {
+export default function InboxClient({ initialOrders, isJasa }: { initialOrders: BookingItem[], isJasa?: boolean }) {
   const [orders, setOrders] = useState<BookingItem[]>(initialOrders);
   const router = useRouter();
 
   const [finishingOrder, setFinishingOrder] = useState<BookingItem | null>(null);
   const [overtimeFee, setOvertimeFee] = useState<string>("0");
   const [isFinishing, setIsFinishing] = useState(false);
+
+  const handleApprove = async (id: string) => {
+    toast.loading("Memproses persetujuan...", { id: "approve" });
+    const res = await approveOrder(id);
+    if (res.success) {
+      toast.success("Pesanan disetujui!", { id: "approve" });
+      setOrders(orders.map(o => o.id === id ? { ...o, status: "COMPLETED" } : o));
+      router.refresh();
+    } else {
+      toast.error("Gagal menyetujui pesanan", { id: "approve" });
+    }
+  };
 
   const handleStart = async (id: string) => {
     toast.loading("Memulai perjalanan...", { id: "start" });
@@ -77,7 +89,7 @@ export default function InboxClient({ initialOrders }: { initialOrders: BookingI
               Inbox Pesanan Online
             </h1>
             <p className="text-slate-500 max-w-xl text-sm md:text-base">
-              Kelola pesanan dan booking yang masuk dari Katalog Online/Slug Toko Anda di sini. Terima (Approve) atau Tolak (Reject) pesanan sebelum dimasukkan ke Kalender Sewa.
+              Kelola pesanan dan booking yang masuk dari Katalog Online/Slug Toko Anda di sini. Terima (Approve) atau Tolak (Reject) pesanan sebelum dimasukkan ke {isJasa ? "Jadwal Booking" : "Kalender Sewa"}.
             </p>
           </div>
         </div>
@@ -106,32 +118,44 @@ export default function InboxClient({ initialOrders }: { initialOrders: BookingI
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">{order.customerName}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{order.itemName}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {order.status === "PENDING" ? (
+                    {order.status === "PENDING" && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                        <Clock className="w-3.5 h-3.5" /> Persiapan
+                        <Clock className="w-3.5 h-3.5" /> {isJasa ? "Menunggu" : "Persiapan"}
                       </span>
-                    ) : (
+                    )}
+                    {order.status === "COMPLETED" && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {isJasa ? "Antrean Aktif" : "Siap Berangkat"}
+                      </span>
+                    )}
+                    {order.status === "IN_PROGRESS" && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                         Sedang Dalam Perjalanan
                       </span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    {order.status === "PENDING" ? (
+                    {order.status === "PENDING" && (
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleStart(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors tooltip" title="Mulai Perjalanan/Start">
-                          Mulai Perjalanan / Start
+                        <button onClick={() => handleApprove(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors tooltip" title={isJasa ? "Terima Pesanan" : "Setujui"}>
+                          {isJasa ? "Terima Pesanan" : "Setujui"}
                         </button>
                         <button onClick={() => handleReject(order.id)} className="px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors tooltip" title="Tolak Pesanan">
                           Tolak
                         </button>
                       </div>
-                    ) : (
+                    )}
+                    {order.status === "COMPLETED" && !isJasa && (
+                      <button onClick={() => handleStart(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors tooltip" title="Mulai Perjalanan/Start">
+                        🚀 Mulai Perjalanan / Start
+                      </button>
+                    )}
+                    {order.status === "IN_PROGRESS" && !isJasa && (
                       <button 
                         onClick={() => { setFinishingOrder(order); setOvertimeFee("0"); }} 
-                        className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                        className="px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
                       >
-                        Tiba di Pool / Finish
+                        ✅ Tiba di Pool / Finish
                       </button>
                     )}
                   </td>
