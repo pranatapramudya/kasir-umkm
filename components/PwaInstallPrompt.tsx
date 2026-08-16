@@ -17,6 +17,11 @@ export function PwaInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
+    // Pengecekan localStorage agar tidak memunculkan prompt jika user sudah menolak
+    if (typeof window !== "undefined" && window.localStorage.getItem("pwa_prompt_dismissed") === "true") {
+      return;
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
@@ -47,6 +52,13 @@ export function PwaInstallPrompt() {
     setShowPrompt(false);
   };
 
+  const handleDismiss = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("pwa_prompt_dismissed", "true");
+    }
+    setShowPrompt(false);
+  };
+
   if (!showPrompt) return null;
 
   return (
@@ -72,7 +84,7 @@ export function PwaInstallPrompt() {
         
         <div className="flex gap-3">
           <button
-            onClick={() => setShowPrompt(false)}
+            onClick={handleDismiss}
             className="flex-1 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             Nanti Saja
