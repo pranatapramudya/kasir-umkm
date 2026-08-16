@@ -23,7 +23,8 @@ export interface ReceiptData {
   customerName: string;
   tableId?: string;
   // Rental fields
-  destination?: string;
+  pickupLocation?: string;
+  dropoffLocation?: string;
   startDate?: string;
   endDate?: string;
   driverName?: string;
@@ -193,8 +194,11 @@ export function buildReceiptBytes(data: ReceiptData, paperWidth = 32): Uint8Arra
     push(encodeText(`Wkt Layan: ${dateStr.slice(0, paperWidth - 11)}`), nl);
   }
   // Data Rental
-  if (data.destination) {
-    push(encodeText(`Tujuan   : ${data.destination.slice(0, paperWidth - 11)}`), nl);
+  if (data.pickupLocation) {
+    push(encodeText(`T. Jemput: ${data.pickupLocation.slice(0, paperWidth - 11)}`), nl);
+  }
+  if (data.dropoffLocation) {
+    push(encodeText(`Tujuan   : ${data.dropoffLocation.slice(0, paperWidth - 11)}`), nl);
   }
   if (data.startDate || data.endDate) {
     push(encodeText(`Tgl Sewa : ${data.startDate ?? '?'} - ${data.endDate ?? '?'}`.slice(0, paperWidth)), nl);

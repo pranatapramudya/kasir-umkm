@@ -50,7 +50,8 @@ model Transaction {
   // === Rental & Travel fields ===
   startDate    DateTime?
   endDate      DateTime?
-  destination  String?
+  pickupLocation String?
+  dropoffLocation String?
   driverName   String?
   licensePlate String?
   serviceDate  DateTime?
@@ -155,6 +156,7 @@ model AuditLog {
 enum BookingStatus {
   PENDING
   COMPLETED
+  IN_PROGRESS
   CANCELLED
   FINISHED
 }
@@ -173,7 +175,9 @@ model Booking {
   // === Rental & Travel fields ===
   startDate     DateTime?
   endDate       DateTime?
-  destination   String?
+  pickupLocation String?
+  dropoffLocation String?
+  actualStartedAt DateTime?
   overtimeFee   Int           @default(0)
   createdAt     DateTime      @default(now())
 

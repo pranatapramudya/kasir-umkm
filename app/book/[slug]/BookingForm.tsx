@@ -130,7 +130,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         const lon = position.coords.longitude;
         setRentalData(prev => ({
           ...prev,
-          destination: `https://maps.google.com/?q=${lat},${lon}`
+          pickupLocation: `https://maps.google.com/?q=${lat},${lon}`
         }));
         if(btn) btn.innerHTML = "📍 GPS";
       },
@@ -157,7 +157,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   const [rentalData, setRentalData] = useState({
     startDate: todayISO,
     endDate: todayISO,
-    destination: "",
+    pickupLocation: "",
+    dropoffLocation: "",
   });
 
   const selectedService = services.find(
@@ -339,7 +340,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           // Field rental (null jika bukan Rental)
           startDate: isRental ? new Date(`${rentalData.startDate}T00:00:00`).toISOString() : null,
           endDate:   isRental ? new Date(`${rentalData.endDate}T23:59:59`).toISOString()   : null,
-          destination: isRental ? (rentalData.destination.trim() || null) : null,
+          pickupLocation: isRental ? (rentalData.pickupLocation.trim() || null) : null,
+          dropoffLocation: isRental ? (rentalData.dropoffLocation.trim() || null) : null,
         }),
       });
 
@@ -429,10 +431,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             {/* === Baris khusus Rental === */}
             {isRental ? (
               <>
-                {rentalData.destination && (
+                {rentalData.dropoffLocation && (
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 text-xs">Tujuan</span>
-                    <span className="text-slate-900 font-semibold text-xs">{rentalData.destination}</span>
+                    <span className="text-slate-900 font-semibold text-xs">{rentalData.dropoffLocation}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
@@ -689,7 +691,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
               <input
                 id="rental-destination"
                 type="text"
-                value={rentalData.destination}
+                value={rentalData.dropoffLocation}
                 onChange={(e) => {
                   setRentalData((prev) => ({ ...prev, destination: e.target.value }));
                   setError(null);

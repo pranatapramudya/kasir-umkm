@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 "use server";
 
 import { prisma } from "@/lib/prisma";
@@ -87,7 +88,8 @@ export async function finishOrder(id: string, overtimeFee: number) {
         status: "completed",
         startDate: start,
         endDate: end,
-        destination: booking.destination,
+        pickupLocation: booking.pickupLocation,
+        dropoffLocation: booking.dropoffLocation,
         items: {
           create: booking.productId ? [
             {
@@ -102,4 +104,25 @@ export async function finishOrder(id: string, overtimeFee: number) {
   });
 
   return { success: true };
+}
+
+export async function startOrder(id: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { success: false };
+
+    await prisma.booking.update({
+      where: { id, userId },
+      data: { 
+        status: "IN_PROGRESS",
+        actualStartedAt: new Date(),
+      },
+    });
+
+    revalidatePath("/admin/orders");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to start order:", error);
+    return { success: false };
+  }
 }

@@ -121,7 +121,8 @@ export async function GET(req: Request) {
           rowData["Tgl Selesai Sewa"] = t.endDate ? t.endDate.toLocaleDateString("id-ID") : "-";
           rowData["Nama Supir"] = t.driverName || "-";
           rowData["Plat Nomor"] = t.licensePlate || "-";
-          rowData["Tujuan"] = t.destination || "-";
+          rowData["Titik Jemput"] = t.pickupLocation || "-";
+          rowData["Titik Tujuan"] = t.dropoffLocation || "-";
         }
 
         formattedData.push(rowData);

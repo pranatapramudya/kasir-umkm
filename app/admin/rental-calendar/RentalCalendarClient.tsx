@@ -18,7 +18,8 @@ interface Booking {
   startDate: string;
   endDate: string;
   status: BookingStatus;
-  destination?: string | null;
+  pickupLocation?: string | null;
+  dropoffLocation?: string | null;
   driverName?: string | null;
   licensePlate?: string | null;
   guarantee?: string | null;
@@ -203,14 +204,14 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
                 </div>
 
                 {/* Extra Details */}
-                {(b.destination || b.driverName || b.licensePlate || b.guarantee) && (
+                {(b.pickupLocation || b.dropoffLocation || b.driverName || b.licensePlate || b.guarantee) && (
                   <>
                     <div className="border-t border-slate-200 border-dashed mt-1 mb-1" />
                     <div className="grid grid-cols-2 gap-2 mt-1">
-                      {b.destination && (
+                      {b.dropoffLocation && (
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[10px] text-slate-400 font-semibold uppercase">Tujuan</span>
-                          <span className="text-xs text-slate-700 font-medium truncate">{b.destination}</span>
+                          <span className="text-xs text-slate-700 font-medium truncate">{b.dropoffLocation}</span>
                         </div>
                       )}
                       {b.driverName && (

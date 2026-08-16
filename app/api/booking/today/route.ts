@@ -26,15 +26,15 @@ export async function GET(request: Request) {
     const endOfToday = new Date(today);
     endOfToday.setHours(23, 59, 59, 999);
 
-    const bookings = await prisma.booking.findMany({
-      where: {
-        userId: targetUserId,
-        status: "COMPLETED",
-        bookingDate: {
-          gte: startOfToday,
-          lte: endOfToday,
+      const bookings = await prisma.booking.findMany({
+        where: {
+          userId: targetUserId,
+          status: { in: ["COMPLETED", "IN_PROGRESS"] },
+          bookingDate: {
+            gte: startOfToday,
+            lte: endOfToday,
+          },
         },
-      },
       include: {
         product: true,
       },

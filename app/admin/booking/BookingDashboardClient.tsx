@@ -37,7 +37,7 @@ const localizer = dateFnsLocalizer({
   locales: { "id-ID": idLocale },
 });
 
-type BookingStatus = "PENDING" | "COMPLETED" | "CANCELLED" | "FINISHED";
+type BookingStatus = "PENDING" | "COMPLETED" | "IN_PROGRESS" | "CANCELLED" | "FINISHED";
 
 interface BookingProduct {
   name: string;
@@ -55,7 +55,8 @@ interface Booking {
   createdAt: string;
   startDate?: string | null;
   endDate?: string | null;
-  destination?: string | null;
+  pickupLocation?: string | null;
+  dropoffLocation?: string | null;
   overtimeFee?: number;
 }
 
@@ -117,9 +118,15 @@ const STATUS_MAP: Record<
     icon: <Clock className="w-3.5 h-3.5" />,
   },
   COMPLETED: {
-    label: "Selesai",
-    color: "text-emerald-600",
-    bg: "bg-emerald-50 border-emerald-200",
+    label: "Siap Berangkat",
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+  },
+  IN_PROGRESS: {
+    label: "Sedang Jalan",
+    color: "text-purple-600",
+    bg: "bg-purple-50 border-purple-200",
     icon: <CheckCircle2 className="w-3.5 h-3.5" />,
   },
   CANCELLED: {
@@ -141,7 +148,8 @@ function eventStyleGetter(event: BookingCalendarEvent) {
   const status = event.resource.status;
   const styleMap: Record<BookingStatus, React.CSSProperties> = {
     PENDING: { backgroundColor: "#f59e0b", color: "#fff", borderRadius: "6px", border: "none" },
-    COMPLETED: { backgroundColor: "#10b981", color: "#fff", borderRadius: "6px", border: "none" },
+    COMPLETED: { backgroundColor: "#3b82f6", color: "#fff", borderRadius: "6px", border: "none" },
+    IN_PROGRESS: { backgroundColor: "#9333ea", color: "#fff", borderRadius: "6px", border: "none" },
     CANCELLED: { backgroundColor: "#ef4444", color: "#fff", borderRadius: "6px", border: "none" },
     FINISHED: { backgroundColor: "#64748b", color: "#fff", borderRadius: "6px", border: "none" },
   };

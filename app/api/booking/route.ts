@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { slug, customerName, customerPhone, bookingDate, notes, productId, startDate, endDate, destination } =
+    const { slug, customerName, customerPhone, bookingDate, notes, productId, startDate, endDate, pickupLocation, dropoffLocation } =
       body;
 
     // 1. Validasi kelengkapan data
@@ -116,7 +116,8 @@ export async function POST(request: Request) {
         // Field rental (null untuk kategori non-Rental)
         startDate:   startDate   ? new Date(startDate)   : null,
         endDate:     endDate     ? new Date(endDate)     : null,
-        destination: destination?.trim() || null,
+        pickupLocation: pickupLocation?.trim() || null,
+        dropoffLocation: dropoffLocation?.trim() || null,
       },
     });
 

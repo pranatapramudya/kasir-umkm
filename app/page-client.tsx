@@ -66,7 +66,8 @@ type Transaction = {
   // Rental & Travel fields
   driverName?: string;
   licensePlate?: string;
-  destination?: string;
+  pickupLocation?: string;
+  dropoffLocation?: string;
   startDate?: string;
   endDate?: string;
   serviceDate?: string;
@@ -197,7 +198,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [rentalInfo, setRentalInfo] = useState({
     driverName: '',
     licensePlate: '',
-    destination: '',
+    pickupLocation: '',
+    dropoffLocation: '',
     startDate: '',
     endDate: '',
     guarantee: '',
@@ -430,7 +432,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       ...(isRental && {
         driverName: rentalInfo.driverName.trim() || undefined,
         licensePlate: rentalInfo.licensePlate.trim() || undefined,
-        destination: rentalInfo.destination.trim() || undefined,
+        pickupLocation: rentalInfo.pickupLocation?.trim() || undefined,
+        dropoffLocation: rentalInfo.dropoffLocation?.trim() || undefined,
         startDate: rentalInfo.startDate || undefined,
         endDate: rentalInfo.endDate || undefined,
         guarantee: rentalInfo.guarantee.trim() || undefined,
@@ -495,7 +498,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     setServiceDate("");
     setIsDownPayment(false);
     setDownPaymentInput("");
-    setRentalInfo({ driverName: '', licensePlate: '', destination: '', startDate: '', endDate: '', guarantee: '' });
+    setRentalInfo({ driverName: '', licensePlate: '', pickupLocation: '', dropoffLocation: '', startDate: '', endDate: '', guarantee: '' });
   };
 
   const sendWhatsAppReceipt = () => {
@@ -513,7 +516,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       text += `Waktu Layanan: ${new Date(lastTransaction.serviceDate).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}\n`;
     }
     // Data rental
-    if (lastTransaction.destination) text += `Tujuan    : ${lastTransaction.destination}\n`;
+    if (lastTransaction.pickupLocation) text += `Titik Jemput: ${lastTransaction.pickupLocation}\n`;
+    if (lastTransaction.dropoffLocation) text += `Titik Tujuan: ${lastTransaction.dropoffLocation}\n`;
     if (lastTransaction.startDate || lastTransaction.endDate)
       text += `Tgl Sewa  : ${lastTransaction.startDate ?? '?'} s/d ${lastTransaction.endDate ?? '?'}\n`;
     if (lastTransaction.driverName) text += `Supir     : ${lastTransaction.driverName}\n`;
@@ -572,7 +576,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       customerName: lastTransaction.customerName,
       tableId: lastTransaction.tableId ? getTableName(lastTransaction.tableId) : undefined,
       // Data rental & Jasa
-      destination: lastTransaction.destination,
+      pickupLocation: lastTransaction.pickupLocation,
+      dropoffLocation: lastTransaction.dropoffLocation,
       startDate: lastTransaction.startDate,
       endDate: lastTransaction.endDate,
       driverName: lastTransaction.driverName,
@@ -1436,7 +1441,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
                 <input
                   type="text"
-                  value={rentalInfo.destination}
+                  value={rentalInfo.dropoffLocation}
                   onChange={(e) => setRentalInfo(prev => ({ ...prev, destination: e.target.value }))}
                   className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
                 />
