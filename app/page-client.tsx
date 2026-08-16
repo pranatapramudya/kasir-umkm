@@ -75,6 +75,66 @@ type Transaction = {
   remainingBalance?: number;
 };
 
+
+function QueueModal({ isOpen, onClose, onProcess }: { isOpen: boolean, onClose: () => void, onProcess: (b: any) => void }) {
+  const fetcher = (url: string) => fetch(url).then(r => r.json());
+  const { data, error, isLoading } = useSWR(isOpen ? '/api/booking/today' : null, fetcher);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden">
+        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
+          <h2 className="text-lg font-bold text-gray-900 truncate pr-4 flex items-center gap-2">
+            📋 Antrean Online Hari Ini
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full shrink-0">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-4 max-h-[60vh] overflow-y-auto bg-slate-50">
+          {isLoading && (
+            <div className="flex justify-center p-8">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+          )}
+          {error && (
+            <div className="text-center p-8 text-red-500 font-medium">Gagal memuat antrean.</div>
+          )}
+          {data && data.length === 0 && (
+            <div className="text-center p-8 text-slate-500 font-medium">Belum ada antrean yang disetujui untuk hari ini.</div>
+          )}
+          {data && data.length > 0 && (
+            <div className="space-y-3">
+              {data.map((booking: any) => (
+                <div key={booking.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-800">{booking.customerName}</span>
+                    <span className="text-sm text-slate-600 flex items-center gap-1">
+                      {booking.product ? booking.product.name : 'Layanan Custom'}
+                    </span>
+                    <span className="text-xs text-slate-500 mt-1">
+                      Jam: {new Date(booking.bookingDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => onProcess(booking)}
+                    className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold rounded-lg transition-colors shadow-sm"
+                  >
+                    Proses
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function POSApp({ sidebar, isExpired = false, initialData, tenantName, tenantCategory, tenantPhone }: { sidebar: React.ReactNode; isExpired?: boolean; initialData?: { products: Product[], totalPages: number }, tenantName?: string, tenantCategory?: string, tenantPhone?: string }) {
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
@@ -96,6 +156,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const isJasa = tenantCategory === 'Jasa / Servis';
   const isRental = isRentalTravelCategory(tenantCategory);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
+  const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
   const [printType, setPrintType] = useState<'customer' | 'kitchen'>('customer');
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false); // State untuk keranjang mobile
   const [cashGiven, setCashGiven] = useState("");
@@ -673,6 +735,17 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col bg-slate-50">
+        {isJasa && (
+          <div className="p-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between shadow-inner">
+            <span className="text-sm font-medium text-blue-800">Ada antrean online?</span>
+            <button
+              onClick={() => setIsQueueModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+            >
+              📋 Tarik Antrean
+            </button>
+          </div>
+        )}
         <div className="p-4 space-y-3 flex-1">
           {/* Empty State Keranjang */}
         {cart.length === 0 ? (
@@ -1038,9 +1111,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                             className={`object-cover ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                           />
-                          <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 ${isOutOfStock ? 'bg-red-600/90 text-white shadow-sm' : 'bg-black/60 text-white'}`}>
-                            {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
-                          </div>
+                          {(!isJasa && !isRental) && (
+                            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 ${isOutOfStock ? 'bg-red-600/90 text-white shadow-sm' : 'bg-black/60 text-white'}`}>
+                              {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
+                            </div>
+                          )}
                           {(product.discount && product.discount > 0) ? (
                             <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 bg-red-600/90 text-white shadow-sm">
                               Promo

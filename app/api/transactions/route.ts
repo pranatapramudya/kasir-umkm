@@ -156,6 +156,14 @@ export async function POST(request: Request) {
 
       await Promise.all(stockUpdatePromises);
 
+      // d. Update Booking if bookingId is provided (Tarik Antrean)
+      if (body.bookingId) {
+        await tx.booking.update({
+          where: { id: body.bookingId },
+          data: { status: "FINISHED" }
+        });
+      }
+
       // c. Audit Log untuk diskon besar yang di-approve owner/admin
       if (rawDiscount > (baseTotal * 0.10)) {
         await tx.auditLog.create({

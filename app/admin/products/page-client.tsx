@@ -600,7 +600,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nomor Polisi / Nama Armada' : isJasa ? 'Nama Layanan' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nomor Polisi / Nama Armada' : isJasa ? 'Nama Jasa / Paket' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       name="name"
@@ -687,7 +687,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                   )}
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Biaya Operasional (Opsional)' : isJasa ? 'Biaya Bahan (Opsional)' : 'HPP (Modal)'}</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Biaya Operasional (Opsional)' : isJasa ? 'Biaya Modal / Bahan Dasar (Opsional)' : 'HPP (Modal)'}</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                       <input
@@ -702,7 +702,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? "Harga Sewa (Per Hari)" : "Harga Jual"} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? "Harga Sewa (Per Hari)" : isJasa ? "Tarif Jasa" : "Harga Jual"} <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                       <input
@@ -718,7 +718,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                   {isJasa && (
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Driver (Rp)' : 'Komisi Pekerja (Rp)'}</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Driver (Rp)' : isJasa ? 'Komisi Staf / Terapis / Kapster (Rp)' : 'Komisi Pekerja (Rp)'}</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                         <input
