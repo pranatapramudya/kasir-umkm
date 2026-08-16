@@ -11,12 +11,12 @@ import { CustomUserButton } from "@/components/CustomUserButton";
 export default function AdminLayoutClient({
   children,
   sidebar,
-  bottomNav,
+
   isExpired = false
 }: {
   children: React.ReactNode;
   sidebar: React.ReactNode;
-  bottomNav: React.ReactNode;
+
   isExpired?: boolean;
 }) {
   const pathname = usePathname();
@@ -75,8 +75,7 @@ export default function AdminLayoutClient({
         </main>
       </div>
 
-      {/* BOTTOM NAVIGATION BAR */}
-      {bottomNav}
+
     </div>
   );
 }

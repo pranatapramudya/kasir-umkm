@@ -19,6 +19,11 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const { user } = useUser();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
+  const hiddenPaths = ['/sign-in', '/sign-up', '/onboarding', '/pending-approval'];
+  if (hiddenPaths.includes(pathname) || pathname.startsWith('/admin/login') || pathname.startsWith('/superadmin') || pathname.startsWith('/auth-callback')) {
+    return null;
+  }
+
   const role = user?.publicMetadata?.role as string | undefined;
   const kategoriUsaha = rawKategori ?? "Retail";
 

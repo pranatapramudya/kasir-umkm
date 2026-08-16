@@ -13,6 +13,8 @@ export async function BottomNav() {
   try {
     const { userId } = await auth();
 
+    if (!userId) return null;
+
     if (userId) {
       // Resolve to owner: check if this user is an employee first
       let targetUserId = userId;

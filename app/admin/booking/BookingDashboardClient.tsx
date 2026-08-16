@@ -249,27 +249,7 @@ export default function BookingDashboardClient({
 
   const pendingCount = bookings.filter((b) => b.status === "PENDING").length;
 
-  // === RENTAL & TRAVEL: Tampilkan placeholder khusus ===
-  if (isRentalTravelCategory(tenantCategory)) {
-    return (
-      <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <div className="w-24 h-24 rounded-3xl bg-amber-100 border-2 border-amber-200 flex items-center justify-center mb-6">
-            <CalendarDays className="w-12 h-12 text-amber-500" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Kalender Sewa Harian</h1>
-          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-4 py-1.5 mb-4">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-amber-700 text-sm font-semibold">Under Construction</span>
-          </div>
-          <p className="text-slate-500 text-sm max-w-sm">
-            Fitur kalender sewa harian khusus Rental &amp; Travel sedang dalam pengembangan.
-            Segera hadir untuk memudahkan pengelolaan armada Anda.
-          </p>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto">

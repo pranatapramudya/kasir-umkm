@@ -5,6 +5,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { idID } from '@clerk/localizations';
 import { SWRProvider } from "@/components/SWRProvider";
 import { SessionTimeoutGuard } from "@/components/SessionTimeoutGuard";
+import { BottomNav } from "@/components/BottomNav";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -43,6 +44,13 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "PJTECH Kasir",
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192x192.png?v=2', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png?v=2', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icon-192x192.png?v=2',
   },
   formatDetection: {
     telephone: false,
@@ -115,6 +123,7 @@ export default function RootLayout({
           <SWRProvider>
             <SessionTimeoutGuard>
               {children}
+              <BottomNav />
             </SessionTimeoutGuard>
             <Toaster position="top-center" richColors />
           </SWRProvider>

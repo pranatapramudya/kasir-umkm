@@ -359,7 +359,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   if (error) return <div className="text-red-500 p-4 bg-red-50 rounded-xl border border-red-100">Error: Gagal memuat data produk</div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 lg:pb-0">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -468,9 +468,9 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                 {/* Product Details */}
                 <div className="flex-1 min-w-0 flex flex-col">
                   <div className="flex justify-between items-start gap-2">
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <div className="font-bold text-slate-900 truncate leading-tight">{product.name}</div>
-                      <div className="text-[11px] text-slate-500 font-mono mt-1">{product.kodeBarang || 'Tanpa SKU'}</div>
+                      <div className="text-[11px] text-slate-500 font-mono mt-1 truncate">{product.kodeBarang || 'Tanpa SKU'}</div>
                     </div>
                     <div className="flex gap-1 shrink-0">
                       {!isJasa && (

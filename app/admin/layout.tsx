@@ -1,5 +1,5 @@
 import { Sidebar } from "@/components/Sidebar";
-import { BottomNav } from "@/components/BottomNav";
+
 import AdminLayoutClient from "./AdminLayoutClient";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import { checkSubscriptionStatus } from "@/lib/subscription";
@@ -48,7 +48,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <AdminLayoutClient sidebar={<Sidebar />} bottomNav={<BottomNav />} isExpired={isExpired}>
+    <AdminLayoutClient sidebar={<Sidebar />} isExpired={isExpired}>
       <PushNotificationManager />
       {children}
     </AdminLayoutClient>

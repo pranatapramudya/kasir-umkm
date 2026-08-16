@@ -19,7 +19,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
         { name: kasirLabel, href: "/", icon: ShoppingCart },
         { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
         ...(isFnB ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
-        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: "/admin/booking", icon: CalendarCheck }] : [])
+        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: isRentalTravel ? "/admin/rental-calendar" : "/admin/booking", icon: CalendarCheck }] : [])
       ]
     },
     {

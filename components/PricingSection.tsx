@@ -47,9 +47,9 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
       if (res.ok) {
         setIsRedirecting(true); // UX Fix
         if (onSuccessRedirect) {
-          router.push(onSuccessRedirect);
+          router.push('/auth-callback');
         } else {
-          router.push('/admin');
+          router.push('/auth-callback');
         }
       } else {
         alert('Gagal memproses paket.');

@@ -176,14 +176,14 @@ export default async function POSApp() {
             <p className="text-slate-500 font-medium text-center mb-10">Masuk atau daftar untuk mulai mengelola bisnis Anda dengan cerdas.</p>
 
             <div className="w-full space-y-3">
-              <SignInButton fallbackRedirectUrl="/admin" forceRedirectUrl="/admin">
+              <SignInButton fallbackRedirectUrl="/auth-callback" forceRedirectUrl="/auth-callback">
                 <button className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all border-0 flex items-center justify-center gap-2 text-lg active:scale-95">
                   Masuk (Owner) <ArrowRight className="w-5 h-5" />
                 </button>
               </SignInButton>
               
               <div>
-                <SignInButton fallbackRedirectUrl="/admin" forceRedirectUrl="/admin">
+                <SignInButton fallbackRedirectUrl="/auth-callback" forceRedirectUrl="/auth-callback">
                   <button className="w-full py-4 bg-transparent border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg active:scale-95">
                     Login sebagai Karyawan
                   </button>

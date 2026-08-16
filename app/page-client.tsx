@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { toast } from 'sonner';
 import { useAuth, SignInButton, UserButton, useUser } from '@clerk/nextjs';
-import { BottomNavClient } from '@/components/BottomNavClient';
+
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
 import { printBluetoothReceipt, isBluetoothSupported } from '@/lib/bluetooth-printer';
@@ -1083,7 +1083,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
         )}
 
-        <BottomNavClient />
+
 
         {/* MOBILE CART MODAL (Full Screen) */}
         {isMobileCartOpen && (
