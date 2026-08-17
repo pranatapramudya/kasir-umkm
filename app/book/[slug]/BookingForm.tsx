@@ -22,6 +22,17 @@ interface BookingFormProps {
   bankAccountName?: string | null;
 }
 
+const PROVINCES = [
+  "Aceh", "Bali", "Banten", "Bengkulu", "DI Yogyakarta", "DKI Jakarta", "Gorontalo", "Jambi",
+  "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Kalimantan Barat", "Kalimantan Selatan",
+  "Kalimantan Tengah", "Kalimantan Timur", "Kalimantan Utara", "Kepulauan Bangka Belitung",
+  "Kepulauan Riau", "Lampung", "Maluku", "Maluku Utara", "Nusa Tenggara Barat",
+  "Nusa Tenggara Timur", "Papua", "Papua Barat", "Papua Barat Daya", "Papua Pegunungan",
+  "Papua Selatan", "Papua Tengah", "Riau", "Sulawesi Barat", "Sulawesi Selatan",
+  "Sulawesi Tengah", "Sulawesi Tenggara", "Sulawesi Utara", "Sumatera Barat",
+  "Sumatera Selatan", "Sumatera Utara"
+];
+
 type FormStep = "form" | "success";
 
 function formatRupiah(amount: number) {
@@ -42,6 +53,16 @@ function generateTimeSlots() {
   return slots;
 }
 
+// Generate rental time slots 06:00 - 23:30, interval 30 menit
+function generateRentalTimeSlots() {
+  const slots: string[] = [];
+  for (let h = 6; h <= 23; h++) {
+    slots.push(`${String(h).padStart(2, "0")}:00`);
+    slots.push(`${String(h).padStart(2, "0")}:30`);
+  }
+  return slots;
+}
+
 // Tanggal minimum = hari ini
 function getTodayISO() {
   return new Date().toISOString().split("T")[0];
@@ -49,6 +70,7 @@ function getTodayISO() {
 
 export default function BookingForm({ slug, tenantName, services, tenantCategory, adminWhatsApp, bankName, bankAccount, bankAccountName }: BookingFormProps) {
   const timeSlots = useMemo(() => generateTimeSlots(), []);
+  const rentalTimeSlots = useMemo(() => generateRentalTimeSlots(), []);
   const todayISO = useMemo(() => getTodayISO(), []);
 
   const [step, setStep] = useState<FormStep>("form");
@@ -165,6 +187,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     pickupTime: "08:00",
     endDate: todayISO,
     pickupLocation: "",
+    dropoffProvince: "",
     dropoffLocation: "",
   });
 
@@ -296,6 +319,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
         return;
       }
+      if (!rentalData.dropoffProvince) {
+        setError("Provinsi tujuan wajib dipilih.");
+        return;
+      }
       // Pengecekan overlap sebelum submit
       const start = new Date(rentalData.startDate);
       const end = new Date(rentalData.endDate);
@@ -334,6 +361,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         ? new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`)
         : new Date(`${formData.bookingDate}T${formData.bookingTime}:00`);
 
+      const finalDropoff = rentalData.dropoffProvince
+        ? `[${rentalData.dropoffProvince}] ${rentalData.dropoffLocation}`.trim()
+        : rentalData.dropoffLocation;
+
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -348,7 +379,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           startDate: isRental ? new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`).toISOString() : null,
           endDate:   isRental ? new Date(`${rentalData.endDate}T23:59:59`).toISOString()   : null,
           pickupLocation: isRental ? (rentalData.pickupLocation.trim() || null) : null,
-          dropoffLocation: isRental ? (rentalData.dropoffLocation.trim() || null) : null,
+          dropoffLocation: isRental ? (finalDropoff.trim() || null) : null,
         }),
       });
 
@@ -438,10 +469,12 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             {/* === Baris khusus Rental === */}
             {isRental ? (
               <>
-                {rentalData.dropoffLocation && (
+                {(rentalData.dropoffProvince || rentalData.dropoffLocation) && (
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 text-xs">Tujuan</span>
-                    <span className="text-slate-900 font-semibold text-xs">{rentalData.dropoffLocation}</span>
+                    <span className="text-slate-900 font-semibold text-xs text-right max-w-[65%] truncate">
+                      {rentalData.dropoffProvince ? `[${rentalData.dropoffProvince}] ` : ''}{rentalData.dropoffLocation}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
@@ -691,27 +724,32 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Jam Penjemputan / Pengiriman *
             </label>
-            <input
+            <select
               id="rental-pickupTime"
-              type="time"
               value={rentalData.pickupTime}
               onChange={(e) => {
                 setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
                 setError(null);
               }}
               required
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
-            />
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+            >
+              {rentalTimeSlots.map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
           </div>
           
           {/* Tampilkan durasi jika ada */}
           {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
             <p className="text-amber-600 text-xs font-medium">
               Durasi sewa:{" "}
-              {Math.max(1, Math.ceil(
+              {Math.round(
                 (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
                   (1000 * 60 * 60 * 24)
-              ))}{" "}
+              ) + 1}{" "}
               hari
             </p>
           )}
@@ -746,24 +784,46 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           </div>
 
           {/* Lokasi Tujuan */}
-          <div className="space-y-1.5">
-            <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              LOKASI TUJUAN / TITIK AKHIR <span className="normal-case font-normal text-slate-500">(opsional)</span>
-            </label>
-            <input
-              id="rental-dropoff"
-              type="text"
-              value={rentalData.dropoffLocation}
-              onChange={(e) => {
-                setRentalData((prev) => ({ ...prev, dropoffLocation: e.target.value }));
-                setError(null);
-              }}
-              placeholder="contoh: Hotel Aston Denpasar"
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-            />
-            <p className="text-[10px] text-amber-600 mt-1">
-              *Catatan: Harga di atas adalah harga dasar/dalam kota. Harga final akan disesuaikan dengan jarak rute tujuan Anda dan dikonfirmasi melalui WhatsApp.
-            </p>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label htmlFor="rental-dropoffProvince" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                PROVINSI TUJUAN *
+              </label>
+              <select
+                id="rental-dropoffProvince"
+                value={rentalData.dropoffProvince}
+                onChange={(e) => {
+                  setRentalData((prev) => ({ ...prev, dropoffProvince: e.target.value }));
+                  setError(null);
+                }}
+                required
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+              >
+                <option value="" disabled className="text-slate-500">Pilih Provinsi Tujuan</option>
+                {PROVINCES.map((prov) => (
+                  <option key={prov} value={prov}>{prov}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                ALAMAT DETAIL TUJUAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
+              </label>
+              <input
+                id="rental-dropoff"
+                type="text"
+                value={rentalData.dropoffLocation}
+                onChange={(e) => {
+                  setRentalData((prev) => ({ ...prev, dropoffLocation: e.target.value }));
+                  setError(null);
+                }}
+                placeholder="contoh: Hotel Aston Denpasar"
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+              />
+              <p className="text-[10px] text-amber-600 mt-1">
+                *Catatan: Harga di atas adalah harga dasar/dalam kota. Harga final akan disesuaikan dengan jarak rute tujuan Anda dan dikonfirmasi melalui WhatsApp.
+              </p>
+            </div>
           </div>
         </div>
       ) : (
