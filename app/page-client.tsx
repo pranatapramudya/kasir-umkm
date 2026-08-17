@@ -87,8 +87,10 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
     return `${year}-${month}-${day}`;
   });
 
-  const fetcher = (url: string) => fetch(url).then(r => r.json());
-  const { data, error, isLoading } = useSWR(isOpen ? `/api/booking/today?date=${selectedQueueDate}` : null, fetcher);
+  const fetcher = (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then(r => r.json());
+  const { user } = useUser();
+  const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
+  const { data, error, isLoading } = useSWR(isOpen && currentTenantId ? [`/api/booking/today?date=${selectedQueueDate}`, currentTenantId as string] : null, fetcher);
 
   if (!isOpen) return null;
 
@@ -158,6 +160,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
   const { user } = useUser();
+  const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const [isClient, setIsClient] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
@@ -232,7 +235,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
 
   // --- MANTRA AMBIL DATA DARI NEON (SWR Auto-Refresh) ---
-  const fetcher = async (url: string) => {
+  const fetcher = async (args: string | [string, string]) => {
+    const url = Array.isArray(args) ? args[0] : args;
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {
       if (res.status === 401) return { products: [], totalPages: 1 };
@@ -243,7 +247,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
   const { data: swrResponse, error, mutate } = useSWR<{ products: Product[], totalPages: number }>(
-    queryUrl,
+    queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
     { fallbackData: initialData }
   );
@@ -256,7 +260,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
   // Fetch data karyawan (khusus untuk Jasa)
   const { data: employeesData } = useSWR<{ success: boolean, employees: Employee[] }>(
-    isJasa ? '/api/employees' : null,
+    isJasa && currentTenantId ? ['/api/employees', currentTenantId as string] : null,
     fetcher
   );
   const employees = employeesData?.employees || [];

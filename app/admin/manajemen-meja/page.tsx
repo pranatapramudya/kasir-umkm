@@ -13,7 +13,8 @@ type DiningTable = {
   status: string;
 };
 
-const fetcher = async (url: string) => {
+const fetcher = async (args: string | [string, string]) => {
+  const url = Array.isArray(args) ? args[0] : args;
   const res = await fetch(url);
   if (!res.ok) throw new Error('Gagal mengambil data meja');
   return res.json();
@@ -22,8 +23,12 @@ const fetcher = async (url: string) => {
 export default function ManajemenMejaPage() {
   const { user } = useUser();
   const isCashier = user?.publicMetadata?.role === 'CASHIER';
+  const currentTenantId = isCashier ? user?.publicMetadata?.tenantId : user?.id;
 
-  const { data: tables, error, isLoading, mutate } = useSWR<DiningTable[]>('/api/tables', fetcher);
+  const { data: tables, error, isLoading, mutate } = useSWR<DiningTable[]>(
+    currentTenantId ? ['/api/tables', currentTenantId as string] : null, 
+    fetcher
+  );
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

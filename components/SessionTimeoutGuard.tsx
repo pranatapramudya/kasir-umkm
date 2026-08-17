@@ -18,11 +18,11 @@ export function SessionTimeoutGuard({ children }: { children: React.ReactNode })
   const prevUserIdRef = useRef<string | null | undefined>(userId);
 
   useEffect(() => {
-    // Session wipe on user change / logout
     if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
       // User changed or logged out
       localStorage.clear();
       sessionStorage.clear();
+      mutate(() => true, undefined, { revalidate: false });
       window.location.href = "/";
     }
   }, [userId]);

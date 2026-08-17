@@ -7,8 +7,12 @@ import { getNavigationMenu } from "@/lib/navigation";
 import { Store, HelpCircle } from "lucide-react";
 import { BukuPanduanModal } from "./BukuPanduanModal";
 import useSWR from "swr";
+import { useUser } from '@clerk/nextjs';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (args: string | [string, string]) => {
+  const url = Array.isArray(args) ? args[0] : args;
+  return fetch(url).then((res) => res.json());
+};
 
 interface SidebarClientProps {
   role: string | undefined;
@@ -42,9 +46,16 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
   const isCashier = role === 'CASHIER';
   const filteredMenuGroups = getNavigationMenu(kategoriUsaha, role);
 
-  const { data } = useSWR<{ count: number }>('/api/booking/pending-count', fetcher, {
-    refreshInterval: 10000 // Poll every 10 seconds for real-time feel
-  });
+  const { user } = useUser();
+  const currentTenantId = role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
+
+  const { data } = useSWR<{ count: number }>(
+    currentTenantId ? ['/api/booking/pending-count', currentTenantId as string] : null, 
+    fetcher, 
+    {
+      refreshInterval: 10000 // Poll every 10 seconds for real-time feel
+    }
+  );
   const pendingCount = data?.count || 0;
 
   return (

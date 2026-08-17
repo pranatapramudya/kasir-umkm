@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import useSWR from 'swr';
 import { toast } from 'sonner';
+import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import { PackageSearch, Plus, Edit2, Trash2, Loader2, PackageX, PackagePlus, ImagePlus, X, Search, Filter, Check, Upload, FileDown } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
@@ -32,13 +33,16 @@ type Product = {
   description?: string | null;
 };
 
-const fetcher = async (url: string) => {
+const fetcher = async (args: string | [string, string]) => {
+  const url = Array.isArray(args) ? args[0] : args;
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('Gagal memuat data');
   return res.json();
 };
 
 export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsaha: string }) {
+  const { user } = useUser();
+  const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
   const isRental = isRentalTravelCategory(kategoriUsaha);
   const isFNB = kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
@@ -59,7 +63,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const [importFile, setImportFile] = useState<File | null>(null);
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
-  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(queryUrl, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher);
 
   const products = data?.products || [];
   const totalPages = data?.totalPages || 1;

@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
-import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package, Loader2 } from 'lucide-react';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
 import { isRentalTravelCategory } from '@/lib/business-category';
@@ -15,18 +16,22 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedTx, setSelectedTx] = useState<any>(null);
 
-    const fetcher = async (url: string) => {
+    const fetcher = async (args: string | [string, string]) => {
+        const url = Array.isArray(args) ? args[0] : args;
         const res = await fetch(url);
         if (!res.ok) throw new Error("Gagal mengambil data");
         return res.json();
     };
+
+    const { user } = useUser();
+    const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
 
     const queryUrl = `/api/reports/shift?date=${selectedDate}&page=${currentPage}`;
     
     // Gunakan initialData HANYA jika page === 1 dan selectedDate === initialDate
     const isInitialParams = currentPage === 1 && selectedDate === initialDate;
     
-    const { data, error } = useSWR(queryUrl, fetcher, { 
+    const { data, error, isLoading } = useSWR(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher, { 
         fallbackData: isInitialParams ? initialData : undefined 
     });
 
@@ -164,9 +169,16 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {transactions.length === 0 ? (
+                                    {isLoading ? (
                                         <tr>
-                                            <td colSpan={5} className="px-4 py-6 text-center text-gray-500 text-sm">
+                                            <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                                                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
+                                                Memuat data transaksi...
+                                            </td>
+                                        </tr>
+                                    ) : transactions.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className="px-4 py-6 text-center text-gray-500 text-sm">
                                                 <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
                                                 Belum ada transaksi pada tanggal ini.
                                             </td>

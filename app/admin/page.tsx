@@ -18,7 +18,10 @@ const AdminSalesChart = dynamic(() => import('@/components/AdminSalesChart'), {
   )
 });
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (args: string | [string, string]) => {
+  const url = Array.isArray(args) ? args[0] : args;
+  return fetch(url).then((res) => res.json());
+};
 
 export default function AdminDashboardPage() {
   const { user } = useUser();
@@ -35,8 +38,11 @@ export default function AdminDashboardPage() {
     'manual': 'Pilih Manual...'
   };
 
+  const currentTenantId = role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
+
+  const queryUrl = `/api/analytics?filter=${dateFilter}${dateFilter === 'manual' ? `&customDate=${customDate}` : ''}`;
   const { data: analytics, isLoading } = useSWR(
-    `/api/analytics?filter=${dateFilter}${dateFilter === 'manual' ? `&customDate=${customDate}` : ''}`,
+    queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher
   );
 
@@ -45,8 +51,6 @@ export default function AdminDashboardPage() {
       .format(num)
       .replace(/\s+/g, ''); // Removes spaces to prevent wrapping e.g. -Rp 1.000 -> -Rp1.000
   };
-
-  const currentTenantId = role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
 
   if (analytics && analytics.tenantId && currentTenantId && analytics.tenantId !== currentTenantId) {
     return (

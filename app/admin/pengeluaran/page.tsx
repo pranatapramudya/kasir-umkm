@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import useSWR, { mutate } from 'swr';
 import { Wallet, Plus, Trash2, Loader2, X, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
+import { useUser } from '@clerk/nextjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,8 @@ type Expense = {
   date: string;
 };
 
-const fetcher = async (url: string) => {
+const fetcher = async (args: string | [string, string]) => {
+  const url = Array.isArray(args) ? args[0] : args;
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('Gagal memuat data');
   return res.json();
@@ -31,6 +33,9 @@ const formatRupiah = (number: number) => {
 };
 
 export default function PengeluaranPage() {
+  const { user } = useUser();
+  const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
+
   const getLocalDateString = (d: Date) => {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -43,7 +48,11 @@ export default function PengeluaranPage() {
     to: getLocalDateString(new Date())
   });
 
-  const { data: expenses, error, isLoading } = useSWR<Expense[]>(`/api/expenses?from=${dateRange.from}&to=${dateRange.to}`, fetcher);
+  const queryUrl = `/api/expenses?from=${dateRange.from}&to=${dateRange.to}`;
+  const { data: expenses, error, isLoading } = useSWR<Expense[]>(
+    queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
+    fetcher
+  );
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
