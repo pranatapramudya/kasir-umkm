@@ -1503,14 +1503,25 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
-                <input
-                  type="text"
-                  value={rentalInfo.dropoffLocation}
-                  onChange={(e) => setRentalInfo(prev => ({ ...prev, destination: e.target.value }))}
-                  className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Titik Jemput <span className="font-normal text-gray-400">(opsional)</span></label>
+                  <input
+                    type="text"
+                    value={rentalInfo.pickupLocation}
+                    onChange={(e) => setRentalInfo(prev => ({ ...prev, pickupLocation: e.target.value }))}
+                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Titik Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
+                  <input
+                    type="text"
+                    value={rentalInfo.dropoffLocation}
+                    onChange={(e) => setRentalInfo(prev => ({ ...prev, dropoffLocation: e.target.value }))}
+                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

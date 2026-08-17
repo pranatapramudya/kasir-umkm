@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { isRentalTravelCategory } from "@/lib/business-category";
 
 export const dynamic = "force-dynamic";
 
@@ -38,10 +39,13 @@ export async function GET(request: Request) {
       select: { category: true }
     });
     const isJasa = tenant?.category === "Jasa / Servis";
+    const isRental = isRentalTravelCategory(tenant?.category);
 
     const validStatuses = isJasa 
       ? ["PENDING", "COMPLETED"] 
-      : ["COMPLETED", "IN_PROGRESS"];
+      : isRental 
+        ? ["COMPLETED", "IN_PROGRESS"]
+        : ["COMPLETED"];
 
       const bookings = await prisma.booking.findMany({
         where: {
