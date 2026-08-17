@@ -111,11 +111,17 @@ export async function startOrder(id: string) {
     const { userId } = await auth();
     if (!userId) return { success: false };
 
+    let targetUserId = userId;
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    if (employee) targetUserId = employee.tenantId;
+
+    const now = new Date();
     await prisma.booking.update({
-      where: { id, userId },
+      where: { id },
       data: { 
         status: "IN_PROGRESS",
-        actualStartedAt: new Date(),
+        startDate: now,
+        actualStartedAt: now,
       },
     });
 
