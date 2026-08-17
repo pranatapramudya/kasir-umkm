@@ -293,6 +293,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
                         </div>
                       )}
                     </div>
+                  </>
                 )}
               </div>
               
