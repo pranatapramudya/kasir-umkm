@@ -74,6 +74,23 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
 
       <div className="flex-1 overflow-y-auto px-3 py-6 flex flex-col justify-between">
         <nav className="space-y-6">
+          <div className="px-4 -mt-2 mb-2">
+            <button
+              onClick={() => setIsBukuPanduanOpen(true)}
+              className="flex items-center justify-between px-4 py-3 w-full rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-blue-100 rounded-lg group-hover:bg-blue-600 transition-colors">
+                  <HelpCircle className="w-4 h-4 text-blue-600 group-hover:text-white transition-colors" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-bold text-sm text-blue-900">Pusat Bantuan</span>
+                  <span className="text-[10px] font-medium text-blue-600">Panduan & SOP</span>
+                </div>
+              </div>
+            </button>
+          </div>
+
           {filteredMenuGroups.map((group) => (
             <div key={group.group}>
               <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-4">
@@ -111,18 +128,6 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
               </div>
             </div>
           ))}
-          
-          <div className="px-4 mt-4 pb-4">
-            <button
-              onClick={() => setIsBukuPanduanOpen(true)}
-              className="flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-150 font-semibold text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97]"
-            >
-              <div className="flex items-center gap-3">
-                <HelpCircle className="w-5 h-5 text-slate-400" />
-                Bantuan & Panduan
-              </div>
-            </button>
-          </div>
         </nav>
       </div>
       

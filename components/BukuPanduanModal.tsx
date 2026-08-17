@@ -50,28 +50,30 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
           <div className="space-y-4">
             {isFnbRetail && (
               <>
-                <Step num="1" title="Kelola Produk / Menu">Buka menu <b>Produk</b>, tambahkan foto, harga modal (HPP), dan harga jual untuk menu atau barang jualan Anda.</Step>
-                <Step num="2" title="Proses Kasir (POS)">Buka menu <b>Kasir POS</b>. Klik item yang dibeli, sesuaikan jumlah (Qty), lalu klik <b>Bayar</b>.</Step>
-                <Step num="3" title="Terima Pembayaran">Pilih metode pembayaran (Tunai/QRIS), dan cetak struk untuk diberikan ke pelanggan.</Step>
-                <Step num="4" title="Tutup Shift (Laporan Kasir)">Di akhir hari, buka <b>Laporan Kasir</b> untuk mencocokkan uang di laci dengan sistem.</Step>
+                <Step num="1" title="Tambah Produk/Menu">Buka menu <b>Produk</b>, tambahkan foto, harga modal (HPP), dan harga jual untuk menu atau barang jualan Anda.</Step>
+                <Step num="2" title="Atur Stok">Kelola persediaan barang agar selalu ter-update setiap ada penjualan.</Step>
+                <Step num="3" title="Buka Kasir">Buka menu <b>Kasir POS</b>. Klik item yang dibeli, sesuaikan jumlah (Qty), lalu klik <b>Bayar</b>.</Step>
+                <Step num="4" title="Cetak Struk/Faktur">Pilih metode pembayaran (Tunai/QRIS), dan cetak struk untuk diberikan ke pelanggan.</Step>
               </>
             )}
 
             {isJasa && (
               <>
-                <Step num="1" title="Buat Layanan">Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Creambath).</Step>
-                <Step num="2" title="Bagikan Link Booking">Buka menu <b>Jadwal Booking</b>. Bagikan link reservasi ke pelanggan untuk antrean online, atau input antrean secara manual di Kasir.</Step>
-                <Step num="3" title="Kerjakan Layanan">Pilih Terapis / Kapster yang bertugas pada menu kasir untuk perhitungan komisi otomatis.</Step>
-                <Step num="4" title="Bayar di Kasir">Setelah selesai, selesaikan transaksi di menu Kasir POS.</Step>
+                <Step num="1" title="Buat Layanan (Klinik/Salon)">Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Creambath).</Step>
+                <Step num="2" title="Bagikan Link Katalog">Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
+                <Step num="3" title="Terima Antrean">Terima antrean yang masuk, atau input antrean secara manual di Kasir.</Step>
+                <Step num="4" title="Proses di Kasir">Setelah selesai, selesaikan transaksi di menu Kasir POS.</Step>
               </>
             )}
 
             {isRental && (
               <>
-                <Step num="1" title="Tambah Armada">Buka menu <b>Armada / Unit</b>. Masukkan data mobil, motor, atau peralatan yang bisa disewa beserta harga per-harinya.</Step>
-                <Step num="2" title="Terima Pesanan Masuk">Pelanggan bisa memesan dari link booking, atau Anda bisa menambahkannya dari Kasir. Pesanan akan muncul di <b>Kalender Sewa</b>.</Step>
-                <Step num="3" title="Serah Terima (Mulai Sewa)">Saat unit diambil, klik pesanan di kalender dan ubah status ke <b>Sedang Jalan</b>.</Step>
-                <Step num="4" title="Pengembalian (Selesai)">Saat unit dikembalikan, periksa kondisi, tambahkan denda jika telat, lalu tandai <b>Selesai</b>.</Step>
+                <Step num="1" title="Tambah Armada">Buka menu <b>Armada / Unit</b>. Masukkan data mobil, motor, atau peralatan yang bisa disewa.</Step>
+                <Step num="2" title="Atur Harga Sewa">Tentukan harga per-hari atau per-jam untuk setiap armada yang Anda sewakan.</Step>
+                <Step num="3" title="Bagikan Link Katalog">Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
+                <Step num="4" title="Tarik Pesanan / Input Kalender Sewa">Pelanggan bisa memesan dari link booking, atau Anda input manual ke <b>Kalender Sewa</b>.</Step>
+                <Step num="5" title="Klik Start (Mulai Perjalanan)">Saat unit diambil, klik pesanan di kalender dan ubah status ke <b>Sedang Jalan</b>.</Step>
+                <Step num="6" title="Finish & Lunas">Saat unit dikembalikan, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
               </>
             )}
           </div>

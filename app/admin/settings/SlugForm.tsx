@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Store, CheckCircle2, AlertCircle, Link2, Loader2, Pencil } from "lucide-react";
+import { Store, CheckCircle2, AlertCircle, Link2, Loader2, Pencil, Copy } from "lucide-react";
 
 interface Props {
   initialSlug: string | null;
@@ -16,6 +16,15 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = () => {
+    if (bookingLink) {
+      navigator.clipboard.writeText(bookingLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const bookingLink = slug
     ? `${appUrl}/book/${slug}`
@@ -195,9 +204,18 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
         {/* Booking Link Display */}
         {bookingLink && !isEditing && (
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">
-              Link Booking Publik Toko
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                Link Booking Publik Toko
+              </p>
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-md transition-colors active:scale-95"
+              >
+                {copied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? "Tersalin!" : "Salin Link"}
+              </button>
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Link2 className="w-4 h-4 text-blue-500 shrink-0" />
               <a

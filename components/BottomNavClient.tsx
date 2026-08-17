@@ -6,9 +6,11 @@ import Link from "next/link";
 import {
   Grid,
   X,
+  HelpCircle,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { getNavigationMenu } from "@/lib/navigation";
+import { BukuPanduanModal } from "./BukuPanduanModal";
 
 interface BottomNavClientProps {
   kategoriUsaha?: string;
@@ -18,6 +20,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const pathname = usePathname();
   const { user } = useUser();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isBukuPanduanOpen, setIsBukuPanduanOpen] = useState(false);
 
   const hiddenPaths = ['/sign-in', '/sign-up', '/onboarding', '/pending-approval'];
   if (hiddenPaths.includes(pathname) || pathname.startsWith('/admin/login') || pathname.startsWith('/superadmin') || pathname.startsWith('/auth-callback') || pathname.startsWith('/book') || pathname.startsWith('/toko')) {
@@ -142,6 +145,26 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
               </button>
             </div>
 
+            <div className="mb-6">
+              <button
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  setIsBukuPanduanOpen(true);
+                }}
+                className="flex items-center justify-between px-4 py-3 w-full rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-xl group-hover:bg-blue-600 transition-colors">
+                    <HelpCircle className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="font-bold text-sm text-blue-900">Pusat Bantuan</span>
+                    <span className="text-[10px] font-medium text-blue-600">Panduan & SOP Bisnis Anda</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+
             <div className="grid grid-cols-4 gap-4">
               {moreItems.map((item) => {
                 const Icon = item.icon;
@@ -177,6 +200,12 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
           </div>
         </div>
       )}
+
+      <BukuPanduanModal 
+        isOpen={isBukuPanduanOpen} 
+        onClose={() => setIsBukuPanduanOpen(false)} 
+        category={kategoriUsaha} 
+      />
     </>
   );
 }
