@@ -820,7 +820,22 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               <div className="flex flex-row justify-between items-start mb-2 gap-2">
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-bold text-sm text-gray-800 leading-tight truncate">{item.name}</span>
-                  <span className="text-gray-500 font-medium text-xs mt-0.5">{formatRupiah(item.hargaJual)}</span>
+                  {isRental ? (
+                    <div className="mt-1 flex items-center">
+                      <span className="text-xs text-gray-500 font-bold mr-1">Rp</span>
+                      <input
+                        type="number"
+                        className="text-xs p-1 border border-gray-300 rounded w-24 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        value={item.hargaJual === 0 ? '' : item.hargaJual}
+                        onChange={(e) => {
+                          const newPrice = parseInt(e.target.value) || 0;
+                          setCart(prev => prev.map(cartItem => cartItem.cartItemId === item.cartItemId ? { ...cartItem, hargaJual: newPrice } : cartItem));
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 font-medium text-xs mt-0.5">{formatRupiah(item.hargaJual)}</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={() => { setEditingNoteId(item.cartItemId); setTempNote(item.note || ""); }} className="text-gray-400 hover:text-blue-500 transition-colors bg-gray-50 p-1.5 rounded-md" title="+ Catatan">

@@ -5,9 +5,12 @@ import useSWR from 'swr';
 import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package } from 'lucide-react';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
+import { isRentalTravelCategory } from '@/lib/business-category';
 
 
-export default function LaporanKasirClient({ sidebar, initialDate, initialData }: any) {
+export default function LaporanKasirClient({ sidebar, initialDate, initialData, tenantCategory }: any) {
+    const isRental = isRentalTravelCategory(tenantCategory);
+    const isJasa = tenantCategory === 'Jasa / Servis';
     const [selectedDate, setSelectedDate] = useState(initialDate);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedTx, setSelectedTx] = useState<any>(null);
@@ -130,7 +133,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData }
                         <div className="bg-white p-4 rounded-2xl border shadow-sm flex flex-col">
                             <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
                                 <Package className="w-4 h-4 text-slate-500" />
-                                Ringkasan Produk Terjual Hari Ini
+                                {isRental ? "Ringkasan Armada Disewa Hari Ini" : isJasa ? "Ringkasan Layanan Hari Ini" : "Ringkasan Produk Terjual Hari Ini"}
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {Object.entries(data?.soldSummary || initialData?.soldSummary || {}).map(([name, qty]: any) => (
@@ -230,8 +233,8 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData }
                             <table className="w-full text-sm text-left mb-2">
                                 <thead className="bg-slate-50 text-slate-500 text-xs">
                                     <tr>
-                                        <th className="px-3 py-2 font-semibold rounded-l-lg">Item</th>
-                                        <th className="px-3 py-2 font-semibold text-center">Qty</th>
+                                        <th className="px-3 py-2 font-semibold rounded-l-lg">Armada / Layanan</th>
+                                        <th className="px-3 py-2 font-semibold text-center">{isRental ? "Durasi (Hari)" : "Qty"}</th>
                                         <th className="px-3 py-2 font-semibold text-right rounded-r-lg">Subtotal</th>
                                     </tr>
                                 </thead>

@@ -590,13 +590,13 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             <option value="" className="bg-white text-slate-500">— Pilih Layanan —</option>
             {services.map((s) => (
               <option key={s.id} value={s.id} className="bg-white text-slate-900">
-                {s.name} — {formatRupiah(s.hargaJual)}
+                {s.name} — {isRental ? `Estimasi / Mulai dari ${formatRupiah(s.hargaJual)}` : formatRupiah(s.hargaJual)}
               </option>
             ))}
           </select>
           {selectedService && (
             <p className="text-blue-600 text-xs font-medium pl-1">
-              Harga: {formatRupiah(selectedService.hargaJual)}
+              Harga: {isRental ? `Estimasi / Mulai dari ${formatRupiah(selectedService.hargaJual)}` : formatRupiah(selectedService.hargaJual)}
             </p>
           )}
         </div>
@@ -734,6 +734,9 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
               placeholder="contoh: Hotel Aston Denpasar"
               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
             />
+            <p className="text-[10px] text-amber-600 mt-1">
+              *Catatan: Harga di atas adalah harga dasar/dalam kota. Harga final akan disesuaikan dengan jarak rute tujuan Anda dan dikonfirmasi melalui WhatsApp.
+            </p>
           </div>
         </div>
       ) : (

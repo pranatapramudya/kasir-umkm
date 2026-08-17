@@ -34,6 +34,12 @@ export default async function LaporanKasirPage(props: {
     userId: activeTenantId
   };
 
+  const tenant = await prisma.tenant.findUnique({
+    where: { userId: activeTenantId },
+    select: { category: true }
+  });
+  const tenantCategory = tenant?.category || null;
+
   if (isEmployee) {
     whereClause.cashierId = employee.id; // Hanya tampilkan transaksi kasir ini
   }
@@ -99,5 +105,5 @@ export default async function LaporanKasirPage(props: {
     soldSummary
   };
 
-  return <LaporanKasirClient sidebar={<Sidebar />} initialDate={selectedDateStr} initialData={initialData} />;
+  return <LaporanKasirClient sidebar={<Sidebar />} initialDate={selectedDateStr} initialData={initialData} tenantCategory={tenantCategory} />;
 }
