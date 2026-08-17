@@ -47,14 +47,23 @@ export async function GET(request: Request) {
         ? ["COMPLETED", "IN_PROGRESS"]
         : ["COMPLETED"];
 
+      const dateFilter = isRental
+        ? {
+            startDate: { lte: endOfToday },
+            endDate: { gte: startOfToday },
+          }
+        : {
+            bookingDate: {
+              gte: startOfToday,
+              lte: endOfToday,
+            },
+          };
+
       const bookings = await prisma.booking.findMany({
         where: {
           userId: targetUserId,
           status: { in: validStatuses as any },
-          bookingDate: {
-            gte: startOfToday,
-            lte: endOfToday,
-          },
+          ...dateFilter,
         },
       include: {
         product: true,
