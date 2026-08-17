@@ -7,9 +7,12 @@ import {
   addMonths, subMonths, eachDayOfInterval
 } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, CalendarDays, Clock, User, CarFront } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Clock, User, CarFront, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { startOrder, finishOrder, approveOrder } from "../orders/actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-type BookingStatus = "PENDING" | "ACTIVE" | "OVERDUE" | "COMPLETED";
+type BookingStatus = "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE";
 
 interface Booking {
   id: string;
@@ -23,6 +26,7 @@ interface Booking {
   driverName?: string | null;
   licensePlate?: string | null;
   guarantee?: string | null;
+  source?: "ONLINE" | "POS";
 }
 
 interface Props {
@@ -30,15 +34,59 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
-  PENDING: { label: "Booking/DP", bg: "bg-yellow-100 text-yellow-700" },
-  ACTIVE: { label: "Sedang Jalan/Aktif", bg: "bg-green-100 text-green-700" },
-  OVERDUE: { label: "Terlambat/Overdue", bg: "bg-red-100 text-red-700" },
-  COMPLETED: { label: "Selesai", bg: "bg-gray-100 text-gray-700" }
+  PENDING: { label: "Menunggu", bg: "bg-yellow-100 text-yellow-700" },
+  COMPLETED: { label: "Siap Berangkat", bg: "bg-blue-100 text-blue-700" },
+  IN_PROGRESS: { label: "Sedang Jalan", bg: "bg-green-100 text-green-700" },
+  OVERDUE: { label: "Terlambat", bg: "bg-red-100 text-red-700" },
+  FINISHED: { label: "Selesai", bg: "bg-gray-100 text-gray-700" }
 };
 
 export default function RentalCalendarClient({ initialBookings }: Props) {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [filter, setFilter] = useState<"ALL" | BookingStatus>("ALL");
+  const [finishingOrder, setFinishingOrder] = useState<Booking | null>(null);
+  const [overtimeFee, setOvertimeFee] = useState<string>("0");
+  const [isFinishing, setIsFinishing] = useState(false);
+
+  const handleApprove = async (id: string) => {
+    toast.loading("Memproses...", { id: "approve" });
+    const res = await approveOrder(id);
+    if (res.success) {
+      toast.success("Disetujui!", { id: "approve" });
+      router.refresh();
+    } else {
+      toast.error("Gagal menyetujui", { id: "approve" });
+    }
+  };
+
+  const handleStart = async (id: string) => {
+    toast.loading("Memulai perjalanan...", { id: "start" });
+    const res = await startOrder(id);
+    if (res.success) {
+      toast.success("Perjalanan dimulai!", { id: "start" });
+      router.refresh();
+    } else {
+      toast.error("Gagal", { id: "start" });
+    }
+  };
+
+  const handleFinishSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!finishingOrder) return;
+    setIsFinishing(true);
+    const fee = parseInt(overtimeFee.replace(/\D/g, ""), 10) || 0;
+    const res = await finishOrder(finishingOrder.id, fee);
+    if (res.success) {
+      toast.success("Pesanan selesai!");
+      setFinishingOrder(null);
+      router.refresh();
+    } else {
+      toast.error("Gagal menyelesaikan");
+    }
+    setIsFinishing(false);
+  };
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
@@ -57,6 +105,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
   // Get bookings for selected date
   const getBookingsForDate = (day: Date) => {
     return initialBookings.filter(b => {
+      if (filter !== "ALL" && b.status !== filter) return false;
       const start = new Date(b.startDate).setHours(0, 0, 0, 0);
       const end = new Date(b.endDate).setHours(0, 0, 0, 0);
       const check = new Date(day).setHours(0, 0, 0, 0);
@@ -69,11 +118,22 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
   return (
     <div className="flex flex-col h-full bg-slate-50 min-h-screen pb-24">
       {/* Header */}
-      <div className="bg-white p-4 border-b border-slate-200 shadow-sm flex items-center justify-between">
+      <div className="bg-white p-4 border-b border-slate-200 shadow-sm flex flex-col gap-4">
         <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
           <CalendarDays className="w-5 h-5 text-blue-600" />
           Kalender Sewa
         </h1>
+        <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+          {(["ALL", "PENDING", "COMPLETED", "IN_PROGRESS", "FINISHED"] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter === f ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              {f === "ALL" ? "Semua" : STATUS_CONFIG[f as BookingStatus]?.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Calendar Area */}
@@ -233,13 +293,88 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
                         </div>
                       )}
                     </div>
-                  </>
                 )}
               </div>
+              
+              {/* Action Buttons */}
+              {b.source === "ONLINE" && b.status !== "FINISHED" && (
+                <div className="flex gap-2 mt-2 pt-3 border-t border-slate-100">
+                  {b.status === "PENDING" && (
+                    <button onClick={() => handleApprove(b.id)} className="w-full px-3 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                      Setujui Pesanan
+                    </button>
+                  )}
+                  {b.status === "COMPLETED" && (
+                    <button onClick={() => handleStart(b.id)} className="w-full px-3 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
+                      🚀 Mulai Perjalanan / Start
+                    </button>
+                  )}
+                  {(b.status === "IN_PROGRESS" || b.status === "OVERDUE") && (
+                    <button onClick={() => { setFinishingOrder(b); setOvertimeFee("0"); }} className="w-full px-3 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">
+                      ✅ Tiba di Pool / Finish
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ))
         )}
       </div>
+
+      {/* Modal Penyelesaian Sewa */}
+      {finishingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white">
+              <h2 className="text-lg font-bold text-slate-800">Penyelesaian Sewa</h2>
+              <button onClick={() => setFinishingOrder(null)} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleFinishSubmit} className="p-5 space-y-4">
+              <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Penyewa</span>
+                  <span className="font-semibold text-slate-800">{finishingOrder.customerName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Armada/Layanan</span>
+                  <span className="font-semibold text-slate-800">{finishingOrder.itemName}</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Biaya Tambahan / Denda Overtime (Opsional)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
+                  <input 
+                    type="text" 
+                    value={overtimeFee}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setOvertimeFee(val ? new Intl.NumberFormat("id-ID").format(Number(val)) : "");
+                    }}
+                    className="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-2.5"
+                    placeholder="0"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">Isi jika penyewa melebihi batas waktu (overtime) atau ada biaya kerusakan. Kosongkan jika tidak ada.</p>
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  type="submit"
+                  disabled={isFinishing}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-colors px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {isFinishing && <Loader2 className="w-5 h-5 animate-spin" />}
+                  Konfirmasi Selesai
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

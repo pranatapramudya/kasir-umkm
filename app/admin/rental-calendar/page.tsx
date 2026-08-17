@@ -38,7 +38,7 @@ export default async function RentalCalendarPage() {
   const rawBookings = await prisma.booking.findMany({
     where: {
       userId: targetUserId,
-      status: "COMPLETED"
+      status: { in: ["PENDING", "COMPLETED", "IN_PROGRESS", "FINISHED"] }
     },
     include: {
       product: { select: { name: true } }
@@ -68,18 +68,13 @@ export default async function RentalCalendarPage() {
   const now = new Date();
 
   const bookings = rawBookings.map(b => {
-    let derivedStatus = b.status as string;
+    let derivedStatus = b.status;
     const start = b.startDate || b.bookingDate;
     const end = b.endDate || b.bookingDate;
 
-    if (b.status === "COMPLETED") {
-      if (now > end) {
-        derivedStatus = "OVERDUE";
-      } else if (now >= start && now <= end) {
-        derivedStatus = "ACTIVE";
-      } else if (now < start) {
-        derivedStatus = "PENDING";
-      }
+    // Overdue logic only applies to IN_PROGRESS (ACTIVE) or COMPLETED (Waiting to start)
+    if (derivedStatus === "IN_PROGRESS" && now > end) {
+      derivedStatus = "OVERDUE" as any;
     }
 
     return {
@@ -88,7 +83,7 @@ export default async function RentalCalendarPage() {
       itemName: b.product?.name || "Tanpa Armada",
       startDate: start.toISOString(),
       endDate: end.toISOString(),
-      status: derivedStatus as "PENDING" | "ACTIVE" | "OVERDUE" | "COMPLETED",
+      status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
       pickupLocation: b.pickupLocation || undefined,
       dropoffLocation: b.dropoffLocation || undefined,
       driverName: undefined,
@@ -99,16 +94,14 @@ export default async function RentalCalendarPage() {
   });
 
   const txBookings = rawTransactions.map(tx => {
-    let derivedStatus = "COMPLETED";
+    let derivedStatus = "FINISHED"; // Legacy POS transactions are typically considered completed
     const start = tx.startDate!;
     const end = tx.endDate || tx.startDate!;
 
     if (now > end) {
       derivedStatus = "OVERDUE";
     } else if (now >= start && now <= end) {
-      derivedStatus = "ACTIVE";
-    } else if (now < start) {
-      derivedStatus = "PENDING";
+      derivedStatus = "IN_PROGRESS";
     }
 
     return {
@@ -117,7 +110,7 @@ export default async function RentalCalendarPage() {
       itemName: tx.items.map(i => productMap.get(i.productId) || `Produk ${i.productId}`).join(", ") || "Transaksi POS",
       startDate: start.toISOString(),
       endDate: end.toISOString(),
-      status: derivedStatus as "PENDING" | "ACTIVE" | "OVERDUE" | "COMPLETED",
+      status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
       pickupLocation: tx.pickupLocation || undefined,
       dropoffLocation: tx.dropoffLocation || undefined,
       driverName: tx.driverName || undefined,
