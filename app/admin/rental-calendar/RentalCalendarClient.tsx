@@ -59,6 +59,12 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
   
   const calendarBookings = data?.bookings || [];
 
+  const safeDate = (dateStr?: string | null) => {
+    if (!dateStr) return new Date();
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filter, setFilter] = useState<"ALL" | BookingStatus>("ALL");
@@ -225,7 +231,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                 {/* Event Badges */}
                 <div className="flex flex-col gap-1 w-full overflow-hidden">
                   {dayBookings.slice(0, 2).map((b, idx) => (
-                    <div key={idx} className={`truncate px-1.5 md:px-2 py-0.5 md:py-1 rounded-md text-[9px] md:text-xs font-medium w-full ${STATUS_CONFIG[b.status].bg}`}>
+                    <div key={idx} className={`truncate px-1.5 md:px-2 py-0.5 md:py-1 rounded-md text-[9px] md:text-xs font-medium w-full ${(STATUS_CONFIG[b.status] || STATUS_CONFIG.PENDING).bg}`}>
                       {b.customerName || "Pelanggan Baru"}
                     </div>
                   ))}
@@ -268,8 +274,8 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                     <p className="text-xs text-slate-500 font-medium truncate">{b.customerName || "Pelanggan Baru"}</p>
                   </div>
                 </div>
-                <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold border shrink-0 ${STATUS_CONFIG[b.status].bg} border-current/20`}>
-                  {STATUS_CONFIG[b.status].label}
+                <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold border shrink-0 ${(STATUS_CONFIG[b.status] || STATUS_CONFIG.PENDING).bg} border-current/20`}>
+                  {(STATUS_CONFIG[b.status] || STATUS_CONFIG.PENDING).label}
                 </div>
               </div>
 
@@ -279,7 +285,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                   <div className="flex-1 flex justify-between items-center text-xs">
                     <span className="text-slate-500">Mulai</span>
                     <span className="font-semibold text-slate-700">
-                      {format(new Date(b.startDate), "dd MMM, HH:mm", { locale: idLocale })}
+                      {format(safeDate(b.startDate), "dd MMM, HH:mm", { locale: idLocale })}
                     </span>
                   </div>
                 </div>
@@ -289,7 +295,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                   <div className="flex-1 flex justify-between items-center text-xs">
                     <span className="text-slate-500">Selesai</span>
                     <span className="font-semibold text-slate-700">
-                      {format(new Date(b.endDate), "dd MMM, HH:mm", { locale: idLocale })}
+                      {format(safeDate(b.endDate), "dd MMM, HH:mm", { locale: idLocale })}
                     </span>
                   </div>
                 </div>
