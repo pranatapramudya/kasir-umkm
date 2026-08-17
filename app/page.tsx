@@ -9,6 +9,7 @@ import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Store, BarChart3, Receipt, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
 import { MiniChartWrapper } from '@/components/MiniChartWrapper';
+import { ClientCachePurger } from '@/components/ClientCachePurger';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,6 +75,7 @@ export default async function POSApp() {
   // Jika belum login, tampilkan Landing Page Premium
   return (
     <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Landing Page...</div>}>
+      <ClientCachePurger />
       <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex overflow-hidden relative">
 
         {/* LEFT SIDE: SHOWCASE (Hidden on Mobile) */}

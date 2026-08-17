@@ -21,14 +21,11 @@ export function SessionTimeoutGuard({ children }: { children: React.ReactNode })
     // Session wipe on user change / logout
     if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
       // User changed or logged out
-      mutate(() => true, undefined, { revalidate: true });
-      localStorage.removeItem("lastActivity");
-      localStorage.removeItem("kasir-cart");
-      localStorage.removeItem("pos-cart");
+      localStorage.clear();
       sessionStorage.clear();
-      prevUserIdRef.current = userId;
+      window.location.href = "/";
     }
-  }, [userId, mutate]);
+  }, [userId]);
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -67,7 +64,7 @@ export function SessionTimeoutGuard({ children }: { children: React.ReactNode })
           localStorage.removeItem("lastActivity");
           toast.error("Sesi telah berakhir karena tidak ada aktivitas selama 24 jam.");
           signOut(() => {
-            router.push("/sign-in");
+            window.location.href = "/sign-in";
           });
         }
       }

@@ -48,7 +48,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <AdminLayoutClient sidebar={<Sidebar />} isExpired={isExpired}>
+    <AdminLayoutClient sidebar={<Sidebar />} isExpired={isExpired} serverUserId={userId}>
       <PushNotificationManager />
       {children}
     </AdminLayoutClient>

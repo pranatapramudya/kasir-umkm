@@ -1,6 +1,6 @@
 "use client";
 
-import { UserButton, useUser } from "@clerk/nextjs";
+import { UserButton, useUser, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { LayoutDashboard, PackageSearch, Settings, Store, BarChart, Menu } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,23 +11,25 @@ import { CustomUserButton } from "@/components/CustomUserButton";
 export default function AdminLayoutClient({
   children,
   sidebar,
-
+  serverUserId,
   isExpired = false
 }: {
   children: React.ReactNode;
   sidebar: React.ReactNode;
 
   isExpired?: boolean;
+  serverUserId?: string;
 }) {
   const pathname = usePathname();
 
 
 
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const { userId: clientUserId, isLoaded: isAuthLoaded } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoaded && user) {
+    if (isUserLoaded && user) {
       const now = new Date();
       const accountCreated = new Date(user.createdAt as Date);
       const trialEndDate = new Date(accountCreated.getTime() + 14 * 24 * 60 * 60 * 1000);
@@ -39,10 +41,16 @@ export default function AdminLayoutClient({
         }
       }
     }
-  }, [isLoaded, user, router, pathname]);
+  }, [isUserLoaded, user, router, pathname]);
 
-  if (!isLoaded) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">Memuat Dashboard...</div>;
+  // Strict Tenant Block: Mencegah FOUC / Stale Cache dari session sebelumnya
+  if (!isUserLoaded || !isAuthLoaded || (serverUserId && clientUserId && serverUserId !== clientUserId)) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-medium font-mono text-sm tracking-widest uppercase">Menyesuaikan Sesi...</p>
+      </div>
+    );
   }
 
   return (
