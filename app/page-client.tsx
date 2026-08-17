@@ -78,7 +78,7 @@ type Transaction = {
 };
 
 
-function QueueModal({ isOpen, onClose, onProcess }: { isOpen: boolean, onClose: () => void, onProcess: (b: any) => void }) {
+function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean, onClose: () => void, onProcess: (b: any) => void, isRental?: boolean }) {
   const [selectedQueueDate, setSelectedQueueDate] = useState(() => {
     const today = new Date();
     const year = today.getFullYear();
@@ -97,7 +97,7 @@ function QueueModal({ isOpen, onClose, onProcess }: { isOpen: boolean, onClose: 
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
           <h2 className="text-lg font-bold text-gray-900 truncate pr-4 flex items-center gap-2">
-            📋 Tarik Antrean Online
+            📋 {isRental ? "Tarik Pesanan Online" : "Tarik Antrean Online"}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full shrink-0">
             <X className="w-5 h-5" />
@@ -768,7 +768,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         <div className="font-bold flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-gray-700" />
           <div className="flex items-center gap-2">
-            <span>{isJasa ? 'Detail Layanan' : isRental ? 'Detail Sewa' : 'Keranjang'}</span>
+            <span>{isJasa ? 'Detail Layanan' : isRental ? 'Form Surat Jalan & Invoice' : 'Keranjang'}</span>
             {cart.length > 0 && (
               <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
                 {cart.reduce((acc, item) => acc + item.qty, 0)}
@@ -794,12 +794,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       <div className="flex-1 overflow-y-auto flex flex-col bg-slate-50">
         {(isJasa || isRental) && (
           <div className="p-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between shadow-inner">
-            <span className="text-sm font-medium text-blue-800">Ada antrean online?</span>
+            <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
             <button
               onClick={() => setIsQueueModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
             >
-              📋 Tarik Antrean Online
+              📋 Tarik Pesanan Online
             </button>
           </div>
         )}
@@ -807,12 +807,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           {/* Empty State Keranjang */}
         {cart.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
-            {!isRental && (
-              <>
-                <ShoppingCart className="w-16 h-16 opacity-30" />
-                <p className="text-sm font-medium text-center px-4">Keranjang masih kosong, silakan pilih {isJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}</p>
-              </>
-            )}
+            {!isRental && <ShoppingCart className="w-16 h-16 opacity-30" />}
+            <p className="text-sm font-medium text-center px-4">{isRental ? "Belum ada armada dipilih. Silakan pilih armada atau tarik pesanan online." : `Keranjang masih kosong, silakan pilih ${isJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}`}</p>
           </div>
         ) : (
           cart.map(item => (
@@ -1097,8 +1093,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   <div className="flex items-center gap-3">
                     <h1 className="text-xl font-black flex items-center gap-2">
                       <Store className="w-6 h-6 text-blue-600" />
-                      <span className="hidden sm:inline">PJTECH KASIR POS</span>
-                      <span className="sm:hidden">KASIR POS</span>
+                      <span className="hidden sm:inline">{isRental ? "Form Transaksi Sewa" : "PJTECH KASIR POS"}</span>
+                      <span className="sm:hidden">{isRental ? "Transaksi Sewa" : "KASIR POS"}</span>
                     </h1>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1112,7 +1108,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
-                      placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : "Cari produk atau barcode..."}
+                      placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? "Cari nama armada / plat nomor..." : "Cari produk atau barcode..."}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
@@ -1162,12 +1158,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               <div className="flex-1 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col">
                 {(isJasa || isRental) && (
                   <div className="lg:hidden p-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl flex flex-row items-center justify-between shadow-sm">
-                    <span className="text-sm font-medium text-blue-800">Ada antrean?</span>
+                    <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
                     <button
                       onClick={() => setIsQueueModalOpen(true)}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
                     >
-                      📋 Tarik Antrean Online
+                      📋 Tarik Pesanan Online
                     </button>
                   </div>
                 )}
@@ -1466,7 +1462,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       <PrinterHelpModal isOpen={isPrinterHelpOpen} onClose={() => setIsPrinterHelpOpen(false)} />
 
       {/* Queue Modal */}
-      <QueueModal isOpen={isQueueModalOpen} onClose={() => setIsQueueModalOpen(false)} onProcess={handleProcessQueue} />
+      <QueueModal isOpen={isQueueModalOpen} onClose={() => setIsQueueModalOpen(false)} onProcess={handleProcessQueue} isRental={isRental} />
 
       {/* Modal F&B */}
       {fnbSelectedProduct && (

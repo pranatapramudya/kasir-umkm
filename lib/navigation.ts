@@ -7,7 +7,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
   const isFnB = kategoriUsaha === "F&B / Kuliner";
   const isCashier = role === 'CASHIER';
 
-  const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Kasir Rental" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";
+  const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Transaksi Sewa" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";
   const productMenuLabel = isRentalTravel ? "Data Armada" : isServiceBusiness ? "Layanan" : "Produk";
   const bookingMenuLabel = isRentalTravel ? "Kalender Sewa" : "Jadwal Booking";
 
