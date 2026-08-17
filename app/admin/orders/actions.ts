@@ -57,7 +57,8 @@ export async function finishOrder(id: string, overtimeFee: number) {
   if (!booking) return { success: false, error: "Booking tidak ditemukan" };
 
   const start = booking.startDate ?? booking.bookingDate;
-  const end = booking.endDate ?? booking.bookingDate;
+  const now = new Date();
+  const end = now;
   const diffTime = end.getTime() - start.getTime();
   let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   if (diffDays < 1) diffDays = 1;
@@ -73,6 +74,7 @@ export async function finishOrder(id: string, overtimeFee: number) {
       data: {
         status: "FINISHED",
         overtimeFee,
+        endDate: now,
       }
     });
 

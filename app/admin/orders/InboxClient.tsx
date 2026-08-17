@@ -10,6 +10,8 @@ interface BookingItem {
   id: string;
   customerName: string;
   bookingDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
   itemName: string;
   status: string;
   total: number;
@@ -113,7 +115,17 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
                 <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-semibold text-slate-900">{order.id.slice(0,8)}...</div>
-                    <div className="text-xs text-slate-500">{order.bookingDate}</div>
+                    <div className="text-xs text-slate-500">
+                      {order.status === "PENDING" || order.status === "COMPLETED" ? (
+                        <>Jadwal: {new Date(order.bookingDate).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</>
+                      ) : order.status === "IN_PROGRESS" && order.startDate ? (
+                        <>Mulai: {new Date(order.startDate).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</>
+                      ) : order.status === "FINISHED" && order.endDate ? (
+                        <>Selesai: {new Date(order.endDate).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</>
+                      ) : (
+                        new Date(order.bookingDate).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">{order.customerName}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{order.itemName}</td>

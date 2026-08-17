@@ -47,6 +47,8 @@ export default async function PesananOnlinePage() {
     customerName: b.customerName,
     itemName: b.product?.name || "Tanpa Armada",
     bookingDate: b.bookingDate.toISOString(),
+    startDate: b.startDate?.toISOString() || null,
+    endDate: b.endDate?.toISOString() || null,
     status: b.status,
     total: b.product?.hargaJual || 0,
   }));
