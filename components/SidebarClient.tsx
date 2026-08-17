@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getNavigationMenu } from "@/lib/navigation";
-import { Store } from "lucide-react";
+import { Store, HelpCircle } from "lucide-react";
+import { BukuPanduanModal } from "./BukuPanduanModal";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -20,6 +21,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
   const kategoriUsaha = rawKategoriUsaha || 'Retail';
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isBukuPanduanOpen, setIsBukuPanduanOpen] = useState(false);
 
   useEffect(() => {
     const handleToggle = () => setIsOpen(prev => !prev);
@@ -109,8 +111,26 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
               </div>
             </div>
           ))}
+          
+          <div className="px-4 mt-4 pb-4">
+            <button
+              onClick={() => setIsBukuPanduanOpen(true)}
+              className="flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-150 font-semibold text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-[0.97]"
+            >
+              <div className="flex items-center gap-3">
+                <HelpCircle className="w-5 h-5 text-slate-400" />
+                Bantuan & Panduan
+              </div>
+            </button>
+          </div>
         </nav>
       </div>
+      
+      <BukuPanduanModal 
+        isOpen={isBukuPanduanOpen} 
+        onClose={() => setIsBukuPanduanOpen(false)} 
+        category={kategoriUsaha} 
+      />
     </aside>
     </>
   );

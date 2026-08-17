@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { RentalDatePicker } from "@/components/RentalDatePicker";
 import { isRentalTravelCategory } from "@/lib/business-category";
 import html2canvas from "html2canvas";
 
@@ -723,51 +724,17 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             <span>INFORMASI SEWA KENDARAAN</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {/* Tanggal Mulai */}
-            <div className="space-y-1.5">
-              <label htmlFor="rental-startDate" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Mulai Sewa *
-              </label>
-              <input
-                id="rental-startDate"
-                type="date"
-                value={rentalData.startDate}
-                min={todayISO}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setRentalData((prev) => ({
-                    ...prev,
-                    startDate: val,
-                    // Jika endDate < startDate baru, sesuaikan
-                    endDate: prev.endDate < val ? val : prev.endDate,
-                  }));
-                  setError(null);
-                }}
-                required
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
-              />
-            </div>
-
-            {/* Tanggal Selesai */}
-            <div className="space-y-1.5">
-              <label htmlFor="rental-endDate" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Selesai Sewa *
-              </label>
-              <input
-                id="rental-endDate"
-                type="date"
-                value={rentalData.endDate}
-                min={rentalData.startDate || todayISO}
-                onChange={(e) => {
-                  setRentalData((prev) => ({ ...prev, endDate: e.target.value }));
-                  setError(null);
-                }}
-                required
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
-              />
-            </div>
-          </div>
+          <RentalDatePicker
+            slug={slug}
+            productId={formData.productId}
+            startDate={rentalData.startDate}
+            endDate={rentalData.endDate}
+            onChange={(start, end) => {
+              setRentalData((prev) => ({ ...prev, startDate: start, endDate: end }));
+              setError(null);
+            }}
+            onClearError={() => setError(null)}
+          />
 
           {/* Jam Penjemputan / Pengiriman */}
           <div className="space-y-1.5">

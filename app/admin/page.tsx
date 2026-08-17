@@ -46,6 +46,17 @@ export default function AdminDashboardPage() {
       .replace(/\s+/g, ''); // Removes spaces to prevent wrapping e.g. -Rp 1.000 -> -Rp1.000
   };
 
+  const currentTenantId = role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
+
+  if (analytics && analytics.tenantId && currentTenantId && analytics.tenantId !== currentTenantId) {
+    return (
+      <div className="p-8 h-96 flex flex-col items-center justify-center bg-slate-50 animate-pulse rounded-xl">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+        <p className="mt-4 text-slate-500 font-medium">Sinkronisasi data sesi...</p>
+      </div>
+    );
+  }
+
   const terms = getTerms(analytics?.category);
 
   return (

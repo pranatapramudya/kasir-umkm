@@ -4,15 +4,31 @@ import { useEffect, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 
 const TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const THROTTLE_MS = 60 * 1000; // 1 minute
 
 export function SessionTimeoutGuard({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, signOut } = useAuth();
+  const { isSignedIn, signOut, userId } = useAuth();
   const router = useRouter();
   const lastUpdateRef = useRef<number>(0);
+  const { mutate } = useSWRConfig();
+  const prevUserIdRef = useRef<string | null | undefined>(userId);
+
+  useEffect(() => {
+    // Session wipe on user change / logout
+    if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
+      // User changed or logged out
+      mutate(() => true, undefined, { revalidate: true });
+      localStorage.removeItem("lastActivity");
+      localStorage.removeItem("kasir-cart");
+      localStorage.removeItem("pos-cart");
+      sessionStorage.clear();
+      prevUserIdRef.current = userId;
+    }
+  }, [userId, mutate]);
 
   useEffect(() => {
     if (!isSignedIn) return;

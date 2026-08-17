@@ -122,6 +122,7 @@ export async function GET(request: Request) {
       totalTransactions,
       salesTrend,
       category: tenant?.category || 'Retail',
+      tenantId: activeTenantId,
       period: {
         start: startDate.toISOString(),
         end: endDate.toISOString()

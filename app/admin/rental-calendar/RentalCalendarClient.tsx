@@ -11,6 +11,8 @@ import { ChevronLeft, ChevronRight, CalendarDays, Clock, User, CarFront, CheckCi
 import { startOrder, finishOrder, approveOrder } from "../orders/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 
 type BookingStatus = "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE";
 
@@ -31,6 +33,7 @@ interface Booking {
 
 interface Props {
   initialBookings: Booking[];
+  tenantId: string;
 }
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
@@ -41,8 +44,21 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
   FINISHED: { label: "Selesai", bg: "bg-gray-100 text-gray-700" }
 };
 
-export default function RentalCalendarClient({ initialBookings }: Props) {
+export default function RentalCalendarClient({ initialBookings, tenantId }: Props) {
   const router = useRouter();
+  
+  // Realtime hook
+  useSupabaseRealtime(tenantId);
+  
+  // SWR for fetching calendar data
+  const { data, mutate } = useSWR<{ bookings: Booking[] }>(
+    "/api/booking/calendar",
+    (url: string) => fetch(url).then((res) => res.json()),
+    { fallbackData: { bookings: initialBookings } }
+  );
+  
+  const calendarBookings = data?.bookings || [];
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filter, setFilter] = useState<"ALL" | BookingStatus>("ALL");
@@ -104,7 +120,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
 
   // Get bookings for selected date
   const getBookingsForDate = (day: Date) => {
-    return initialBookings.filter(b => {
+    return calendarBookings.filter(b => {
       if (filter !== "ALL" && b.status !== filter) return false;
       const start = new Date(b.startDate).setHours(0, 0, 0, 0);
       const end = new Date(b.endDate).setHours(0, 0, 0, 0);
@@ -194,7 +210,7 @@ export default function RentalCalendarClient({ initialBookings }: Props) {
                 {/* Event Badges */}
                 <div className="flex flex-col gap-1 w-full overflow-hidden">
                   {dayBookings.slice(0, 2).map((b, idx) => (
-                    <div key={idx} className="truncate px-1.5 md:px-2 py-0.5 md:py-1 bg-amber-100 text-amber-800 rounded-md text-[9px] md:text-xs font-medium w-full">
+                    <div key={idx} className={`truncate px-1.5 md:px-2 py-0.5 md:py-1 rounded-md text-[9px] md:text-xs font-medium w-full ${STATUS_CONFIG[b.status].bg}`}>
                       {b.customerName}
                     </div>
                   ))}

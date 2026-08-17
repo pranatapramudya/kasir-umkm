@@ -5,6 +5,17 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.3.0 – 0.3.32] — 2026-08-17
+
+### 🚀 Fitur Baru & Arsitektur Utama
+- **Arsitektur Isolasi Tenant (Anti-Leakage):** Pencatatan mekanisme pembersihan *cache* (SWR & `localStorage`) pada level sesi pengguna dan proteksi `<LoadingSkeleton>` untuk mencegah kebocoran data antar pengguna.
+- **Integrasi Supabase Real-time:** Peralihan dari metode *fast polling* menjadi *Postgres Changes Listener* yang diisolasi menggunakan filter `tenantId`, dipadukan dengan SWR `mutate` untuk pembaruan UI instan yang hemat *resource*.
+- **Sistem Kalender Anti Double-Booking:** Penambahan kapabilitas pengecekan ketersediaan jadwal via `/api/booking/availability`, serta integrasi `react-day-picker` berbalut *Popover Modal* dengan pengamanan sinkronisasi zona waktu lokal (WIB/Lokal) vs UTC.
+- **Dynamic Multi-Tenant UX & Export:** Implementasi utilitas terminologi teks yang menyesuaikan bahasa UI berdasarkan model bisnis (Rental vs Jasa vs Retail/F&B), termasuk adaptasi format kolom pada *export* Excel.
+- **Modul Onboarding (Buku Panduan):** Penambahan fitur dokumentasi interaktif (SOP) internal pada *Sidebar* untuk memandu alur kerja pengguna berdasarkan entitas bisnis masing-masing.
+
+---
+
 ## [0.2.21 – 0.2.32] — 2026-08-13
 
 ### 🚀 Fitur Baru

@@ -83,12 +83,13 @@ export async function GET(req: Request) {
     });
     const productMap = new Map(products.map(p => [p.id, p]));
 
-    let headers: string[] = ["No", "Tanggal Transaksi", "Nama Pelanggan", "Subtotal", "Total", "Metode Pembayaran", "Kasir"];
-    
-    if (isServiceBusiness) {
-      headers.push("Tanggal Booking", "Waktu (Slot)");
-    } else if (isRentalTravel) {
-      headers.push("Tgl Mulai Sewa", "Tgl Selesai Sewa", "Nama Supir", "Plat Nomor", "Tujuan");
+    let headers: string[] = [];
+    if (isRentalTravel) {
+      headers = ["Tanggal", "Pelanggan", "Armada", "Mulai Sewa", "Selesai Sewa", "Tujuan", "Total"];
+    } else if (isServiceBusiness) {
+      headers = ["Tanggal", "Pelanggan", "Layanan", "Waktu Booking", "Terapis/Kapster", "Total"];
+    } else {
+      headers = ["Tanggal", "Item", "Qty", "Harga Satuan", "Kasir", "Total"];
     }
 
     let formattedData: any[] = [];
@@ -99,30 +100,36 @@ export async function GET(req: Request) {
       emptyRow[headers[0]] = "Belum ada data transaksi pada periode ini";
       formattedData.push(emptyRow);
     } else {
-      let no = 1;
       transactions.forEach((t) => {
-        const rowData: any = {
-          "No": no++,
-          "Tanggal Transaksi": t.createdAt.toLocaleString("id-ID"),
-          "Nama Pelanggan": t.customerName || "-",
-          "Subtotal": t.total - (t.discount || 0), // Assuming total in DB is after discount. Or Subtotal is just total + discount
-          "Total": t.total,
-          "Metode Pembayaran": t.method,
-          "Kasir": t.cashier?.name || "Owner/Sistem"
-        };
+        const dateStr = t.createdAt.toLocaleString("id-ID");
+        const itemsList = t.items.map(i => productMap.get(i.productId)?.name || "Produk").join(", ");
+        const qtyList = t.items.map(i => i.qty).join(", ");
+        const priceList = t.items.map(i => i.price).join(", ");
 
-        if (isServiceBusiness) {
-          // You might need to map from your schema for Jasa/Servis if it exists in Transaction or Booking.
-          // Assuming these are mapped to startDate/endDate if they were added to Transaction
-          rowData["Tanggal Booking"] = t.startDate ? t.startDate.toLocaleDateString("id-ID") : "-";
-          rowData["Waktu (Slot)"] = t.startDate ? t.startDate.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' }) : "-";
-        } else if (isRentalTravel) {
-          rowData["Tgl Mulai Sewa"] = t.startDate ? t.startDate.toLocaleDateString("id-ID") : "-";
-          rowData["Tgl Selesai Sewa"] = t.endDate ? t.endDate.toLocaleDateString("id-ID") : "-";
-          rowData["Nama Supir"] = t.driverName || "-";
-          rowData["Plat Nomor"] = t.licensePlate || "-";
-          rowData["Titik Jemput"] = t.pickupLocation || "-";
-          rowData["Titik Tujuan"] = t.dropoffLocation || "-";
+        const rowData: any = {};
+
+        if (isRentalTravel) {
+          rowData["Tanggal"] = dateStr;
+          rowData["Pelanggan"] = t.customerName || "-";
+          rowData["Armada"] = itemsList || "-";
+          rowData["Mulai Sewa"] = t.startDate ? t.startDate.toLocaleDateString("id-ID") : "-";
+          rowData["Selesai Sewa"] = t.endDate ? t.endDate.toLocaleDateString("id-ID") : "-";
+          rowData["Tujuan"] = t.dropoffLocation || "-";
+          rowData["Total"] = t.total;
+        } else if (isServiceBusiness) {
+          rowData["Tanggal"] = dateStr;
+          rowData["Pelanggan"] = t.customerName || "-";
+          rowData["Layanan"] = itemsList || "-";
+          rowData["Waktu Booking"] = t.startDate ? t.startDate.toLocaleString("id-ID") : "-";
+          rowData["Terapis/Kapster"] = t.cashier?.name || "Sistem";
+          rowData["Total"] = t.total;
+        } else {
+          rowData["Tanggal"] = dateStr;
+          rowData["Item"] = itemsList || "-";
+          rowData["Qty"] = qtyList || "-";
+          rowData["Harga Satuan"] = priceList || "-";
+          rowData["Kasir"] = t.cashier?.name || "Sistem";
+          rowData["Total"] = t.total;
         }
 
         formattedData.push(rowData);

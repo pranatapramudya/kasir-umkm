@@ -3,6 +3,8 @@
 import { isRentalTravelCategory } from "@/lib/business-category";
 
 import { useState, useEffect, useCallback } from "react";
+import useSWR from "swr";
+import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -66,6 +68,7 @@ interface Props {
   bookingLink: string | null;
   tenantSlug: string | null;
   tenantCategory?: string | null;
+  tenantId: string;
 }
 
 interface BookingCalendarEvent extends CalendarEvent {
@@ -164,14 +167,25 @@ export default function BookingDashboardClient({
   bookingLink,
   tenantSlug,
   tenantCategory,
+  tenantId,
 }: Props) {
   const isJasa = tenantCategory === "Jasa / Servis";
   const statusMap = getStatusMap(isJasa);
 
   const router = useRouter();
-  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  
+  // Realtime hook
+  useSupabaseRealtime(tenantId);
+  
+  // SWR for fetching bookings
+  const { data: bookingsData, mutate: mutateBookings } = useSWR<{ bookings: Booking[] }>(
+    "/api/booking",
+    (url: string) => fetch(url).then((res) => res.json()),
+    { fallbackData: { bookings: initialBookings } }
+  );
+  
+  const bookings = bookingsData?.bookings || [];
+
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [filter, setFilter] = useState<BookingStatus | "ALL">("ALL");
@@ -182,28 +196,16 @@ export default function BookingDashboardClient({
   // Modal detail event kalender
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  // Fetch bookings terbaru
-  const fetchBookings = useCallback(async (silent = false) => {
-    if (!silent) setIsRefreshing(true);
-    try {
-      const res = await fetch("/api/booking", { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        setBookings(data.bookings);
-        setLastRefresh(new Date());
-      }
-    } catch {
-      // silent fail
-    } finally {
-      if (!silent) setIsRefreshing(false);
-    }
-  }, []);
-
-  // Auto-refresh setiap 30 detik
-  useEffect(() => {
-    const interval = setInterval(() => fetchBookings(true), 30_000);
-    return () => clearInterval(interval);
-  }, [fetchBookings]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  
+  // Refresh handled by SWR
+  const fetchBookings = useCallback(async () => {
+    setIsRefreshing(true);
+    await mutateBookings();
+    setLastRefresh(new Date());
+    setIsRefreshing(false);
+  }, [mutateBookings]);
 
   // Update status booking
   async function updateStatus(bookingId: string, status: BookingStatus) {
@@ -215,9 +217,9 @@ export default function BookingDashboardClient({
         body: JSON.stringify({ bookingId, status }),
       });
       if (res.ok) {
-        setBookings((prev) =>
-          prev.map((b) => (b.id === bookingId ? { ...b, status } : b))
-        );
+        mutateBookings((prev) => ({
+          bookings: prev?.bookings.map((b) => (b.id === bookingId ? { ...b, status } : b)) || []
+        }), { revalidate: false });
         // Update juga booking yang sedang dibuka di modal
         setSelectedBooking((prev) =>
           prev?.id === bookingId ? { ...prev, status } : prev
@@ -322,7 +324,7 @@ export default function BookingDashboardClient({
           </div>
 
           <button
-            onClick={() => fetchBookings(false)}
+            onClick={() => fetchBookings()}
             disabled={isRefreshing}
             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-all disabled:opacity-50"
           >

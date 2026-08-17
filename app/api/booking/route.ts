@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         where: {
           userId: tenant.userId,
           productId: productId ? Number(productId) : undefined,
-          status: { in: ["PENDING", "COMPLETED", "FINISHED"] },
+          status: { in: ["PENDING", "COMPLETED", "IN_PROGRESS"] },
           startDate: { lte: newEnd },
           endDate: { gte: newStart },
         },
