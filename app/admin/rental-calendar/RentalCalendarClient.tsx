@@ -226,7 +226,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                 <div className="flex flex-col gap-1 w-full overflow-hidden">
                   {dayBookings.slice(0, 2).map((b, idx) => (
                     <div key={idx} className={`truncate px-1.5 md:px-2 py-0.5 md:py-1 rounded-md text-[9px] md:text-xs font-medium w-full ${STATUS_CONFIG[b.status].bg}`}>
-                      {b.customerName}
+                      {b.customerName || "Pelanggan Baru"}
                     </div>
                   ))}
                   {dayBookings.length > 2 && (
@@ -261,11 +261,11 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-1">
                     <CarFront className="w-4 h-4 text-blue-600 shrink-0" />
-                    <h4 className="font-bold text-slate-800 text-sm truncate">{b.itemName}</h4>
+                    <h4 className="font-bold text-slate-800 text-sm truncate">{b.itemName || "Menunggu Info Armada"}</h4>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <p className="text-xs text-slate-500 font-medium truncate">{b.customerName}</p>
+                    <p className="text-xs text-slate-500 font-medium truncate">{b.customerName || "Pelanggan Baru"}</p>
                   </div>
                 </div>
                 <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold border shrink-0 ${STATUS_CONFIG[b.status].bg} border-current/20`}>
@@ -367,11 +367,11 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
               <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Penyewa</span>
-                  <span className="font-semibold text-slate-800">{finishingOrder.customerName}</span>
+                  <span className="font-semibold text-slate-800">{finishingOrder?.customerName || "Pelanggan Baru"}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Armada/Layanan</span>
-                  <span className="font-semibold text-slate-800">{finishingOrder.itemName}</span>
+                  <span className="font-semibold text-slate-800">{finishingOrder?.itemName || "Menunggu Info Armada"}</span>
                 </div>
               </div>
               

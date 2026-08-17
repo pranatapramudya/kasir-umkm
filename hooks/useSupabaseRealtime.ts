@@ -23,11 +23,11 @@ export function useSupabaseRealtime(tenantId: string | null | undefined) {
           filter: `userId=eq.${tenantId}`
         },
         (payload) => {
-          console.log("Realtime Booking Update:", payload);
-          // When a booking changes, we revalidate paths/queries related to bookings or just trigger a global router.refresh
-          // In this case, we use SWR's global mutate with a filter or specific keys if known.
-          // For now, we can mutate generic endpoints that we know are used for bookings.
-          mutate((key) => typeof key === 'string' && key.startsWith('/api/booking'));
+          console.log("Realtime Booking Update received:", payload);
+          mutate("/api/booking/calendar");
+          mutate("/api/booking/today");
+          mutate("/api/booking/pending-count");
+          mutate("/api/booking/availability");
         }
       )
       .subscribe();
@@ -43,9 +43,9 @@ export function useSupabaseRealtime(tenantId: string | null | undefined) {
           filter: `userId=eq.${tenantId}`
         },
         (payload) => {
-          console.log("Realtime Transaction Update:", payload);
-          mutate((key) => typeof key === 'string' && key.startsWith('/api/booking'));
-          mutate((key) => typeof key === 'string' && key.startsWith('/api/transactions'));
+          console.log("Realtime Transaction Update received:", payload);
+          mutate("/api/transactions");
+          mutate("/api/booking/today");
         }
       )
       .subscribe();
