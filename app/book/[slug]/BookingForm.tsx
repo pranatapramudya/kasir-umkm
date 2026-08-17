@@ -22,16 +22,10 @@ interface BookingFormProps {
   bankAccountName?: string | null;
 }
 
-const PROVINCES = [
-  "Aceh", "Bali", "Banten", "Bengkulu", "DI Yogyakarta", "DKI Jakarta", "Gorontalo", "Jambi",
-  "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Kalimantan Barat", "Kalimantan Selatan",
-  "Kalimantan Tengah", "Kalimantan Timur", "Kalimantan Utara", "Kepulauan Bangka Belitung",
-  "Kepulauan Riau", "Lampung", "Maluku", "Maluku Utara", "Nusa Tenggara Barat",
-  "Nusa Tenggara Timur", "Papua", "Papua Barat", "Papua Barat Daya", "Papua Pegunungan",
-  "Papua Selatan", "Papua Tengah", "Riau", "Sulawesi Barat", "Sulawesi Selatan",
-  "Sulawesi Tengah", "Sulawesi Tenggara", "Sulawesi Utara", "Sumatera Barat",
-  "Sumatera Selatan", "Sumatera Utara"
-];
+interface Region {
+  id: string;
+  name: string;
+}
 
 type FormStep = "form" | "success";
 
@@ -53,10 +47,10 @@ function generateTimeSlots() {
   return slots;
 }
 
-// Generate rental time slots 06:00 - 23:30, interval 30 menit
+// Generate rental time slots 00:00 - 23:30, interval 30 menit
 function generateRentalTimeSlots() {
   const slots: string[] = [];
-  for (let h = 6; h <= 23; h++) {
+  for (let h = 0; h <= 23; h++) {
     slots.push(`${String(h).padStart(2, "0")}:00`);
     slots.push(`${String(h).padStart(2, "0")}:30`);
   }
@@ -188,8 +182,60 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     endDate: todayISO,
     pickupLocation: "",
     dropoffProvince: "",
+    dropoffRegency: "",
+    dropoffDistrict: "",
     dropoffLocation: "",
   });
+
+  // State untuk data wilayah (Emsifa API)
+  const [provincesData, setProvincesData] = useState<Region[]>([]);
+  const [regenciesData, setRegenciesData] = useState<Region[]>([]);
+  const [districtsData, setDistrictsData] = useState<Region[]>([]);
+  const [isFetchingRegion, setIsFetchingRegion] = useState(false);
+
+  useEffect(() => {
+    if (isRental) {
+      setIsFetchingRegion(true);
+      fetch("https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json")
+        .then(res => res.json())
+        .then(data => setProvincesData(data))
+        .catch(err => console.error(err))
+        .finally(() => setIsFetchingRegion(false));
+    }
+  }, [isRental]);
+
+  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const provinceVal = e.target.value;
+    setRentalData(prev => ({ ...prev, dropoffProvince: provinceVal, dropoffRegency: "", dropoffDistrict: "" }));
+    setRegenciesData([]);
+    setDistrictsData([]);
+    setError(null);
+    if (provinceVal) {
+      const provinceId = provinceVal.split("|")[0];
+      setIsFetchingRegion(true);
+      fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`)
+        .then(res => res.json())
+        .then(data => setRegenciesData(data))
+        .catch(err => console.error(err))
+        .finally(() => setIsFetchingRegion(false));
+    }
+  };
+
+  const handleRegencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const regencyVal = e.target.value;
+    setRentalData(prev => ({ ...prev, dropoffRegency: regencyVal, dropoffDistrict: "" }));
+    setDistrictsData([]);
+    setError(null);
+    if (regencyVal) {
+      const regencyId = regencyVal.split("|")[0];
+      setIsFetchingRegion(true);
+      fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${regencyId}.json`)
+        .then(res => res.json())
+        .then(data => setDistrictsData(data))
+        .catch(err => console.error(err))
+        .finally(() => setIsFetchingRegion(false));
+    }
+  };
 
   const selectedService = services.find(
     (s) => s.id.toString() === formData.productId
@@ -319,8 +365,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
         return;
       }
-      if (!rentalData.dropoffProvince) {
-        setError("Provinsi tujuan wajib dipilih.");
+      if (!rentalData.dropoffProvince || !rentalData.dropoffRegency || !rentalData.dropoffDistrict) {
+        setError("Provinsi, Kota/Kabupaten, dan Kecamatan tujuan wajib dipilih.");
         return;
       }
       // Pengecekan overlap sebelum submit
@@ -361,8 +407,12 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         ? new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`)
         : new Date(`${formData.bookingDate}T${formData.bookingTime}:00`);
 
-      const finalDropoff = rentalData.dropoffProvince
-        ? `[${rentalData.dropoffProvince}] ${rentalData.dropoffLocation}`.trim()
+      const provName = rentalData.dropoffProvince.split("|")[1] || "";
+      const regName = rentalData.dropoffRegency.split("|")[1] || "";
+      const distName = rentalData.dropoffDistrict.split("|")[1] || "";
+      
+      const finalDropoff = provName
+        ? `[${provName} - ${regName} - ${distName}] ${rentalData.dropoffLocation}`.trim()
         : rentalData.dropoffLocation;
 
       const res = await fetch("/api/booking", {
@@ -473,7 +523,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 text-xs">Tujuan</span>
                     <span className="text-slate-900 font-semibold text-xs text-right max-w-[65%] truncate">
-                      {rentalData.dropoffProvince ? `[${rentalData.dropoffProvince}] ` : ''}{rentalData.dropoffLocation}
+                      {rentalData.dropoffProvince ? `[${rentalData.dropoffProvince.split("|")[1]} - ${rentalData.dropoffRegency.split("|")[1]} - ${rentalData.dropoffDistrict.split("|")[1]}] ` : ''}{rentalData.dropoffLocation}
                     </span>
                   </div>
                 )}
@@ -785,6 +835,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
           {/* Lokasi Tujuan */}
           <div className="space-y-3">
+            {isFetchingRegion && <div className="text-[10px] text-blue-500 font-semibold animate-pulse">Memuat data wilayah...</div>}
+            
             <div className="space-y-1.5">
               <label htmlFor="rental-dropoffProvince" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 PROVINSI TUJUAN *
@@ -792,19 +844,58 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
               <select
                 id="rental-dropoffProvince"
                 value={rentalData.dropoffProvince}
-                onChange={(e) => {
-                  setRentalData((prev) => ({ ...prev, dropoffProvince: e.target.value }));
-                  setError(null);
-                }}
+                onChange={handleProvinceChange}
                 required
                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
               >
                 <option value="" disabled className="text-slate-500">Pilih Provinsi Tujuan</option>
-                {PROVINCES.map((prov) => (
-                  <option key={prov} value={prov}>{prov}</option>
+                {provincesData.map((prov) => (
+                  <option key={prov.id} value={`${prov.id}|${prov.name}`}>{prov.name}</option>
                 ))}
               </select>
             </div>
+            
+            <div className="space-y-1.5">
+              <label htmlFor="rental-dropoffRegency" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                KOTA/KABUPATEN TUJUAN *
+              </label>
+              <select
+                id="rental-dropoffRegency"
+                value={rentalData.dropoffRegency}
+                onChange={handleRegencyChange}
+                disabled={!rentalData.dropoffProvince || regenciesData.length === 0}
+                required
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
+              >
+                <option value="" disabled className="text-slate-500">Pilih Kota/Kabupaten</option>
+                {regenciesData.map((reg) => (
+                  <option key={reg.id} value={`${reg.id}|${reg.name}`}>{reg.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label htmlFor="rental-dropoffDistrict" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                KECAMATAN TUJUAN *
+              </label>
+              <select
+                id="rental-dropoffDistrict"
+                value={rentalData.dropoffDistrict}
+                onChange={(e) => {
+                  setRentalData(prev => ({ ...prev, dropoffDistrict: e.target.value }));
+                  setError(null);
+                }}
+                disabled={!rentalData.dropoffRegency || districtsData.length === 0}
+                required
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
+              >
+                <option value="" disabled className="text-slate-500">Pilih Kecamatan</option>
+                {districtsData.map((dist) => (
+                  <option key={dist.id} value={`${dist.id}|${dist.name}`}>{dist.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-1.5">
               <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 ALAMAT DETAIL TUJUAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
