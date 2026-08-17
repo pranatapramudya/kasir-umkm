@@ -128,22 +128,14 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5" onClick={() => setIsOpen(true)}>
-          <label className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Mulai Sewa *
-          </label>
-          <div className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm cursor-pointer hover:border-amber-500 transition-all">
-            {displayFormat(startDate)}
-          </div>
-        </div>
-        <div className="space-y-1.5" onClick={() => setIsOpen(true)}>
-          <label className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Selesai Sewa *
-          </label>
-          <div className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm cursor-pointer hover:border-amber-500 transition-all">
-            {displayFormat(endDate)}
-          </div>
+      <div className="space-y-1.5" onClick={() => setIsOpen(true)}>
+        <label className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          Pilih Tanggal Sewa *
+        </label>
+        <div className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm cursor-pointer hover:border-amber-500 transition-all flex items-center justify-between">
+          <span>{startDate ? displayFormat(startDate) : "Mulai"}</span>
+          <span className="text-slate-400 font-bold mx-2">→</span>
+          <span>{endDate ? displayFormat(endDate) : "Selesai"}</span>
         </div>
       </div>
 
@@ -175,8 +167,10 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
                   onSelect={handleSelect}
                   disabled={disabledDates}
                   className="bg-white"
-                  modifiersStyles={{
-                    disabled: { color: '#ccc', textDecoration: 'line-through' }
+                  classNames={{
+                    day: "text-gray-900",
+                    selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white",
+                    disabled: "text-gray-300 line-through bg-gray-50"
                   }}
                 />
               </div>

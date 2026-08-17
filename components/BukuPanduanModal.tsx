@@ -2,6 +2,8 @@
 
 import { X, BookOpen, CheckCircle } from "lucide-react";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
+import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 
 interface Props {
   isOpen: boolean;
@@ -10,16 +12,22 @@ interface Props {
 }
 
 export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const isRental = isRentalTravelCategory(category);
   const isJasa = isServiceBusinessCategory(category);
   const isFnbRetail = !isRental && !isJasa;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between p-4 border-b border-slate-100">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+        <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-blue-100 rounded-lg">
               <BookOpen className="w-5 h-5 text-blue-600" />
@@ -34,7 +42,7 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
           </button>
         </div>
         
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-6 space-y-6 overflow-y-auto">
           <p className="text-sm text-slate-600 leading-relaxed">
             Berikut adalah alur kerja operasional standar (SOP) untuk bisnis <span className="font-semibold text-slate-800">{category}</span> Anda.
           </p>
@@ -76,7 +84,8 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

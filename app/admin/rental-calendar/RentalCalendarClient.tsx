@@ -65,6 +65,20 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
   const [finishingOrder, setFinishingOrder] = useState<Booking | null>(null);
   const [overtimeFee, setOvertimeFee] = useState<string>("0");
   const [isFinishing, setIsFinishing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col h-full bg-slate-50 min-h-screen p-4 items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />
+        <p className="text-slate-500 font-medium">Memuat Kalender...</p>
+      </div>
+    );
+  }
 
   const handleApprove = async (id: string) => {
     toast.loading("Memproses...", { id: "approve" });
@@ -121,6 +135,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
   // Get bookings for selected date
   const getBookingsForDate = (day: Date) => {
     return calendarBookings.filter(b => {
+      if (!b?.startDate || !b?.endDate) return false;
       if (filter !== "ALL" && b.status !== filter) return false;
       const start = new Date(b.startDate).setHours(0, 0, 0, 0);
       const end = new Date(b.endDate).setHours(0, 0, 0, 0);
