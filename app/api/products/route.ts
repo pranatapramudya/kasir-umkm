@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission } = body;
+    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission, description } = body;
 
     // 2. Validasi Input Dasar (astikan name, hpp, dan hargaJual ada)
     if (!name || hpp === undefined || hargaJual === undefined) {
@@ -117,6 +117,7 @@ export async function POST(request: Request) {
         brand: brand || "",
         variant: variant || "",
         image: image || "",
+        description: description || null,
         isService,
         employeeCommission: isService ? (Number(employeeCommission) || 0) : 0,
       }

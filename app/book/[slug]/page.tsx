@@ -23,9 +23,9 @@ export default async function BookingPage({ params }: PageProps) {
 
   const tenant = await prisma.tenant.findUnique({
     where: { slug },
-    select: { 
-      userId: true, 
-      name: true, 
+    select: {
+      userId: true,
+      name: true,
       category: true,
       adminWhatsApp: true,
       bankName: true,
@@ -58,7 +58,7 @@ export default async function BookingPage({ params }: PageProps) {
   const services = await prisma.product.findMany({
     where: { userId: tenant.userId, isService: true, isArchived: false },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, hargaJual: true },
+    select: { id: true, name: true, hargaJual: true, description: true },
   });
 
   return (

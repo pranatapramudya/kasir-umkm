@@ -34,7 +34,7 @@ export async function PUT(
     const body = await request.json();
     console.log("PAYLOAD DITERIMA:", body);
     console.log("ID PRODUK:", resolvedParams.id);
-    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission } = body;
+    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission, description } = body;
 
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
@@ -56,6 +56,7 @@ export async function PUT(
         brand: brand || "",
         variant: variant || "",
         image: image || "",
+        description: description || null,
         isService,
         employeeCommission: isService ? (parseInt(employeeCommission, 10) || 0) : 0,
       }

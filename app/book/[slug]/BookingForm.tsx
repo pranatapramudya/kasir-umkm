@@ -8,6 +8,7 @@ interface Service {
   id: number;
   name: string;
   hargaJual: number;
+  description?: string | null;
 }
 
 interface BookingFormProps {
@@ -96,7 +97,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
              `Nama Pemesan: *${formData.customerName}*\n` +
              `Layanan: *${tenantName}*${serviceText}\n` +
-             `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
+             `Tanggal Sewa: *${startLabel}* jam *${rentalData.pickupTime}* s/d *${endLabel}*.\n\n` +
              `Berikut bukti transfernya...`;
     } else {
       const dateLabel = new Date(`${formData.bookingDate}T${formData.bookingTime}`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -161,6 +162,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   // State khusus Rental & Travel
   const [rentalData, setRentalData] = useState({
     startDate: todayISO,
+    pickupTime: "08:00",
     endDate: todayISO,
     pickupLocation: "",
     dropoffLocation: "",
@@ -329,7 +331,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     try {
       // Untuk Rental: gunakan startDate sebagai bookingDate (wajib di schema)
       const bookingDateTime = isRental
-        ? new Date(`${rentalData.startDate}T08:00:00`)
+        ? new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`)
         : new Date(`${formData.bookingDate}T${formData.bookingTime}:00`);
 
       const res = await fetch("/api/booking", {
@@ -343,7 +345,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           notes: formData.notes.trim() || null,
           productId: formData.productId ? Number(formData.productId) : null,
           // Field rental (null jika bukan Rental)
-          startDate: isRental ? new Date(`${rentalData.startDate}T00:00:00`).toISOString() : null,
+          startDate: isRental ? new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`).toISOString() : null,
           endDate:   isRental ? new Date(`${rentalData.endDate}T23:59:59`).toISOString()   : null,
           pickupLocation: isRental ? (rentalData.pickupLocation.trim() || null) : null,
           dropoffLocation: isRental ? (rentalData.dropoffLocation.trim() || null) : null,
@@ -445,7 +447,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-xs">Mulai Sewa</span>
                   <span className="text-slate-900 font-semibold text-xs">
-                    {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} {rentalData.pickupTime} WIB
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -595,9 +597,16 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             ))}
           </select>
           {selectedService && (
-            <p className="text-blue-600 text-xs font-medium pl-1">
-              Harga: {isRental ? `Estimasi / Mulai dari ${formatRupiah(selectedService.hargaJual)}` : formatRupiah(selectedService.hargaJual)}
-            </p>
+            <div className="pl-1">
+              <p className="text-blue-600 text-xs font-medium">
+                Harga: {isRental ? `Estimasi / Mulai dari ${formatRupiah(selectedService.hargaJual)}` : formatRupiah(selectedService.hargaJual)}
+              </p>
+              {selectedService.description && (
+                <div className="mt-2 bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-[11px] text-slate-500 italic">
+                  * {selectedService.description}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -675,6 +684,24 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
               />
             </div>
+          </div>
+
+          {/* Jam Penjemputan / Pengiriman */}
+          <div className="space-y-1.5">
+            <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Jam Penjemputan / Pengiriman *
+            </label>
+            <input
+              id="rental-pickupTime"
+              type="time"
+              value={rentalData.pickupTime}
+              onChange={(e) => {
+                setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                setError(null);
+              }}
+              required
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
+            />
           </div>
           
           {/* Tampilkan durasi jika ada */}

@@ -21,6 +21,7 @@ model product {
   variant            String?
   minStockThreshold  Int      @default(5)
   isService          Boolean  @default(false)
+  description        String?
   employeeCommission Int?     @default(0)
   isActive           Boolean  @default(true)
   isArchived         Boolean  @default(false)

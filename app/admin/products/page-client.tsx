@@ -29,6 +29,7 @@ type Product = {
   brand?: string | null;
   variant?: string | null;
   minStockThreshold: number;
+  description?: string | null;
 };
 
 const fetcher = async (url: string) => {
@@ -75,7 +76,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
     brand: '',
     variant: '',
     minStockThreshold: '',
-    employeeCommission: '0'
+    employeeCommission: '0',
+    description: ''
   });
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
@@ -109,7 +111,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         brand: product.brand || '',
         variant: product.variant || '',
         minStockThreshold: product.minStockThreshold.toString(),
-        employeeCommission: formatNumberInput((product as any).employeeCommission?.toString() || '0')
+        employeeCommission: formatNumberInput((product as any).employeeCommission?.toString() || '0'),
+        description: product.description || ''
       });
     } else {
       setEditingProduct(null);
@@ -125,7 +128,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         brand: '',
         variant: '',
         minStockThreshold: '',
-        employeeCommission: '0'
+        employeeCommission: '0',
+        description: ''
       });
     }
     setIsModalOpen(true);
@@ -275,6 +279,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         stock: isJasa ? 999999 : (parseInt(formData.stock.toString().replace(/[^0-9]/g, ''), 10) || 0),
         minStockThreshold: isJasa ? 0 : (parseInt(formData.minStockThreshold.toString().replace(/[^0-9]/g, ''), 10) || 5),
         employeeCommission: isJasa ? (parseInt(formData.employeeCommission.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
+        description: formData.description,
       };
 
       const res = await fetch(url, {
@@ -746,6 +751,17 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                       />
                     </div>
                     <p className="text-xs text-slate-500 mt-1">Potongan harga langsung untuk produk ini.</p>
+                  </div>
+                  
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Catatan Tarif / Area Layanan (Opsional)</label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange as any}
+                      placeholder="Misal: Harga tertera untuk dalam kota. Luar kota dikenakan tambahan biaya Rp 100.000."
+                      className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 min-h-[80px]"
+                    />
                   </div>
                 </div>
               </form>
