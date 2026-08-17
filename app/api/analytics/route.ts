@@ -109,6 +109,11 @@ export async function GET(request: Request) {
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, revenue]) => ({ date, revenue }));
 
+    const tenant = await prisma.tenant.findUnique({
+      where: { userId: activeTenantId },
+      select: { category: true }
+    });
+
     return NextResponse.json({
       totalRevenue,
       totalHpp,
@@ -116,6 +121,7 @@ export async function GET(request: Request) {
       netProfit,
       totalTransactions,
       salesTrend,
+      category: tenant?.category || 'Retail',
       period: {
         start: startDate.toISOString(),
         end: endDate.toISOString()

@@ -47,7 +47,7 @@ export default async function AdminTransactionsPage() {
       {/* Header Halaman */}
       <div className="bg-white p-6 rounded-2xl border shadow-sm">
         <h1 className="text-2xl font-black text-gray-800 tracking-tight">Riwayat Transaksi</h1>
-        <p className="text-gray-500 text-sm mt-1">Pantau seluruh aktivitas penjualan dan riwayat transaksi dari kasir.</p>
+        <p className="text-gray-500 text-sm mt-1">Pantau seluruh aktivitas dan riwayat transaksi bisnis Anda.</p>
       </div>
 
       {/* Table Area dengan UI Minimalis */}

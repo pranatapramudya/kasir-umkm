@@ -7,6 +7,7 @@ import { TrendingUp, CreditCard, DollarSign, BarChart3, Calendar, ChevronDown, L
 import { useUser } from '@clerk/nextjs';
 import ExportBackupButton from '@/components/ExportBackupButton';
 import dynamic from 'next/dynamic';
+import { getTerms } from '@/utils/terminology';
 
 const AdminSalesChart = dynamic(() => import('@/components/AdminSalesChart'), {
   ssr: false,
@@ -45,6 +46,8 @@ export default function AdminDashboardPage() {
       .replace(/\s+/g, ''); // Removes spaces to prevent wrapping e.g. -Rp 1.000 -> -Rp1.000
   };
 
+  const terms = getTerms(analytics?.category);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -53,7 +56,7 @@ export default function AdminDashboardPage() {
             <BarChart3 className="w-6 h-6 text-blue-600" />
             Ringkasan Bisnis
           </h1>
-          <p className="text-slate-500 text-sm">Pantau performa penjualan dan kesehatan bisnis Anda.</p>
+          <p className="text-slate-500 text-sm">{terms.dashboardSubtitle}</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
@@ -153,7 +156,7 @@ export default function AdminDashboardPage() {
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : formatRupiah(analytics?.netProfit || 0)}
             </h3>
             <span className="text-sm text-slate-400 font-bold flex items-center gap-1">
-              Pendapatan dikurangi HPP & Pengeluaran
+              {terms.profitSubtitle}
             </span>
           </div>
         </div>
@@ -192,7 +195,7 @@ export default function AdminDashboardPage() {
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : (analytics?.totalTransactions || 0)}
             </h3>
             <span className="text-sm text-slate-400 font-bold flex items-center gap-1">
-              Faktur pada periode ini
+              {terms.invoiceLabel}
             </span>
           </div>
         </div>
@@ -200,7 +203,7 @@ export default function AdminDashboardPage() {
 
       {/* Chart Area */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-96 flex flex-col relative overflow-hidden">
-        <h3 className="text-lg font-bold text-slate-800 mb-6 relative z-10">Tren Penjualan</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-6 relative z-10">{terms.chartTitle}</h3>
         <div className="flex-1 relative z-10">
           {isLoading ? (
             <div className="w-full h-full flex items-center justify-center">
@@ -211,7 +214,7 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="w-full h-full border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
               <BarChart3 className="w-12 h-12 mb-3 text-slate-300" />
-              <p className="font-medium">Belum ada data penjualan pada periode ini.</p>
+              <p className="font-medium">{terms.emptyChart}</p>
             </div>
           )}
         </div>

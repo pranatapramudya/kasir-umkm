@@ -51,7 +51,7 @@ export default function AdminLayoutClient({
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {isExpired && (
           <div className="bg-red-600 text-white p-2 text-center text-sm font-bold shadow-sm z-50 shrink-0">
-            ⚠️ Masa aktif paket berlangganan Anda telah berakhir. Harap perpanjang paket untuk dapat menggunakan fitur Kasir POS.
+            ⚠️ Masa aktif paket berlangganan Anda telah berakhir. Harap perpanjang paket untuk dapat menggunakan seluruh fitur.
           </div>
         )}
         {/* HEADER */}

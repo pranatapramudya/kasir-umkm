@@ -501,7 +501,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                     <div className="mt-auto pt-3 flex items-end justify-between">
                       <div>
-                        {!isJasa && <div className="text-[10px] text-slate-400 font-medium mb-0.5">HPP: {formatRupiah(product.hpp)}</div>}
+                        {!isJasa && <div className="text-[10px] text-slate-400 font-medium mb-0.5">{isRental ? 'B. Ops' : isFNB ? 'HPP' : 'HPP'}: {formatRupiah(product.hpp)}</div>}
                         {product.discount > 0 ? (
                           <div className="flex flex-col">
                             <span className="text-[10px] text-slate-400 line-through leading-none mb-0.5">{formatRupiah(product.hargaJual)}</span>

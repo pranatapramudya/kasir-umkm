@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { getAnalyticsData } from "./actions";
 import Link from "next/link";
-import { isServiceBusinessCategory } from "@/lib/business-category";
+import { getTerms } from "@/utils/terminology";
 import dynamic from 'next/dynamic';
 
 const BusyHoursChart = dynamic(() => import('@/components/BusyHoursChart'), {
@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
   }
   
   const hasAccess = isPro || isTrialActive;
-  const isServiceBusiness = isServiceBusinessCategory(data?.category);
+  const terms = getTerms(data?.category);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
@@ -162,8 +162,8 @@ export default function AnalyticsPage() {
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-800 leading-tight mb-1">Grafik Jam Sibuk Penjualan</h3>
-                <p className="text-xs text-slate-500 line-clamp-2">Analisis jam tersibuk toko Anda untuk optimasi jam kerja pegawai.</p>
+                <h3 className="font-bold text-slate-800 leading-tight mb-1">{terms.busyHoursTitle}</h3>
+                <p className="text-xs text-slate-500 line-clamp-2">{terms.busyHoursDesc}</p>
               </div>
             </div>
             
@@ -187,8 +187,8 @@ export default function AnalyticsPage() {
                   <BarChart2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 leading-tight mb-1">{isServiceBusiness ? 'Analitik Layanan' : 'Analitik Produk'}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 pr-2">{isServiceBusiness ? 'Identifikasi layanan paling diminati.' : 'Identifikasi performa produk.'}</p>
+                  <h3 className="font-bold text-slate-800 leading-tight mb-1">{terms.analyticsItemTitle}</h3>
+                  <p className="text-xs text-slate-500 line-clamp-2 pr-2">{terms.analyticsItemDesc}</p>
                 </div>
               </div>
               <div className="relative mt-1">
@@ -270,7 +270,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* 3. Peringatan Stok Cerdas */}
-        {!isServiceBusiness && (
+        {data?.category !== 'Jasa / Servis' && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group">
           {!hasAccess && <LockOverlay />}
           <div className={hasAccess ? "transition-opacity duration-300 h-full flex flex-col" : "opacity-40 h-full flex flex-col"}>
@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
                   <div className="bg-slate-50 p-4 rounded-full mb-3">
                     <AlertTriangle className="w-6 h-6 text-slate-300" />
                   </div>
-                  <p className="text-sm font-medium">Semua stok produk aman!</p>
+                  <p className="text-sm font-medium">{terms.stockWarningLabel}</p>
                 </div>
               )}
             </div>
@@ -356,7 +356,7 @@ export default function AnalyticsPage() {
                 <Crown className="w-10 h-10 text-yellow-500" />
               </div>
               <h2 className="text-2xl font-black text-slate-800 mb-3">Buka Potensi Penuh Bisnis Anda!</h2>
-              <p className="text-slate-500 text-sm mb-8 leading-relaxed">Upgrade ke Paket Pro untuk melihat produk terlaris, laporan laba rugi detail, dan tren penjualan.</p>
+              <p className="text-slate-500 text-sm mb-8 leading-relaxed">{terms.paywalDesc}</p>
               
               <div className="w-full space-y-3">
                 <button className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg shadow-yellow-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
