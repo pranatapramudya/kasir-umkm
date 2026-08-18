@@ -43,7 +43,8 @@ export default function AdminDashboardPage() {
   const queryUrl = `/api/analytics?filter=${dateFilter}${dateFilter === 'manual' ? `&customDate=${customDate}` : ''}`;
   const { data: analytics, isLoading } = useSWR(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
-    fetcher
+    fetcher,
+    { keepPreviousData: true }
   );
 
   const formatRupiah = (num: number) => {
@@ -148,7 +149,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <h3 className="text-3xl font-black text-slate-900 mb-1 flex items-center h-9 truncate">
-              {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : formatRupiah(analytics?.totalRevenue || 0)}
+              {!analytics ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : formatRupiah(analytics?.totalRevenue || 0)}
             </h3>
             <span className="text-sm text-green-600 font-bold flex items-center gap-1">
               <TrendingUp className="w-4 h-4" />
@@ -168,7 +169,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <h3 className="text-3xl font-black text-slate-900 mb-1 flex items-center h-9 truncate">
-              {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : formatRupiah(analytics?.netProfit || 0)}
+              {!analytics ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : formatRupiah(analytics?.netProfit || 0)}
             </h3>
             <span className="text-sm text-slate-400 font-bold flex items-center gap-1">
               {terms.profitSubtitle}
@@ -188,7 +189,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <h3 className="text-3xl font-black text-slate-900 mb-1 flex items-center h-9 truncate">
-              {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : formatRupiah(analytics?.totalExpense || 0)}
+              {!analytics ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : formatRupiah(analytics?.totalExpense || 0)}
             </h3>
             <span className="text-sm text-red-600 font-bold flex items-center gap-1">
               Biaya operasional
@@ -207,7 +208,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <h3 className="text-3xl font-black text-slate-900 mb-1 flex items-center h-9 truncate">
-              {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : (analytics?.totalTransactions || 0)}
+              {!analytics ? <Loader2 className="w-6 h-6 animate-spin text-slate-400 shrink-0" /> : (analytics?.totalTransactions || 0)}
             </h3>
             <span className="text-sm text-slate-400 font-bold flex items-center gap-1">
               {terms.invoiceLabel}
@@ -220,7 +221,7 @@ export default function AdminDashboardPage() {
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-96 flex flex-col relative overflow-hidden">
         <h3 className="text-lg font-bold text-slate-800 mb-6 relative z-10">{terms.chartTitle}</h3>
         <div className="flex-1 relative z-10">
-          {isLoading ? (
+          {!analytics ? (
             <div className="w-full h-full flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
             </div>

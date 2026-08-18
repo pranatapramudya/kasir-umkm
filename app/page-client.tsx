@@ -90,7 +90,7 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
   const fetcher = (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then(r => r.json());
   const { user } = useUser();
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
-  const { data, error, isLoading } = useSWR(isOpen && currentTenantId ? [`/api/booking/today?date=${selectedQueueDate}`, currentTenantId as string] : null, fetcher);
+  const { data, error, isLoading } = useSWR(isOpen && currentTenantId ? [`/api/booking/today?date=${selectedQueueDate}`, currentTenantId as string] : null, fetcher, { keepPreviousData: true });
 
   if (!isOpen) return null;
 
@@ -116,7 +116,7 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
         </div>
 
         <div className="p-4 max-h-[60vh] overflow-y-auto bg-slate-50">
-          {isLoading && (
+          {(!data && !error) && (
             <div className="flex justify-center p-8">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
             </div>
@@ -249,7 +249,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const { data: swrResponse, error, mutate } = useSWR<{ products: Product[], totalPages: number }>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
-    { fallbackData: initialData }
+    { fallbackData: initialData, keepPreviousData: true }
   );
 
   const products = swrResponse?.products || [];

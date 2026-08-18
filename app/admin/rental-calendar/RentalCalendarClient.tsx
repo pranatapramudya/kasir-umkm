@@ -54,7 +54,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
   const { data, mutate, isLoading } = useSWR<{ bookings: Booking[] }>(
     tenantId ? ["/api/booking/calendar", tenantId] : null,
     (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then((res) => res.json()),
-    { fallbackData: { bookings: initialBookings } }
+    { fallbackData: { bookings: initialBookings }, keepPreviousData: true }
   );
   
   const calendarBookings = data?.bookings || [];
@@ -77,7 +77,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
     setIsMounted(true);
   }, []);
 
-  if (!isMounted || isLoading) {
+  if (!isMounted || !data) {
     return (
       <div className="flex flex-col h-full bg-slate-50 min-h-screen p-4 items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />

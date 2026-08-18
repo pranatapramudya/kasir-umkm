@@ -51,7 +51,8 @@ export default function PengeluaranPage() {
   const queryUrl = `/api/expenses?from=${dateRange.from}&to=${dateRange.to}`;
   const { data: expenses, error, isLoading } = useSWR<Expense[]>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
-    fetcher
+    fetcher,
+    { keepPreviousData: true }
   );
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -200,7 +201,7 @@ export default function PengeluaranPage() {
         </div>
 
         {/* Data State */}
-        {isLoading ? (
+        {(!expenses && !error) ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
             <p className="font-medium">Memuat data pengeluaran...</p>

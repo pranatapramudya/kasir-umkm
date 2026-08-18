@@ -63,7 +63,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const [importFile, setImportFile] = useState<File | null>(null);
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
-  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher, { keepPreviousData: true });
 
   const products = data?.products || [];
   const totalPages = data?.totalPages || 1;
@@ -453,7 +453,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
       {/* Table Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        {isLoading ? (
+        {(!data && !error) ? (
           <div className="p-12 flex flex-col items-center justify-center text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
             <p>Memuat data produk...</p>

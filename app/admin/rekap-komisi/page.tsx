@@ -101,7 +101,7 @@ export default function RekapKomisiPage() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        {isLoading ? (
+        {(isLoading && data.length === 0) ? (
           <div className="p-12 flex flex-col items-center justify-center text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
             <p>Menghitung rekap komisi...</p>

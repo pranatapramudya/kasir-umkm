@@ -189,7 +189,7 @@ export default function BookingDashboardClient({
   const { data: bookingsData, mutate: mutateBookings, isLoading } = useSWR<{ bookings: Booking[] }>(
     tenantId ? ["/api/booking", tenantId] : null,
     (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then((res) => res.json()),
-    { fallbackData: { bookings: initialBookings } }
+    { fallbackData: { bookings: initialBookings }, keepPreviousData: true }
   );
   
   const bookings = bookingsData?.bookings || [];
@@ -342,7 +342,7 @@ export default function BookingDashboardClient({
         </div>
       </div>
 
-      {isLoading ? (
+      {!bookingsData ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
           <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
           <p className="font-medium">Memuat jadwal booking...</p>

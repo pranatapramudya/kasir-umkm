@@ -27,7 +27,8 @@ export default function ManajemenMejaPage() {
 
   const { data: tables, error, isLoading, mutate } = useSWR<DiningTable[]>(
     currentTenantId ? ['/api/tables', currentTenantId as string] : null, 
-    fetcher
+    fetcher,
+    { keepPreviousData: true }
   );
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -152,7 +153,7 @@ export default function ManajemenMejaPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
+              {(!tables && !error) ? (
                 <tr>
                   <td colSpan={4} className="p-8 text-center text-slate-500">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />

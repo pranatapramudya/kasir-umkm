@@ -35,7 +35,8 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
     const isInitialParams = currentPage === 1 && selectedDate === initialDate;
     
     const { data, error, isLoading } = useSWR(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher, { 
-        fallbackData: isInitialParams ? initialData : undefined 
+        fallbackData: isInitialParams ? initialData : undefined,
+        keepPreviousData: true
     });
 
     const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -172,7 +173,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {isLoading ? (
+                                    {(!data && !error) ? (
                                         <tr>
                                             <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
                                                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
