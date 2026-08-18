@@ -29,9 +29,8 @@ export default function PaymentSettingsForm({
   const [error, setError] = useState<string | null>(null);
 
   const isRental = tenantCategory === "Rental & Travel";
-  const isService = tenantCategory === "Jasa / Servis" || isRental;
 
-  if (!isService) {
+  if (!isRental) {
     return null;
   }
 
