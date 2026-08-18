@@ -20,7 +20,7 @@ Komponen kartu harga (`components/PricingSection.tsx`) telah diubah total untuk 
   1. Tablet Kasir Android 10 Inch
   2. Printer Thermal Bluetooth 58mm
   3. Stand Holder & Cash Drawer (Laci Uang)
-- **Tombol Affiliate CTA:** Masing-masing perangkat memiliki 2 tombol (Beli di Tokopedia & Beli di Shopee) yang siap diisi dengan tautan *Affiliate Link* milik Anda.
+- **Tombol Affiliate CTA:** Masing-masing perangkat memiliki 1 tombol (Beli di Shopee) yang siap diisi dengan tautan *Affiliate Link* milik Anda (sementara Tokopedia belum tersedia).
 - Catatan kaki (*Disclaimer*) legal juga disematkan dengan ikon perisai (*ShieldAlert*) di bagian bawah halaman ini.
 
 ## Status Sistem

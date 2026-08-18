@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, ExternalLink, ShieldAlert, MonitorSmartphone, Printer, Inbox } from 'lucide-react';
+import { ShoppingCart, ExternalLink, ShieldAlert, MonitorSmartphone, Printer, Inbox, Barcode } from 'lucide-react';
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -25,6 +25,7 @@ export default async function HardwarePage() {
   });
 
   const isRental = isRentalTravelCategory(tenant?.category || "");
+  const isRetail = tenant?.category === "Retail / Toko Kelontong";
 
   const hardwareItems = [
     {
@@ -33,19 +34,17 @@ export default async function HardwarePage() {
       description: "Tablet performa standar untuk kelancaran aplikasi kasir, layar luas untuk kemudahan transaksi.",
       price: "Mulai dari Rp 1.500.000",
       icon: <MonitorSmartphone className="w-12 h-12 text-blue-500 mb-4" />,
-      linkTokopedia: "https://tokopedia.com",
-      linkShopee: "https://shopee.co.id",
+      linkShopee: "https://s.shopee.co.id/5q7T6w0O0h",
     },
     {
       id: 2,
-      name: isRental ? "Printer Tinta/Dokumen A4" : "Printer Thermal Bluetooth 58mm",
+      name: isRental ? "Printer Tinta/Dokumen A4" : "Printer Kasir Thermal (58mm / 80mm)",
       description: isRental 
         ? "Printer handal untuk mencetak Invoice, Surat Jalan, dan Perjanjian Sewa format A4 secara profesional." 
-        : "Printer ringkas tanpa kabel. Langsung cetak struk dari tablet atau HP Anda via Bluetooth.",
+        : "Printer praktis dengan koneksi Bluetooth/USB untuk mencetak struk pelanggan dan tiket dapur tanpa perlu tinta.",
       price: isRental ? "Mulai dari Rp 950.000" : "Mulai dari Rp 250.000",
       icon: <Printer className={`w-12 h-12 mb-4 ${isRental ? 'text-indigo-500' : 'text-emerald-500'}`} />,
-      linkTokopedia: "https://tokopedia.com",
-      linkShopee: "https://shopee.co.id",
+      linkShopee: isRental ? "https://s.shopee.co.id/7fZ7lQROKy?share_channel_code=1" : "https://s.shopee.co.id/8Koo5bQozu",
     },
     {
       id: 3,
@@ -53,10 +52,20 @@ export default async function HardwarePage() {
       description: "Laci uang otomatis dan stand dudukan tablet untuk membuat meja kasir Anda terlihat profesional.",
       price: "Mulai dari Rp 350.000",
       icon: <Inbox className="w-12 h-12 text-orange-500 mb-4" />,
-      linkTokopedia: "https://tokopedia.com",
-      linkShopee: "https://shopee.co.id",
+      linkShopee: "https://s.shopee.co.id/1Lf3krJlpq?share_channel_code=1",
     }
   ];
+
+  if (isRetail) {
+    hardwareItems.push({
+      id: 4,
+      name: "Scanner Barcode USB/Wireless",
+      description: "Scan barcode produk dengan cepat. Cocok untuk minimarket dan toko retail dengan antrean panjang.",
+      price: "Mulai dari Rp 150.000",
+      icon: <Barcode className="w-12 h-12 text-purple-500 mb-4" />,
+      linkShopee: "https://s.shopee.co.id/W5wlObdLM?share_channel_code=1",
+    });
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-10">
@@ -86,17 +95,9 @@ export default async function HardwarePage() {
             
             <div className="space-y-3 mt-auto">
               <a 
-                href={item.linkTokopedia} 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 py-2.5 rounded-xl text-sm font-bold transition-colors"
-              >
-                Beli di Tokopedia <ExternalLink className="w-4 h-4" />
-              </a>
-              <a 
                 href={item.linkShopee} 
                 target="_blank" 
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 py-2.5 rounded-xl text-sm font-bold transition-colors"
               >
                 Beli di Shopee <ExternalLink className="w-4 h-4" />
