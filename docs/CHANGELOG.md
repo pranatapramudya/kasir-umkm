@@ -5,6 +5,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.3.33 – 0.3.42] — 2026-08-18
+
+### 🚀 Optimasi & Bug Fixes (Hotfixes)
+- **System-Wide Cache Isolation:** Penerapan `[url, tenantId]` pada SWR *cache keys* dan mekanisme *Wipe-on-Login/Logout* untuk mencegah *stale data* dan *FOUC* antar tenant.
+- **Realtime Hook Fix:** Penanganan *payload* dari Supabase Realtime dengan SWR `mutate` *background fetch* untuk mencegah *Client-side Exception* akibat *missing relation data*.
+- **Smart Print Logic (CSS Media):** Pemisahan *print format*. Otomatisasi kertas Thermal (80mm) untuk kasir F&B/Retail/Jasa, dan kertas A4 khusus untuk dokumen Surat Jalan bisnis Rental/Travel. Termasuk sinkronisasi dinamis "Nama Kasir" dan perbaikan ID karyawan.
+- **Dynamic Onboarding SOP:** Perbaikan antarmuka *Stepper* pada Modal Buku Panduan (pemisahan warna per bisnis dan *horizontal divider*), serta pemisahan redaksi SOP yang ketat antara Rental, Jasa, F&B, dan Retail (termasuk penghapusan referensi *barcode* pada Retail).
+
+---
+
 ## [0.3.0 – 0.3.32] — 2026-08-17
 
 ### 🚀 Fitur Baru & Arsitektur Utama

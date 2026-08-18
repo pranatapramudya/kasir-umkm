@@ -20,9 +20,14 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
 
   if (!isOpen || !mounted) return null;
 
-  const isRental = isRentalTravelCategory(category);
-  const isJasa = isServiceBusinessCategory(category);
-  const isFnbRetail = !isRental && !isJasa;
+  let businessType = 'RETAIL';
+  if (isRentalTravelCategory(category)) {
+    businessType = 'RENTAL';
+  } else if (isServiceBusinessCategory(category)) {
+    businessType = 'JASA';
+  } else if (category === "F&B / Kuliner") {
+    businessType = 'FNB';
+  }
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -48,32 +53,42 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
           </p>
           
           <div className="space-y-4">
-            {isFnbRetail && (
+            {businessType === 'FNB' && (
               <>
-                <Step num="1" title="Tambah Produk/Menu">Buka menu <b>Produk</b>, tambahkan foto, harga modal (HPP), dan harga jual untuk menu atau barang jualan Anda.</Step>
-                <Step num="2" title="Atur Stok">Kelola persediaan barang agar selalu ter-update setiap ada penjualan.</Step>
-                <Step num="3" title="Buka Kasir">Buka menu <b>Kasir POS</b>. Klik item yang dibeli, sesuaikan jumlah (Qty), lalu klik <b>Bayar</b>.</Step>
-                <Step num="4" title="Cetak Struk/Faktur">Pilih metode pembayaran (Tunai/QRIS), dan cetak struk untuk diberikan ke pelanggan.</Step>
+                <Step num="1" title="Tambah Menu & Kategori" businessType={businessType}>Buka menu <b>Produk</b>, masukkan daftar makanan/minuman beserta harganya.</Step>
+                <Step num="2" title="Atur Meja (Opsional)" businessType={businessType}>Jika melayani <i>Dine-in</i>, buka <b>Manajemen Meja</b> untuk mengatur nomor dan kapasitas meja.</Step>
+                <Step num="3" title="Buka Kasir Resto" businessType={businessType}>Masuk ke menu <b>Kasir Resto</b>, pilih menu pesanan pelanggan, dan tentukan nomor meja jika diperlukan.</Step>
+                <Step num="4" title="Cetak Tiket Dapur" businessType={businessType}>Simpan pesanan dan cetak <b>Tiket Dapur</b> agar koki dapat menyiapkan pesanan.</Step>
+                <Step num="5" title="Pembayaran & Struk" businessType={businessType} isLast>Saat pelanggan selesai, selesaikan pembayaran dan cetak Struk Thermal untuk pelanggan.</Step>
               </>
             )}
 
-            {isJasa && (
+            {businessType === 'RETAIL' && (
               <>
-                <Step num="1" title="Buat Layanan (Klinik/Salon)">Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Creambath).</Step>
-                <Step num="2" title="Bagikan Link Katalog">Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
-                <Step num="3" title="Terima Antrean">Terima antrean yang masuk, atau input antrean secara manual di Kasir.</Step>
-                <Step num="4" title="Proses di Kasir">Setelah selesai, selesaikan transaksi di menu Kasir POS.</Step>
+                <Step num="1" title="Tambah Produk" businessType={businessType}>Buka menu <b>Produk</b>, masukkan data barang, harga jual, dan modal awal Anda.</Step>
+                <Step num="2" title="Atur Stok Inventaris" businessType={businessType}>Buka menu <b>Produk</b> untuk mengatur jumlah stok fisik barang yang tersedia di toko.</Step>
+                <Step num="3" title="Buka Kasir POS" businessType={businessType}>Masuk ke menu <b>Kasir POS</b>, ketik nama barang di kolom pencarian atau klik foto produk untuk memasukkannya ke keranjang kasir.</Step>
+                <Step num="4" title="Pembayaran & Struk" businessType={businessType} isLast>Selesaikan transaksi dan cetak Struk Thermal sebagai bukti pembelian pelanggan.</Step>
               </>
             )}
 
-            {isRental && (
+            {businessType === 'JASA' && (
               <>
-                <Step num="1" title="Tambah Armada">Buka menu <b>Armada / Unit</b>. Masukkan data mobil, motor, atau peralatan yang bisa disewa.</Step>
-                <Step num="2" title="Atur Harga Sewa">Tentukan harga per-hari atau per-jam untuk setiap armada yang Anda sewakan.</Step>
-                <Step num="3" title="Bagikan Link Katalog">Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
-                <Step num="4" title="Tarik Pesanan / Input Kalender Sewa">Pelanggan bisa memesan dari link booking, atau Anda input manual ke <b>Kalender Sewa</b>.</Step>
-                <Step num="5" title="Klik Start (Mulai Perjalanan)">Saat unit diambil, klik pesanan di kalender dan ubah status ke <b>Sedang Jalan</b>.</Step>
-                <Step num="6" title="Finish & Lunas">Saat unit dikembalikan, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
+                <Step num="1" title="Buat Layanan (Klinik/Salon)" businessType={businessType}>Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Creambath).</Step>
+                <Step num="2" title="Bagikan Link Katalog" businessType={businessType}>Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
+                <Step num="3" title="Terima Antrean" businessType={businessType}>Terima antrean yang masuk, atau input antrean secara manual di Kasir.</Step>
+                <Step num="4" title="Proses di Kasir" businessType={businessType} isLast>Setelah selesai, selesaikan transaksi di menu Kasir POS.</Step>
+              </>
+            )}
+
+            {businessType === 'RENTAL' && (
+              <>
+                <Step num="1" title="Tambah Armada" businessType={businessType}>Buka menu <b>Armada / Unit</b>. Masukkan data mobil, motor, atau peralatan yang bisa disewa.</Step>
+                <Step num="2" title="Atur Harga Sewa" businessType={businessType}>Tentukan harga per-hari atau per-jam untuk setiap armada yang Anda sewakan.</Step>
+                <Step num="3" title="Bagikan Link Katalog" businessType={businessType}>Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
+                <Step num="4" title="Tarik Pesanan / Input Kalender Sewa" businessType={businessType}>Pelanggan bisa memesan dari link booking, atau Anda input manual ke <b>Kalender Sewa</b>.</Step>
+                <Step num="5" title="Klik Start (Mulai Perjalanan)" businessType={businessType}>Saat unit diambil, klik pesanan di kalender dan ubah status ke <b>Sedang Jalan</b>.</Step>
+                <Step num="6" title="Finish & Lunas" businessType={businessType} isLast>Saat unit dikembalikan, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
               </>
             )}
           </div>
@@ -91,17 +106,28 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
   );
 }
 
-function Step({ num, title, children }: { num: string; title: string; children: React.ReactNode }) {
+function Step({ num, title, businessType, isLast, children }: { num: string; title: string; businessType: string; isLast?: boolean; children: React.ReactNode }) {
+  let badgeClass = "bg-slate-800 text-white"; // default
+  if (businessType === 'RENTAL') {
+    badgeClass = "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-sm shadow-blue-200";
+  } else if (businessType === 'JASA') {
+    badgeClass = "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm shadow-emerald-200";
+  } else if (businessType === 'FNB') {
+    badgeClass = "bg-gradient-to-br from-orange-500 to-rose-600 text-white shadow-sm shadow-orange-200";
+  } else if (businessType === 'RETAIL') {
+    badgeClass = "bg-gradient-to-br from-blue-900 to-slate-800 text-white shadow-sm shadow-slate-300";
+  }
+
   return (
     <div className="flex gap-4">
       <div className="flex flex-col items-center">
-        <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm shrink-0">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${badgeClass}`}>
           {num}
         </div>
-        <div className="w-px h-full bg-slate-200 mt-2"></div>
+        {!isLast && <div className="w-px h-full bg-slate-200 mt-2"></div>}
       </div>
       <div className="pb-6">
-        <h3 className="font-bold text-slate-800 mb-1">{title}</h3>
+        <h3 className="font-black text-slate-800 mb-1 text-base">{title}</h3>
         <p className="text-slate-600 text-sm leading-relaxed">{children}</p>
       </div>
     </div>

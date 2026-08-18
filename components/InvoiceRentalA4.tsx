@@ -23,7 +23,7 @@ export default function InvoiceRentalA4({
     <div className="bg-white text-black p-8 mx-auto w-full max-w-[210mm] text-sm font-sans print:block print:w-full print:m-0 print:p-0">
       <style>{`
         @media print { 
-          @page { size: A4; margin: 10mm; } 
+          @page { size: A4 portrait; margin: 10mm; } 
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } 
         }
       `}</style>
@@ -129,11 +129,11 @@ export default function InvoiceRentalA4({
       {/* Footer Tanda Tangan */}
       <div className="flex justify-between px-12 mt-16 pt-8 border-t-2 border-slate-100 print:break-inside-avoid">
         <div className="text-center">
-          <p className="text-slate-500 mb-20 text-sm">Penyewa / Customer</p>
+          <p className="text-slate-500 mb-20 text-sm">Penyewa / Supir</p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-1 uppercase">{transaction.customerName || "............................"}</p>
         </div>
         <div className="text-center">
-          <p className="text-slate-500 mb-20 text-sm">Petugas / Admin</p>
+          <p className="text-slate-500 mb-20 text-sm">Admin / Petugas</p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-1 uppercase">{user?.fullName || user?.firstName || 'Admin Kasir'}</p>
         </div>
       </div>

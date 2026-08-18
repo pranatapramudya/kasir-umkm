@@ -531,7 +531,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     let text = `*STRUK PEMBELIAN*\n*${storeName}*\n`;
     text += `--------------------------------\n`;
     text += `Waktu : ${lastTransaction.date} ${lastTransaction.time}\n`;
-    text += `Kasir : ${user?.fullName || user?.firstName || 'Kasir'}\n`;
+    text += `Kasir : ${user?.fullName || user?.firstName || 'Admin'}\n`;
     text += `Pelanggan : ${lastTransaction.customerName}\n`;
     if (lastTransaction.tableId) text += `Nomor Meja: ${getTableName(lastTransaction.tableId)}\n`;
     // Data Jasa
@@ -1320,7 +1320,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
       {/* STRUK KASIR (HANYA TAMPIL SAAT DIPRINT) */}
       {!isRental ? (
-        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} w-[58mm] sm:w-[80mm] p-4 bg-white text-black text-xs font-mono mx-auto`}>
+        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} w-full max-w-[80mm] p-4 bg-white text-black text-xs font-mono mx-auto`}>
+          <style>{`
+            @media print {
+              @page { size: 80mm auto; margin: 0; }
+            }
+          `}</style>
         <div className="text-center mb-4 border-b border-dashed border-gray-400 pb-4">
           <h1 className="text-lg font-bold uppercase mb-1">{tenantName || "PJTECH KASIR POS"}</h1>
           {tenantCategory && <p className="mb-1 text-[10px] uppercase font-bold">{tenantCategory}</p>}
@@ -1331,7 +1336,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           <>
             <div className="mb-4">
               <p>Waktu : {lastTransaction.date} {lastTransaction.time}</p>
-              <p>Kasir : {user?.fullName || user?.firstName || 'Kasir'}</p>
+              <p>Kasir : {user?.fullName || user?.firstName || 'Admin'}</p>
               <p>Pelanggan : {lastTransaction.customerName}</p>
               {lastTransaction.tableId && <p>No. Meja : {getTableName(lastTransaction.tableId)}</p>}
               <p>ID Transaksi : {lastTransaction.id}</p>
@@ -1356,7 +1361,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       </tr>
                       {item.workerId && (
                         <tr>
-                          <td colSpan={3} className="text-gray-600 text-[10px] pl-2">(Oleh: {item.workerId})</td>
+                          <td colSpan={3} className="text-gray-600 text-[10px] pl-2">(Oleh: {employees.find((e: any) => e.id === item.workerId)?.name || item.workerId})</td>
                         </tr>
                       )}
                       {item.note && (
@@ -1418,7 +1423,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       )}
 
       {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT) */}
-      <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} w-[58mm] sm:w-[80mm] p-4 bg-white text-black font-mono mx-auto`}>
+      <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} w-full max-w-[80mm] p-4 bg-white text-black font-mono mx-auto`}>
+        <style>{`
+          @media print {
+            @page { size: 80mm auto; margin: 0; }
+          }
+        `}</style>
         {lastTransaction && (
           <>
             <div className="text-center mb-6 border-b-2 border-black pb-4">
