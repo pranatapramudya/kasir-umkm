@@ -1320,10 +1320,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
       {/* STRUK KASIR (HANYA TAMPIL SAAT DIPRINT) */}
       {!isRental ? (
-        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} w-full max-w-[80mm] p-4 bg-white text-black text-xs font-mono mx-auto`}>
+        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} w-[80mm] max-w-[80mm] mx-auto overflow-hidden p-4 bg-white text-black text-xs font-mono`}>
           <style>{`
             @media print {
-              @page { size: 80mm auto; margin: 0; }
+              @page { size: 80mm 297mm; margin: 0; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             }
           `}</style>
         <div className="text-center mb-4 border-b border-dashed border-gray-400 pb-4">
@@ -1423,10 +1424,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       )}
 
       {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT) */}
-      <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} w-full max-w-[80mm] p-4 bg-white text-black font-mono mx-auto`}>
+      <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} w-[80mm] max-w-[80mm] mx-auto overflow-hidden p-4 bg-white text-black font-mono`}>
         <style>{`
           @media print {
-            @page { size: 80mm auto; margin: 0; }
+            @page { size: 80mm 297mm; margin: 0; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           }
         `}</style>
         {lastTransaction && (
