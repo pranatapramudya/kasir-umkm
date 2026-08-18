@@ -151,6 +151,14 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
                 </svg>
               </button>
             </div>
+
+            {/* Helper Text UX */}
+            <div className="mb-4 bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-3 text-left">
+              <span className="text-blue-500 shrink-0 mt-0.5 text-sm">ℹ️</span>
+              <p className="text-xs text-blue-800 leading-relaxed">
+                <strong>Cara Memilih Jadwal:</strong> Klik pada tanggal MULAI sewa, kemudian klik pada tanggal SELESAI sewa. Tanggal yang dicoret berarti armada sudah tidak tersedia.
+              </p>
+            </div>
             
             {isLoading ? (
               <div className="py-12 flex justify-center items-center">
@@ -168,9 +176,14 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
                   disabled={disabledDates}
                   className="bg-white"
                   classNames={{
-                    day: "text-gray-900",
+                    day: "text-slate-900",
                     selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white",
-                    disabled: "text-gray-300 line-through bg-gray-50"
+                    disabled: "text-slate-300 line-through bg-slate-50",
+                    month_caption: "text-slate-900 font-bold",
+                    weekday: "text-slate-700 font-medium",
+                    button_next: "text-slate-800 hover:bg-slate-100",
+                    button_previous: "text-slate-800 hover:bg-slate-100",
+                    chevron: "text-slate-800"
                   }}
                 />
               </div>
