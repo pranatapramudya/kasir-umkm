@@ -5,9 +5,12 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.3.33 – 0.3.42] — 2026-08-18
+## [0.3.33 – 0.3.45] — 2026-08-18
 
 ### 🚀 Optimasi & Bug Fixes (Hotfixes)
+- **Fitur Unduh Tiket (Canvas) & Data Isolation Naming:** Memperbaiki *bug crash* pada `html2canvas` dengan suntikan parameter *allowTaint* dan *useCORS*, mereset *state loading*, serta mengamankan identitas file unduhan secara dinamis (`Tiket_[Toko]_[Pelanggan]_[ID].png`).
+- **Absolute URL pada Salin Link Booking:** Memperbaiki *relative path* di halaman Jadwal Booking dan Informasi Toko menggunakan `window.location.origin` (aman dari *hydration mismatch*) agar *link* yang disalin langsung berformat absolut (https://...) yang siap pakai.
+- **Strict Canvas Thermal Print:** Melakukan injeksi CSS `@page` khusus 80mm dan mengunci limit *wrapper width* maksimum ke `80mm` pada cetakan Thermal guna mengatasi *bug rendering* ukuran kertas A4 pada *print dialog* Desktop.
 - **System-Wide Cache Isolation:** Penerapan `[url, tenantId]` pada SWR *cache keys* dan mekanisme *Wipe-on-Login/Logout* untuk mencegah *stale data* dan *FOUC* antar tenant.
 - **Realtime Hook Fix:** Penanganan *payload* dari Supabase Realtime dengan SWR `mutate` *background fetch* untuk mencegah *Client-side Exception* akibat *missing relation data*.
 - **Smart Print Logic (CSS Media):** Pemisahan *print format*. Otomatisasi kertas Thermal (80mm) untuk kasir F&B/Retail/Jasa, dan kertas A4 khusus untuk dokumen Surat Jalan bisnis Rental/Travel. Termasuk sinkronisasi dinamis "Nama Kasir" dan perbaikan ID karyawan.

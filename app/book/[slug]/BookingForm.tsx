@@ -90,11 +90,17 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         background: "#ffffff", // white agar cocok dengan light theme
         scale: 2, // retina quality
         useCORS: true,
+        allowTaint: true,
       } as any);
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `Tiket-Booking-${tenantName.replace(/\s+/g, "-")}.png`;
+      
+      const cleanTenantName = tenantName.replace(/\s+/g, "_");
+      const cleanCustomerName = formData.customerName.replace(/\s+/g, "_");
+      const txId = bookingId ? `#${bookingId.slice(0, 8)}` : "unknown";
+      
+      link.download = `Tiket_${cleanTenantName}_${cleanCustomerName}_${txId}.png`;
       link.click();
     } catch {
       alert("Gagal mengunduh tiket. Coba lagi.");

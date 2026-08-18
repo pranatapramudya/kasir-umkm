@@ -175,6 +175,13 @@ export default function BookingDashboardClient({
 
   const router = useRouter();
   
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const absoluteBookingLink = tenantSlug && origin ? `${origin}/book/${tenantSlug}` : bookingLink;
+  
   // Realtime hook
   useSupabaseRealtime(tenantId);
   
@@ -251,8 +258,8 @@ export default function BookingDashboardClient({
   }
 
   function copyLink() {
-    if (!bookingLink) return;
-    navigator.clipboard.writeText(bookingLink).then(() => {
+    if (!absoluteBookingLink) return;
+    navigator.clipboard.writeText(absoluteBookingLink).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -343,14 +350,14 @@ export default function BookingDashboardClient({
       ) : (
         <>
           {/* Booking Link Banner */}
-          {bookingLink ? (
+          {absoluteBookingLink ? (
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
               <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider mb-2">
                 Link Booking Publik Anda
               </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <code className="flex-1 bg-white border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700 font-mono break-all min-w-0">
-                  {bookingLink}
+                  {absoluteBookingLink}
                 </code>
                 <div className="flex gap-2 shrink-0">
                   <button
@@ -361,7 +368,7 @@ export default function BookingDashboardClient({
                     {copied ? "Tersalin!" : "Salin"}
                   </button>
                   <a
-                    href={bookingLink}
+                    href={absoluteBookingLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-2 border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Store, CheckCircle2, AlertCircle, Link2, Loader2, Pencil, Copy } from "lucide-react";
 
 interface Props {
@@ -17,6 +17,21 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const currentOrigin = origin || appUrl || "";
+
+  const bookingLink = slug
+    ? `${currentOrigin}/book/${slug}`
+    : null;
+
+  const previewLink = inputValue.trim()
+    ? `${currentOrigin}/book/${inputValue.trim().toLowerCase()}`
+    : null;
 
   const handleCopyLink = () => {
     if (bookingLink) {
@@ -25,14 +40,6 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
       setTimeout(() => setCopied(false), 2000);
     }
   };
-
-  const bookingLink = slug
-    ? `${appUrl}/book/${slug}`
-    : null;
-
-  const previewLink = inputValue.trim()
-    ? `${appUrl}/book/${inputValue.trim().toLowerCase()}`
-    : null;
 
   function handleInput(val: string) {
     // Auto-format: lowercase, ganti spasi dengan strip
@@ -119,8 +126,8 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
             <div className="space-y-2">
               {/* Input with prefix */}
               <div className="flex rounded-xl border border-slate-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 overflow-hidden transition-all">
-                <span className="flex items-center px-3 bg-slate-50 border-r border-slate-200 text-slate-400 text-sm font-mono whitespace-nowrap">
-                  /book/
+                <span className="flex items-center px-3 bg-slate-50 border-r border-slate-200 text-slate-400 text-sm font-mono whitespace-nowrap overflow-x-auto max-w-[200px] sm:max-w-none">
+                  {currentOrigin ? `${currentOrigin}/book/` : "/book/"}
                 </span>
                 <input
                   id="slug-input"
@@ -186,9 +193,9 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
             <div className="space-y-3">
               {slug ? (
                 <>
-                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-slate-400 text-sm font-mono">/book/</span>
-                    <span className="font-mono font-bold text-slate-800 text-sm">{slug}</span>
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 overflow-x-auto">
+                    <span className="text-slate-400 text-sm font-mono whitespace-nowrap">{currentOrigin ? `${currentOrigin}/book/` : "/book/"}</span>
+                    <span className="font-mono font-bold text-slate-800 text-sm whitespace-nowrap">{slug}</span>
                   </div>
                 </>
               ) : (
