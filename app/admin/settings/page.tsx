@@ -53,6 +53,7 @@ export default async function AdminSettingsPage() {
         initialBankName={tenant?.bankName ?? null}
         initialBankAccount={tenant?.bankAccount ?? null}
         initialBankAccountName={tenant?.bankAccountName ?? null}
+        tenantCategory={tenant?.category ?? null}
       />
     </div>
   );

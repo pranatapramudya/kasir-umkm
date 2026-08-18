@@ -8,6 +8,7 @@ interface Props {
   initialBankName: string | null;
   initialBankAccount: string | null;
   initialBankAccountName: string | null;
+  tenantCategory?: string | null;
 }
 
 export default function PaymentSettingsForm({
@@ -15,6 +16,7 @@ export default function PaymentSettingsForm({
   initialBankName,
   initialBankAccount,
   initialBankAccountName,
+  tenantCategory,
 }: Props) {
   const [whatsApp, setWhatsApp] = useState(initialWhatsApp ?? "");
   const [bankName, setBankName] = useState(initialBankName ?? "");
@@ -25,6 +27,13 @@ export default function PaymentSettingsForm({
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isRental = tenantCategory === "Rental & Travel";
+  const isService = tenantCategory === "Jasa / Servis" || isRental;
+
+  if (!isService) {
+    return null;
+  }
 
   async function handleSave() {
     setIsLoading(true);
@@ -118,13 +127,13 @@ export default function PaymentSettingsForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  Nama Bank
+                  {isRental ? "Nama Bank / E-Wallet" : "Nama Bank"}
                 </label>
                 <input
                   type="text"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
-                  placeholder="BCA, Mandiri, dll."
+                  placeholder={isRental ? "BCA, Mandiri, Dana, GoPay, dll." : "BCA, Mandiri, dll."}
                   disabled={isLoading}
                   className="w-full px-3 py-2.5 text-sm text-slate-800 bg-white border border-slate-300 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-60"
                 />
@@ -191,7 +200,7 @@ export default function PaymentSettingsForm({
                 <p className="text-sm font-bold text-slate-800">{whatsApp || <span className="text-slate-400 italic">Belum diatur</span>}</p>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                <p className="text-xs text-slate-500 font-semibold mb-1">Bank</p>
+                <p className="text-xs text-slate-500 font-semibold mb-1">{isRental ? "Bank / E-Wallet" : "Bank"}</p>
                 <p className="text-sm font-bold text-slate-800">{bankName || <span className="text-slate-400 italic">Belum diatur</span>}</p>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">

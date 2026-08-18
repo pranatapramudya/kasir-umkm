@@ -479,12 +479,19 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         <p className="text-slate-500 text-sm mb-1">
           Halo <span className="text-slate-900 font-semibold">{formData.customerName}</span>,
         </p>
-        <p className="text-slate-500 text-sm mb-6">
-          Jadwal Anda di{" "}
-          <span className="text-blue-600 font-semibold">{tenantName}</span> telah
-          berhasil disimpan. Tim kami akan menghubungi Anda melalui nomor{" "}
-          <span className="text-slate-900 font-semibold">{formData.customerPhone}</span>.
-        </p>
+        {isRental ? (
+          <p className="text-slate-500 text-sm mb-6">
+            Pesanan Anda di{" "}
+            <span className="text-blue-600 font-semibold">{tenantName}</span> telah
+            berhasil dicatat. Tim kami akan menghubungi Anda melalui nomor{" "}
+            <span className="text-slate-900 font-semibold">{formData.customerPhone}</span>.
+          </p>
+        ) : (
+          <p className="text-slate-500 text-sm mb-6">
+            Antrean Anda di <span className="text-blue-600 font-semibold">{tenantName}</span> berhasil dicatat. 
+            Silakan datang sesuai jadwal dan lakukan pembayaran di Kasir.
+          </p>
+        )}
 
         {/* Ticket Container — captured by html2canvas */}
         <div
@@ -579,7 +586,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         </div>
 
           {/* Instruksi Pembayaran */}
-          {tenantCategory !== "Jasa / Servis" && (
+          {isRental && (
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-5 text-left">
               <h3 className="font-bold text-blue-900 mb-3 text-sm">Instruksi Pembayaran</h3>
               <div className="space-y-3">
