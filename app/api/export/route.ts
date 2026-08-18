@@ -29,8 +29,9 @@ export async function GET(req: Request) {
 
     const storeName = tenant?.name || "Toko";
     const category = tenant?.category || "Retail";
-    const isServiceBusiness = isServiceBusinessCategory(category);
-    const isRentalTravel = isRentalTravelCategory(category);
+    const type = category.toUpperCase();
+    const isServiceBusiness = type.includes("JASA") || type.includes("SERVIS") || isServiceBusinessCategory(category);
+    const isRentalTravel = type.includes("RENTAL") || isRentalTravelCategory(category);
 
     // 2. Parse Period
     const url = new URL(req.url);
