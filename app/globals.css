@@ -28,6 +28,7 @@ body {
 /* Optimasi Sentuhan Mobile: Menghilangkan delay 300ms dan efek highlight bawaan browser */
 html, body {
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x pan-y;
 }
 
 button, a, input, select, textarea, [role="button"] {
