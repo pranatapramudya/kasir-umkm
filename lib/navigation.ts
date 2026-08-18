@@ -5,11 +5,11 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
   const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
   const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
   const isFnB = kategoriUsaha === "F&B / Kuliner";
+  const isJasa = kategoriUsaha === "Jasa / Servis";
   const isCashier = role === 'CASHIER';
 
   const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Transaksi Sewa" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";
   const productMenuLabel = isRentalTravel ? "Data Armada" : isServiceBusiness ? "Layanan" : "Produk";
-  const bookingMenuLabel = isRentalTravel ? "Kalender Sewa" : "Jadwal Booking";
 
   const menuGroups = [
     {
@@ -19,8 +19,8 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
         { name: kasirLabel, href: "/admin/pos", icon: ShoppingCart },
         { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
         ...(isFnB ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
-        ...(isServiceBusiness ? [{ name: bookingMenuLabel, href: isRentalTravel ? "/admin/rental-calendar" : "/admin/booking", icon: CalendarCheck }] : []),
-        ...(isRentalTravel ? [] : [{ name: "Pesanan Online", href: "/admin/orders", icon: Inbox }])
+        ...(isRentalTravel ? [{ name: "Kalender Sewa", href: "/admin/rental-calendar", icon: CalendarCheck }] : []),
+        ...(isJasa ? [{ name: "Pesanan Online", href: "/admin/orders", icon: Inbox }] : [])
       ]
     },
     {

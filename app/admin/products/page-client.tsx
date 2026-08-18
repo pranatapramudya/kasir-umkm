@@ -283,7 +283,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         stock: isJasa ? 999999 : (parseInt(formData.stock.toString().replace(/[^0-9]/g, ''), 10) || 0),
         minStockThreshold: isJasa ? 0 : (parseInt(formData.minStockThreshold.toString().replace(/[^0-9]/g, ''), 10) || 5),
         employeeCommission: isJasa ? (parseInt(formData.employeeCommission.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
-        description: formData.description,
+        description: isRental ? formData.description : null,
       };
 
       const res = await fetch(url, {
@@ -757,16 +757,18 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                     <p className="text-xs text-slate-500 mt-1">Potongan harga langsung untuk produk ini.</p>
                   </div>
                   
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Catatan Tarif / Area Layanan (Opsional)</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange as any}
-                      placeholder="Misal: Harga tertera untuk dalam kota. Luar kota dikenakan tambahan biaya Rp 100.000."
-                      className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 min-h-[80px]"
-                    />
-                  </div>
+                  {isRental && (
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Catatan Tarif / Area Layanan (Opsional)</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange as any}
+                        placeholder="Misal: Harga tertera untuk dalam kota. Luar kota dikenakan tambahan biaya Rp 100.000."
+                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 min-h-[80px]"
+                      />
+                    </div>
+                  )}
                 </div>
               </form>
             </div>
