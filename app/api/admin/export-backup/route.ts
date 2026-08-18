@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const { userId, sessionClaims } = await auth();
 
@@ -12,19 +12,20 @@ export async function GET() {
     }
 
     const role = (sessionClaims?.metadata as any)?.role || sessionClaims?.role;
-    // We can allow CASHIER or OWNER to download their store's transactions
-    // But usually only OWNER should do this. We will allow OWNER.
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = role === 'CASHIER' ? tenantId : userId;
 
-    if (role === 'CASHIER') {
-        return new NextResponse("Forbidden", { status: 403 });
+    if (role !== 'OWNER') {
+        return new NextResponse("Forbidden: Access restricted to OWNER only", { status: 403 });
     }
+
+    const targetUserId = userId;
 
     // Ambil data tenant
     const tenant = await prisma.tenant.findUnique({
       where: { userId: targetUserId }
     });
+
+    const { searchParams } = new URL(req.url);
+    const qsType = searchParams.get("type");
 
     // Ambil semua transaksi
     const transactions = await prisma.transaction.findMany({
@@ -38,14 +39,31 @@ export async function GET() {
     
     const worksheet = workbook.addWorksheet("Riwayat Transaksi");
 
+    const category = qsType || tenant?.category || "RETAIL";
+    const businessType = category.toUpperCase();
+    
+    const isRental = businessType.includes("RENTAL");
+    const isService = businessType.includes("JASA") || businessType.includes("SERVIS");
+
+    let pelangganHeader = "Nama Pelanggan";
+    let totalHeader = "Total Belanja (Rp)";
+
+    if (isRental) {
+      pelangganHeader = "Nama Penyewa";
+      totalHeader = "Total Sewa (Rp)";
+    } else if (isService) {
+      pelangganHeader = "Nama Pelanggan";
+      totalHeader = "Total Tagihan (Rp)";
+    }
+
     worksheet.columns = [
       { header: "No", key: "no", width: 5 },
       { header: "ID Transaksi", key: "id", width: 15 },
       { header: "Tanggal", key: "tanggal", width: 20 },
-      { header: "Nama Pelanggan", key: "pelanggan", width: 25 },
+      { header: pelangganHeader, key: "pelanggan", width: 25 },
       { header: "Metode Bayar", key: "metode", width: 15 },
       { header: "Status", key: "status", width: 15 },
-      { header: "Total Belanja (Rp)", key: "total", width: 20 }
+      { header: totalHeader, key: "total", width: 20 }
     ];
 
     worksheet.getRow(1).font = { bold: true };

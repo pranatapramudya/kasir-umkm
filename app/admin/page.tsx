@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
           )}
 
           {/* Backup Button for Owner */}
-          {role !== 'CASHIER' && <ExportBackupButton />}
+          {role !== 'CASHIER' && <ExportBackupButton category={analytics?.category} />}
         </div>
       </div>
 

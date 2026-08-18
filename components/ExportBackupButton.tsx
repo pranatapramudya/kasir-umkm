@@ -4,13 +4,14 @@ import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function ExportBackupButton() {
+export default function ExportBackupButton({ category }: { category?: string }) {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const res = await fetch("/api/admin/export-backup");
+      const urlStr = category ? `/api/admin/export-backup?type=${encodeURIComponent(category)}` : "/api/admin/export-backup";
+      const res = await fetch(urlStr);
       
       if (!res.ok) {
         throw new Error("Gagal mengekspor data");
