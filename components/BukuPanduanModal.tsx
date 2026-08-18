@@ -85,10 +85,11 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
               <>
                 <Step num="1" title="Tambah Armada" businessType={businessType}>Buka menu <b>Armada / Unit</b>. Masukkan data mobil, motor, atau peralatan yang bisa disewa.</Step>
                 <Step num="2" title="Atur Harga Sewa" businessType={businessType}>Tentukan harga per-hari atau per-jam untuk setiap armada yang Anda sewakan.</Step>
-                <Step num="3" title="Bagikan Link Katalog" businessType={businessType}>Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
-                <Step num="4" title="Tarik Pesanan / Input Kalender Sewa" businessType={businessType}>Pelanggan bisa memesan dari link booking, atau Anda input manual ke <b>Kalender Sewa</b>.</Step>
-                <Step num="5" title="Klik Start (Mulai Perjalanan)" businessType={businessType}>Saat unit diambil, klik pesanan di kalender dan ubah status ke <b>Sedang Jalan</b>.</Step>
-                <Step num="6" title="Finish & Lunas" businessType={businessType} isLast>Saat unit dikembalikan, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
+                <Step num="3" title="Atur Rekening Pembayaran (DP 50%)" businessType={businessType}>Buka menu <b>Informasi Toko</b>, lalu lengkapi data rekening Bank / E-Wallet Anda. Ini wajib diisi agar pelanggan tahu ke mana harus mentransfer DP 50% saat melakukan reservasi online.</Step>
+                <Step num="4" title="Bagikan Link Katalog" businessType={businessType}>Di menu yang sama (<b>Informasi Toko</b>), salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa memesan mandiri.</Step>
+                <Step num="5" title="Tarik Pesanan / Input Kalender Sewa" businessType={businessType}>Pelanggan bisa memesan dari link booking, atau Anda input manual ke <b>Kalender Sewa</b>.</Step>
+                <Step num="6" title="Klik Start (Mulai Perjalanan)" businessType={businessType}>Saat unit diambil, klik pesanan di kalender dan ubah status ke <b>Sedang Jalan</b>.</Step>
+                <Step num="7" title="Finish & Lunas" businessType={businessType} isLast>Saat unit dikembalikan, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
               </>
             )}
           </div>

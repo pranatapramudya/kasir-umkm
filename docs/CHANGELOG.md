@@ -5,9 +5,10 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.3.33 – 0.3.47] — 2026-08-18
+## [0.3.33 – 0.3.48] — 2026-08-18
 
 ### 🚀 Optimasi & Bug Fixes (Hotfixes)
+- **Pembaruan SOP Rental (Buku Panduan):** Menyisipkan instruksi wajib "Atur Rekening Pembayaran (DP 50%)" pada komponen *BukuPanduanModal* khusus untuk pengguna Rental/Travel, guna mencegah transaksi *online booking* terputus akibat ketiadaan informasi rekening/e-wallet untuk pembayaran awal. Alur SOP Rental kini berjumlah 7 langkah.
 - **Strict Component Unmounting (Informasi Pembayaran):** Menghapus total (unmount) *Card* "Informasi Pembayaran" pada halaman Pengaturan Toko untuk entitas bisnis Jasa (selain F&B dan Retail). Form pengaturan rekening kini diisolasi ekstrem secara eksklusif HANYA untuk pemilik bisnis Rental & Travel.
 - **Isolasi Logika DP & Copywriting Dinamis:** Menyembunyikan form Informasi Pembayaran untuk bisnis F&B/Retail, serta melimitasi logika *Down Payment (DP)* 50% di halaman *Booking* publik murni hanya untuk kategori *Rental*. Label rekening kini otomatis menjadi E-Wallet untuk Rental.
 - **Fitur Unduh Tiket (Canvas) & Data Isolation Naming:** Memperbaiki *bug crash* pada `html2canvas` dengan suntikan parameter *allowTaint* dan *useCORS*, mereset *state loading*, serta mengamankan identitas file unduhan secara dinamis (`Tiket_[Toko]_[Pelanggan]_[ID].png`).
