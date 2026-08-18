@@ -114,7 +114,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                                 <div>
                                     <p className="text-xs font-bold text-gray-500">Tunai (Kas Laci)</p>
                                     <h3 className="text-xl font-black text-slate-800">{formatRupiah(metrics.totalCash)}</h3>
-                                    <p className="text-[10px] text-gray-400 mt-1 leading-tight">*Hanya menghitung uang Lunas dan DP masuk. Tidak termasuk sisa piutang.</p>
+                                    <p className="text-[10px] text-gray-400 mt-1 leading-tight">{isRental ? "*Hanya menghitung uang Lunas dan DP masuk. Tidak termasuk sisa piutang." : "*Hanya menghitung transaksi lunas dengan metode Tunai/Cash."}</p>
                                 </div>
                             </div>
                         </div>
