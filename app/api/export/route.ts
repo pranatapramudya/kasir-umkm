@@ -11,31 +11,22 @@ export async function GET(req: Request) {
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     const role = (sessionClaims?.metadata as any)?.role;
     const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    
+
     if (role === 'CASHIER') {
       return NextResponse.json({ error: "Unauthorized: Kasir dilarang mengakses laporan laba." }, { status: 403 });
     }
-    
-    // 1. Tenant Scoping
-    let targetUserIds = [userId];
-    let targetTenantId = userId; // Defaults to self if Owner
 
-    // Owner: see transactions from themselves & all cashiers
-    const cashiers = await prisma.employee.findMany({
-      where: { tenantId: userId },
-      select: { clerkUserId: true }
-    });
-    const cashierIds = cashiers.map(c => c.clerkUserId);
-    targetUserIds = [userId, ...cashierIds];
+    // 1. Tenant Scoping
+    const targetTenantId = tenantId || userId;
 
     // Fetch tenant profile for category and name
     const tenant = await prisma.tenant.findUnique({
       where: { userId: targetTenantId }
     });
-    
+
     const storeName = tenant?.name || "Toko";
     const category = tenant?.category || "Retail";
     const isServiceBusiness = isServiceBusinessCategory(category);
@@ -48,7 +39,7 @@ export async function GET(req: Request) {
 
     let dateFilter: any = {};
     const now = new Date();
-    
+
     if (!from && !to) {
       // Default to current month if no params
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -65,7 +56,7 @@ export async function GET(req: Request) {
 
     const transactions = await prisma.transaction.findMany({
       where: {
-        userId: { in: targetUserIds },
+        userId: targetTenantId,
         createdAt: dateFilter,
       },
       include: {
@@ -85,11 +76,11 @@ export async function GET(req: Request) {
 
     let headers: string[] = [];
     if (isRentalTravel) {
-      headers = ["Tanggal", "Pelanggan", "Armada", "Mulai Sewa", "Selesai Sewa", "Tujuan", "Total"];
+      headers = ["Tanggal", "Nama Penyewa", "Armada", "Mulai Sewa", "Selesai Sewa", "Tujuan", "Total Sewa (Rp)"];
     } else if (isServiceBusiness) {
-      headers = ["Tanggal", "Pelanggan", "Layanan", "Waktu Booking", "Terapis/Kapster", "Total"];
+      headers = ["Tanggal", "Nama Pelanggan", "Layanan", "Waktu Booking", "Terapis/Kapster", "Total Tagihan (Rp)"];
     } else {
-      headers = ["Tanggal", "Item", "Qty", "Harga Satuan", "Kasir", "Total"];
+      headers = ["Tanggal", "Nama Pelanggan", "Item", "Qty", "Harga Satuan", "Kasir", "Total Belanja (Rp)"];
     }
 
     let formattedData: any[] = [];
@@ -110,26 +101,27 @@ export async function GET(req: Request) {
 
         if (isRentalTravel) {
           rowData["Tanggal"] = dateStr;
-          rowData["Pelanggan"] = t.customerName || "-";
+          rowData["Nama Penyewa"] = t.customerName || "-";
           rowData["Armada"] = itemsList || "-";
           rowData["Mulai Sewa"] = t.startDate ? t.startDate.toLocaleDateString("id-ID") : "-";
           rowData["Selesai Sewa"] = t.endDate ? t.endDate.toLocaleDateString("id-ID") : "-";
           rowData["Tujuan"] = t.dropoffLocation || "-";
-          rowData["Total"] = t.total;
+          rowData["Total Sewa (Rp)"] = t.total;
         } else if (isServiceBusiness) {
           rowData["Tanggal"] = dateStr;
-          rowData["Pelanggan"] = t.customerName || "-";
+          rowData["Nama Pelanggan"] = t.customerName || "-";
           rowData["Layanan"] = itemsList || "-";
           rowData["Waktu Booking"] = t.startDate ? t.startDate.toLocaleString("id-ID") : "-";
           rowData["Terapis/Kapster"] = t.cashier?.name || "Sistem";
-          rowData["Total"] = t.total;
+          rowData["Total Tagihan (Rp)"] = t.total;
         } else {
           rowData["Tanggal"] = dateStr;
+          rowData["Nama Pelanggan"] = t.customerName || "-";
           rowData["Item"] = itemsList || "-";
           rowData["Qty"] = qtyList || "-";
           rowData["Harga Satuan"] = priceList || "-";
           rowData["Kasir"] = t.cashier?.name || "Sistem";
-          rowData["Total"] = t.total;
+          rowData["Total Belanja (Rp)"] = t.total;
         }
 
         formattedData.push(rowData);
