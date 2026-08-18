@@ -12,6 +12,9 @@ import { isRentalTravelCategory } from '@/lib/business-category';
 export default function LaporanKasirClient({ sidebar, initialDate, initialData, tenantCategory }: any) {
     const isRental = isRentalTravelCategory(tenantCategory);
     const isJasa = tenantCategory === 'Jasa / Servis';
+    const isFNB = tenantCategory === 'F&B / Kuliner';
+    const isRetail = tenantCategory === 'Retail / Dagang';
+    const itemHeaderLabel = isRental ? "Armada / Layanan" : isJasa ? "Layanan" : isFNB ? "Menu" : isRetail ? "Produk / Barang" : "Item";
     const [selectedDate, setSelectedDate] = useState(initialDate);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedTx, setSelectedTx] = useState<any>(null);
@@ -245,7 +248,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                             <table className="w-full text-sm text-left mb-2">
                                 <thead className="bg-slate-50 text-slate-500 text-xs">
                                     <tr>
-                                        <th className="px-3 py-2 font-semibold rounded-l-lg">Armada / Layanan</th>
+                                        <th className="px-3 py-2 font-semibold rounded-l-lg">{itemHeaderLabel}</th>
                                         <th className="px-3 py-2 font-semibold text-center">{isRental ? "Durasi (Hari)" : "Qty"}</th>
                                         <th className="px-3 py-2 font-semibold text-right rounded-r-lg">Subtotal</th>
                                     </tr>
