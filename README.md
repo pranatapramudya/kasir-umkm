@@ -18,7 +18,7 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 ## ✨ Fitur & Arsitektur Utama
 
 - **Production-Ready Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.
-- **Sistem Pembayaran Dinamis & Manual ACC:** Dukungan instruksi QRIS DANA Bisnis yang terintegrasi secara pintar pada menu *Pricing*, serta alur pendaftaran *Manual ACC* dengan status *Pending Approval* yang dikelola via Dasbor Superadmin.
+- **Sistem Pembayaran & Subscription Dinamis:** Terintegrasi dengan payment gateway (Mayar) via webhook untuk aktivasi otomatis paket langganan (Pro 1 Bulan, 6 Bulan, 1 Tahun) secara real-time, beserta alur pendaftaran *Manual ACC* yang dikelola via Dasbor Superadmin.
 - **Optimasi SEO & UI Nasional:** Injeksi SEO pada *Landing Page* untuk pencarian organik maksimal, dipadukan dengan desain *glassmorphism* modern dan responsif.
 - **Dukungan Multi-Bisnis:** Logika dinamis untuk bisnis Retail (barang fisik), F&B (manajemen meja & pesanan), hingga Jasa/Servis (tanpa batas stok).
 - **Role-Based Access Control (RBAC):** Pemisahan hak akses ketat antara *Owner/Superadmin* dan *Karyawan/Kasir* menggunakan proteksi route tingkat server (Middleware & API), termasuk halaman panduan khusus karyawan.

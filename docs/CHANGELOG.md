@@ -5,6 +5,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### ✨ Fitur Baru: Integrasi Webhook Mayar
+- Menambahkan route handler `app/api/webhooks/mayar/route.ts` untuk menangani webhook pembayaran otomatis dari Mayar (`payment.success` dan `payment.received`).
+- Fitur ini mendeteksi jumlah pembayaran (`amount`) dan memperbarui paket berlangganan (`subscriptionPlan`) secara dinamis menjadi `PRO_1M`, `PRO_6M`, atau `PRO_1Y`.
+- Melakukan perhitungan otomatis untuk memperpanjang `subscriptionEndsAt` pada tabel `Tenant` sesuai dengan durasi langganan (1, 6, atau 12 bulan).
+
+---
+
 ## [0.3.63] — 2026-08-19
 
 ### ⚡ Vercel CPU Optimization & Error Handling (PRD v0.3.63)
