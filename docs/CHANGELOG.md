@@ -5,6 +5,36 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.3.63] — 2026-08-19
+
+### ⚡ Vercel CPU Optimization & Error Handling (PRD v0.3.63)
+
+> Fokus: Memindahkan beban komputasi dari **Vercel CPU → Database Engine (PostgreSQL/Neon)** berdasarkan data Vercel Observability.
+
+#### `/api/analytics` — Refactor Agregasi ke Database
+- **Hapus** `findMany` + kalkulasi manual `.forEach` / `.reduce` di JavaScript untuk `totalRevenue`, `totalTransactions`, dan `totalExpense`.
+- **Ganti** dengan `prisma.transaction.aggregate({ _sum: { total }, _count: { id } })` dan `prisma.expense.aggregate({ _sum: { amount } })` — seluruh SUM & COUNT kini dilakukan oleh PostgreSQL.
+- **Paralelkan** seluruh query dengan `Promise.all` (6 query concurrent) untuk meminimalkan total round-trip latency.
+- `salesTrend` tetap menggunakan `findMany` minimal (select 2 kolom) karena membutuhkan grouping per tanggal WIB yang tidak dapat dilakukan murni di sisi DB via Prisma ORM.
+- **Estimasi dampak:** Active CPU `2.4s → <0.5s`.
+
+#### `/api/reports/shift` — Eliminasi Double Query & Perbaikan Error Rate 31.3%
+- **Hapus** query `allTransactions` yang menarik seluruh data hari (beserta nested `items`) ke RAM Node.js — penyebab utama OOM / Connection Timeout.
+- **Ganti** kalkulasi metrics (`totalGross`, `totalCash`, `totalQRIS`) dengan `prisma.transaction.groupBy({ by: ['method'], _sum: { total } })` — agregasi di Database.
+- **Ganti** iterasi nested `items` di JS untuk `soldSummary` dengan `prisma.transactionItem.groupBy({ by: ['productId'], _sum: { qty } })` — kalkulasi di Database.
+- **Pisahkan** `partial` transactions (subset kecil) sebagai query sendiri untuk penanganan `downPayment` sebagai `effectiveTotal`.
+- **Eliminasi double query**: transaksi kini hanya di-query sekali untuk kebutuhan tabel paginasi.
+- **Perbaiki error handling**: `catch (error: unknown)` dengan ekstraksi `message` + `stack`, response JSON lebih informatif (field `detail`) untuk memudahkan debugging di Vercel Logs.
+
+#### `prisma/schema.prisma` — Index Baru
+- Tambah `@@index([userId, createdAt, cashierId])` pada model `Transaction` untuk mendukung query laporan shift per kasir dengan *single index scan* (menggantikan sequential scan).
+- `npx prisma db push` berhasil — index aktif di Neon PostgreSQL (`ap-southeast-1`).
+
+#### `/api/booking/pending-count` — Tidak Diubah
+- Audit menunjukkan route ini **sudah optimal** (`prisma.booking.count()` sudah digunakan). Active CPU 4.13s kemungkinan disebabkan cold-start Vercel, bukan inefisiensi query.
+
+---
+
 ## [0.3.33 – 0.3.48] — 2026-08-18
 
 ### 🚀 Optimasi & Bug Fixes (Hotfixes)

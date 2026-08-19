@@ -62,6 +62,7 @@ model Transaction {
   items        TransactionItem[]
 
   @@index([userId, createdAt])
+  @@index([userId, createdAt, cashierId]) // Optimasi query laporan shift per kasir
   @@index([status])
 }
 

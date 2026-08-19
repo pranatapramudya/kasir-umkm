@@ -11,73 +11,114 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const role = (sessionClaims?.metadata as any)?.role;
-    
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get('date');
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = 10;
-    
+
+    // Filter tanggal ketat (hanya rentang shift hari ini atau tanggal dipilih)
     const nowStr = new Date().toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
     const selectedDateStr = dateParam || nowStr;
     const startOfDay = new Date(`${selectedDateStr}T00:00:00+07:00`);
     const endOfDay = new Date(`${selectedDateStr}T23:59:59.999+07:00`);
 
+    // Resolve tenant
     const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
     const isEmployee = !!employee;
     const activeTenantId = employee ? employee.tenantId : userId;
 
-    let whereClause: any = {
+    const whereClause: any = {
+      userId: activeTenantId,
       createdAt: { gte: startOfDay, lte: endOfDay },
-      userId: activeTenantId
     };
 
     if (isEmployee) {
-      whereClause.cashierId = employee.id; // Hanya tampilkan transaksi kasir ini
+      whereClause.cashierId = employee.id;
     }
 
-    const allTransactions = await prisma.transaction.findMany({
-      where: whereClause,
-      select: { total: true, method: true, items: true, status: true, downPayment: true }
-    });
+    // 1. Jalankan semua query secara paralel — satu kali sentuh DB per kebutuhan
+    const [
+      methodGroups,       // Metrics (totalGross, totalCash, totalQRIS) groupBy method
+      partialTransactions,// Partial transactions perlu kalkulasi downPayment khusus
+      soldSummaryRaw,     // soldSummary — groupBy productId di DB
+      transactions,       // Halaman transaksi untuk tampilan tabel
+      totalCount,         // COUNT untuk pagination
+      products,           // Mapping productId → name
+    ] = await Promise.all([
+      // A. Metrics per metode pembayaran — kalkulasi SUM di Database Engine
+      prisma.transaction.groupBy({
+        by: ['method'],
+        where: { ...whereClause, status: { not: 'partial' } },
+        _sum: { total: true },
+        _count: { id: true },
+      }),
 
-    const products = await prisma.product.findMany({
-      where: { userId: activeTenantId },
-      select: { id: true, name: true }
-    });
-    const productMap = new Map(products.map(p => [p.id, p.name]));
+      // B. Partial transactions (subset kecil) — perlu downPayment sebagai effective total
+      prisma.transaction.findMany({
+        where: { ...whereClause, status: 'partial' },
+        select: { total: true, method: true, downPayment: true },
+      }),
 
-    let totalGross = 0;
-    let totalCash = 0;
-    let totalQRIS = 0;
-    const soldSummary: Record<string, number> = {};
+      // C. Sold Summary — groupBy productId di Database, bukan iterasi JS
+      prisma.transactionItem.groupBy({
+        by: ['productId'],
+        where: {
+          transaction: whereClause,
+        },
+        _sum: { qty: true },
+      }),
 
-    allTransactions.forEach(t => {
-      const isPartial = t.status === 'partial';
-      const effectiveTotal = (isPartial && t.downPayment) ? t.downPayment : t.total;
-
-      totalGross += effectiveTotal;
-      const methodStr = (t.method || '').toUpperCase();
-      if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += effectiveTotal;
-      if (methodStr === 'QRIS') totalQRIS += effectiveTotal;
-      
-      t.items.forEach(item => {
-        const name = productMap.get(item.productId) || 'Produk Dihapus';
-        soldSummary[name] = (soldSummary[name] || 0) + item.qty;
-      });
-    });
-
-    const [transactions, totalCount] = await Promise.all([
+      // D. Paginated transactions untuk tabel detail
       prisma.transaction.findMany({
         where: whereClause,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
-        include: { items: true }
+        include: { items: true },
       }),
-      prisma.transaction.count({ where: whereClause })
+
+      // E. Total count untuk pagination
+      prisma.transaction.count({ where: whereClause }),
+
+      // F. Product name mapping
+      prisma.product.findMany({
+        where: { userId: activeTenantId },
+        select: { id: true, name: true },
+      }),
     ]);
 
+    // 2. Hitung metrics dari hasil groupBy (sudah diagregasi di Database)
+    let totalGross = 0;
+    let totalCash = 0;
+    let totalQRIS = 0;
+
+    // Non-partial: ambil dari groupBy results
+    methodGroups.forEach(group => {
+      const sum = group._sum.total ?? 0;
+      totalGross += sum;
+      const methodStr = (group.method || '').toUpperCase();
+      if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += sum;
+      if (methodStr === 'QRIS') totalQRIS += sum;
+    });
+
+    // Partial: effective total = downPayment
+    partialTransactions.forEach(t => {
+      const effectiveTotal = t.downPayment > 0 ? t.downPayment : t.total;
+      totalGross += effectiveTotal;
+      const methodStr = (t.method || '').toUpperCase();
+      if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += effectiveTotal;
+      if (methodStr === 'QRIS') totalQRIS += effectiveTotal;
+    });
+
+    // 3. Build soldSummary dari groupBy result — tanpa iterasi nested items di JS
+    const productMap = new Map(products.map(p => [p.id, p.name]));
+    const soldSummary: Record<string, number> = {};
+    soldSummaryRaw.forEach(item => {
+      const name = productMap.get(item.productId) || 'Produk Dihapus';
+      soldSummary[name] = (soldSummary[name] || 0) + (item._sum.qty ?? 0);
+    });
+
+    // 4. Inject productName ke items transaksi (untuk tampilan tabel)
     transactions.forEach(tx => {
       tx.items.forEach((item: any) => {
         item.productName = productMap.get(item.productId) || 'Produk Dihapus';
@@ -86,15 +127,20 @@ export async function GET(request: Request) {
 
     const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
-    return NextResponse.json({ 
-      transactions, 
+    return NextResponse.json({
+      transactions,
       totalPages,
       metrics: { totalGross, totalCash, totalQRIS },
-      soldSummary
+      soldSummary,
     });
 
-  } catch (error) {
-    console.error("GET Shift Report error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.error("GET /api/reports/shift error:", message, stack);
+    return NextResponse.json(
+      { error: "Terjadi kesalahan saat memuat laporan shift. Silakan coba lagi.", detail: message },
+      { status: 500 }
+    );
   }
 }

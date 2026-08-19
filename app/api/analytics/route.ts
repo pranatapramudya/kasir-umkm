@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
   try {
-    const { userId, sessionClaims } = await auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,16 +18,15 @@ export async function GET(request: Request) {
 
     // 1. Unified Date Filter (WIB - Asia/Jakarta)
     const nowStr = new Date().toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
-    
+
     let startOfDay, endOfDay;
-    
+
     if (filter === 'hari_ini') {
       startOfDay = new Date(`${nowStr}T00:00:00+07:00`);
       endOfDay = new Date(`${nowStr}T23:59:59.999+07:00`);
     } else if (filter === 'bulan_ini') {
       const yearMonth = nowStr.substring(0, 7); // YYYY-MM
       startOfDay = new Date(`${yearMonth}-01T00:00:00+07:00`);
-      
       const lastDay = new Date(parseInt(yearMonth.split('-')[0]), parseInt(yearMonth.split('-')[1]), 0).getDate();
       endOfDay = new Date(`${yearMonth}-${lastDay}T23:59:59.999+07:00`);
     } else if (filter === 'tahun_ini') {
@@ -43,76 +42,98 @@ export async function GET(request: Request) {
       endOfDay = new Date(`${nowStr}T23:59:59.999+07:00`);
     }
 
-    let startDate = startOfDay;
-    let endDate = endOfDay;
+    const startDate = startOfDay;
+    const endDate = endOfDay;
 
-    // 2. Tenant Scoping
-    // All data belongs to activeTenantId
+    const transactionWhere = {
+      userId: activeTenantId,
+      createdAt: { gte: startDate, lte: endDate },
+    };
 
-    // 3. Tarik data seringan mungkin (Hindari Payload Kiamat)
-    const transactionsLight = await prisma.transaction.findMany({
-      where: {
-        userId: activeTenantId,
-        createdAt: { gte: startDate, lte: endDate },
-      },
-      select: { createdAt: true, total: true }
-    });
+    // 2. Jalankan semua query berat secara paralel di sisi Database Engine
+    const [
+      transactionAggr,      // SUM(total) + COUNT(*) — kalkulasi di PostgreSQL
+      expenseAggr,          // SUM(amount) — kalkulasi di PostgreSQL
+      transactionItemsAggr, // SUM(qty) groupBy productId — untuk HPP
+      salesTrendRaw,        // Hanya 2 kolom (createdAt, total) untuk trend per hari
+      products,             // Untuk mapping productId → hpp & salesTrend per WIB date
+      tenant,
+    ] = await Promise.all([
+      // A. Revenue & Transaction Count — sepenuhnya di Database
+      prisma.transaction.aggregate({
+        where: transactionWhere,
+        _sum: { total: true },
+        _count: { id: true },
+      }),
 
-    // 4. Kalkulasi HPP menggunakan groupBy di level DB (Sangat ringan)
-    const products = await prisma.product.findMany({
-      where: { userId: activeTenantId },
-      select: { id: true, hpp: true }
-    });
-    const productMap = new Map(products.map(p => [p.id, p.hpp]));
-
-    const transactionItemsAggr = await prisma.transactionItem.groupBy({
-      by: ['productId'],
-      where: {
-        transaction: {
+      // B. Total Expense — sepenuhnya di Database
+      prisma.expense.aggregate({
+        where: {
           userId: activeTenantId,
-          createdAt: { gte: startDate, lte: endDate },
-        }
-      },
-      _sum: { qty: true }
-    });
+          date: { gte: startDate, lte: endDate },
+        },
+        _sum: { amount: true },
+      }),
 
+      // C. HPP — groupBy di Database (sudah optimal)
+      prisma.transactionItem.groupBy({
+        by: ['productId'],
+        where: {
+          transaction: {
+            userId: activeTenantId,
+            createdAt: { gte: startDate, lte: endDate },
+          },
+        },
+        _sum: { qty: true },
+      }),
+
+      // D. Sales Trend — perlu createdAt per baris untuk grouping by WIB date
+      // Select minimal (hanya 2 kolom), tidak ada alternatif murni DB karena
+      // PostgreSQL tidak bisa timezone-aware date_trunc ke WIB via Prisma ORM.
+      prisma.transaction.findMany({
+        where: transactionWhere,
+        select: { createdAt: true, total: true },
+      }),
+
+      // E. Products untuk mapping hpp & productId → hpp
+      prisma.product.findMany({
+        where: { userId: activeTenantId },
+        select: { id: true, hpp: true },
+      }),
+
+      // F. Tenant category
+      prisma.tenant.findUnique({
+        where: { userId: activeTenantId },
+        select: { category: true },
+      }),
+    ]);
+
+    // 3. Ekstrak nilai dari aggregate (kalkulasi sudah selesai di Database)
+    const totalRevenue = transactionAggr._sum.total ?? 0;
+    const totalTransactions = transactionAggr._count.id ?? 0;
+    const totalExpense = expenseAggr._sum.amount ?? 0;
+
+    // 4. Hitung HPP menggunakan hasil groupBy dari Database
+    const productMap = new Map(products.map(p => [p.id, p.hpp]));
     let totalHpp = 0;
     transactionItemsAggr.forEach(item => {
-      const hpp = productMap.get(item.productId) || 0;
-      totalHpp += hpp * (item._sum.qty || 0);
+      const hpp = productMap.get(item.productId) ?? 0;
+      totalHpp += hpp * (item._sum.qty ?? 0);
     });
 
-    // Ambil data pengeluaran (Expense) untuk periode ini
-    const expenses = await prisma.expense.findMany({
-      where: {
-        userId: activeTenantId,
-        date: { gte: startDate, lte: endDate },
-      },
-    });
-
-    let totalRevenue = 0;
-    const salesTrendMap = new Map<string, number>();
-
-    transactionsLight.forEach(t => {
-      totalRevenue += t.total;
-      // Group by date (WIB)
-      const localDateStr = new Date(t.createdAt).toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
-      salesTrendMap.set(localDateStr, (salesTrendMap.get(localDateStr) || 0) + t.total);
-    });
-
-    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+    // 5. Net Profit — kalkulasi sederhana dari nilai yang sudah diagregasi
     const netProfit = totalRevenue - totalHpp - totalExpense;
-    const totalTransactions = transactionsLight.length;
 
-    // Sort trend data by date
+    // 6. Sales Trend — group by WIB date (harus dilakukan di JS karena timezone)
+    const salesTrendMap = new Map<string, number>();
+    salesTrendRaw.forEach(t => {
+      const localDateStr = new Date(t.createdAt).toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
+      salesTrendMap.set(localDateStr, (salesTrendMap.get(localDateStr) ?? 0) + t.total);
+    });
+
     const salesTrend = Array.from(salesTrendMap.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, revenue]) => ({ date, revenue }));
-
-    const tenant = await prisma.tenant.findUnique({
-      where: { userId: activeTenantId },
-      select: { category: true }
-    });
 
     return NextResponse.json({
       totalRevenue,
@@ -125,8 +146,8 @@ export async function GET(request: Request) {
       tenantId: activeTenantId,
       period: {
         start: startDate.toISOString(),
-        end: endDate.toISOString()
-      }
+        end: endDate.toISOString(),
+      },
     });
 
   } catch (error: any) {
