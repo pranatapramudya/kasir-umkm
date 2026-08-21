@@ -3,6 +3,12 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
+    const body = await req.json();
+
+    if (body.event === 'testing') {
+      return NextResponse.json({ message: "Webhook URL is working perfectly" }, { status: 200 });
+    }
+
     const webhookSecret = process.env.MAYAR_WEBHOOK_SECRET;
     if (webhookSecret) {
       const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
@@ -11,12 +17,6 @@ export async function POST(req: Request) {
         console.error('Invalid Webhook Secret');
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
-    }
-
-    const body = await req.json();
-
-    if (body.event === 'testing') {
-      return NextResponse.json({ message: "Webhook URL is working perfectly" }, { status: 200 });
     }
 
     if (body.event === 'payment.success' || body.event === 'payment.received') {
