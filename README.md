@@ -58,6 +58,9 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/admin
 
 # Neon Database URL
 DATABASE_URL="postgresql://user:password@endpoint.neon.tech/dbname?sslmode=require"
+
+# Mayar Webhook Secret (Dapatkan dari dashboard Mayar - Developer > Webhooks)
+MAYAR_WEBHOOK_SECRET=your_mayar_webhook_secret_here
 ```
 
 ### 3. Migrasi Database

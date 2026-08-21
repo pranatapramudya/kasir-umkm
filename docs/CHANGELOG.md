@@ -7,10 +7,12 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### ✨ Fitur Baru: Integrasi Webhook Mayar
+### ✨ Fitur Baru & Perbaikan: Integrasi Webhook Mayar
 - Menambahkan route handler `app/api/webhooks/mayar/route.ts` untuk menangani webhook pembayaran otomatis dari Mayar (`payment.success` dan `payment.received`).
 - Fitur ini mendeteksi jumlah pembayaran (`amount`) dan memperbarui paket berlangganan (`subscriptionPlan`) secara dinamis menjadi `PRO_1M`, `PRO_6M`, atau `PRO_1Y`.
 - Melakukan perhitungan otomatis untuk memperpanjang `subscriptionEndsAt` pada tabel `Tenant` sesuai dengan durasi langganan (1, 6, atau 12 bulan).
+- **Hotfix:** Menambahkan penanganan event `testing` dari dashboard Mayar agar merespon `200 OK` secara langsung tanpa memicu pemanggilan query database.
+- **Hotfix:** Implementasi *graceful degradation* saat user (email) dari webhook tidak ditemukan pada database dengan merespon HTTP `200` agar menghindari *infinite retry* dan mencegah penumpukan antrean (*webhook stuck*) dari pihak Mayar.
 
 ---
 

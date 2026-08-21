@@ -15,6 +15,10 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
+    if (body.event === 'testing') {
+      return NextResponse.json({ message: "Webhook URL is working perfectly" }, { status: 200 });
+    }
+
     if (body.event === 'payment.success' || body.event === 'payment.received') {
       const email = body.data?.customer?.email;
       const amount = Number(body.data?.amount || 0);
@@ -40,21 +44,23 @@ export async function POST(req: Request) {
             where: { email },
           });
 
-          if (employee) {
-            // Menghitung tanggal kadaluarsa: Tanggal saat ini + durasi bulan
-            const subscriptionEndsAt = new Date();
-            subscriptionEndsAt.setMonth(subscriptionEndsAt.getMonth() + durationMonths);
-
-            // Update status berlangganan pada model Tenant
-            await prisma.tenant.update({
-              where: { id: employee.tenantId },
-              data: {
-                subscriptionPlan: plan,
-                subscriptionStatus: 'ACTIVE',
-                subscriptionEndsAt: subscriptionEndsAt,
-              },
-            });
+          if (!employee) {
+            return NextResponse.json({ message: 'User not found' }, { status: 200 });
           }
+
+          // Menghitung tanggal kadaluarsa: Tanggal saat ini + durasi bulan
+          const subscriptionEndsAt = new Date();
+          subscriptionEndsAt.setMonth(subscriptionEndsAt.getMonth() + durationMonths);
+
+          // Update status berlangganan pada model Tenant
+          await prisma.tenant.update({
+            where: { id: employee.tenantId },
+            data: {
+              subscriptionPlan: plan,
+              subscriptionStatus: 'ACTIVE',
+              subscriptionEndsAt: subscriptionEndsAt,
+            },
+          });
         }
       }
     }
