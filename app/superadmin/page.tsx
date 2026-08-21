@@ -2,8 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { Building2, Users, PieChart, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import ExportButton from "@/components/ExportButton";
-import AccTenantButton from "./AccTenantButton";
-import ManualOverrideButton from "./ManualOverrideButton";
 import SearchBar from "./SearchBar";
 import CategoryFilter from "./CategoryFilter";
 
@@ -67,26 +65,18 @@ export default async function SuperAdminPage(props: {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  // Fetch omset (Total GMV) untuk tenant yang sedang ditampilkan
-  const transactionsAggr = await prisma.transaction.groupBy({
-    by: ['userId'],
-    where: {
-      userId: { in: tenants.map(t => t.userId) },
-      status: { in: ['completed', 'COMPLETED', 'paid', 'PAID', 'selesai', 'SELESAI'] },
-      createdAt: {
-        gte: startOfMonth,
-        lte: endOfMonth
-      }
-    },
-    _sum: {
-      total: true
-    }
+  // Ambil email owner dari tabel Employee
+  const tenantIds = tenants.map(t => t.id);
+  const employees = await prisma.employee.findMany({
+    where: { tenantId: { in: tenantIds } },
+    select: { tenantId: true, email: true }
   });
-
-  const omsetMap = transactionsAggr.reduce((acc, curr) => {
-    acc[curr.userId] = curr._sum.total || 0;
+  
+  const emailMap = employees.reduce((acc, curr) => {
+    // Ambil email pertama yang ditemukan per tenant (biasanya owner)
+    if (!acc[curr.tenantId]) acc[curr.tenantId] = curr.email;
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, string>);
 
   // KPI Calculations
   const totalTenants = allTenantsForStats.length;
@@ -188,18 +178,16 @@ export default async function SuperAdminPage(props: {
               <tr className="bg-slate-50">
                 <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-12 text-center">No.</th>
                 <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Toko / Usaha</th>
+                <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Utama</th>
                 <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kategori</th>
-                <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Telepon</th>
-                <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal Daftar</th>
                 <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status Langganan</th>
-                <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Omset (Bulan Ini)</th>
-                <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Aksi</th>
+                <th className="py-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Berakhir Pada</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {tenants.map((tenant, index) => {
                 const rowNumber = skip + index + 1;
-                const omset = omsetMap[tenant.userId] || 0;
+                const email = emailMap[tenant.id] || "-";
                 const isDeleted = tenant.subscriptionStatus === 'DELETED_BY_USER';
                 return (
                   <tr key={tenant.id} className={`transition-colors ${isDeleted ? 'bg-red-50/50 opacity-75' : 'hover:bg-slate-50/50'}`}>
@@ -208,50 +196,38 @@ export default async function SuperAdminPage(props: {
                       <span className={isDeleted ? 'line-through text-red-600' : ''}>{tenant.name}</span>
                       {isDeleted && <span className="ml-2 text-[10px] text-red-500 font-bold px-1.5 py-0.5 bg-red-100 rounded-md">DELETED</span>}
                     </td>
+                    <td className="py-2 px-3 text-slate-600 text-xs">
+                      {email}
+                    </td>
                     <td className="py-2 px-3">
                       <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-semibold">
                         {tenant.category}
                       </span>
                     </td>
-                    <td className="py-2 px-3 text-slate-600 text-xs">{tenant.phone || "-"}</td>
-                    <td className="py-2 px-3 text-slate-600 text-xs">
-                      {new Date(tenant.createdAt).toLocaleDateString('id-ID', {
-                        day: 'numeric', month: 'short', year: 'numeric'
-                      })}
-                    </td>
                     <td className="py-2 px-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${tenant.subscriptionPlan === 'FREE' ? 'bg-orange-100 text-orange-700' :
-                          tenant.subscriptionPlan?.includes('PRO') ? 'bg-indigo-100 text-indigo-700' :
-                            'bg-slate-100 text-slate-700'
-                        }`}>
-                        {tenant.subscriptionPlan}
-                      </span>
-                    </td>
-                    <td className="py-2 px-3 text-right">
-                      <span className="text-green-600 font-semibold text-sm whitespace-nowrap">
-                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(omset)}
-                      </span>
-                    </td>
-                    <td className="py-2 px-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        {tenant.subscriptionStatus === 'PENDING' ? (
-                          <AccTenantButton tenantId={tenant.id} plan={tenant.subscriptionPlan} />
-                        ) : (
-                          <span className="text-xs text-slate-400 font-medium px-2 py-1">{tenant.subscriptionStatus}</span>
-                        )}
-                        <ManualOverrideButton
-                          tenantId={tenant.id}
-                          currentPlan={tenant.subscriptionPlan}
-                          currentStatus={tenant.subscriptionStatus}
-                        />
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold self-start ${tenant.subscriptionPlan === 'FREE' ? 'bg-orange-100 text-orange-700' :
+                            tenant.subscriptionPlan?.includes('PRO') ? 'bg-indigo-100 text-indigo-700' :
+                              'bg-slate-100 text-slate-700'
+                          }`}>
+                          {tenant.subscriptionPlan}
+                        </span>
+                        <span className={`text-[10px] font-bold ${tenant.subscriptionStatus === 'ACTIVE' ? 'text-emerald-600' : tenant.subscriptionStatus === 'EXPIRED' ? 'text-red-600' : 'text-slate-500'}`}>
+                          {tenant.subscriptionStatus}
+                        </span>
                       </div>
+                    </td>
+                    <td className="py-2 px-3 text-slate-600 text-xs">
+                      {tenant.subscriptionEndsAt ? new Date(tenant.subscriptionEndsAt).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                      }) : "-"}
                     </td>
                   </tr>
                 );
               })}
               {tenants.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-6 text-center text-xs font-medium text-slate-500">
+                  <td colSpan={6} className="py-6 text-center text-xs font-medium text-slate-500">
                     Belum ada tenant yang terdaftar pada kategori ini.
                   </td>
                 </tr>

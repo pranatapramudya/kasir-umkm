@@ -3,6 +3,16 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
+    const webhookSecret = process.env.MAYAR_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
+      // Mayar mengirim webhook secret di header Authorization (Bearer token)
+      if (!authHeader || (authHeader !== `Bearer ${webhookSecret}` && authHeader !== webhookSecret)) {
+        console.error('Invalid Webhook Secret');
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const body = await req.json();
 
     if (body.event === 'payment.success' || body.event === 'payment.received') {
