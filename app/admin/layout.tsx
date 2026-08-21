@@ -24,6 +24,16 @@ export default async function AdminLayout({
     redirect('/sign-in');
   }
 
+  const role = (sessionClaims?.metadata as any)?.role;
+  let isSuperadmin = role === 'SUPERADMIN';
+  if (process.env.SUPER_ADMIN_USER_IDS?.includes(userId)) {
+    isSuperadmin = true;
+  }
+
+  if (isSuperadmin) {
+    redirect('/superadmin');
+  }
+
   let targetUserId = userId;
   let isEmployee = false;
   

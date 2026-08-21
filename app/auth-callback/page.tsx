@@ -9,7 +9,12 @@ export default async function AuthCallback() {
   }
 
   const role = (sessionClaims?.metadata as any)?.role;
-  if (role === 'SUPERADMIN') {
+  let isSuperadmin = role === 'SUPERADMIN';
+  if (process.env.SUPER_ADMIN_USER_IDS?.includes(userId)) {
+    isSuperadmin = true;
+  }
+
+  if (isSuperadmin) {
     redirect('/superadmin');
   }
 

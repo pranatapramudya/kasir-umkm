@@ -16,7 +16,15 @@ export const dynamic = 'force-dynamic';
 export default async function POSApp() {
   const { userId, sessionClaims } = await auth();
   const role = (sessionClaims?.metadata as any)?.role;
-  const isSuperadmin = role === 'SUPERADMIN';
+  let isSuperadmin = role === 'SUPERADMIN';
+
+  if (userId && process.env.SUPER_ADMIN_USER_IDS?.includes(userId)) {
+    isSuperadmin = true;
+  }
+
+  if (isSuperadmin) {
+    redirect('/superadmin');
+  }
 
   // Jika sudah login dan bukan superadmin, muat halaman POS.
   if (userId && !isSuperadmin) {
@@ -183,7 +191,7 @@ export default async function POSApp() {
                   Masuk (Owner) <ArrowRight className="w-5 h-5" />
                 </button>
               </SignInButton>
-              
+
               <div>
                 <SignInButton fallbackRedirectUrl="/auth-callback" forceRedirectUrl="/auth-callback">
                   <button className="w-full py-4 bg-transparent border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg active:scale-95">
