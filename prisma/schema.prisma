@@ -181,6 +181,8 @@ model Booking {
   dropoffLocation String?
   actualStartedAt DateTime?
   overtimeFee   Int           @default(0)
+  downPayment   Int           @default(0)
+  paymentMethod String?       // e.g. "CASH", "TUNAI", "QRIS"
   createdAt     DateTime      @default(now())
 
   @@index([userId, createdAt])
