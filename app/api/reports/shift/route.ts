@@ -27,6 +27,9 @@ export async function GET(request: Request) {
     const isEmployee = !!employee;
     const activeTenantId = employee ? employee.tenantId : userId;
 
+    const tenant = await prisma.tenant.findUnique({ where: { userId: activeTenantId } });
+    const isRental = tenant?.category === "Rental & Travel";
+
     const whereClause: any = {
       userId: activeTenantId,
       createdAt: { gte: startOfDay, lte: endOfDay },
@@ -44,6 +47,8 @@ export async function GET(request: Request) {
       transactions,       // Halaman transaksi untuk tampilan tabel
       totalCount,         // COUNT untuk pagination
       products,           // Mapping productId → name
+      bookingDPGroups,    // DP dari Booking (khusus Rental)
+      bookingTransactions // List DP Booking (khusus Rental)
     ] = await Promise.all([
       // A. Metrics per metode pembayaran — kalkulasi SUM di Database Engine
       prisma.transaction.groupBy({
@@ -85,6 +90,19 @@ export async function GET(request: Request) {
         where: { userId: activeTenantId },
         select: { id: true, name: true },
       }),
+
+      // G. DP Booking Metrics (Khusus Rental)
+      isRental ? prisma.booking.groupBy({
+        by: ['paymentMethod'],
+        where: { userId: activeTenantId, createdAt: { gte: startOfDay, lte: endOfDay }, downPayment: { gt: 0 } },
+        _sum: { downPayment: true },
+      }) : Promise.resolve([]),
+
+      // H. DP Booking Transactions (Khusus Rental)
+      isRental ? prisma.booking.findMany({
+        where: { userId: activeTenantId, createdAt: { gte: startOfDay, lte: endOfDay }, downPayment: { gt: 0 } },
+        orderBy: { createdAt: 'desc' },
+      }) : Promise.resolve([]),
     ]);
 
     // 2. Hitung metrics dari hasil groupBy (sudah diagregasi di Database)
@@ -110,6 +128,17 @@ export async function GET(request: Request) {
       if (methodStr === 'QRIS') totalQRIS += effectiveTotal;
     });
 
+    // DP Booking (Rental Khusus)
+    if (isRental) {
+      bookingDPGroups.forEach((group: any) => {
+        const dp = group._sum.downPayment ?? 0;
+        totalGross += dp;
+        const methodStr = (group.paymentMethod || '').toUpperCase();
+        if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += dp;
+        if (methodStr === 'QRIS') totalQRIS += dp;
+      });
+    }
+
     // 3. Build soldSummary dari groupBy result — tanpa iterasi nested items di JS
     const productMap = new Map(products.map(p => [p.id, p.name]));
     const soldSummary: Record<string, number> = {};
@@ -124,6 +153,35 @@ export async function GET(request: Request) {
         item.productName = productMap.get(item.productId) || 'Produk Dihapus';
       });
     });
+
+    // 5. Gabungkan DP Booking ke transaksi riwayat (Khusus Rental)
+    if (isRental && bookingTransactions.length > 0) {
+      const mappedBookings = bookingTransactions.map((b: any) => {
+        const pName = b.productId ? productMap.get(b.productId) : 'Booking';
+        return {
+          id: b.id,
+          createdAt: b.createdAt,
+          customerName: b.customerName,
+          method: b.paymentMethod || 'TUNAI',
+          status: 'partial',
+          total: b.downPayment,
+          discount: 0,
+          items: [
+            {
+              productId: b.productId,
+              productName: `DP - ${pName || 'Rental'}`,
+              qty: 1,
+              price: b.downPayment,
+              note: 'Down Payment (Booking)'
+            }
+          ]
+        };
+      });
+
+      (transactions as any[]).push(...mappedBookings);
+      // Sort ulang berdasarkan createdAt descending
+      transactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
 
     const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
@@ -144,3 +202,4 @@ export async function GET(request: Request) {
     );
   }
 }
+

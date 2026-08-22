@@ -13,6 +13,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Melakukan perhitungan otomatis untuk memperpanjang `subscriptionEndsAt` pada tabel `Tenant` sesuai dengan durasi langganan (1, 6, atau 12 bulan).
 - **Hotfix:** Menambahkan penanganan event `testing` dari dashboard Mayar agar merespon `200 OK` secara langsung tanpa memicu pemanggilan query database.
 - **Hotfix:** Implementasi *graceful degradation* saat user (email) dari webhook tidak ditemukan pada database dengan merespon HTTP `200` agar menghindari *infinite retry* dan mencegah penumpukan antrean (*webhook stuck*) dari pihak Mayar.
+- **Hotfix:** Memperbaiki build error (TypeScript type mismatch) pada `app/api/reports/shift/route.ts` ketika melakukan push `mappedBookings` ke array `transactions` dengan menambahkan type casting `as any[]`.
 
 ---
 
