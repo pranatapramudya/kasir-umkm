@@ -6,7 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { selectSubscriptionPackage } from "@/app/onboarding/actions";
+import { selectSubscriptionPackage } from "@/app/(protected)/onboarding/actions";
 
 export function PaywallModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
