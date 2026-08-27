@@ -18,6 +18,8 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### ⚡ Performa & UX: Speed Insights & Caching SWR
 - Mengintegrasikan `@vercel/speed-insights` pada root layout untuk tracking Core Web Vitals.
 - Optimalisasi caching global SWR dengan menonaktifkan `revalidateOnFocus` dan `revalidateIfStale`, serta mengatur `dedupingInterval: 60000` untuk mengurangi jumlah *network request* berlebihan, sehingga aplikasi terasa lebih ringan.
+- **LCP Optimization (Hydration Fix):** Memindahkan pengambilan data analitik dari *Client Component* ke *Server Component* pada rute `/admin`, serta memisahkan utilitas `getAnalyticsData` ke dalam `lib/analytics-service.ts` dengan penanganan serialisasi waktu (`Date` ke `toISOString`) untuk mengatasi `Hydration Error`.
+- **TTFB & FCP Optimization (ISR):** Mengubah strategi *caching* pada rute publik `/book/[slug]` dari `force-dynamic` (Real-Time) menjadi *Incremental Static Regeneration* (ISR) dengan `revalidate = 60` untuk mempercepat pemuatan halaman melalui CDN cache.
 
 ---
 

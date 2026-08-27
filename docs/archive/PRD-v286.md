@@ -15,7 +15,7 @@ Pada instruksi sebelumnya, terdapat logika *split-routing* di mana bisnis tipe t
 2. Hapus logika *redirect* spesifik ke halaman `/admin/pos` atau rute kasir lainnya saat proses *login/onboarding* baru saja selesai.
 
 **B. Terapkan Universal Absolute Routing:**
-1. Atur konfigurasi URL pendaratan (Landing URL) pasca-autentikasi (baik *Sign In* maupun *Sign Up*) agar menunjuk secara absolut dan universal ke: `https://kasir-umkm-pjtech.vercel.app/admin` (atau path `/admin` secara internal).
+1. Atur konfigurasi URL pendaratan (Landing URL) pasca-autentikasi (baik *Sign In* maupun *Sign Up*) agar menunjuk secara absolut dan universal ke: `https://www.pjtechumkm.com/admin` (atau path `/admin` secara internal).
 2. Pastikan aturan ini berlaku global untuk semua peran (Role) pengguna, baik entitas pemilik bisnis (*Owner*) maupun staf/karyawan. Semua harus melihat halaman Dashboard/Ringkasan Bisnis terlebih dahulu saat pertama kali masuk ke aplikasi.
 
 Silakan bersihkan logika *routing* sebelumnya dan kunci rute pendaratannya ke `/admin` secara universal! Lapor jika pembaruan ini sudah di-*push*!

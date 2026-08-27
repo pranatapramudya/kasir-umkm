@@ -4,7 +4,7 @@
 
 ## 1. Analisis Masalah
 Terdapat *bug* UX pada fitur penyebaran *link* publik (seperti terlihat pada menu "Jadwal Booking" atau "Informasi Toko"). Saat ini, input *readonly* dan tombol "Salin" hanya menghasilkan *Relative Path* (contoh: `/book/salon-cantik`). 
-Karena *link* ini ditujukan untuk dibagikan ke platform eksternal (WhatsApp, Instagram), *link* wajib berformat *Absolute URL* (mencakup protokol dan domain, contoh: `https://kasir-umkm-pjtech.vercel.app/book/salon-cantik`).
+Karena *link* ini ditujukan untuk dibagikan ke platform eksternal (WhatsApp, Instagram), *link* wajib berformat *Absolute URL* (mencakup protokol dan domain, contoh: `https://www.pjtechumkm.com/book/salon-cantik`).
 
 ## 2. Instruksi Eksekusi (Dynamic Origin & Clipboard Mapping)
 **Target File:** Komponen UI yang menampilkan *Link Booking Publik* (contoh: `JadwalBookingClient.tsx`, `InformasiTokoClient.tsx`, atau *header* jadwal).

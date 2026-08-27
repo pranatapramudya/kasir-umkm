@@ -20,7 +20,7 @@ Selain itu, *flow* pengguna saat pertama kali login untuk tipe bisnis Jasa/Renta
 
 **B. Perbaikan Initial Landing Page (Redirect Setelah Login):**
 1. Cek logika pasca-autentikasi (Clerk `afterSignInUrl` atau logika *redirect* di dalam komponen *Onboarding/Login*).
-2. Terapkan aturan kondisional: Setelah pengguna berhasil *login* dan memilih toko, jika toko tersebut bertipe **Jasa** atau **Rental**, paksa *redirect* (`router.push`) ke halaman `https://kasir-umkm-pjtech.vercel.app/admin` (Dashboard Utama).
+2. Terapkan aturan kondisional: Setelah pengguna berhasil *login* dan memilih toko, jika toko tersebut bertipe **Jasa** atau **Rental**, paksa *redirect* (`router.push`) ke halaman `https://www.pjtechumkm.com/admin` (Dashboard Utama).
 3. Pastikan tidak ada *fallback* yang melempar pengguna Jasa/Rental ke `/admin/pos` saat pertama kali masuk.
 
 Silakan perbaiki inkonsistensi UI dan *routing* ini sekarang juga agar *user experience* (UX) terasa seperti aplikasi *Enterprise* yang matang!
