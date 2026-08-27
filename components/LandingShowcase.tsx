@@ -3,12 +3,7 @@ import { BarChart3, Receipt, Users, CheckCircle2 } from "lucide-react";
 export default function LandingShowcase() {
   return (
     <div className="hidden lg:flex flex-1 flex-col justify-center px-12 xl:px-24 relative overflow-hidden">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-blob"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-blob" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute -bottom-8 left-40 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-blob" style={{ animationDelay: '4s' }}></div>
-      </div>
+
 
       <div className="relative z-10 max-w-2xl mt-16 lg:mt-0">
         <h2 className="text-5xl xl:text-6xl font-black tracking-tighter text-slate-900 leading-[1.1] mb-6">
@@ -19,17 +14,11 @@ export default function LandingShowcase() {
           Kelola bisnis F&B, Retail, Jasa, hingga Rental & Travel Anda dengan satu platform yang dirancang untuk kecepatan, keamanan, dan skalabilitas di kelas <em className="text-blue-600 font-serif italic font-medium tracking-wide">Enterprise</em>.
         </p>
 
-        {/* Isometric / Bento Grid Mockup */}
-        <div
-          className="relative w-full aspect-[4/3] rounded-[2rem] transition-all duration-700 ease-out group"
-          style={{ perspective: '1200px' }}
-        >
-          <div
-            className="absolute inset-0 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2rem] p-5 grid grid-cols-3 gap-3 shadow-[0_20px_60px_-15px_rgba(37,99,235,0.15)] transition-all duration-700 ease-out group-hover:rotate-0 group-hover:scale-100"
-            style={{ transform: 'rotateY(12deg) rotateX(8deg) scale(0.85)', transformStyle: 'preserve-3d' }}
-          >
+        {/* Simplified Bento Grid Mockup */}
+        <div className="relative w-full aspect-[4/3] rounded-[2rem]">
+          <div className="absolute inset-0 bg-white border border-slate-100 rounded-[2rem] p-5 grid grid-cols-3 gap-3 shadow-xl">
             {/* Dummy Dashboard UI */}
-            <div className="col-span-2 row-span-2 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl border border-blue-100/60 p-5 flex flex-col justify-between shadow-sm transition-transform duration-300 hover:-translate-y-1 overflow-hidden relative">
+            <div className="col-span-2 row-span-2 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl border border-blue-100/60 p-5 flex flex-col justify-between shadow-sm overflow-hidden relative">
               <div className="flex justify-between items-center mb-4 relative z-10">
                 <span className="text-sm font-bold text-slate-700">Total Pendapatan</span>
                 <div className="p-2 bg-white rounded-lg shadow-sm" aria-hidden="true">
@@ -72,7 +61,7 @@ export default function LandingShowcase() {
               <p className="text-xl font-black text-slate-800">12</p>
             </div>
 
-            <div className="col-span-3 bg-white/90 rounded-2xl border border-slate-100 p-4 flex items-center justify-between shadow-sm mt-2 transition-transform duration-300 hover:-translate-y-1">
+            <div className="col-span-3 bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between shadow-sm mt-2">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white shadow-sm shadow-green-200" aria-hidden="true">
                   <CheckCircle2 className="w-6 h-6" />

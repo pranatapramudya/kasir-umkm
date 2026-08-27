@@ -18,7 +18,7 @@ export default function LandingPage() {
 
         {/* RIGHT SIDE: AUTH (Glassmorphism) */}
         <div className="flex-1 flex flex-col items-center justify-center px-4 relative z-20">
-          <div className="w-full max-w-md bg-white/40 backdrop-blur-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2.5rem] p-8 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-b before:from-white/40 before:to-transparent before:rounded-[2.5rem]">
+          <div className="w-full max-w-md bg-white border border-slate-100 shadow-xl rounded-[2.5rem] p-8 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden">
 
             <div className="flex flex-col items-center mb-6">
               <Link href="/superadmin" prefetch={false} className="cursor-pointer flex flex-col items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Portal Superadmin">
