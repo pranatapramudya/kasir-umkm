@@ -7,6 +7,7 @@ import { SWRProvider } from "@/components/SWRProvider";
 import { SessionTimeoutGuard } from "@/components/SessionTimeoutGuard";
 import { BottomNav } from "@/components/BottomNav";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import "./globals.css";
 
@@ -136,6 +137,7 @@ export default function RootLayout({
             <Toaster position="top-center" richColors />
           </SWRProvider>
           <Analytics />
+          <SpeedInsights />
           <PwaInstallPrompt />
         </body>
       </html>

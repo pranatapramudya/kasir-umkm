@@ -15,6 +15,10 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Hotfix:** Implementasi *graceful degradation* saat user (email) dari webhook tidak ditemukan pada database dengan merespon HTTP `200` agar menghindari *infinite retry* dan mencegah penumpukan antrean (*webhook stuck*) dari pihak Mayar.
 - **Hotfix:** Memperbaiki build error (TypeScript type mismatch) pada `app/api/reports/shift/route.ts` ketika melakukan push `mappedBookings` ke array `transactions` dengan menambahkan type casting `as any[]`.
 
+### ⚡ Performa & UX: Speed Insights & Caching SWR
+- Mengintegrasikan `@vercel/speed-insights` pada root layout untuk tracking Core Web Vitals.
+- Optimalisasi caching global SWR dengan menonaktifkan `revalidateOnFocus` dan `revalidateIfStale`, serta mengatur `dedupingInterval: 60000` untuk mengurangi jumlah *network request* berlebihan, sehingga aplikasi terasa lebih ringan.
+
 ---
 
 ## [0.3.63] — 2026-08-19

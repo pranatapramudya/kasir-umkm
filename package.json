@@ -25,6 +25,7 @@
     "@types/react-big-calendar": "^1.16.3",
     "@types/web-push": "^3.6.4",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "date-fns": "^4.4.0",
     "dotenv": "^17.3.1",
     "exceljs": "^4.4.0",
