@@ -1,89 +1,14 @@
-import nextDynamic from 'next/dynamic';
-import { checkSubscriptionStatus } from '@/lib/subscription';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
-
 import { Store, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
-
-// Code Splitting & Lazy Loading: Mencegah ~3MB payload pada halaman utama untuk user yang belum login
-const POSAppClient = nextDynamic(() => import('./page-client'));
-const Sidebar = nextDynamic(() => import('@/components/Sidebar').then(mod => mod.Sidebar));
-const ClientCachePurger = nextDynamic(() => import('@/components/ClientCachePurger').then(mod => mod.ClientCachePurger));
+import { ClientCachePurger } from '@/components/ClientCachePurger';
 import { ClientShowcaseWrapper } from '@/components/ClientShowcaseWrapper';
 
 export const dynamic = 'force-dynamic';
 
-export default async function POSApp() {
-  const { userId, sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as any)?.role;
-  let isSuperadmin = role === 'SUPERADMIN';
-
-  if (userId && process.env.SUPER_ADMIN_USER_IDS?.includes(userId)) {
-    isSuperadmin = true;
-  }
-
-  if (isSuperadmin) {
-    redirect('/superadmin');
-  }
-
-  // Jika sudah login dan bukan superadmin, muat halaman POS.
-  if (userId && !isSuperadmin) {
-    const { isExpired } = await checkSubscriptionStatus();
-    let targetUserId = userId;
-    let isEmployee = false;
-
-    // Langkah 1: Cek apakah pengguna adalah Owner (punya tenant di database)
-    let tenant = await prisma.tenant.findUnique({ where: { userId: targetUserId } });
-
-    // Langkah 2: Jika bukan Owner, cek apakah dia adalah Karyawan/Kasir
-    if (!tenant) {
-      const employee = await prisma.employee.findUnique({
-        where: { clerkUserId: userId }
-      });
-
-      // Langkah 3: Jika Karyawan, arahkan ke POS dari toko tempat ia bekerja
-      if (employee) {
-        isEmployee = true;
-        targetUserId = employee.tenantId;
-        tenant = await prisma.tenant.findUnique({ where: { userId: targetUserId } });
-      }
-    }
-
-    // Langkah 4: Jika bukan Owner dan bukan Karyawan, barulah arahkan ke onboarding
-    if (!tenant && !isEmployee) {
-      redirect('/onboarding');
-    }
-
-    const [products, totalCount] = await Promise.all([
-      prisma.product.findMany({
-        where: { userId: targetUserId, isArchived: false },
-        orderBy: { createdAt: 'desc' },
-        take: 10
-      }),
-      prisma.product.count({ where: { userId: targetUserId, isArchived: false } })
-    ]);
-
-    return (
-      <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading POS...</div>}>
-        <POSAppClient
-          sidebar={<Sidebar />}
-          isExpired={isExpired}
-          initialData={{
-            products,
-            totalPages: Math.max(1, Math.ceil(totalCount / 10))
-          }}
-          tenantName={tenant?.name || ""}
-          tenantCategory={tenant?.category || ""}
-          tenantPhone={tenant?.phone || ""}
-        />
-      </Suspense>
-    );
-  }
-
-  // Jika belum login, tampilkan Landing Page Premium
+export default function LandingPage() {
+  // Jika sudah login, middleware otomatis akan mengarahkan user ke /admin atau /superadmin
+  // Jadi halaman ini hanya akan diakses oleh pengguna yang belum login.
   return (
     <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Landing Page...</div>}>
       <ClientCachePurger />
