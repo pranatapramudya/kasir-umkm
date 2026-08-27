@@ -1,9 +1,4 @@
-"use client";
-
-import nextDynamic from 'next/dynamic';
 import { BarChart3, Receipt, Users, CheckCircle2 } from "lucide-react";
-
-const MiniChartWrapper = nextDynamic(() => import('@/components/MiniChartWrapper').then(mod => mod.MiniChartWrapper), { ssr: false });
 
 export default function LandingShowcase() {
   return (
@@ -47,8 +42,17 @@ export default function LandingShowcase() {
                   +12.5% vs bulan lalu
                 </div>
               </div>
-              <div className="absolute bottom-0 left-0 w-full overflow-hidden rounded-b-2xl">
-                <MiniChartWrapper />
+              <div className="absolute bottom-0 left-0 w-full overflow-hidden rounded-b-2xl opacity-80" aria-hidden="true">
+                <svg viewBox="0 0 100 30" className="w-full h-16" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity="0.3" />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,20 Q10,25 20,15 T40,25 T60,10 T80,20 T100,5 L100,30 L0,30 Z" fill="url(#chart-grad)" />
+                  <path d="M0,20 Q10,25 20,15 T40,25 T60,10 T80,20 T100,5" fill="none" stroke="#3b82f6" strokeWidth="2" />
+                </svg>
               </div>
             </div>
 

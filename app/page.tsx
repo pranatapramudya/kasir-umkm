@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Store, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
 import { ClientCachePurger } from '@/components/ClientCachePurger';
-import { ClientShowcaseWrapper } from '@/components/ClientShowcaseWrapper';
+import LandingShowcase from '@/components/LandingShowcase';
 
 
 export default function LandingPage() {
@@ -14,7 +14,7 @@ export default function LandingPage() {
       <main className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex overflow-hidden relative">
 
         {/* LEFT SIDE: SHOWCASE (Hidden on Mobile) */}
-        <ClientShowcaseWrapper />
+        <LandingShowcase />
 
         {/* RIGHT SIDE: AUTH (Glassmorphism) */}
         <div className="flex-1 flex flex-col items-center justify-center px-4 relative z-20">
