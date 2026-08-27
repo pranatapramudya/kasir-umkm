@@ -12,7 +12,7 @@ import { Suspense } from 'react';
 const POSAppClient = nextDynamic(() => import('./page-client'));
 const Sidebar = nextDynamic(() => import('@/components/Sidebar').then(mod => mod.Sidebar));
 const ClientCachePurger = nextDynamic(() => import('@/components/ClientCachePurger').then(mod => mod.ClientCachePurger));
-const LandingShowcase = nextDynamic(() => import('@/components/LandingShowcase'), { ssr: false });
+import { ClientShowcaseWrapper } from '@/components/ClientShowcaseWrapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,7 +90,7 @@ export default async function POSApp() {
       <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex overflow-hidden relative">
 
         {/* LEFT SIDE: SHOWCASE (Hidden on Mobile) */}
-        <LandingShowcase />
+        <ClientShowcaseWrapper />
 
         {/* RIGHT SIDE: AUTH (Glassmorphism) */}
         <div className="flex-1 flex flex-col items-center justify-center px-4 relative z-20">

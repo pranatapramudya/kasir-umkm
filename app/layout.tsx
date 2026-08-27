@@ -6,12 +6,10 @@ import { idID } from '@clerk/localizations';
 import { SWRProvider } from "@/components/SWRProvider";
 import { SessionTimeoutGuard } from "@/components/SessionTimeoutGuard";
 import { BottomNav } from "@/components/BottomNav";
-import dynamic from 'next/dynamic';
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import "./globals.css";
-
-const Analytics = dynamic(() => import('@vercel/analytics/next').then((mod) => mod.Analytics), { ssr: false });
-const SpeedInsights = dynamic(() => import('@vercel/speed-insights/next').then((mod) => mod.SpeedInsights), { ssr: false });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

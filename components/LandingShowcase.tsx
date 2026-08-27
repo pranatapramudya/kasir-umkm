@@ -1,3 +1,5 @@
+"use client";
+
 import nextDynamic from 'next/dynamic';
 import { BarChart3, Receipt, Users, CheckCircle2 } from "lucide-react";
 
