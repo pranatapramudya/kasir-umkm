@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Store, ArrowRight } from "lucide-react";
-import { Suspense } from 'react';
+
 import { ClientCachePurger } from '@/components/ClientCachePurger';
 import LandingShowcase from '@/components/LandingShowcase';
 
@@ -9,7 +9,7 @@ export default function LandingPage() {
   // Jika sudah login, middleware otomatis akan mengarahkan user ke /admin atau /superadmin
   // Jadi halaman ini hanya akan diakses oleh pengguna yang belum login.
   return (
-    <Suspense fallback={<main className="flex h-screen items-center justify-center">Loading Landing Page...</main>}>
+    <>
       <ClientCachePurger />
       <main className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex overflow-hidden relative">
 
@@ -60,6 +60,6 @@ export default function LandingPage() {
           </p>
         </div>
       </main>
-    </Suspense>
+    </>
   );
 }
