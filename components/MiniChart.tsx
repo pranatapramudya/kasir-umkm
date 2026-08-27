@@ -15,7 +15,7 @@ const revenueData = [
 
 export function MiniChart() {
   return (
-    <div className="h-16 w-full mt-2 opacity-80">
+    <div className="h-16 w-full mt-2 opacity-80" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={revenueData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <defs>

@@ -37,7 +37,7 @@ export default function LandingShowcase() {
             <div className="col-span-2 row-span-2 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl border border-blue-100/60 p-5 flex flex-col justify-between shadow-sm transition-transform duration-300 hover:-translate-y-1 overflow-hidden relative">
               <div className="flex justify-between items-center mb-4 relative z-10">
                 <span className="text-sm font-bold text-slate-700">Total Pendapatan</span>
-                <div className="p-2 bg-white rounded-lg shadow-sm">
+                <div className="p-2 bg-white rounded-lg shadow-sm" aria-hidden="true">
                   <BarChart3 className="w-4 h-4 text-blue-600" />
                 </div>
               </div>
@@ -53,30 +53,29 @@ export default function LandingShowcase() {
             </div>
 
             <div className="col-span-1 row-span-1 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col justify-center items-center text-center transition-transform duration-300 hover:-translate-y-1">
-              <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
+              <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center mb-3" aria-hidden="true">
                 <Receipt className="w-5 h-5 text-indigo-600" />
               </div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Transaksi</p>
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Transaksi</p>
               <p className="text-xl font-black text-slate-800">142</p>
             </div>
 
             <div className="col-span-1 row-span-1 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col justify-center items-center text-center transition-transform duration-300 hover:-translate-y-1">
-              <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-3">
+              <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mb-3" aria-hidden="true">
                 <Users className="w-5 h-5 text-purple-600" />
               </div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">STAFF AKTIF</p>
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">STAFF AKTIF</p>
               <p className="text-xl font-black text-slate-800">12</p>
             </div>
 
-            {/* Recent Transactions list mock */}
             <div className="col-span-3 bg-white/90 rounded-2xl border border-slate-100 p-4 flex items-center justify-between shadow-sm mt-2 transition-transform duration-300 hover:-translate-y-1">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white shadow-sm shadow-green-200">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white shadow-sm shadow-green-200" aria-hidden="true">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
                   <p className="text-sm font-black text-slate-800 mb-0.5">Pesanan Selesai #1042</p>
-                  <p className="text-xs font-medium text-slate-500">Baru saja - Kasir Utama</p>
+                  <p className="text-xs font-medium text-slate-600">Baru saja - Kasir Utama</p>
                 </div>
               </div>
               <span className="font-black text-slate-900 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">Rp 250.000</span>

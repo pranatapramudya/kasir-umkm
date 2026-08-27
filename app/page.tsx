@@ -50,7 +50,7 @@ export default function LandingPage() {
             </div>
 
             <p className="text-center text-sm text-slate-600 mt-6">
-              Pemilik Bisnis Baru? <Link href="/sign-up?redirect_url=/onboarding" prefetch={false} className="text-blue-600 font-semibold hover:underline">Daftar Toko di sini</Link>
+              Pemilik Bisnis Baru? <Link href="/sign-up?redirect_url=/onboarding" prefetch={false} className="text-blue-600 font-semibold hover:underline" aria-label="Daftar Toko Baru">Daftar Toko di sini</Link>
             </p>
           </div>
 
