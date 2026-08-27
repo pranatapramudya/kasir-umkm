@@ -1,15 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "sonner";
 import { ClerkProvider } from '@clerk/nextjs';
 import { idID } from '@clerk/localizations';
 import { SWRProvider } from "@/components/SWRProvider";
-import { SessionTimeoutGuard } from "@/components/SessionTimeoutGuard";
 import { BottomNav } from "@/components/BottomNav";
-import { auth } from "@clerk/nextjs/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { ClientGlobalEffects } from "@/components/ClientGlobalEffects";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -112,13 +109,11 @@ const customIdID = {
 };
 (customIdID as any).formPasswordStrength = "Kekuatan password";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { userId } = await auth();
-
   return (
     <ClerkProvider
       localization={customIdID}
@@ -134,23 +129,13 @@ export default async function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           suppressHydrationWarning
         >
-          {userId ? (
-            <SWRProvider>
-              <SessionTimeoutGuard>
-                {children}
-                <BottomNav />
-              </SessionTimeoutGuard>
-              <Toaster position="top-center" richColors />
-            </SWRProvider>
-          ) : (
-            <>
-              {children}
-              <Toaster position="top-center" richColors />
-            </>
-          )}
+          <SWRProvider>
+            {children}
+            <BottomNav />
+          </SWRProvider>
+          <ClientGlobalEffects />
           <Analytics />
           <SpeedInsights />
-          <PwaInstallPrompt />
         </body>
       </html>
     </ClerkProvider>

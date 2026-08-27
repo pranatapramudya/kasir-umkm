@@ -10,7 +10,7 @@ const TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const THROTTLE_MS = 60 * 1000; // 1 minute
 
-export function SessionTimeoutGuard({ children }: { children: React.ReactNode }) {
+export function SessionTimeoutGuard() {
   const { isSignedIn, signOut, userId } = useAuth();
   const router = useRouter();
   const lastUpdateRef = useRef<number>(0);
@@ -78,5 +78,5 @@ export function SessionTimeoutGuard({ children }: { children: React.ReactNode })
     };
   }, [isSignedIn, signOut, router]);
 
-  return <>{children}</>;
+  return null;
 }
