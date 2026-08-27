@@ -3,6 +3,8 @@ import { idID } from '@clerk/localizations';
 import { SWRProvider } from "@/components/SWRProvider";
 import { BottomNav } from "@/components/BottomNav";
 import { ClientGlobalEffects } from "@/components/ClientGlobalEffects";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const customIdID = {
   ...idID,
@@ -67,6 +69,8 @@ export default function ProtectedLayout({
         <BottomNav />
       </SWRProvider>
       <ClientGlobalEffects />
+      <Analytics />
+      <SpeedInsights />
     </ClerkProvider>
   );
 }
