@@ -1,5 +1,4 @@
-import POSAppClient from './page-client';
-import { Sidebar } from '@/components/Sidebar';
+import nextDynamic from 'next/dynamic';
 import { checkSubscriptionStatus } from '@/lib/subscription';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
@@ -8,8 +7,12 @@ import Link from 'next/link';
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Store, BarChart3, Receipt, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
-import { MiniChartWrapper } from '@/components/MiniChartWrapper';
-import { ClientCachePurger } from '@/components/ClientCachePurger';
+
+// Code Splitting & Lazy Loading: Mencegah ~3MB payload pada halaman utama untuk user yang belum login
+const POSAppClient = nextDynamic(() => import('./page-client'));
+const Sidebar = nextDynamic(() => import('@/components/Sidebar').then(mod => mod.Sidebar));
+const MiniChartWrapper = nextDynamic(() => import('@/components/MiniChartWrapper').then(mod => mod.MiniChartWrapper));
+const ClientCachePurger = nextDynamic(() => import('@/components/ClientCachePurger').then(mod => mod.ClientCachePurger));
 
 export const dynamic = 'force-dynamic';
 
