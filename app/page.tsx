@@ -9,9 +9,9 @@ export default function LandingPage() {
   // Jika sudah login, middleware otomatis akan mengarahkan user ke /admin atau /superadmin
   // Jadi halaman ini hanya akan diakses oleh pengguna yang belum login.
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Landing Page...</div>}>
+    <Suspense fallback={<main className="flex h-screen items-center justify-center">Loading Landing Page...</main>}>
       <ClientCachePurger />
-      <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex overflow-hidden relative">
+      <main className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex overflow-hidden relative">
 
         {/* LEFT SIDE: SHOWCASE (Hidden on Mobile) */}
         <ClientShowcaseWrapper />
@@ -31,7 +31,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <h3 className="text-2xl font-black tracking-tight text-slate-900 mb-2 text-center">Selamat Datang</h3>
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 mb-2 text-center">Selamat Datang</h2>
             <p className="text-slate-600 font-medium text-center mb-10">Masuk atau daftar untuk mulai mengelola bisnis Anda dengan cerdas.</p>
 
             <div className="w-full space-y-3">
@@ -59,7 +59,7 @@ export default function LandingPage() {
             Dengan melanjutkan, Anda menyetujui Ketentuan Layanan.
           </p>
         </div>
-      </div>
+      </main>
     </Suspense>
   );
 }
