@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+
 import { Store, ArrowRight } from "lucide-react";
 import { Suspense } from 'react';
 
@@ -112,18 +112,18 @@ export default async function POSApp() {
             <p className="text-slate-500 font-medium text-center mb-10">Masuk atau daftar untuk mulai mengelola bisnis Anda dengan cerdas.</p>
 
             <div className="w-full space-y-3">
-              <SignInButton fallbackRedirectUrl="/auth-callback" forceRedirectUrl="/auth-callback">
+              <Link href="/sign-in?redirect_url=/auth-callback" className="w-full block">
                 <button className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all border-0 flex items-center justify-center gap-2 text-lg active:scale-95">
                   Masuk (Owner) <ArrowRight className="w-5 h-5" />
                 </button>
-              </SignInButton>
+              </Link>
 
               <div>
-                <SignInButton fallbackRedirectUrl="/auth-callback" forceRedirectUrl="/auth-callback">
+                <Link href="/sign-in?redirect_url=/auth-callback" className="w-full block">
                   <button className="w-full py-4 bg-transparent border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg active:scale-95">
                     Login sebagai Karyawan
                   </button>
-                </SignInButton>
+                </Link>
                 <p className="text-xs text-slate-500 text-center mt-2">
                   *Gunakan email & password yang diberikan oleh atasan Anda.
                 </p>
@@ -131,7 +131,7 @@ export default async function POSApp() {
             </div>
 
             <p className="text-center text-sm text-slate-600 mt-6">
-              Pemilik Bisnis Baru? <SignUpButton fallbackRedirectUrl="/onboarding" forceRedirectUrl="/onboarding"><button className="text-blue-600 font-semibold hover:underline">Daftar Toko di sini</button></SignUpButton>
+              Pemilik Bisnis Baru? <Link href="/sign-up?redirect_url=/onboarding" className="text-blue-600 font-semibold hover:underline">Daftar Toko di sini</Link>
             </p>
           </div>
 
