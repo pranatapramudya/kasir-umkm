@@ -6,6 +6,7 @@ import { idID } from '@clerk/localizations';
 import { SWRProvider } from "@/components/SWRProvider";
 import { SessionTimeoutGuard } from "@/components/SessionTimeoutGuard";
 import { BottomNav } from "@/components/BottomNav";
+import { auth } from "@clerk/nextjs/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
@@ -111,11 +112,13 @@ const customIdID = {
 };
 (customIdID as any).formPasswordStrength = "Kekuatan password";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { userId } = await auth();
+
   return (
     <ClerkProvider
       localization={customIdID}
@@ -131,13 +134,20 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           suppressHydrationWarning
         >
-          <SWRProvider>
-            <SessionTimeoutGuard>
+          {userId ? (
+            <SWRProvider>
+              <SessionTimeoutGuard>
+                {children}
+                <BottomNav />
+              </SessionTimeoutGuard>
+              <Toaster position="top-center" richColors />
+            </SWRProvider>
+          ) : (
+            <>
               {children}
-              <BottomNav />
-            </SessionTimeoutGuard>
-            <Toaster position="top-center" richColors />
-          </SWRProvider>
+              <Toaster position="top-center" richColors />
+            </>
+          )}
           <Analytics />
           <SpeedInsights />
           <PwaInstallPrompt />
