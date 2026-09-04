@@ -45,7 +45,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
   const isRental = isRentalTravelCategory(kategoriUsaha);
-  const isFNB = kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
+  const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);

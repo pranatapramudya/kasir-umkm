@@ -4,11 +4,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Filter } from "lucide-react";
 
 const categories = [
-  { value: "all", label: "Semua" },
-  { value: "F&B", label: "F&B" },
-  { value: "Retail", label: "Retail" },
-  { value: "Jasa/Servis", label: "Jasa / Servis" },
-  { value: "Rental & Travel", label: "Rental & Travel" },
+  { value: "", label: "Semua Kategori" },
+  { value: "FNB", label: "F&B / Kuliner" },
+  { value: "RETAIL", label: "Retail" },
+  { value: "JASA", label: "Jasa / Servis" },
+  { value: "RENTAL", label: "Rental & Travel" },
 ];
 
 export default function CategoryFilter() {
@@ -18,13 +18,13 @@ export default function CategoryFilter() {
 
   // Normalise: nilai URL "Semua" atau tidak ada → value "all"
   const currentValue =
-    currentKategori === "Semua" || !currentKategori ? "all" : currentKategori;
+    currentKategori === "Semua" || !currentKategori ? "" : currentKategori;
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const selected = e.target.value;
     const params = new URLSearchParams(searchParams.toString());
 
-    if (selected === "all") {
+    if (selected === "all" || selected === "") {
       params.set("kategori", "Semua");
     } else {
       params.set("kategori", selected);

@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       where: { userId: targetUserId },
       select: { category: true }
     });
-    const isJasa = tenant?.category === "Jasa / Servis";
+    const isJasa = tenant?.category === "Jasa / Servis" || tenant?.category === "JASA";
     const isRental = isRentalTravelCategory(tenant?.category);
 
     const validStatuses = isJasa 

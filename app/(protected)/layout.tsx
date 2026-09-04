@@ -8,6 +8,14 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const customIdID = {
   ...idID,
+  formFieldInputPlaceholder__confirmDeletionUserAccount: "Hapus akun",
+  userProfile: {
+    ...idID.userProfile,
+    deletePage: {
+      ...idID.userProfile?.deletePage,
+      actionDescription: "Ketik 'Hapus akun' (tanpa tanda kutip) untuk melanjutkan.",
+    }
+  },
   signUp: {
     ...idID.signUp,
     start: {

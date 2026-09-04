@@ -4,8 +4,8 @@ import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/busines
 export function getNavigationMenu(kategoriUsaha: string, role: string | undefined) {
   const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
   const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
-  const isFnB = kategoriUsaha === "F&B / Kuliner";
-  const isJasa = kategoriUsaha === "Jasa / Servis";
+  const isFnB = kategoriUsaha === "FNB" || kategoriUsaha === "F&B / Kuliner";
+  const isJasa = kategoriUsaha === "JASA" || kategoriUsaha === "Jasa / Servis";
   const isCashier = role === 'CASHIER';
 
   const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Transaksi Sewa" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";

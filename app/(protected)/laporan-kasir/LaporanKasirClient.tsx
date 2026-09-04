@@ -11,9 +11,9 @@ import { isRentalTravelCategory } from '@/lib/business-category';
 
 export default function LaporanKasirClient({ sidebar, initialDate, initialData, tenantCategory }: any) {
     const isRental = isRentalTravelCategory(tenantCategory);
-    const isJasa = tenantCategory === 'Jasa / Servis';
-    const isFNB = tenantCategory === 'F&B / Kuliner';
-    const isRetail = tenantCategory === 'Retail / Dagang';
+    const isJasa = tenantCategory === 'Jasa / Servis' || tenantCategory === 'JASA';
+    const isFNB = tenantCategory === 'F&B / Kuliner' || tenantCategory === 'FNB' || tenantCategory === 'F&B';
+    const isRetail = tenantCategory === 'Retail / Dagang' || tenantCategory === 'RETAIL';
     const itemHeaderLabel = isRental ? "Armada / Layanan" : isJasa ? "Layanan" : isFNB ? "Menu" : isRetail ? "Produk / Barang" : "Item";
     const [selectedDate, setSelectedDate] = useState(initialDate);
     const [currentPage, setCurrentPage] = useState(1);

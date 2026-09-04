@@ -23,14 +23,14 @@ export default async function SuperAdminPage(props: {
   const skip = (page - 1) * take;
   let whereClause = {};
   if (category !== "Semua") {
-    if (category === "F&B") {
-      whereClause = { category: "F&B / Kuliner" };
-    } else if (category === "Retail") {
-      whereClause = { category: "Retail / Toko Kelontong" };
-    } else if (category === "Jasa/Servis") {
-      whereClause = { category: "Jasa / Servis" };
-    } else if (category === "Rental & Travel") {
-      whereClause = { category: "Rental & Travel" };
+    if (category === "FNB") {
+      whereClause = { category: { in: ["FNB", "F&B / Kuliner"] } };
+    } else if (category === "RETAIL") {
+      whereClause = { category: { in: ["RETAIL", "Retail / Toko Kelontong"] } };
+    } else if (category === "JASA") {
+      whereClause = { category: { in: ["JASA", "Jasa / Servis"] } };
+    } else if (category === "RENTAL") {
+      whereClause = { category: { in: ["RENTAL", "Rental & Travel"] } };
     } else {
       whereClause = { category: { contains: category } };
     }

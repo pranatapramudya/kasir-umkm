@@ -25,7 +25,7 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
     businessType = 'RENTAL';
   } else if (isServiceBusinessCategory(category)) {
     businessType = 'JASA';
-  } else if (category === "F&B / Kuliner") {
+  } else if (category === "F&B / Kuliner" || category === "FNB" || category === "F&B") {
     businessType = 'FNB';
   }
 

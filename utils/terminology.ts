@@ -64,7 +64,7 @@ export function getTerms(category?: string | null): BusinessTerms {
     };
   }
 
-  if (cat === "F&B" || cat === "F&B / Kuliner") {
+  if (cat === "F&B" || cat === "FNB" || cat === "F&B / Kuliner") {
     return {
       item: "Menu",
       itemPlural: "Menu",

@@ -270,7 +270,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* 3. Peringatan Stok Cerdas */}
-        {data?.category !== 'Jasa / Servis' && (
+        {data?.category !== 'Jasa / Servis' && data?.category !== 'JASA' && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group">
           {!hasAccess && <LockOverlay />}
           <div className={hasAccess ? "transition-opacity duration-300 h-full flex flex-col" : "opacity-40 h-full flex flex-col"}>

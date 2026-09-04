@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     const activeTenantId = employee ? employee.tenantId : userId;
 
     const tenant = await prisma.tenant.findUnique({ where: { userId: activeTenantId } });
-    const isRental = tenant?.category === "Rental & Travel";
+    const isRental = tenant?.category === "Rental & Travel" || tenant?.category === "RENTAL";
 
     const whereClause: any = {
       userId: activeTenantId,

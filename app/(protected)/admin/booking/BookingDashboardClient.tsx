@@ -170,7 +170,7 @@ export default function BookingDashboardClient({
   tenantCategory,
   tenantId,
 }: Props) {
-  const isJasa = tenantCategory === "Jasa / Servis";
+  const isJasa = tenantCategory === "Jasa / Servis" || tenantCategory === "JASA";
   const statusMap = getStatusMap(isJasa);
 
   const router = useRouter();
