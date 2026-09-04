@@ -29,7 +29,7 @@ export default async function PesananOnlinePage() {
     where: { userId: targetUserId },
     select: { category: true }
   });
-  const isJasa = tenant?.category === "Jasa / Servis" || tenant?.category === "JASA";
+  const isJasa = tenant?.category === "Jasa / Servis" || tenant?.category === "Jasa/Servis" || tenant?.category === "JASA";
 
   const rawBookings = await prisma.booking.findMany({
     where: {

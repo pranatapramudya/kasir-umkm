@@ -175,7 +175,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('cash');
   const [tableId, setTableId] = useState("");
   const isFNB = tenantCategory === 'FNB' || tenantCategory === 'F&B' || tenantCategory === 'F&B / Kuliner';
-  const isJasa = tenantCategory === 'JASA' || tenantCategory === 'Jasa / Servis';
+  const isJasa = tenantCategory === 'JASA' || tenantCategory === 'Jasa / Servis' || tenantCategory === 'Jasa/Servis';
   const isRental = isRentalTravelCategory(tenantCategory);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);

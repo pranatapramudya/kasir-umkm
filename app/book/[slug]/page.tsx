@@ -37,7 +37,7 @@ export default async function BookingPage({ params }: PageProps) {
   if (!tenant) notFound();
 
   // Blokir akses jika kategori bisnis bukan Jasa atau Rental
-  const isServiceBusiness = tenant.category === "Jasa / Servis" || tenant.category === "JASA" || tenant.category === "Rental & Travel" || tenant.category === "RENTAL";
+  const isServiceBusiness = tenant.category === "Jasa / Servis" || tenant.category === "Jasa/Servis" || tenant.category === "JASA" || tenant.category === "Rental & Travel" || tenant.category === "RENTAL";
   if (!isServiceBusiness) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">

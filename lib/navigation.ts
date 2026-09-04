@@ -5,7 +5,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
   const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
   const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
   const isFnB = kategoriUsaha === "FNB" || kategoriUsaha === "F&B / Kuliner";
-  const isJasa = kategoriUsaha === "JASA" || kategoriUsaha === "Jasa / Servis";
+  const isJasa = kategoriUsaha === "JASA" || kategoriUsaha === "Jasa / Servis" || kategoriUsaha === "Jasa/Servis";
   const isCashier = role === 'CASHIER';
 
   const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Transaksi Sewa" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";
