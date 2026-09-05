@@ -7,6 +7,11 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 📝 Dokumentasi & Konfigurasi Dynamic URL, Category ID, & Mayar
+- **Environment Variable `NEXT_PUBLIC_APP_URL`:** Mendokumentasikan variabel URL terpusat (`http://localhost:3000` untuk dev, `https://www.pjtechumkm.com` untuk production).
+- **Standar Identifier Kategori Bisnis:** Menetapkan dan mendokumentasikan spesifikasi ID baku format UPPERCASE (`RENTAL`, `JASA`, `FNB`, `RETAIL`).
+- **Integrasi Mayar.id:** Mendokumentasikan helper `getAppUrl()` di [`lib/url.ts`](file:///d:/Coding/kasir-umkm/lib/url.ts), rute Webhook `/api/webhooks/mayar`, serta rute Callback Redirect `/auth-callback`.
+
 ### ✨ Fitur Baru & Perbaikan: Integrasi Webhook Mayar
 - Menambahkan route handler `app/api/webhooks/mayar/route.ts` untuk menangani webhook pembayaran otomatis dari Mayar (`payment.success` dan `payment.received`).
 - Fitur ini mendeteksi jumlah pembayaran (`amount`) dan memperbarui paket berlangganan (`subscriptionPlan`) secara dinamis menjadi `PRO_1M`, `PRO_6M`, atau `PRO_1Y`.

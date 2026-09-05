@@ -46,6 +46,10 @@ npm install
 ### 2. Pengaturan Environment Variables
 Buat file `.env.local` di root direktori proyek, lalu lengkapi variabel berikut:
 ```env
+# App URL (Domain Utama Aplikasi)
+# Dev: http://localhost:3000 | Production: https://www.pjtechumkm.com
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
 # Clerk Authentication Keys (Dapatkan dari dashboard Clerk)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
@@ -63,6 +67,28 @@ DATABASE_URL="postgresql://user:password@endpoint.neon.tech/dbname?sslmode=requi
 MAYAR_WEBHOOK_SECRET=your_mayar_webhook_secret_here
 ```
 
+### 🏷️ Standar Identifier Kategori Bisnis
+
+Seluruh *payload* API, skema validasi, dan kolom database `category` menggunakan **Identifier Baku UPPERCASE**:
+
+- `RENTAL` : Bisnis Persewaan & Rental (properti, alat, kendaraan, unit).
+- `JASA` : Bisnis Jasa, Layanan, & Servis (salon, barbershop, bengkel, spa, konsultasi).
+- `FNB` : Bisnis Makanan & Minuman (kafe, restoran, warung makan, bakery).
+- `RETAIL` : Bisnis Penjualan Produk Fisik & Kelontong (toko, distro, minimarket).
+
+### 💳 Konfigurasi Payment Gateway (Mayar.id)
+
+Platform ini mengintegrasikan layanan **Mayar.id** untuk transaksi pembayaran online dan perpanjangan paket langganan (subscription) secara otomatis:
+
+- **Helper Domain Dinamis (`getAppUrl()`):**
+  Didefinisikan pada [`lib/url.ts`](file:///d:/Coding/kasir-umkm/lib/url.ts) untuk resolusi domain terpusat melalui variabel `NEXT_PUBLIC_APP_URL`. Helper ini secara otomatis mendeteksi apakah aplikasi berjalan di environment lokal (`http://localhost:3000`) atau production (`https://www.pjtechumkm.com`).
+- **Endpoint Webhook (Mayar Webhook Route):**
+  `/api/webhooks/mayar`  
+  Menangani event `payment.success`, `payment.received`, serta event handshake `testing` dari dashboard Mayar.
+- **Redirect URL (Callback Landing Page):**
+  `/auth-callback`  
+  Halaman callback pasca checkout/perpanjangan paket untuk memverifikasi metadata akun dan mengarahkan kembali pengguna secara mulus ke dasbor admin.
+
 ### 3. Migrasi Database
 Dorong skema database ke server Neon PostgreSQL.
 ```bash
@@ -79,3 +105,4 @@ Buka [http://localhost:3000](http://localhost:3000) di *browser* Anda untuk meli
 
 ---
 *Dibangun dengan ❤️ oleh Tim PJTECH.*
+
