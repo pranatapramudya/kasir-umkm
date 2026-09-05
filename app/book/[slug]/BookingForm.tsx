@@ -109,41 +109,6 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     }
   }
 
-  function handleShareWA() {
-    // Generate pre-filled WA text based on category
-    let text = "";
-    if (isRental) {
-      const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-      const endLabel   = new Date(rentalData.endDate).toLocaleDateString("id-ID",   { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-      const serviceText = selectedService ? ` untuk *${selectedService.name}*` : "";
-      
-      text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-             `Nama Pemesan: *${formData.customerName}*\n` +
-             `Layanan: *${tenantName}*${serviceText}\n` +
-             `Tanggal Sewa: *${startLabel}* jam *${rentalData.pickupTime}* s/d *${endLabel}*.\n\n` +
-             `Berikut bukti transfernya...`;
-    } else {
-      const dateLabel = new Date(`${formData.bookingDate}T${formData.bookingTime}`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-      const serviceText = selectedService ? ` untuk layanan *${selectedService.name}*` : "";
-      
-      text = (tenantCategory === "Jasa / Servis" || tenantCategory === "Jasa/Servis" || tenantCategory === "JASA")
-        ? `Halo, saya ingin mengkonfirmasi reservasi jadwal dengan ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-          `Nama Pemesan: *${formData.customerName}*\n` +
-          `Layanan: *${tenantName}*${serviceText}\n` +
-          `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.`
-        : `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-          `Nama Pemesan: *${formData.customerName}*\n` +
-          `Layanan: *${tenantName}*${serviceText}\n` +
-          `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.\n\n` +
-          `Berikut bukti transfernya...`;
-    }
-    
-    const waNumber = adminWhatsApp ? adminWhatsApp.replace(/[^0-9]/g, '').replace(/^0/, '62') : '';
-    const url = waNumber 
-      ? `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`
-      : `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank");
-  }
 
   function handleGeolocation() {
     if (!navigator.geolocation) {
@@ -171,7 +136,29 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   }
 
 
+  function detectRentalItemType(name: string, description?: string | null): "property" | "vehicle" {
+    const combined = `${name || ""} ${description || ""}`.toLowerCase();
+    const vehicleKeywords = [
+      "mobil", "motor", "car", "bike", "bus", "travel", "avanza",
+      "innova", "hiace", "elf", "nmax", "pcx", "beat", "supra",
+      "scooter", "kendaraan", "driver", "supir", "pickup", "shuttle",
+      "charter", "armada", "sewa mobil", "sewa motor"
+    ];
+    const matchesVehicle = vehicleKeywords.some(kw => combined.includes(kw));
+    return matchesVehicle ? "vehicle" : "property";
+  }
+
   const isRental = isRentalTravelCategory(tenantCategory);
+
+  const [rentalCategoryType, setRentalCategoryType] = useState<"property" | "vehicle">("property");
+  const [rentalModeDuration, setRentalModeDuration] = useState<"hourly" | "daily">("hourly");
+
+  // State khusus Transit Per Jam (Hourly Property)
+  const [hourlyData, setHourlyData] = useState({
+    checkInDate: todayISO,
+    checkInTime: "12:00",
+    durationHours: 3,
+  });
 
   const [formData, setFormData] = useState({
     productId: services[0]?.id?.toString() ?? "",
@@ -200,8 +187,48 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   const [districtsData, setDistrictsData] = useState<Region[]>([]);
   const [isFetchingRegion, setIsFetchingRegion] = useState(false);
 
+  const selectedService = services.find(
+    (s) => s.id.toString() === formData.productId
+  );
+
+  // Auto-set category type when selectedService changes
   useEffect(() => {
-    if (isRental) {
+    if (selectedService) {
+      setRentalCategoryType(detectRentalItemType(selectedService.name, selectedService.description));
+    }
+  }, [selectedService]);
+
+  // Calculated info for hourly transit
+  const hourlyCheckoutInfo = useMemo(() => {
+    if (!hourlyData.checkInDate || !hourlyData.checkInTime) {
+      return { checkInLabel: "-", checkOutLabel: "-", startIso: "", endIso: "" };
+    }
+    const [h, m] = hourlyData.checkInTime.split(":").map(Number);
+    const start = new Date(`${hourlyData.checkInDate}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`);
+    const end = new Date(start.getTime() + hourlyData.durationHours * 60 * 60 * 1000);
+
+    const checkInLabel = start.toLocaleDateString("id-ID", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric"
+    }) + ` jam ${hourlyData.checkInTime} WIB`;
+
+    const endH = String(end.getHours()).padStart(2, "0");
+    const endM = String(end.getMinutes()).padStart(2, "0");
+    const checkOutLabel = end.toLocaleDateString("id-ID", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric"
+    }) + ` jam ${endH}:${endM} WIB`;
+
+    return {
+      checkInLabel,
+      checkOutLabel,
+      startIso: start.toISOString(),
+      endIso: end.toISOString(),
+      startDateStr: hourlyData.checkInDate,
+      endDateStr: end.toISOString().split("T")[0],
+    };
+  }, [hourlyData.checkInDate, hourlyData.checkInTime, hourlyData.durationHours]);
+
+  useEffect(() => {
+    if (isRental && rentalCategoryType === "vehicle") {
       setIsFetchingRegion(true);
       fetch("https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json")
         .then(res => res.json())
@@ -209,7 +236,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         .catch(err => console.error(err))
         .finally(() => setIsFetchingRegion(false));
     }
-  }, [isRental]);
+  }, [isRental, rentalCategoryType]);
 
   const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const provinceVal = e.target.value;
@@ -244,10 +271,6 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     }
   };
 
-  const selectedService = services.find(
-    (s) => s.id.toString() === formData.productId
-  );
-
   // Fetch booked slots whenever date changes
   const checkSlots = useCallback(
     async (date: string) => {
@@ -264,7 +287,6 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           // Auto-deselect current time if it just became booked
           setFormData((prev) => {
             if (slots.includes(prev.bookingTime)) {
-              // Find next available slot
               const nextFree = timeSlots.find((s) => !slots.includes(s));
               return { ...prev, bookingTime: nextFree ?? prev.bookingTime };
             }
@@ -272,12 +294,12 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           });
         }
       } catch {
-        // Silent fail — don't block form usage
+        // Silent fail
       } finally {
         setIsCheckingSlots(false);
       }
     },
-    [slug, timeSlots]
+    [slug, timeSlots, formData.productId]
   );
 
   // Check slots on initial load and on date change
@@ -312,7 +334,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   }, [formData.productId, isRental, checkRentalRanges]);
 
   useEffect(() => {
-    if (isRental && rentalData.startDate && rentalData.endDate) {
+    if (isRental && rentalCategoryType === "vehicle" && rentalData.startDate && rentalData.endDate) {
       const start = new Date(rentalData.startDate);
       const end = new Date(rentalData.endDate);
       start.setHours(0,0,0,0);
@@ -334,7 +356,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         setError(prev => prev === "Armada sudah disewa pada tanggal tersebut." ? null : prev);
       }
     }
-  }, [rentalData.startDate, rentalData.endDate, bookedRentalRanges, isRental]);
+  }, [rentalData.startDate, rentalData.endDate, bookedRentalRanges, isRental, rentalCategoryType]);
 
   function handleChange(
     e: React.ChangeEvent<
@@ -343,6 +365,57 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   ) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
+  }
+
+  function handleShareWA() {
+    let text = "";
+    if (isRental) {
+      const serviceText = selectedService ? ` untuk *${selectedService.name}*` : "";
+      if (rentalCategoryType === "property" && rentalModeDuration === "hourly") {
+        text = `Halo, saya ingin mengkonfirmasi reservasi kamar/unit dengan ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+               `Nama Pemesan: *${formData.customerName}*\n` +
+               `Properti: *${tenantName}*${serviceText}\n` +
+               `Waktu Check-in: *${hourlyCheckoutInfo.checkInLabel}*\n` +
+               `Waktu Check-out: *${hourlyCheckoutInfo.checkOutLabel}* (*${hourlyData.durationHours} Jam Transit*).\n\n` +
+               `Berikut bukti transfernya...`;
+      } else if (rentalCategoryType === "property") {
+        const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const endLabel   = new Date(rentalData.endDate).toLocaleDateString("id-ID",   { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+               `Nama Pemesan: *${formData.customerName}*\n` +
+               `Properti: *${tenantName}*${serviceText}\n` +
+               `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
+               `Berikut bukti transfernya...`;
+      } else {
+        const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const endLabel   = new Date(rentalData.endDate).toLocaleDateString("id-ID",   { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+               `Nama Pemesan: *${formData.customerName}*\n` +
+               `Layanan: *${tenantName}*${serviceText}\n` +
+               `Tanggal Sewa: *${startLabel}* jam *${rentalData.pickupTime}* s/d *${endLabel}*.\n\n` +
+               `Berikut bukti transfernya...`;
+      }
+    } else {
+      const dateLabel = new Date(`${formData.bookingDate}T${formData.bookingTime}`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      const serviceText = selectedService ? ` untuk layanan *${selectedService.name}*` : "";
+      
+      text = (tenantCategory === "Jasa / Servis" || tenantCategory === "Jasa/Servis" || tenantCategory === "JASA")
+        ? `Halo, saya ingin mengkonfirmasi reservasi jadwal dengan ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+          `Nama Pemesan: *${formData.customerName}*\n` +
+          `Layanan: *${tenantName}*${serviceText}\n` +
+          `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.`
+        : `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+          `Nama Pemesan: *${formData.customerName}*\n` +
+          `Layanan: *${tenantName}*${serviceText}\n` +
+          `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.\n\n` +
+          `Berikut bukti transfernya...`;
+    }
+    
+    const waNumber = adminWhatsApp ? adminWhatsApp.replace(/[^0-9]/g, '').replace(/^0/, '62') : '';
+    const url = waNumber 
+      ? `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -360,47 +433,40 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
     // === Validasi khusus Rental ===
     if (isRental) {
-      if (!rentalData.startDate) {
-        setError("Tanggal mulai sewa wajib dipilih.");
-        return;
-      }
-      if (!rentalData.endDate) {
-        setError("Tanggal selesai sewa wajib dipilih.");
-        return;
-      }
-      if (rentalData.endDate < rentalData.startDate) {
-        setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
-        return;
-      }
-      if (!rentalData.dropoffProvince || !rentalData.dropoffRegency || !rentalData.dropoffDistrict) {
-        setError("Provinsi, Kota/Kabupaten, dan Kecamatan tujuan wajib dipilih.");
-        return;
-      }
-      // Pengecekan overlap sebelum submit
-      const start = new Date(rentalData.startDate);
-      const end = new Date(rentalData.endDate);
-      start.setHours(0,0,0,0);
-      end.setHours(23,59,59,999);
-      
-      let isOverlap = false;
-      for (const range of bookedRentalRanges) {
-        const rangeStart = new Date(range.startDate);
-        const rangeEnd = new Date(range.endDate);
-        if (start <= rangeEnd && end >= rangeStart) {
-          isOverlap = true;
-          break;
+      if (rentalCategoryType === "property" && rentalModeDuration === "hourly") {
+        if (!hourlyData.checkInDate) {
+          setError("Tanggal check-in wajib dipilih.");
+          return;
         }
-      }
-      if (isOverlap) {
-        setError("Armada sudah disewa pada tanggal tersebut.");
-        return;
+        if (!hourlyData.checkInTime) {
+          setError("Jam masuk check-in wajib dipilih.");
+          return;
+        }
+      } else {
+        if (!rentalData.startDate) {
+          setError("Tanggal mulai sewa wajib dipilih.");
+          return;
+        }
+        if (!rentalData.endDate) {
+          setError("Tanggal selesai sewa wajib dipilih.");
+          return;
+        }
+        if (rentalData.endDate < rentalData.startDate) {
+          setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+          return;
+        }
+        if (rentalCategoryType === "vehicle") {
+          if (!rentalData.dropoffProvince || !rentalData.dropoffRegency || !rentalData.dropoffDistrict) {
+            setError("Provinsi, Kota/Kabupaten, dan Kecamatan tujuan wajib dipilih.");
+            return;
+          }
+        }
       }
     } else {
       if (!formData.bookingDate) {
         setError("Tanggal kunjungan wajib dipilih.");
         return;
       }
-      // Guard: chosen time might have been taken between page load and submit
       if (bookedSlots.includes(formData.bookingTime)) {
         setError("Jam yang Anda pilih sudah penuh. Pilih jam lain.");
         return;
@@ -409,18 +475,40 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
     setIsSubmitting(true);
     try {
-      // Untuk Rental: gunakan startDate sebagai bookingDate (wajib di schema)
-      const bookingDateTime = isRental
-        ? new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`)
-        : new Date(`${formData.bookingDate}T${formData.bookingTime}:00`);
+      let bookingDateTime: Date;
+      let startDateIso: string | null = null;
+      let endDateIso: string | null = null;
+      let finalPickup: string | null = null;
+      let finalDropoff: string | null = null;
 
-      const provName = rentalData.dropoffProvince.split("|")[1] || "";
-      const regName = rentalData.dropoffRegency.split("|")[1] || "";
-      const distName = rentalData.dropoffDistrict.split("|")[1] || "";
-      
-      const finalDropoff = provName
-        ? `[${provName} - ${regName} - ${distName}] ${rentalData.dropoffLocation}`.trim()
-        : rentalData.dropoffLocation;
+      if (isRental) {
+        if (rentalCategoryType === "property" && rentalModeDuration === "hourly") {
+          bookingDateTime = new Date(`${hourlyData.checkInDate}T${hourlyData.checkInTime}:00`);
+          startDateIso = hourlyCheckoutInfo.startIso;
+          endDateIso = hourlyCheckoutInfo.endIso;
+          finalPickup = null;
+          finalDropoff = null;
+        } else {
+          bookingDateTime = new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`);
+          startDateIso = new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`).toISOString();
+          endDateIso = new Date(`${rentalData.endDate}T23:59:59`).toISOString();
+          
+          if (rentalCategoryType === "vehicle") {
+            const provName = rentalData.dropoffProvince.split("|")[1] || "";
+            const regName = rentalData.dropoffRegency.split("|")[1] || "";
+            const distName = rentalData.dropoffDistrict.split("|")[1] || "";
+            finalDropoff = provName
+              ? `[${provName} - ${regName} - ${distName}] ${rentalData.dropoffLocation}`.trim()
+              : rentalData.dropoffLocation;
+            finalPickup = rentalData.pickupLocation.trim() || null;
+          } else {
+            finalPickup = null;
+            finalDropoff = null;
+          }
+        }
+      } else {
+        bookingDateTime = new Date(`${formData.bookingDate}T${formData.bookingTime}:00`);
+      }
 
       const res = await fetch("/api/booking", {
         method: "POST",
@@ -432,11 +520,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           bookingDate: bookingDateTime.toISOString(),
           notes: formData.notes.trim() || null,
           productId: formData.productId ? Number(formData.productId) : null,
-          // Field rental (null jika bukan Rental)
-          startDate: isRental ? new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`).toISOString() : null,
-          endDate:   isRental ? new Date(`${rentalData.endDate}T23:59:59`).toISOString()   : null,
-          pickupLocation: isRental ? (rentalData.pickupLocation.trim() || null) : null,
-          dropoffLocation: isRental ? (finalDropoff.trim() || null) : null,
+          startDate: startDateIso,
+          endDate: endDateIso,
+          pickupLocation: finalPickup,
+          dropoffLocation: finalDropoff,
         }),
       });
 
@@ -493,7 +580,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           </p>
         )}
 
-        {/* Ticket Container — captured by html2canvas */}
+        {/* Ticket Container */}
         <div
           id="ticket-container"
           ref={ticketRef}
@@ -526,34 +613,67 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             </div>
             {selectedService && (
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-xs">Layanan</span>
+                <span className="text-slate-500 text-xs">Unit / Layanan</span>
                 <span className="text-slate-900 font-semibold text-xs">{selectedService.name}</span>
               </div>
             )}
-            {/* === Baris khusus Rental === */}
+            
+            {/* === Rincian Rental (Properti Kos Transit vs Kendaraan) === */}
             {isRental ? (
-              <>
-                {(rentalData.dropoffProvince || rentalData.dropoffLocation) && (
+              rentalCategoryType === "property" && rentalModeDuration === "hourly" ? (
+                <>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 text-xs">Tujuan</span>
-                    <span className="text-slate-900 font-semibold text-xs text-right max-w-[65%] truncate">
-                      {rentalData.dropoffProvince ? `[${rentalData.dropoffProvince.split("|")[1]} - ${rentalData.dropoffRegency.split("|")[1]} - ${rentalData.dropoffDistrict.split("|")[1]}] ` : ''}{rentalData.dropoffLocation}
+                    <span className="text-slate-500 text-xs">Check-in</span>
+                    <span className="text-slate-900 font-semibold text-xs">{hourlyCheckoutInfo.checkInLabel}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Check-out</span>
+                    <span className="text-slate-900 font-semibold text-xs">{hourlyCheckoutInfo.checkOutLabel}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Durasi Transit</span>
+                    <span className="text-blue-600 font-bold text-xs">{hourlyData.durationHours} Jam</span>
+                  </div>
+                </>
+              ) : rentalCategoryType === "property" ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Mulai Sewa</span>
+                    <span className="text-slate-900 font-semibold text-xs">
+                      {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                     </span>
                   </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 text-xs">Mulai Sewa</span>
-                  <span className="text-slate-900 font-semibold text-xs">
-                    {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} {rentalData.pickupTime} WIB
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 text-xs">Selesai Sewa</span>
-                  <span className="text-slate-900 font-semibold text-xs">
-                    {new Date(rentalData.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                  </span>
-                </div>
-              </>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Selesai Sewa</span>
+                    <span className="text-slate-900 font-semibold text-xs">
+                      {new Date(rentalData.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {(rentalData.dropoffProvince || rentalData.dropoffLocation) && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Tujuan</span>
+                      <span className="text-slate-900 font-semibold text-xs text-right max-w-[65%] truncate">
+                        {rentalData.dropoffProvince ? `[${rentalData.dropoffProvince.split("|")[1]} - ${rentalData.dropoffRegency.split("|")[1]} - ${rentalData.dropoffDistrict.split("|")[1]}] ` : ''}{rentalData.dropoffLocation}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Mulai Sewa</span>
+                    <span className="text-slate-900 font-semibold text-xs">
+                      {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} {rentalData.pickupTime} WIB
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Selesai Sewa</span>
+                    <span className="text-slate-900 font-semibold text-xs">
+                      {new Date(rentalData.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    </span>
+                  </div>
+                </>
+              )
             ) : (
               <>
                 <div className="flex justify-between items-center">
@@ -585,30 +705,30 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           </div>
         </div>
 
-          {/* Instruksi Pembayaran */}
-          {isRental && (
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-5 text-left">
-              <h3 className="font-bold text-blue-900 mb-3 text-sm">Instruksi Pembayaran</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-blue-100">
-                  <span className="text-xs text-slate-500 font-medium">Total Tagihan (DP)</span>
-                  <span className="font-bold text-blue-700">
-                    {selectedService ? formatRupiah(selectedService.hargaJual * 0.5) : "-"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-blue-100">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 font-medium">Transfer ke Rekening</span>
-                    <span className="font-bold text-slate-800 text-sm">{bankName || 'BCA'} - {bankAccount || '1234567890'}</span>
-                    <span className="text-[10px] text-slate-400">a.n. {bankAccountName || 'Pemilik Toko'}</span>
-                  </div>
+        {/* Instruksi Pembayaran */}
+        {isRental && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-5 text-left">
+            <h3 className="font-bold text-blue-900 mb-3 text-sm">Instruksi Pembayaran</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-blue-100">
+                <span className="text-xs text-slate-500 font-medium">Total Tagihan (DP)</span>
+                <span className="font-bold text-blue-700">
+                  {selectedService ? formatRupiah(selectedService.hargaJual * 0.5) : "-"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-blue-100">
+                <div className="flex flex-col">
+                  <span className="text-xs text-slate-500 font-medium">Transfer ke Rekening</span>
+                  <span className="font-bold text-slate-800 text-sm">{bankName || 'BCA'} - {bankAccount || '1234567890'}</span>
+                  <span className="text-[10px] text-slate-400">a.n. {bankAccountName || 'Pemilik Toko'}</span>
                 </div>
               </div>
-              <p className="text-[10px] text-blue-600/80 mt-3 italic text-center">
-                *Silakan transfer sesuai nominal DP di atas dan siapkan bukti transfer Anda.
-              </p>
             </div>
-          )}
+            <p className="text-[10px] text-blue-600/80 mt-3 italic text-center">
+              *Silakan transfer sesuai nominal DP di atas dan siapkan bukti transfer Anda.
+            </p>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 mb-5">
@@ -672,11 +792,11 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         <p className="text-slate-500 text-xs">Semua field bertanda * wajib diisi</p>
       </div>
 
-      {/* Pilih Layanan */}
+      {/* Pilih Layanan / Unit */}
       {services.length > 0 && (
         <div className="space-y-1.5">
           <label htmlFor="productId" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Layanan *
+            {isRental ? "Pilih Unit / Kamar *" : "Layanan *"}
           </label>
           <select
             id="productId"
@@ -727,175 +847,373 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         </div>
       )}
 
-      {/* Jam Kunjungan — hanya untuk non-Rental */}
+      {/* RENTAL FORM LOGIC */}
       {isRental ? (
-        /* ===== RENTAL: Date Range + Tujuan ===== */
         <div className="space-y-4">
-          {/* Banner identitas rental / reservasi */}
-          <div className="bg-blue-50 text-blue-800 border border-blue-200 p-3 rounded-lg text-sm font-semibold text-center flex items-center justify-center gap-2">
-            <span className="text-lg">📋</span>
-            <span>DETAIL RESERVASI / SEWA</span>
-          </div>
-
-          <RentalDatePicker
-            slug={slug}
-            productId={formData.productId}
-            startDate={rentalData.startDate}
-            endDate={rentalData.endDate}
-            onChange={(start, end) => {
-              setRentalData((prev) => ({ ...prev, startDate: start, endDate: end }));
-              setError(null);
-            }}
-            onClearError={() => setError(null)}
-          />
-
-          {/* Jam Penjemputan / Ambil / Mulai Sewa */}
-          <div className="space-y-1.5">
-            <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Jam Ambil / Mulai Sewa *
-            </label>
-            <select
-              id="rental-pickupTime"
-              value={rentalData.pickupTime}
-              onChange={(e) => {
-                setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+          {/* Selector Tipe Rental (Properti/Kos Transit vs Kendaraan/Travel) */}
+          <div className="bg-slate-100 p-1 rounded-2xl flex text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => {
+                setRentalCategoryType("property");
                 setError(null);
               }}
-              required
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                rentalCategoryType === "property"
+                  ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
             >
-              {rentalTimeSlots.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+              <span>🏨</span>
+              <span>Kamar / Kos Transit</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setRentalCategoryType("vehicle");
+                setError(null);
+              }}
+              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                rentalCategoryType === "vehicle"
+                  ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <span>🚗</span>
+              <span>Kendaraan / Travel</span>
+            </button>
           </div>
-          
-          {/* Tampilkan durasi jika ada */}
-          {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
-            <p className="text-amber-600 text-xs font-medium">
-              Durasi sewa:{" "}
-              {Math.round(
-                (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
-                  (1000 * 60 * 60 * 24)
-              ) + 1}{" "}
-              hari
-            </p>
+
+          {/* Banner Informasi Mode */}
+          <div className="bg-blue-50 text-blue-800 border border-blue-200 p-3 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-2">
+            <span>{rentalCategoryType === "property" ? "🏨 RESERVASI PROPERTI / KAMAR TRANSIT" : "📋 DETAIL RESERVASI KENDARAAN"}</span>
+          </div>
+
+          {/* === BILA SISI PROPERTI / KOS TRANSIT === */}
+          {rentalCategoryType === "property" ? (
+            <div className="space-y-4">
+              {/* Mode durasi rental: Transit (Per Jam) vs Sewa Harian */}
+              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Tipe Durasi Sewa:
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setRentalModeDuration("hourly")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                      rentalModeDuration === "hourly"
+                        ? "bg-amber-500 text-white shadow-sm"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    ⏱️ Transit Jam
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRentalModeDuration("daily")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                      rentalModeDuration === "daily"
+                        ? "bg-amber-500 text-white shadow-sm"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    📅 Harian
+                  </button>
+                </div>
+              </div>
+
+              {rentalModeDuration === "hourly" ? (
+                /* ===== TRANSIT HOURLY PICKER ===== */
+                <div className="space-y-3.5 bg-amber-50/60 border border-amber-200/80 p-4 rounded-2xl">
+                  {/* Tanggal Check-in */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="hourly-checkInDate" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Tanggal Check-in *
+                    </label>
+                    <input
+                      id="hourly-checkInDate"
+                      type="date"
+                      value={hourlyData.checkInDate}
+                      min={todayISO}
+                      onChange={(e) => {
+                        setHourlyData(prev => ({ ...prev, checkInDate: e.target.value }));
+                        setError(null);
+                      }}
+                      required
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all [color-scheme:light]"
+                    />
+                  </div>
+
+                  {/* Jam Masuk (Check-in Time) */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="hourly-checkInTime" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Jam Masuk (Check-in) *
+                    </label>
+                    <select
+                      id="hourly-checkInTime"
+                      value={hourlyData.checkInTime}
+                      onChange={(e) => {
+                        setHourlyData(prev => ({ ...prev, checkInTime: e.target.value }));
+                        setError(null);
+                      }}
+                      required
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                    >
+                      {rentalTimeSlots.map((slot) => (
+                        <option key={slot} value={slot}>
+                          {slot} WIB
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Durasi Jam Transit */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Durasi Jam Transit *
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[1, 2, 3, 4, 6, 8, 12, 24].map((hours) => {
+                        const isSelected = hourlyData.durationHours === hours;
+                        return (
+                          <button
+                            key={hours}
+                            type="button"
+                            onClick={() => {
+                              setHourlyData(prev => ({ ...prev, durationHours: hours }));
+                              setError(null);
+                            }}
+                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all ${
+                              isSelected
+                                ? "bg-amber-500 text-white border border-amber-500 shadow-md scale-[1.03]"
+                                : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {hours} Jam
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Ringkasan Check-out Otomatis */}
+                  <div className="bg-white border border-amber-200 rounded-xl p-3.5 space-y-1 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">Check-in:</span>
+                      <span className="font-semibold text-slate-800">{hourlyCheckoutInfo.checkInLabel}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">Check-out (Estimasi):</span>
+                      <span className="font-semibold text-amber-600">{hourlyCheckoutInfo.checkOutLabel}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 italic pt-1 text-right">
+                      *Durasi sewa: {hourlyData.durationHours} jam transit
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* ===== DAILY PROPERTY RENTAL ===== */
+                <div className="space-y-3">
+                  <RentalDatePicker
+                    slug={slug}
+                    productId={formData.productId}
+                    startDate={rentalData.startDate}
+                    endDate={rentalData.endDate}
+                    onChange={(start, end) => {
+                      setRentalData((prev) => ({ ...prev, startDate: start, endDate: end }));
+                      setError(null);
+                    }}
+                    onClearError={() => setError(null)}
+                  />
+                  <div className="space-y-1.5">
+                    <label htmlFor="rental-pickupTime" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Jam Check-in *
+                    </label>
+                    <select
+                      id="rental-pickupTime"
+                      value={rentalData.pickupTime}
+                      onChange={(e) => {
+                        setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                        setError(null);
+                      }}
+                      required
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                    >
+                      {rentalTimeSlots.map((time) => (
+                        <option key={time} value={time}>
+                          {time} WIB
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ===== BILA KENDARAAN / TRAVEL ===== */
+            <div className="space-y-4">
+              <RentalDatePicker
+                slug={slug}
+                productId={formData.productId}
+                startDate={rentalData.startDate}
+                endDate={rentalData.endDate}
+                onChange={(start, end) => {
+                  setRentalData((prev) => ({ ...prev, startDate: start, endDate: end }));
+                  setError(null);
+                }}
+                onClearError={() => setError(null)}
+              />
+
+              {/* Jam Penjemputan / Ambil / Mulai Sewa */}
+              <div className="space-y-1.5">
+                <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Jam Ambil / Mulai Sewa *
+                </label>
+                <select
+                  id="rental-pickupTime"
+                  value={rentalData.pickupTime}
+                  onChange={(e) => {
+                    setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                    setError(null);
+                  }}
+                  required
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                >
+                  {rentalTimeSlots.map((time) => (
+                    <option key={time} value={time}>
+                      {time} WIB
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Tampilkan durasi jika ada */}
+              {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
+                <p className="text-amber-600 text-xs font-medium">
+                  Durasi sewa:{" "}
+                  {Math.round(
+                    (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  ) + 1}{" "}
+                  hari
+                </p>
+              )}
+
+              {/* Lokasi Penjemputan / Alamat */}
+              <div className="space-y-1.5">
+                <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  LOKASI AMBIL / ALAMAT AWAL <span className="normal-case font-normal text-slate-500">(opsional)</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="rental-pickup"
+                    type="text"
+                    value={rentalData.pickupLocation}
+                    onChange={(e) => {
+                      setRentalData((prev) => ({ ...prev, pickupLocation: e.target.value }));
+                      setError(null);
+                    }}
+                    placeholder="contoh: Bandara Ngurah Rai atau Klik GPS"
+                    className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  />
+                  <button 
+                    id="gps-btn"
+                    type="button" 
+                    onClick={handleGeolocation} 
+                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
+                    title="Gunakan Lokasi Saat Ini"
+                  >
+                    📍 GPS
+                  </button>
+                </div>
+              </div>
+
+              {/* Lokasi Tujuan */}
+              <div className="space-y-3">
+                {isFetchingRegion && <div className="text-[10px] text-blue-500 font-semibold animate-pulse">Memuat data wilayah...</div>}
+                
+                <div className="space-y-1.5">
+                  <label htmlFor="rental-dropoffProvince" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    PROVINSI TUJUAN *
+                  </label>
+                  <select
+                    id="rental-dropoffProvince"
+                    value={rentalData.dropoffProvince}
+                    onChange={handleProvinceChange}
+                    required
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                  >
+                    <option value="" disabled className="text-slate-500">Pilih Provinsi Tujuan</option>
+                    {provincesData.map((prov) => (
+                      <option key={prov.id} value={`${prov.id}|${prov.name}`}>{prov.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label htmlFor="rental-dropoffRegency" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    KOTA/KABUPATEN TUJUAN *
+                  </label>
+                  <select
+                    id="rental-dropoffRegency"
+                    value={rentalData.dropoffRegency}
+                    onChange={handleRegencyChange}
+                    disabled={!rentalData.dropoffProvince || regenciesData.length === 0}
+                    required
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
+                  >
+                    <option value="" disabled className="text-slate-500">Pilih Kota/Kabupaten</option>
+                    {regenciesData.map((reg) => (
+                      <option key={reg.id} value={`${reg.id}|${reg.name}`}>{reg.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label htmlFor="rental-dropoffDistrict" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    KECAMATAN TUJUAN *
+                  </label>
+                  <select
+                    id="rental-dropoffDistrict"
+                    value={rentalData.dropoffDistrict}
+                    onChange={(e) => {
+                      setRentalData(prev => ({ ...prev, dropoffDistrict: e.target.value }));
+                      setError(null);
+                    }}
+                    disabled={!rentalData.dropoffRegency || districtsData.length === 0}
+                    required
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
+                  >
+                    <option value="" disabled className="text-slate-500">Pilih Kecamatan</option>
+                    {districtsData.map((dist) => (
+                      <option key={dist.id} value={`${dist.id}|${dist.name}`}>{dist.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    ALAMAT DETAIL TUJUAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
+                  </label>
+                  <input
+                    id="rental-dropoff"
+                    type="text"
+                    value={rentalData.dropoffLocation}
+                    onChange={(e) => {
+                      setRentalData((prev) => ({ ...prev, dropoffLocation: e.target.value }));
+                      setError(null);
+                    }}
+                    placeholder="contoh: Hotel Aston Denpasar"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  />
+                  <p className="text-[10px] text-amber-600 mt-1">
+                    *Catatan: Harga di atas adalah harga dasar/dalam kota. Harga final akan disesuaikan dengan jarak rute tujuan Anda dan dikonfirmasi melalui WhatsApp.
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
-
-          {/* Lokasi Penjemputan / Alamat */}
-          <div className="space-y-1.5">
-            <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              LOKASI AMBIL / ALAMAT AWAL <span className="normal-case font-normal text-slate-500">(opsional)</span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="rental-pickup"
-                type="text"
-                value={rentalData.pickupLocation}
-                onChange={(e) => {
-                  setRentalData((prev) => ({ ...prev, pickupLocation: e.target.value }));
-                  setError(null);
-                }}
-                placeholder="contoh: Bandara Ngurah Rai atau Klik GPS"
-                className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-              />
-              <button 
-                id="gps-btn"
-                type="button" 
-                onClick={handleGeolocation} 
-                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
-                title="Gunakan Lokasi Saat Ini"
-              >
-                📍 GPS
-              </button>
-            </div>
-          </div>
-
-          {/* Lokasi Tujuan */}
-          <div className="space-y-3">
-            {isFetchingRegion && <div className="text-[10px] text-blue-500 font-semibold animate-pulse">Memuat data wilayah...</div>}
-            
-            <div className="space-y-1.5">
-              <label htmlFor="rental-dropoffProvince" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                PROVINSI TUJUAN *
-              </label>
-              <select
-                id="rental-dropoffProvince"
-                value={rentalData.dropoffProvince}
-                onChange={handleProvinceChange}
-                required
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-              >
-                <option value="" disabled className="text-slate-500">Pilih Provinsi Tujuan</option>
-                {provincesData.map((prov) => (
-                  <option key={prov.id} value={`${prov.id}|${prov.name}`}>{prov.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="space-y-1.5">
-              <label htmlFor="rental-dropoffRegency" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                KOTA/KABUPATEN TUJUAN *
-              </label>
-              <select
-                id="rental-dropoffRegency"
-                value={rentalData.dropoffRegency}
-                onChange={handleRegencyChange}
-                disabled={!rentalData.dropoffProvince || regenciesData.length === 0}
-                required
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="" disabled className="text-slate-500">Pilih Kota/Kabupaten</option>
-                {regenciesData.map((reg) => (
-                  <option key={reg.id} value={`${reg.id}|${reg.name}`}>{reg.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="space-y-1.5">
-              <label htmlFor="rental-dropoffDistrict" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                KECAMATAN TUJUAN *
-              </label>
-              <select
-                id="rental-dropoffDistrict"
-                value={rentalData.dropoffDistrict}
-                onChange={(e) => {
-                  setRentalData(prev => ({ ...prev, dropoffDistrict: e.target.value }));
-                  setError(null);
-                }}
-                disabled={!rentalData.dropoffRegency || districtsData.length === 0}
-                required
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="" disabled className="text-slate-500">Pilih Kecamatan</option>
-                {districtsData.map((dist) => (
-                  <option key={dist.id} value={`${dist.id}|${dist.name}`}>{dist.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                ALAMAT DETAIL TUJUAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
-              </label>
-              <input
-                id="rental-dropoff"
-                type="text"
-                value={rentalData.dropoffLocation}
-                onChange={(e) => {
-                  setRentalData((prev) => ({ ...prev, dropoffLocation: e.target.value }));
-                  setError(null);
-                }}
-                placeholder="contoh: Hotel Aston Denpasar"
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-              />
-              <p className="text-[10px] text-amber-600 mt-1">
-                *Catatan: Harga di atas adalah harga dasar/dalam kota. Harga final akan disesuaikan dengan jarak rute tujuan Anda dan dikonfirmasi melalui WhatsApp.
-              </p>
-            </div>
-          </div>
         </div>
       ) : (
         /* ===== NON-RENTAL: Grid slot waktu 30 menit ===== */
@@ -1065,3 +1383,4 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     </form>
   );
 }
+

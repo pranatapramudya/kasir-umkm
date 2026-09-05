@@ -56,11 +56,22 @@ export async function POST(request: Request) {
     let conflictMessage = "Jadwal sudah tidak tersedia.";
 
     if (startDate && endDate) {
-      // Logic Rental (Berbasis Rentang Tanggal)
+      // Logic Rental (Berbasis Rentang Tanggal / Timestamp)
       const newStart = new Date(startDate);
       const newEnd = new Date(endDate);
-      newStart.setHours(0, 0, 0, 0);
-      newEnd.setHours(23, 59, 59, 999);
+
+      // Jika durasi sewa harian penuh (start 00:00 & end 23:59), set ke batas hari
+      // Jika sewa transit (per jam), gunakan timestamp persis agar slot jam berbeda di hari yang sama dapat dipesan
+      const isFullDayRange =
+        newStart.getHours() === 0 &&
+        newStart.getMinutes() === 0 &&
+        newEnd.getHours() === 23 &&
+        newEnd.getMinutes() === 59;
+
+      if (isFullDayRange) {
+        newStart.setHours(0, 0, 0, 0);
+        newEnd.setHours(23, 59, 59, 999);
+      }
 
       const conflictRental = await prisma.booking.findFirst({
         where: {
@@ -75,7 +86,7 @@ export async function POST(request: Request) {
 
       if (conflictRental) {
         isConflict = true;
-        conflictMessage = "Armada sudah disewa pada tanggal tersebut.";
+        conflictMessage = "Unit / Armada sudah disewa pada waktu tersebut.";
       }
     } else {
       // Logic Jasa (Berbasis Slot Waktu)
