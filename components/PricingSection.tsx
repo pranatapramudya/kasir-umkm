@@ -12,7 +12,7 @@ interface PricingSectionProps {
 
 export default function PricingSection({ currentPlan, onSuccessRedirect }: PricingSectionProps) {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [isLoading, setIsLoading] = useState(false);
 
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -48,10 +48,11 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
 
       if (res.ok) {
         setIsRedirecting(true); // UX Fix
-        await user?.reload();
+        if (isLoaded && user) {
+          await user.reload();
+        }
         router.refresh();
-        const targetUrl = onSuccessRedirect || '/auth-callback';
-        router.push(targetUrl);
+        router.push('/admin');
       } else {
         alert('Gagal memproses paket.');
         setIsLoading(false);
