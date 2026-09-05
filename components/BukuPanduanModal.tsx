@@ -56,40 +56,63 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
             {businessType === 'FNB' && (
               <>
                 <Step num="1" title="Tambah Menu & Kategori" businessType={businessType}>Buka menu <b>Produk</b>, masukkan daftar makanan/minuman beserta harganya.</Step>
-                <Step num="2" title="Atur Meja (Opsional)" businessType={businessType}>Jika melayani <i>Dine-in</i>, buka <b>Manajemen Meja</b> untuk mengatur nomor dan kapasitas meja.</Step>
-                <Step num="3" title="Buka Kasir Resto" businessType={businessType}>Masuk ke menu <b>Kasir Resto</b>, pilih menu pesanan pelanggan, dan tentukan nomor meja jika diperlukan.</Step>
-                <Step num="4" title="Cetak Tiket Dapur" businessType={businessType}>Simpan pesanan dan cetak <b>Tiket Dapur</b> agar koki dapat menyiapkan pesanan.</Step>
-                <Step num="5" title="Pembayaran & Struk" businessType={businessType} isLast>Saat pelanggan selesai, selesaikan pembayaran dan cetak Struk Thermal untuk pelanggan.</Step>
+                <Step num="2" title="Atur Meja (Opsional)" businessType={businessType}>Jika melayani <i>Dine-in</i> (makan di tempat), buka <b>Manajemen Meja</b> untuk mengatur nomor dan kapasitas meja.</Step>
+                <Step num="3" title="Buka Kasir Resto & Opsi Takeaway" businessType={businessType}>
+                  Masuk ke menu <b>Kasir Resto</b>, pilih menu pesanan pelanggan, lalu tentukan opsi meja/antrean:
+                  <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600">
+                    <li><b>Makan di Tempat (Dine-in):</b> Pilih nomor meja fisik pelanggan (misal: Meja 01).</li>
+                    <li><b>Pesanan Dibawa Pulang / Foodtruck:</b> Pilih opsi bawaan <b>[Takeaway / Bungkus / Konter]</b> di paling atas agar transaksi dapat dilanjutkan tanpa nomor meja.</li>
+                  </ul>
+                </Step>
+                <Step num="4" title="Cetak Tiket Dapur" businessType={businessType}>Simpan pesanan dan cetak <b>Tiket Dapur</b> agar koki/barista dapat menyiapkan pesanan.</Step>
+                <Step num="5" title="Pembayaran & Struk" businessType={businessType} isLast>Saat transaksi selesai, tuntaskan pembayaran dan cetak Struk Thermal untuk pelanggan.</Step>
               </>
             )}
 
             {businessType === 'RETAIL' && (
               <>
-                <Step num="1" title="Tambah Produk" businessType={businessType}>Buka menu <b>Produk</b>, masukkan data barang, harga jual, dan modal awal Anda.</Step>
-                <Step num="2" title="Atur Stok Inventaris" businessType={businessType}>Buka menu <b>Produk</b> untuk mengatur jumlah stok fisik barang yang tersedia di toko.</Step>
-                <Step num="3" title="Buka Kasir POS" businessType={businessType}>Masuk ke menu <b>Kasir POS</b>, ketik nama barang di kolom pencarian atau klik foto produk untuk memasukkannya ke keranjang kasir.</Step>
-                <Step num="4" title="Pembayaran & Struk" businessType={businessType} isLast>Selesaikan transaksi dan cetak Struk Thermal sebagai bukti pembelian pelanggan.</Step>
+                <Step num="1" title="Tambah Produk & SKU" businessType={businessType}>Buka menu <b>Produk</b>, masukkan data barang, harga jual, <b>Harga Modal (HPP)</b>, serta <b>SKU / Barcode</b> jika ada.</Step>
+                <Step num="2" title="Atur Stok Akhir & Inventaris" businessType={businessType}>Atur jumlah <b>Stok Akhir</b> barang dan tentukan batas minimum stok agar Anda mendapat peringatan saat barang menipis.</Step>
+                <Step num="3" title="Buka Kasir POS" businessType={businessType}>Masuk ke menu <b>Kasir POS</b>, scan barcode atau ketik nama barang di kolom pencarian untuk memasukkannya ke keranjang kasir.</Step>
+                <Step num="4" title="Pembayaran & Struk" businessType={businessType} isLast>Selesaikan transaksi pembayaran dan cetak Struk Thermal sebagai bukti pembelian resmi pelanggan.</Step>
               </>
             )}
 
             {businessType === 'JASA' && (
               <>
-                <Step num="1" title="Buat Layanan (Klinik/Salon)" businessType={businessType}>Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Creambath).</Step>
-                <Step num="2" title="Bagikan Link Katalog" businessType={businessType}>Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa melakukan reservasi mandiri.</Step>
-                <Step num="3" title="Terima Antrean" businessType={businessType}>Terima antrean yang masuk, atau input antrean secara manual di Kasir.</Step>
-                <Step num="4" title="Proses di Kasir" businessType={businessType} isLast>Setelah selesai, selesaikan transaksi di menu Kasir POS.</Step>
+                <Step num="1" title="Buat Layanan & Atur Komisi" businessType={businessType}>
+                  Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Servis Garansi, Spa). 
+                  Anda dapat mengisi <b>Komisi Staf / Layanan</b> untuk perhitungan bagi hasil karyawan secara otomatis.
+                </Step>
+                <Step num="2" title="Bagikan Link Booking Publik" businessType={businessType}>Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram agar pelanggan bisa melakukan reservasi mandiri.</Step>
+                <Step num="3" title="Pilih Staf / Teknisi / Kapster di Kasir" businessType={businessType}>
+                  Masuk ke menu <b>Kasir POS</b>, pilih layanan pelanggan, lalu tentukan pelaksana pada opsi <b>Pilih Staf / Teknisi / Kapster</b>:
+                  <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600">
+                    <li><b>Bengkel / Servis:</b> Pilih nama Mekanik / Teknisi pelaksana.</li>
+                    <li><b>Barbershop / Salon:</b> Pilih nama Kapster / Barber / Stylist.</li>
+                    <li><b>Klinik / Massage / Laundry:</b> Pilih nama Terapis / Petugas pelaksana.</li>
+                  </ul>
+                </Step>
+                <Step num="4" title="Proses Bayar & Rekap Komisi" businessType={businessType} isLast>Selesaikan transaksi di kasir. Sistem secara otomatis mencatat rekap komisi staf di menu <b>Rekap Komisi Staf / Karyawan</b>.</Step>
               </>
             )}
 
             {businessType === 'RENTAL' && (
               <>
-                <Step num="1" title="Tambah Armada" businessType={businessType}>Buka menu <b>Armada / Unit</b>. Masukkan data mobil, motor, atau peralatan yang bisa disewa.</Step>
-                <Step num="2" title="Atur Harga Sewa" businessType={businessType}>Tentukan harga per-hari atau per-jam untuk setiap armada yang Anda sewakan.</Step>
+                <Step num="1" title="Tambah Unit / Layanan" businessType={businessType}>Buka menu <b>Armada / Unit</b>. Masukkan data unit yang bisa disewa (mobil, motor, kamar kos, penginapan, kamera, atau peralatan).</Step>
+                <Step num="2" title="Atur Harga Sewa" businessType={businessType}>Tentukan harga per-hari, per-jam, atau per-malam untuk setiap unit yang Anda sewakan.</Step>
                 <Step num="3" title="Atur Rekening Pembayaran (DP 50%)" businessType={businessType}>Buka menu <b>Informasi Toko</b>, lalu lengkapi data rekening Bank / E-Wallet Anda. Ini wajib diisi agar pelanggan tahu ke mana harus mentransfer DP 50% saat melakukan reservasi online.</Step>
                 <Step num="4" title="Bagikan Link Katalog" businessType={businessType}>Di menu yang sama (<b>Informasi Toko</b>), salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa memesan mandiri.</Step>
-                <Step num="5" title="Tarik Pesanan / Input Kalender Sewa" businessType={businessType}>Pelanggan bisa memesan dari link booking, atau Anda input manual ke <b>Kalender Sewa</b>.</Step>
-                <Step num="6" title="Klik Start (Mulai Perjalanan)" businessType={businessType}>Saat unit diambil, klik pesanan di kalender dan ubah status ke <b>Sedang Jalan</b>.</Step>
-                <Step num="7" title="Finish & Lunas" businessType={businessType} isLast>Saat unit dikembalikan, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
+                <Step num="5" title="Tarik Pesanan / Input Transaksi Sewa" businessType={businessType}>
+                  Pelanggan bisa memesan dari link booking, atau Anda input manual di <b>Kasir POS / Kalender Sewa</b> dengan mengisi detail sewa:
+                  <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600">
+                    <li><b>No. Seri / Kode Unit / Plat:</b> Isi dengan Plat Nomor (mobil/motor), Nomor Kamar/Unit (kos/penginapan), atau Serial Number (kamera/alat).</li>
+                    <li><b>Jaminan (KTP/SIM/Deposit):</b> Isi dengan jaminan fisik seperti KTP, SIM, Paspor, atau Uang Deposit.</li>
+                    <li><b>Operator / Catatan Khusus:</b> Isi dengan nama supir, nama operator mesin, atau request khusus dari penyewa.</li>
+                  </ul>
+                </Step>
+                <Step num="6" title="Klik Start (Mulai Perjalanan / Sewa)" businessType={businessType}>Saat unit/kamar/alat diserahterimakan atau pemakaian dimulai, ubah status pesanan ke <b>Sedang Jalan / Aktif</b>.</Step>
+                <Step num="7" title="Finish & Lunas" businessType={businessType} isLast>Saat unit dikembalikan atau masa sewa selesai, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
               </>
             )}
           </div>

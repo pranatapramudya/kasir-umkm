@@ -426,13 +426,13 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const handleCheckout = async () => {
     if (isSubmittingRef.current || isCheckoutLoading) return;
     if (!customerName.trim()) return toast.error("Isi Nama Pelanggan!");
-    if (isFNB && !tableId) return toast.error("Pilih Nomor Meja!");
+    if (isFNB && !tableId) return toast.error("Pilih Meja atau Takeaway!");
     if (cart.length === 0) return toast.error("Keranjang masih kosong!");
     if (isCashInsufficient) return toast.error("Uang diterima kurang dari total belanja!");
-    if (isJasa && cart.some(item => !item.workerId)) return toast.error("Pastikan semua layanan telah memiliki pekerja/terapis!");
+    if (isJasa && cart.some(item => !item.workerId)) return toast.error("Pastikan semua layanan telah memilih Staf / Teknisi / Kapster!");
     // Validasi Rental
-    if (isRental && !rentalInfo.driverName.trim()) return toast.error("Isi Nama Supir untuk transaksi rental!");
-    if (isRental && !rentalInfo.licensePlate.trim()) return toast.error("Isi Plat Nomor Kendaraan untuk transaksi rental!");
+    if (isRental && !rentalInfo.driverName.trim()) return toast.error("Isi Operator / Catatan Khusus untuk transaksi rental!");
+    if (isRental && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Seri / Kode Unit / Plat untuk transaksi rental!");
 
     isSubmittingRef.current = true;
     setIsCheckoutLoading(true);
@@ -448,7 +448,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       method: paymentMethod,
       cashierId: userId || undefined,
       status: remainingBalance > 0 ? 'pending' : 'completed', // Will be re-evaluated as 'partial' in backend
-      ...(isFNB && { tableId }),
+      ...(isFNB && { tableId: (tableId === 'takeaway' || tableId === 'TAKEAWAY') ? undefined : tableId }),
       ...(isJasa && { serviceDate: serviceDate || undefined }),
       // Sertakan data rental jika mode Rental
       ...(isRental && {
@@ -859,7 +859,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       setCart(prev => prev.map(cartItem => cartItem.cartItemId === item.cartItemId ? { ...cartItem, workerId: val } : cartItem));
                     }}
                   >
-                    <option value="" disabled>-- Pilih Karyawan --</option>
+                    <option value="" disabled>-- Pilih Staf / Teknisi / Kapster --</option>
                     {employees.map(emp => (
                       <option key={emp.id} value={emp.id}>{emp.name}</option>
                     ))}
@@ -907,13 +907,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           {/* Input Nomor Meja (Khusus F&B) */}
         {isFNB && (
           <div>
-            <label className="text-xs font-bold text-gray-500 mb-1 block">Nomor Meja</label>
+            <label className="text-xs font-bold text-gray-500 mb-1 block">Meja / Antrean *</label>
             <select
               value={tableId}
               onChange={(e) => setTableId(e.target.value)}
               className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all"
             >
-              <option value="">Pilih Meja / Takeaway</option>
+              <option value="" disabled>-- Pilih Meja / Antrean --</option>
+              <option value="takeaway" className="font-bold text-blue-700">🛍️ [Takeaway / Bungkus / Konter]</option>
               {tables.map(t => {
                 const isOccupied = t.status?.toUpperCase() === 'TERISI' || t.status?.toUpperCase() === 'OCCUPIED';
                 return (
@@ -1112,7 +1113,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
-                      placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? "Cari nama armada / plat nomor..." : "Cari produk atau barcode..."}
+                      placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? "Cari nama unit / kode / plat..." : "Cari produk atau barcode..."}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
@@ -1511,7 +1512,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             <div className="p-6 overflow-y-auto max-h-[70vh] space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Nama Supir *</label>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Operator / Catatan Khusus *</label>
                   <input
                     type="text"
                     value={rentalInfo.driverName}
@@ -1520,7 +1521,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Plat Nomor *</label>
+                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">No. Seri / Kode Unit / Plat *</label>
                   <input
                     type="text"
                     value={rentalInfo.licensePlate}
@@ -1573,7 +1574,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               </div>
 
               <div>
-                <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jaminan Diserahkan *</label>
+                <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jaminan (KTP/SIM/Deposit) *</label>
                 <input
                   type="text"
                   value={rentalInfo.guarantee}
@@ -1581,7 +1582,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  * Jaminan wajib diisi. Contoh: KTP, KK, atau kendaraan milik penyewa.
+                  * Jaminan wajib diisi. Contoh: KTP, SIM, STNK, atau Uang Deposit.
                 </p>
               </div>
             </div>

@@ -32,7 +32,7 @@ export default function LandingPage() {
             </div>
 
             <h2 className="text-2xl font-black tracking-tight text-slate-900 mb-2 text-center">Selamat Datang</h2>
-            <p className="text-slate-600 font-medium text-center mb-10">Masuk atau daftar untuk mulai mengelola bisnis Anda dengan cerdas.</p>
+            <p className="text-slate-600 font-medium text-center mb-10">Akses dasbor manajemen Anda untuk memegang kendali penuh atas operasional bisnis.</p>
 
             <div className="w-full space-y-3">
               <Link href="/sign-in?redirect_url=/auth-callback" prefetch={false} className="w-full block py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all border-0 flex items-center justify-center gap-2 text-lg active:scale-95" aria-label="Masuk sebagai Owner">

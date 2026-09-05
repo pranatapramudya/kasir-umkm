@@ -609,14 +609,14 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nomor Polisi / Nama Armada' : isJasa ? 'Nama Jasa / Paket' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'No. Seri / Kode Unit / Nama Armada' : isJasa ? 'Nama Jasa / Paket' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       name="name"
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder={isRental ? "misal: B 1234 ABC - Avanza" : ""}
+                      placeholder={isRental ? "misal: Room 101, B 1234 ABC, atau SN-991" : ""}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                     />
                   </div>
@@ -727,7 +727,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                   {isJasa && (
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Driver (Rp)' : isJasa ? 'Komisi Staf / Terapis / Kapster (Rp)' : 'Komisi Pekerja (Rp)'}</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Driver (Rp)' : isJasa ? 'Komisi Staf / Layanan (Rp)' : 'Komisi Pekerja (Rp)'}</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                         <input
@@ -738,7 +738,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">{isRental ? 'Nominal bagi hasil untuk driver per transaksi.' : 'Nominal bagi hasil untuk pekerja per transaksi.'}</p>
+                      <p className="text-xs text-slate-500 mt-1">{isRental ? 'Nominal bagi hasil untuk driver per transaksi.' : 'Nominal bagi hasil untuk staf / petugas per transaksi.'}</p>
                     </div>
                   )}
 

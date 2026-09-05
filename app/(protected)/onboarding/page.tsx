@@ -127,11 +127,11 @@ export default function OnboardingPage() {
                 <input type="hidden" name="category" value={selectedCategory} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
-                    { id: "FNB", label: "F&B / Kuliner", description: "", icon: <Coffee className="w-5 h-5 mb-2" /> },
-                    { id: "RETAIL", label: "Retail", description: "", icon: <ShoppingBag className="w-5 h-5 mb-2" /> },
-                    { id: "JASA", label: "Jasa / Servis", description: "", icon: <Wrench className="w-5 h-5 mb-2" /> },
-                    { id: "RENTAL", label: "Rental & Travel", description: "Sewa Mobil/Bus", icon: <CarFront className="w-5 h-5 mb-2" /> },
-                    { id: "LAINNYA", label: "Lainnya", description: "", icon: <MoreHorizontal className="w-5 h-5 mb-2" /> },
+                    { id: "FNB", label: "F&B / Kuliner", description: "Kafe, Resto, Warung Makan", icon: <Coffee className="w-5 h-5 mb-2" /> },
+                    { id: "RETAIL", label: "Retail", description: "Toko Kelontong, Butik, Minimarket", icon: <ShoppingBag className="w-5 h-5 mb-2" /> },
+                    { id: "JASA", label: "Jasa / Servis", description: "Bengkel, Barbershop, Laundry", icon: <Wrench className="w-5 h-5 mb-2" /> },
+                    { id: "RENTAL", label: "Rental & Travel", description: "Sewa Kendaraan, Penginapan, Tour", icon: <CarFront className="w-5 h-5 mb-2" /> },
+                    { id: "LAINNYA", label: "Lainnya", description: "Usaha & Layanan Lainnya", icon: <MoreHorizontal className="w-5 h-5 mb-2" /> },
                   ].map((cat) => (
                     <div
                       key={cat.id}
@@ -144,9 +144,9 @@ export default function OnboardingPage() {
                       <div className={selectedCategory === cat.id ? "text-blue-600" : "text-slate-400"}>
                         {cat.icon}
                       </div>
-                      <span className="text-sm font-medium">{cat.label}</span>
+                      <span className="text-sm font-semibold">{cat.label}</span>
                       {cat.description && (
-                        <span className="mt-0.5 text-xs text-slate-500">{cat.description}</span>
+                        <span className="mt-0.5 text-xs text-slate-500 leading-tight">{cat.description}</span>
                       )}
                     </div>
                   ))}

@@ -67,7 +67,7 @@ export default function RekapKomisiPage() {
         </div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mb-2">Rekap Komisi Pekerja</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mb-2">Rekap Komisi Staf / Karyawan</h1>
             <p className="text-slate-500 max-w-xl text-sm md:text-base">Pantau kinerja dan hitung bagi hasil karyawan Anda.</p>
           </div>
           
@@ -111,7 +111,7 @@ export default function RekapKomisiPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="p-4 text-sm font-bold text-slate-600">Nama Pekerja</th>
+                  <th className="p-4 text-sm font-bold text-slate-600">Nama Staf / Pekerja</th>
                   <th className="p-4 text-sm font-bold text-slate-600 text-center">Total Layanan Dikerjakan</th>
                   <th className="p-4 text-sm font-bold text-slate-600 text-right">Total Komisi (Rp)</th>
                 </tr>

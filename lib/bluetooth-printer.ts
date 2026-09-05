@@ -204,10 +204,10 @@ export function buildReceiptBytes(data: ReceiptData, paperWidth = 32): Uint8Arra
     push(encodeText(`Tgl Sewa : ${data.startDate ?? '?'} - ${data.endDate ?? '?'}`.slice(0, paperWidth)), nl);
   }
   if (data.driverName) {
-    push(encodeText(`Supir    : ${data.driverName.slice(0, paperWidth - 11)}`), nl);
+    push(encodeText(`Operator : ${data.driverName.slice(0, paperWidth - 11)}`), nl);
   }
   if (data.licensePlate) {
-    push(encodeText(`Plat Kend: ${data.licensePlate.slice(0, paperWidth - 11)}`), nl);
+    push(encodeText(`No. Unit : ${data.licensePlate.slice(0, paperWidth - 11)}`), nl);
   }
   if (data.guarantee) {
     push(encodeText(`Jaminan  : ${data.guarantee.slice(0, paperWidth - 11)}`), nl);

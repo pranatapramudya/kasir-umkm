@@ -731,10 +731,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       {isRental ? (
         /* ===== RENTAL: Date Range + Tujuan ===== */
         <div className="space-y-4">
-          {/* Banner identitas rental */}
+          {/* Banner identitas rental / reservasi */}
           <div className="bg-blue-50 text-blue-800 border border-blue-200 p-3 rounded-lg text-sm font-semibold text-center flex items-center justify-center gap-2">
-            <span className="text-lg">🚗</span>
-            <span>INFORMASI SEWA KENDARAAN</span>
+            <span className="text-lg">📋</span>
+            <span>DETAIL RESERVASI / SEWA</span>
           </div>
 
           <RentalDatePicker
@@ -749,10 +749,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             onClearError={() => setError(null)}
           />
 
-          {/* Jam Penjemputan / Pengiriman */}
+          {/* Jam Penjemputan / Ambil / Mulai Sewa */}
           <div className="space-y-1.5">
             <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Jam Penjemputan / Pengiriman *
+              Jam Ambil / Mulai Sewa *
             </label>
             <select
               id="rental-pickupTime"
@@ -784,10 +784,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             </p>
           )}
 
-          {/* Lokasi Penjemputan */}
+          {/* Lokasi Penjemputan / Alamat */}
           <div className="space-y-1.5">
             <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              LOKASI PENJEMPUTAN / TITIK AWAL <span className="normal-case font-normal text-slate-500">(opsional)</span>
+              LOKASI AMBIL / ALAMAT AWAL <span className="normal-case font-normal text-slate-500">(opsional)</span>
             </label>
             <div className="flex gap-2">
               <input
@@ -993,17 +993,17 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         />
       </div>
 
-      {/* Catatan */}
+      {/* Catatan / Request Khusus */}
       <div className="space-y-1.5">
         <label htmlFor="notes" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          Catatan <span className="normal-case font-normal text-slate-500">(opsional)</span>
+          Catatan / Request Khusus <span className="normal-case font-normal text-slate-500">(opsional)</span>
         </label>
         <textarea
           id="notes"
           name="notes"
           value={formData.notes}
           onChange={handleChange}
-          placeholder="Ada permintaan khusus? tulis di sini..."
+          placeholder="Cth: Request kamar di bawah, butuh supir, atau catatan khusus..."
           rows={3}
           className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
         />
@@ -1058,7 +1058,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            {isRental ? "Pesan Rental Sekarang" : "Buat Jadwal Sekarang"}
+            {isRental ? "Buat Reservasi Sekarang" : "Buat Jadwal Sekarang"}
           </>
         )}
       </button>

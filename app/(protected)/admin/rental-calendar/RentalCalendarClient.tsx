@@ -313,13 +313,13 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                       )}
                       {b.driverName && (
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Supir</span>
+                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Operator / Catatan</span>
                           <span className="text-xs text-slate-700 font-medium truncate">{b.driverName}</span>
                         </div>
                       )}
                       {b.licensePlate && (
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Plat No</span>
+                          <span className="text-[10px] text-slate-400 font-semibold uppercase">No. Seri / Kode</span>
                           <span className="text-xs text-slate-700 font-medium truncate">{b.licensePlate}</span>
                         </div>
                       )}

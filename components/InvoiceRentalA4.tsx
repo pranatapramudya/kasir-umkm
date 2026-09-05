@@ -27,7 +27,7 @@ export default function InvoiceRentalA4({
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } 
         }
       `}</style>
-      
+
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-slate-800 pb-6 mb-6">
         <div>
@@ -49,17 +49,17 @@ export default function InvoiceRentalA4({
           <table className="w-full text-sm">
             <tbody>
               <tr><td className="py-1 text-slate-500 w-32">Nama Pelanggan</td><td className="py-1 font-semibold">: {transaction.customerName}</td></tr>
-              <tr><td className="py-1 text-slate-500">Nama Supir</td><td className="py-1 font-semibold">: {transaction.driverName || "-"}</td></tr>
-              <tr><td className="py-1 text-slate-500">Jaminan</td><td className="py-1 font-semibold">: {transaction.guarantee || "-"}</td></tr>
+              <tr><td className="py-1 text-slate-500">Operator / Catatan Khusus</td><td className="py-1 font-semibold">: {transaction.driverName || "-"}</td></tr>
+              <tr><td className="py-1 text-slate-500">Jaminan (KTP/SIM/Deposit)</td><td className="py-1 font-semibold">: {transaction.guarantee || "-"}</td></tr>
               <tr><td className="py-1 text-slate-500">Tujuan</td><td className="py-1 font-semibold">: {transaction.destination || "-"}</td></tr>
             </tbody>
           </table>
         </div>
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex-1">
-          <h3 className="font-bold text-slate-800 mb-3 uppercase text-xs tracking-wider border-b pb-2">Detail Sewa Kendaraan</h3>
+          <h3 className="font-bold text-slate-800 mb-3 uppercase text-xs tracking-wider border-b pb-2">Detail Reservasi / Sewa</h3>
           <table className="w-full text-sm">
             <tbody>
-              <tr><td className="py-1 text-slate-500 w-32">Plat Nomor</td><td className="py-1 font-bold text-blue-700">: {transaction.licensePlate || "-"}</td></tr>
+              <tr><td className="py-1 text-slate-500 w-32">No. Seri / Kode Unit / Plat</td><td className="py-1 font-bold text-blue-700">: {transaction.licensePlate || "-"}</td></tr>
               <tr><td className="py-1 text-slate-500">Mulai Sewa</td><td className="py-1 font-semibold">: {transaction.startDate || "-"}</td></tr>
               <tr><td className="py-1 text-slate-500">Selesai Sewa</td><td className="py-1 font-semibold">: {transaction.endDate || "-"}</td></tr>
             </tbody>
@@ -72,7 +72,7 @@ export default function InvoiceRentalA4({
         <table className="w-full text-sm text-left">
           <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold">
             <tr>
-              <th className="px-4 py-3">Nama Armada / Layanan</th>
+              <th className="px-4 py-3">Nama Unit / Barang / Armada</th>
               <th className="px-4 py-3 text-right">Durasi (Qty)</th>
               <th className="px-4 py-3 text-right">Harga Satuan</th>
               <th className="px-4 py-3 text-right">Subtotal</th>
@@ -129,7 +129,7 @@ export default function InvoiceRentalA4({
       {/* Footer Tanda Tangan */}
       <div className="flex justify-between px-12 mt-16 pt-8 border-t-2 border-slate-100 print:break-inside-avoid">
         <div className="text-center">
-          <p className="text-slate-500 mb-20 text-sm">Penyewa / Supir</p>
+          <p className="text-slate-500 mb-20 text-sm">Penyewa / Operator</p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-1 uppercase">{transaction.customerName || "............................"}</p>
         </div>
         <div className="text-center">
@@ -137,7 +137,7 @@ export default function InvoiceRentalA4({
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-1 uppercase">{user?.fullName || user?.firstName || 'Admin Kasir'}</p>
         </div>
       </div>
-      
+
       <div className="text-center mt-12 text-xs text-slate-400">
         <p>Terima kasih telah mempercayakan perjalanan Anda kepada kami.</p>
         <p>Harap periksa kondisi kendaraan sebelum dibawa. Segala kerusakan setelah serah terima menjadi tanggung jawab penyewa.</p>

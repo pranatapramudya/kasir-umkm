@@ -1,7 +1,7 @@
-# PJTECH KASIR UMKM - SaaS Boilerplate
+# PJTECH KASIR UMKM - SaaS Enterprise Platform
 
-PJTECH KASIR UMKM adalah sistem Point of Sales (POS) komprehensif berbasis SaaS (Software as a Service) yang dirancang khusus untuk memenuhi kebutuhan berbagai jenis bisnis: **F&B (Restoran/Kafe), Retail, Jasa/Servis, dan Rental & Travel**. 
-Dibangun dengan fokus pada kecepatan, keamanan multi-tenant tingkat enterprise, dan antarmuka *Mobile-First*, boilerplate ini siap digunakan sebagai fondasi proyek SaaS skala besar.
+PJTECH KASIR UMKM adalah Sistem Manajemen Kasir UMKM Premium untuk kendali penuh atas operasional bisnis. Platform Point of Sales (POS) komprehensif berbasis SaaS (Software as a Service) 100% universal yang dirancang khusus untuk memenuhi kebutuhan berbagai jenis bisnis: **F&B (Restoran/Kafe/Foodtruck), Retail (Toko/Minimarket), Jasa/Servis (Bengkel/Barbershop/Salon/Laundry), dan Rental & Travel (Mobil/Kos/Kamera/Alat)**. 
+Dibangun dengan fokus pada kecepatan, keamanan multi-tenant tingkat enterprise, dan antarmuka *Mobile-First*, platform ini siap digunakan sebagai fondasi operasional bisnis skala UMKM hingga Enterprise.
 
 ## 🚀 Tech Stack Utama
 
@@ -17,13 +17,13 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 
 ## ✨ Fitur & Arsitektur Utama
 
-- **Production-Ready Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.
+- **Production-Ready Enterprise Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.
 - **Sistem Pembayaran & Subscription Dinamis:** Terintegrasi dengan payment gateway (Mayar) via webhook untuk aktivasi otomatis paket langganan (Pro 1 Bulan, 6 Bulan, 1 Tahun) secara real-time, beserta alur pendaftaran *Manual ACC* yang dikelola via Dasbor Superadmin.
-- **Optimasi SEO & UI Nasional:** Injeksi SEO pada *Landing Page* untuk pencarian organik maksimal, dipadukan dengan desain *glassmorphism* modern dan responsif.
-- **Dukungan Multi-Bisnis:** Logika dinamis untuk bisnis Retail (barang fisik), F&B (manajemen meja & pesanan), hingga Jasa/Servis (tanpa batas stok).
+- **Optimasi SEO & UI Enterprise:** Injeksi SEO pada *Landing Page* untuk pencarian organik maksimal, dipadukan dengan desain *glassmorphism* modern, profesional, dan responsif.
+- **Dukungan Multi-Bisnis 100% Universal:** Logika dinamis adaptif untuk Retail (SKU/Barcode, HPP, Stok Akhir), F&B (Meja & Opsi Takeaway/Bungkus/Konter), Jasa/Servis (Staf/Teknisi/Kapster & Komisi Layanan), hingga Rental & Travel (No. Seri/Kode Unit/Plat, Jaminan & Operator).
 - **Role-Based Access Control (RBAC):** Pemisahan hak akses ketat antara *Owner/Superadmin* dan *Karyawan/Kasir* menggunakan proteksi route tingkat server (Middleware & API), termasuk halaman panduan khusus karyawan.
 - **Manajemen Karyawan & Sistem Komisi:** Pelacakan performa staf dan kalkulasi komisi otomatis berdasarkan transaksi yang diselesaikan (sangat cocok untuk bisnis Jasa/Salon/Bengkel).
-- **Manajemen Meja (Dining Table):** Visualisasi ketersediaan dan status meja secara real-time untuk bisnis F&B.
+- **Manajemen Meja & Takeaway Resto:** Visualisasi ketersediaan status meja real-time serta opsi khusus *Takeaway / Bungkus / Konter* tanpa meja fisik untuk bisnis F&B.
 - **Keamanan Transaksi & Data (Soft Delete):** Menggunakan flag `isActive` pada produk untuk menjaga integritas data historis transaksi (mencegah isu *Time-of-Check to Time-of-Use / TOCTOU*).
 - **Point of Sales (POS) Responsif:** Antarmuka Kasir *Mobile-First* yang lancar digunakan pada tablet atau *smartphone*, dilengkapi fitur keranjang dan kalkulasi diskon otomatis.
 - **Dasbor Analitik Dinamis:** Perhitungan *real-time* untuk Laba Bersih, Pendapatan, dan Riwayat Transaksi berdasarkan HPP (Harga Pokok Penjualan).
