@@ -48,17 +48,13 @@ export async function completeOnboarding(formData: FormData) {
       },
     });
 
-    // 3. Revalidate paths to clear server component layout caches
-    revalidatePath('/', 'layout');
-    revalidatePath('/admin', 'layout');
-
   } catch (error: any) {
     console.error("Error completing onboarding:", error);
     // Transparansi Error: melempar error asli agar mudah di-debug
     throw new Error(error.message || "Gagal menyimpan data toko (Unknown Error)");
   }
 
-  // 4. Return success
+  // 3. Return success (NO redirect, NO revalidatePath)
   return { success: true, message: "Toko berhasil dibuat" };
 }
 

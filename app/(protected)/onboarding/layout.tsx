@@ -19,7 +19,7 @@ export default async function OnboardingLayout({
 
   // HANYA redirect ke dashboard jika tenant sudah ada DAN sudah memilih paket langganan/trial
   if (existingTenant && existingTenant.subscriptionPlan) {
-    redirect('/');
+    redirect('/admin');
   }
 
   return <>{children}</>;

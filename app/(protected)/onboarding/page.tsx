@@ -43,7 +43,6 @@ export default function OnboardingPage() {
     try {
       const result = await completeOnboarding(formData);
       if (result?.success) {
-        await user?.reload();
         setStep(2);
       }
     } catch (err: any) {
