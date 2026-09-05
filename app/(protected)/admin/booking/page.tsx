@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getAppUrl } from "@/lib/url";
 import BookingDashboardClient from "./BookingDashboardClient";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export default async function BookingDashboardPage() {
 
   const tenantSlug = tenant.slug ?? null;
   const bookingLink = tenantSlug
-    ? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/book/${tenantSlug}`
+    ? `${getAppUrl()}/book/${tenantSlug}`
     : null;
 
   return (

@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next'
- 
+import { getAppUrl } from '@/lib/url'
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Ganti URL dengan domain production Anda nanti
-  const baseUrl = 'https://domainanda.com'
+  const baseUrl = getAppUrl()
 
   return [
     {

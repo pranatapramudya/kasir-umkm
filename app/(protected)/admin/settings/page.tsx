@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Settings } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getAppUrl } from "@/lib/url";
 import SlugForm from "./SlugForm";
 import PaymentSettingsForm from "./PaymentSettingsForm";
 
@@ -29,7 +30,7 @@ export default async function AdminSettingsPage() {
     },
   });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const appUrl = getAppUrl();
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
