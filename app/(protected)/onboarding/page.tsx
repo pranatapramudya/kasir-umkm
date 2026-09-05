@@ -19,10 +19,14 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (isLoaded && !user) {
       router.push("/sign-in");
+    } else if (isLoaded && user) {
+      const metadata = user.publicMetadata as Record<string, any>;
+      // Jika user sudah menyelesaikan Step 1 (category terisi) tetapi belum memilih paket, bawa langsung ke Step 2
+      if (metadata?.category && !metadata?.onboardingComplete) {
+        setStep(2);
+      }
     }
-    // Dihapus pengecekan onboardingComplete di sini untuk mencegah infinite loop
-    // jika tenant di database ternyata kosong/terhapus.
-  }, [isLoaded, user, router, step, isLoading]);
+  }, [isLoaded, user, router]);
 
   if (!isLoaded || !user) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -40,7 +44,6 @@ export default function OnboardingPage() {
       const result = await completeOnboarding(formData);
       if (result?.success) {
         await user?.reload();
-        router.refresh();
         setStep(2);
       }
     } catch (err: any) {

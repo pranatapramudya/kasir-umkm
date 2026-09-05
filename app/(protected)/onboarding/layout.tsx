@@ -13,13 +13,12 @@ export default async function OnboardingLayout({
     redirect('/sign-in');
   }
 
-  // PRD: "Cek ke database: const existingTenant = await prisma.tenant.findUnique({ where: { userId } })"
-  // "Jika existingTenant sudah ada, PENGGUNA DILARANG MELIHAT FORM INI. Langsung redirect mereka ke /admin"
   const existingTenant = await prisma.tenant.findFirst({
     where: { userId }
   });
 
-  if (existingTenant) {
+  // HANYA redirect ke dashboard jika tenant sudah ada DAN sudah memilih paket langganan/trial
+  if (existingTenant && existingTenant.subscriptionPlan) {
     redirect('/');
   }
 

@@ -53,7 +53,7 @@ export default async function AdminLayout({
     }
   }
 
-  if (!tenant && !isEmployee) {
+  if ((!tenant || !tenant.subscriptionPlan) && !isEmployee) {
     redirect('/onboarding');
   }
 
