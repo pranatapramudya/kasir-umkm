@@ -83,9 +83,7 @@ export function PaywallModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   const result = await selectSubscriptionPackage('TRIAL');
                   if (result?.success) {
                      await user.reload();
-                     router.refresh();
-                     onClose();
-                     toast.success("Berhasil sinkronisasi paket Trial!");
+                     window.location.href = '/admin';
                   }
                 } catch (err: any) {
                   toast.error(err.message || 'Gagal mengaktifkan Trial');

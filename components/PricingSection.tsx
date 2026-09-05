@@ -51,8 +51,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
         if (isLoaded && user) {
           await user.reload();
         }
-        router.refresh();
-        router.push('/admin');
+        window.location.href = '/admin';
       } else {
         alert('Gagal memproses paket.');
         setIsLoading(false);
