@@ -609,7 +609,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'No. Seri / Kode Unit / Nama Armada' : isJasa ? 'Nama Jasa / Paket' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nama Unit / Nomor Kamar / Plat Nomor' : isJasa ? 'Nama Jasa / Paket' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       name="name"
@@ -622,14 +622,14 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Unit Kendaraan' : 'Kategori'} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Tipe Unit (Properti / Kendaraan)' : 'Kategori'} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       name="category"
                       required
                       autoComplete="off"
                       list="category-options"
-                      placeholder={isRental ? "contoh: Mini Bus, Big Bus, dll..." : "Masukkan nama kategori..."}
+                      placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Kos Eksklusif, dll..." : "Masukkan nama kategori..."}
                       value={formData.category}
                       onChange={handleChange}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -727,7 +727,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                   {isJasa && (
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Driver (Rp)' : isJasa ? 'Komisi Staf / Layanan (Rp)' : 'Komisi Pekerja (Rp)'}</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Petugas / Driver (Rp)' : isJasa ? 'Komisi Staf / Layanan (Rp)' : 'Komisi Pekerja (Rp)'}</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                         <input
@@ -738,7 +738,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">{isRental ? 'Nominal bagi hasil untuk driver per transaksi.' : 'Nominal bagi hasil untuk staf / petugas per transaksi.'}</p>
+                      <p className="text-xs text-slate-500 mt-1">{isRental ? 'Nominal bagi hasil untuk petugas kebersihan, admin, atau driver per transaksi. Kosongkan jika tidak ada.' : 'Nominal bagi hasil untuk staf / petugas per transaksi.'}</p>
                     </div>
                   )}
 
@@ -759,14 +759,15 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                   
                   {isRental && (
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Catatan Tarif / Area Layanan (Opsional)</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Fasilitas / Catatan Tambahan (Opsional)</label>
                       <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange as any}
-                        placeholder="Misal: Harga tertera untuk dalam kota. Luar kota dikenakan tambahan biaya Rp 100.000."
+                        placeholder="Misal: Harga sudah termasuk Listrik & WiFi, atau untuk luar kota dikenakan tambahan Rp 100.000."
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 min-h-[80px]"
                       />
+                      <p className="text-xs text-slate-500 mt-1">Misal: Harga sudah termasuk Listrik & WiFi, atau untuk luar kota dikenakan tambahan Rp 100.000.</p>
                     </div>
                   )}
                 </div>

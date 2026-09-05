@@ -7,12 +7,13 @@ import {
   addMonths, subMonths, eachDayOfInterval
 } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, CalendarDays, Clock, User, CarFront, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Clock, User, CarFront, Bed, Key, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { startOrder, finishOrder, approveOrder } from "../orders/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
+import { detectRentalItemType } from "@/lib/business-category";
 
 type BookingStatus = "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE";
 
@@ -38,8 +39,8 @@ interface Props {
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
   PENDING: { label: "Menunggu", bg: "bg-yellow-100 text-yellow-700" },
-  COMPLETED: { label: "Siap Berangkat", bg: "bg-blue-100 text-blue-700" },
-  IN_PROGRESS: { label: "Sedang Jalan", bg: "bg-green-100 text-green-700" },
+  COMPLETED: { label: "Sedang Disewa", bg: "bg-blue-100 text-blue-700" },
+  IN_PROGRESS: { label: "Berjalan", bg: "bg-green-100 text-green-700" },
   OVERDUE: { label: "Terlambat", bg: "bg-red-100 text-red-700" },
   FINISHED: { label: "Selesai", bg: "bg-gray-100 text-gray-700" }
 };
@@ -98,10 +99,10 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
   };
 
   const handleStart = async (id: string) => {
-    toast.loading("Memulai perjalanan...", { id: "start" });
+    toast.loading("Memproses...", { id: "start" });
     const res = await startOrder(id);
     if (res.success) {
-      toast.success("Perjalanan dimulai!", { id: "start" });
+      toast.success("Sewa dimulai!", { id: "start" });
       router.refresh();
     } else {
       toast.error("Gagal", { id: "start" });
@@ -266,8 +267,13 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <CarFront className="w-4 h-4 text-blue-600 shrink-0" />
-                    <h4 className="font-bold text-slate-800 text-sm truncate">{b.itemName || "Menunggu Info Armada"}</h4>
+                    {(() => {
+                      const type = detectRentalItemType(b.itemName);
+                      if (type === "property") return <Bed className="w-4 h-4 text-blue-600 shrink-0" />;
+                      if (type === "vehicle") return <CarFront className="w-4 h-4 text-blue-600 shrink-0" />;
+                      return <Key className="w-4 h-4 text-blue-600 shrink-0" />;
+                    })()}
+                    <h4 className="font-bold text-slate-800 text-sm truncate">{b.itemName || "Menunggu Info Unit"}</h4>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -344,12 +350,12 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                   )}
                   {b.status === "COMPLETED" && (
                     <button onClick={() => handleStart(b.id)} className="w-full px-3 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
-                      🚀 Mulai Perjalanan / Start
+                      🚀 Mulai / Start
                     </button>
                   )}
                   {(b.status === "IN_PROGRESS" || b.status === "OVERDUE") && (
                     <button onClick={() => { setFinishingOrder(b); setOvertimeFee("0"); }} className="w-full px-3 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">
-                      ✅ Tiba di Pool / Finish
+                      ✅ Selesai / Finish
                     </button>
                   )}
                 </div>
@@ -376,8 +382,8 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                   <span className="font-semibold text-slate-800">{finishingOrder?.customerName || "Pelanggan Baru"}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Armada/Layanan</span>
-                  <span className="font-semibold text-slate-800">{finishingOrder?.itemName || "Menunggu Info Armada"}</span>
+                  <span className="text-slate-500">Unit/Layanan</span>
+                  <span className="font-semibold text-slate-800">{finishingOrder?.itemName || "Menunggu Info Unit"}</span>
                 </div>
               </div>
               

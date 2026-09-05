@@ -1,6 +1,6 @@
 "use client";
 
-import { isRentalTravelCategory } from "@/lib/business-category";
+import { isRentalTravelCategory, detectRentalItemType } from "@/lib/business-category";
 
 import { useState, useEffect, useCallback } from "react";
 import useSWR from "swr";
@@ -25,6 +25,9 @@ import {
   CalendarDays,
   X,
   Loader2,
+  Bed,
+  Car,
+  Key,
 } from "lucide-react";
 import { Calendar, dateFnsLocalizer, type Event as CalendarEvent } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
@@ -123,13 +126,13 @@ function getStatusMap(isJasa: boolean): Record<
       icon: <Clock className="w-3.5 h-3.5" />,
     },
     COMPLETED: {
-      label: isJasa ? "Antrean Aktif" : "Siap Berangkat",
+      label: isJasa ? "Antrean Aktif" : "Sedang Disewa",
       color: "text-blue-600",
       bg: "bg-blue-50 border-blue-200",
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     },
     IN_PROGRESS: {
-      label: "Sedang Jalan",
+      label: "Berjalan",
       color: "text-purple-600",
       bg: "bg-purple-50 border-purple-200",
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
@@ -141,7 +144,7 @@ function getStatusMap(isJasa: boolean): Record<
       icon: <XCircle className="w-3.5 h-3.5" />,
     },
     FINISHED: {
-      label: isJasa ? "Selesai" : "Selesai / Tiba di Pool",
+      label: "Selesai",
       color: "text-emerald-600",
       bg: "bg-emerald-50 border-emerald-200",
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
@@ -452,8 +455,8 @@ export default function BookingDashboardClient({
                   const label = f === "ALL" 
                     ? "Semua" 
                     : f === "PENDING" ? (isJasa ? "Menunggu" : "Persiapan")
-                    : f === "COMPLETED" ? (isJasa ? "Antrean" : "Siap Berangkat")
-                    : f === "IN_PROGRESS" ? "Sedang Jalan"
+                    : f === "COMPLETED" ? (isJasa ? "Antrean" : "Sedang Disewa")
+                    : f === "IN_PROGRESS" ? "Berjalan"
                     : f === "FINISHED" ? "Selesai"
                     : "Dibatalkan";
                   const count = f === "ALL" ? bookings.length : bookings.filter((b) => b.status === f).length;
@@ -538,7 +541,15 @@ export default function BookingDashboardClient({
                             </div>
                             {booking.product && (
                               <div className="col-span-2 bg-blue-50 border border-blue-100 rounded-xl p-2.5">
-                                <p className="text-xs text-blue-400 mb-0.5">Layanan</p>
+                                <p className="text-xs text-blue-400 mb-0.5 flex items-center gap-1">
+                                  {!isJasa && (() => {
+                                    const type = detectRentalItemType(booking.product.name);
+                                    if (type === "property") return <Bed className="w-3 h-3 text-blue-500 shrink-0" />;
+                                    if (type === "vehicle") return <Car className="w-3 h-3 text-blue-500 shrink-0" />;
+                                    return <Key className="w-3 h-3 text-blue-500 shrink-0" />;
+                                  })()}
+                                  <span>{isJasa ? "Layanan" : "Unit / Layanan"}</span>
+                                </p>
                                 <div className="flex justify-between items-center">
                                   <p className="text-sm font-semibold text-blue-700">
                                     {booking.product.name}
@@ -661,7 +672,15 @@ export default function BookingDashboardClient({
 
               {selectedBooking.product && (
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                  <p className="text-xs text-blue-400 mb-1">Layanan</p>
+                  <p className="text-xs text-blue-400 mb-1 flex items-center gap-1">
+                    {!isJasa && (() => {
+                      const type = detectRentalItemType(selectedBooking.product.name);
+                      if (type === "property") return <Bed className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
+                      if (type === "vehicle") return <Car className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
+                      return <Key className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
+                    })()}
+                    <span>{isJasa ? "Layanan" : "Unit / Layanan"}</span>
+                  </p>
                   <div className="flex justify-between items-center">
                     <p className="text-sm font-semibold text-blue-700">
                       {selectedBooking.product.name}

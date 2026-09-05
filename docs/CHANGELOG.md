@@ -7,6 +7,12 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🌐 UX & Copywriting: Universalisasi Modul Rental (Properti & Kendaraan)
+- **Netralisasi Status & Filter:** Mengubah status `COMPLETED` dari "Siap Berangkat" menjadi "Sedang Disewa" dan `IN_PROGRESS` dari "Sedang Jalan" menjadi "Berjalan" pada Kalender Sewa, Booking Dashboard, dan Inbox Pesanan.
+- **Action Buttons & Copywriting:** Mengubah tombol "Mulai Perjalanan / Start" menjadi "🚀 Mulai / Start" dan "Tiba di Pool / Finish" menjadi "✅ Selesai / Finish", serta mengganti rujukan "Info Armada" / "Armada/Layanan" menjadi "Info Unit" / "Unit/Layanan".
+- **Dynamic Iconography (Ikon Unit):** Menambahkan logika deteksi tipe unit `detectRentalItemType` pada `lib/business-category.ts`. Menampilkan ikon 🛏️ Kasur (`Bed`) untuk properti/kamar/kos, 🚗 Mobil (`CarFront`/`Car`) untuk kendaraan, dan 🔑 Kunci (`Key`) untuk fallback.
+- **Form Tambah / Edit Layanan Rental:** Mengubah label & placeholder input form pada `admin/products` menjadi universal untuk properti & kendaraan (Tipe Unit, Nama Unit/Nomor Kamar/Plat, Komisi Petugas/Driver, Fasilitas/Catatan Tambahan).
+
 ### 📝 Dokumentasi & Konfigurasi Dynamic URL, Category ID, & Mayar
 - **Environment Variable `NEXT_PUBLIC_APP_URL`:** Mendokumentasikan variabel URL terpusat (`http://localhost:3000` untuk dev, `https://www.pjtechumkm.com` untuk production).
 - **Standar Identifier Kategori Bisnis:** Menetapkan dan mendokumentasikan spesifikasi ID baku format UPPERCASE (`RENTAL`, `JASA`, `FNB`, `RETAIL`).

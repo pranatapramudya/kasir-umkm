@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Inbox, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { Inbox, CheckCircle, XCircle, Clock, Loader2, Bed, CarFront, Key } from "lucide-react";
 import { startOrder, rejectOrder, finishOrder, approveOrder } from "./actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { detectRentalItemType } from "@/lib/business-category";
 
 interface BookingItem {
   id: string;
@@ -38,14 +39,14 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
   };
 
   const handleStart = async (id: string) => {
-    toast.loading("Memulai perjalanan...", { id: "start" });
+    toast.loading("Memproses...", { id: "start" });
     const res = await startOrder(id);
     if (res.success) {
-      toast.success("Perjalanan dimulai!", { id: "start" });
+      toast.success("Sewa dimulai!", { id: "start" });
       setOrders(orders.map(o => o.id === id ? { ...o, status: "IN_PROGRESS" } : o));
       router.refresh();
     } else {
-      toast.error("Gagal memulai perjalanan", { id: "start" });
+      toast.error("Gagal memproses", { id: "start" });
     }
   };
 
@@ -128,7 +129,17 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">{order.customerName}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{order.itemName}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      {!isJasa && (() => {
+                        const type = detectRentalItemType(order.itemName);
+                        if (type === "property") return <Bed className="w-4 h-4 text-blue-600 shrink-0" />;
+                        if (type === "vehicle") return <CarFront className="w-4 h-4 text-blue-600 shrink-0" />;
+                        return <Key className="w-4 h-4 text-blue-600 shrink-0" />;
+                      })()}
+                      <span>{order.itemName}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {order.status === "PENDING" && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
@@ -137,12 +148,12 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
                     )}
                     {order.status === "COMPLETED" && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {isJasa ? "Antrean Aktif" : "Siap Berangkat"}
+                        {isJasa ? "Antrean Aktif" : "Sedang Disewa"}
                       </span>
                     )}
                     {order.status === "IN_PROGRESS" && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                        Sedang Dalam Perjalanan
+                        Berjalan
                       </span>
                     )}
                   </td>
@@ -158,8 +169,8 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
                       </div>
                     )}
                     {order.status === "COMPLETED" && !isJasa && (
-                      <button onClick={() => handleStart(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors tooltip" title="Mulai Perjalanan/Start">
-                        🚀 Mulai Perjalanan / Start
+                      <button onClick={() => handleStart(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors tooltip" title="Mulai/Start">
+                        🚀 Mulai / Start
                       </button>
                     )}
                     {order.status === "IN_PROGRESS" && !isJasa && (
@@ -167,7 +178,7 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
                         onClick={() => { setFinishingOrder(order); setOvertimeFee("0"); }} 
                         className="px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
                       >
-                        ✅ Tiba di Pool / Finish
+                        ✅ Selesai / Finish
                       </button>
                     )}
                   </td>
