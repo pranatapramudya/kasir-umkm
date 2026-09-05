@@ -40,6 +40,7 @@ export default function OnboardingPage() {
       const result = await completeOnboarding(formData);
       if (result?.success) {
         await user?.reload();
+        router.refresh();
         setStep(2);
       }
     } catch (err: any) {

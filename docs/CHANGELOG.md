@@ -12,6 +12,12 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Standar Identifier Kategori Bisnis:** Menetapkan dan mendokumentasikan spesifikasi ID baku format UPPERCASE (`RENTAL`, `JASA`, `FNB`, `RETAIL`).
 - **Integrasi Mayar.id:** Mendokumentasikan helper `getAppUrl()` di [`lib/url.ts`](file:///d:/Coding/kasir-umkm/lib/url.ts), rute Webhook `/api/webhooks/mayar`, serta rute Callback Redirect `/auth-callback`.
 
+### 🐛 Bugfix: Next.js Router Cache & Clerk Metadata Sync (Onboarding & Subscription)
+- **Penanganan Router Cache & State:** Memperbaiki bug di mana UI dasbor kasir sempat menampilkan layout kategori lama (Retail) setelah mendaftarkan toko baru dengan kategori lain (FNB/JASA/RENTAL) pada fase Onboarding.
+- **Implementasi Revalidation & Reload:** 
+  - Injeksi `revalidatePath('/', 'layout')` dan `revalidatePath('/admin', 'layout')` pada Server Actions `completeOnboarding`, `selectSubscriptionPackage` ([`app/(protected)/onboarding/actions.ts`](file:///d:/Coding/kasir-umkm/app/%28protected%29/onboarding/actions.ts)), dan API Route [`app/api/subscription/extend/route.ts`](file:///d:/Coding/kasir-umkm/app/api/subscription/extend/route.ts).
+  - Mengombinasikan `await user.reload()` dan `router.refresh()` pada sisi Klien ([`app/(protected)/onboarding/page.tsx`](file:///d:/Coding/kasir-umkm/app/%28protected%29/onboarding/page.tsx), [`components/PricingSection.tsx`](file:///d:/Coding/kasir-umkm/components/PricingSection.tsx), dan [`components/PaywallModal.tsx`](file:///d:/Coding/kasir-umkm/components/PaywallModal.tsx)) untuk secara instan menghapus cache client router dan memuat data RSC (*React Server Components*) terbaru dari database.
+
 ### ✨ Fitur Baru & Perbaikan: Integrasi Webhook Mayar
 - Menambahkan route handler `app/api/webhooks/mayar/route.ts` untuk menangani webhook pembayaran otomatis dari Mayar (`payment.success` dan `payment.received`).
 - Fitur ini mendeteksi jumlah pembayaran (`amount`) dan memperbarui paket berlangganan (`subscriptionPlan`) secara dinamis menjadi `PRO_1M`, `PRO_6M`, atau `PRO_1Y`.

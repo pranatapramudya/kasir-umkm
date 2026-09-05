@@ -44,8 +44,13 @@ export async function completeOnboarding(formData: FormData) {
     await client.users.updateUserMetadata(userId, {
       publicMetadata: {
         role: "OWNER",
+        category,
       },
     });
+
+    // 3. Revalidate paths to clear server component layout caches
+    revalidatePath('/', 'layout');
+    revalidatePath('/admin', 'layout');
 
   } catch (error: any) {
     console.error("Error completing onboarding:", error);
@@ -53,7 +58,7 @@ export async function completeOnboarding(formData: FormData) {
     throw new Error(error.message || "Gagal menyimpan data toko (Unknown Error)");
   }
 
-  // 3. Return success
+  // 4. Return success
   return { success: true, message: "Toko berhasil dibuat" };
 }
 
@@ -99,7 +104,8 @@ export async function selectSubscriptionPackage(plan: string) {
     throw new Error(error.message || "Gagal menyimpan paket langganan");
   }
 
-  // Force revalidation of the admin layout to pull fresh session tokens
+  // Force revalidation of all layouts to pull fresh session tokens & DB data
+  revalidatePath('/', 'layout');
   revalidatePath('/admin', 'layout');
 
   return { success: true };

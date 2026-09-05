@@ -62,6 +62,7 @@ export async function POST(request: Request) {
     });
 
     revalidatePath('/', 'layout');
+    revalidatePath('/admin', 'layout');
     return NextResponse.json({ success: true, endsAt: updatedTenant.subscriptionEndsAt });
 
   } catch (error: any) {
