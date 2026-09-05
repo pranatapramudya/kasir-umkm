@@ -12,6 +12,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Action Buttons & Copywriting:** Mengubah tombol "Mulai Perjalanan / Start" menjadi "🚀 Mulai / Start" dan "Tiba di Pool / Finish" menjadi "✅ Selesai / Finish", serta mengganti rujukan "Info Armada" / "Armada/Layanan" menjadi "Info Unit" / "Unit/Layanan".
 - **Dynamic Iconography (Ikon Unit):** Menambahkan logika deteksi tipe unit `detectRentalItemType` pada `lib/business-category.ts`. Menampilkan ikon 🛏️ Kasur (`Bed`) untuk properti/kamar/kos, 🚗 Mobil (`CarFront`/`Car`) untuk kendaraan, dan 🔑 Kunci (`Key`) untuk fallback.
 - **Form Tambah / Edit Layanan Rental:** Mengubah label & placeholder input form pada `admin/products` menjadi universal untuk properti & kendaraan (Tipe Unit, Nama Unit/Nomor Kamar/Plat, Komisi Petugas/Driver, Fasilitas/Catatan Tambahan).
+- **Form POS Transaction (Dual Mode):** Implementasi 2 tab toggle pada modal data sewa POS Kasir ("🏨 Form Properti / Check-in" & "🚗 Form Kendaraan / Surat Jalan") lengkap dengan auto-detection tipe item keranjang dan netralisasi tombol cart `📝 Lengkapi Data Sewa / Check-in *`.
 
 ### 📝 Dokumentasi & Konfigurasi Dynamic URL, Category ID, & Mayar
 - **Environment Variable `NEXT_PUBLIC_APP_URL`:** Mendokumentasikan variabel URL terpusat (`http://localhost:3000` untuk dev, `https://www.pjtechumkm.com` untuk production).

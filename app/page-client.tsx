@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car
+  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,7 +14,7 @@ import { useAuth, SignInButton, UserButton, useUser } from '@clerk/nextjs';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
 import { printBluetoothReceipt, isBluetoothSupported } from '@/lib/bluetooth-printer';
-import { isRentalTravelCategory } from '@/lib/business-category';
+import { isRentalTravelCategory, detectRentalItemType } from '@/lib/business-category';
 import { humanizeError } from '@/lib/error-mapper';
 import nextDynamic from 'next/dynamic';
 
@@ -216,6 +216,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
   // State Rental & Travel
   const [isRentalFormModalOpen, setIsRentalFormModalOpen] = useState(false);
+  const [rentalMode, setRentalMode] = useState<'property' | 'vehicle'>('vehicle');
   const [rentalInfo, setRentalInfo] = useState({
     driverName: '',
     licensePlate: '',
@@ -225,6 +226,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     endDate: '',
     guarantee: '',
   });
+
+  useEffect(() => {
+    if (isRentalFormModalOpen && cart.length > 0) {
+      const firstItemName = cart[0]?.name || "";
+      const type = detectRentalItemType(firstItemName);
+      if (type === "property") {
+        setRentalMode("property");
+      } else if (type === "vehicle") {
+        setRentalMode("vehicle");
+      }
+    }
+  }, [isRentalFormModalOpen, cart]);
 
   // State Jasa
   const [serviceDate, setServiceDate] = useState("");
@@ -431,8 +444,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     if (isCashInsufficient) return toast.error("Uang diterima kurang dari total belanja!");
     if (isJasa && cart.some(item => !item.workerId)) return toast.error("Pastikan semua layanan telah memilih Staf / Teknisi / Kapster!");
     // Validasi Rental
-    if (isRental && !rentalInfo.driverName.trim()) return toast.error("Isi Operator / Catatan Khusus untuk transaksi rental!");
-    if (isRental && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Seri / Kode Unit / Plat untuk transaksi rental!");
+    if (isRental && !rentalInfo.driverName.trim()) return toast.error("Isi Nama Penyewa / Operator untuk transaksi sewa!");
+    if (isRental && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Kamar / Plat Nomor untuk transaksi sewa!");
 
     isSubmittingRef.current = true;
     setIsCheckoutLoading(true);
@@ -955,10 +968,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   : "bg-amber-50 text-amber-700 border-amber-400 hover:bg-amber-100 animate-pulse"
                 }`}
             >
-              <Car className="w-5 h-5" />
+              <FileText className="w-5 h-5" />
               {rentalInfo.driverName && rentalInfo.licensePlate && rentalInfo.guarantee
-                ? "Surat Jalan Terisi (Ubah)"
-                : "⚠️ Lengkapi Surat Jalan *"}
+                ? "Data Sewa Terisi (Ubah)"
+                : "📝 Lengkapi Data Sewa / Check-in *"}
             </button>
           </div>
         )}
@@ -1493,14 +1506,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         />
       )}
 
-      {/* Modal Data Armada & Sewa (Khusus Rental) */}
+      {/* Modal Data Armada & Sewa (Khusus Rental - Dual Mode) */}
       {isRentalFormModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-amber-50 to-orange-50">
-              <h2 className="text-lg font-black text-amber-900 flex items-center gap-2">
-                <Car className="w-5 h-5 text-amber-600" />
-                Lengkapi Surat Jalan
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-slate-50">
+              <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                Form Data Sewa & Check-in
               </h2>
               <button
                 onClick={() => setIsRentalFormModalOpen(false)}
@@ -1509,82 +1522,182 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto max-h-[70vh] space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Operator / Catatan Khusus *</label>
-                  <input
-                    type="text"
-                    value={rentalInfo.driverName}
-                    onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
-                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">No. Seri / Kode Unit / Plat *</label>
-                  <input
-                    type="text"
-                    value={rentalInfo.licensePlate}
-                    onChange={(e) => setRentalInfo(prev => ({ ...prev, licensePlate: e.target.value.toUpperCase() }))}
-                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all font-mono tracking-widest"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Titik Jemput <span className="font-normal text-gray-400">(opsional)</span></label>
-                  <input
-                    type="text"
-                    value={rentalInfo.pickupLocation}
-                    onChange={(e) => setRentalInfo(prev => ({ ...prev, pickupLocation: e.target.value }))}
-                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Titik Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
-                  <input
-                    type="text"
-                    value={rentalInfo.dropoffLocation}
-                    onChange={(e) => setRentalInfo(prev => ({ ...prev, dropoffLocation: e.target.value }))}
-                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-              </div>
+            {/* Toggle Tabs Mode (Properti vs Kendaraan) */}
+            <div className="flex border-b border-gray-200 bg-slate-50 p-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setRentalMode('property')}
+                className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                  rentalMode === 'property'
+                    ? 'bg-white text-blue-700 shadow-sm border border-blue-200'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Bed className="w-4 h-4 text-blue-600" />
+                Form Properti / Check-in
+              </button>
+              <button
+                type="button"
+                onClick={() => setRentalMode('vehicle')}
+                className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                  rentalMode === 'vehicle'
+                    ? 'bg-white text-amber-700 shadow-sm border border-amber-200'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Car className="w-4 h-4 text-amber-600" />
+                Form Kendaraan / Surat Jalan
+              </button>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Mulai</label>
-                  <input
-                    type="date"
-                    value={rentalInfo.startDate}
-                    onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Selesai</label>
-                  <input
-                    type="date"
-                    value={rentalInfo.endDate}
-                    onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-              </div>
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              {rentalMode === 'property' ? (
+                /* Mode Properti / Kos / Vila */
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Nama Penyewa / Penanggung Jawab *</label>
+                      <input
+                        type="text"
+                        placeholder="contoh: Budi Santoso"
+                        value={rentalInfo.driverName}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">No. Kamar / Kode Unit *</label>
+                      <input
+                        type="text"
+                        placeholder="contoh: Kamar 101 / Vila A"
+                        value={rentalInfo.licensePlate}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, licensePlate: e.target.value.toUpperCase() }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all font-mono tracking-wider"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jaminan (KTP/SIM/Deposit) *</label>
-                <input
-                  type="text"
-                  value={rentalInfo.guarantee}
-                  onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
-                  className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-500 transition-all"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  * Jaminan wajib diisi. Contoh: KTP, SIM, STNK, atau Uang Deposit.
-                </p>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Check-in</label>
+                      <input
+                        type="date"
+                        value={rentalInfo.startDate}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Check-out / Selesai</label>
+                      <input
+                        type="date"
+                        value={rentalInfo.endDate}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 mb-1.5 block">Identitas / Jaminan (KTP/SIM/Paspor) *</label>
+                    <input
+                      type="text"
+                      placeholder="contoh: KTP No. 3271xxxx atau Paspor"
+                      value={rentalInfo.guarantee}
+                      onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
+                      className="w-full p-3 bg-white border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      * Wajib diisi untuk pendataan tamu/penyewa (KTP, SIM, Paspor, atau Deposit).
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Mode Kendaraan / Surat Jalan */
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Operator / Driver / Supir *</label>
+                      <input
+                        type="text"
+                        placeholder="contoh: Supir Pak Agus / Lepas Kunci"
+                        value={rentalInfo.driverName}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">No. Seri / Kode Unit / Plat Nomor *</label>
+                      <input
+                        type="text"
+                        placeholder="contoh: B 1234 ABC"
+                        value={rentalInfo.licensePlate}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, licensePlate: e.target.value.toUpperCase() }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all font-mono tracking-widest"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Titik Jemput <span className="font-normal text-gray-400">(opsional)</span></label>
+                      <input
+                        type="text"
+                        placeholder="contoh: Bandara / Stasiun"
+                        value={rentalInfo.pickupLocation}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, pickupLocation: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Titik Tujuan <span className="font-normal text-gray-400">(opsional)</span></label>
+                      <input
+                        type="text"
+                        placeholder="contoh: Bandung / Dalam Kota"
+                        value={rentalInfo.dropoffLocation}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, dropoffLocation: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Mulai</label>
+                      <input
+                        type="date"
+                        value={rentalInfo.startDate}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Selesai</label>
+                      <input
+                        type="date"
+                        value={rentalInfo.endDate}
+                        onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jaminan (KTP/SIM/Deposit) *</label>
+                    <input
+                      type="text"
+                      placeholder="contoh: KTP Asli + Motor"
+                      value={rentalInfo.guarantee}
+                      onChange={(e) => setRentalInfo(prev => ({ ...prev, guarantee: e.target.value }))}
+                      className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      * Jaminan wajib diisi. Contoh: KTP, SIM, STNK, atau Uang Deposit.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
               <button
@@ -1595,7 +1708,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               </button>
               <button
                 onClick={() => setIsRentalFormModalOpen(false)}
-                className="px-6 py-2.5 rounded-xl font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm shadow-amber-600/20 transition-all"
+                className="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all"
               >
                 Simpan & Tutup
               </button>
