@@ -30,7 +30,12 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Manajemen Karyawan & Sistem Komisi:** Pelacakan performa staf dan kalkulasi komisi otomatis berdasarkan transaksi yang diselesaikan (sangat cocok untuk bisnis Jasa/Salon/Bengkel).
 - **Manajemen Meja & Takeaway Resto:** Visualisasi ketersediaan status meja real-time serta opsi khusus *Takeaway / Bungkus / Konter* tanpa meja fisik untuk bisnis F&B.
 - **Keamanan Transaksi & Data (Soft Delete):** Menggunakan flag `isActive` pada produk untuk menjaga integritas data historis transaksi (mencegah isu *Time-of-Check to Time-of-Use / TOCTOU*).
-- **Point of Sales (POS) Responsif:** Antarmuka Kasir *Mobile-First* yang lancar digunakan pada tablet atau *smartphone*, dilengkapi fitur keranjang dan kalkulasi diskon otomatis.
+- **Point of Sales (POS) Responsif & Cepat:** Antarmuka Kasir *Mobile-First* yang lancar digunakan pada tablet atau *smartphone*, dilengkapi fitur keranjang dan kalkulasi diskon otomatis.
+- **Integrasi Hardware Barcode Scanner & Audio Feedback (Retail & F&B):**
+  - **Global Hardware Scanner Listener:** Mendeteksi otomatis pemindaian barcode USB/Bluetooth HID melalui perhitungan interval keystroke cepat (< 70ms), langsung memasukkan item ke keranjang dan menambah kuantitas tanpa perlu klik tombol.
+  - **Fallback Pencarian API Cerdas:** Jika barcode tidak berada di 10 item pada halaman aktif, sistem otomatis mencari ke seluruh database via `/api/products?search=${code}` agar seluruh katalog dapat dipindai.
+  - **Tactile Audio Feedback (Web Audio API):** Nada bip frekuensi tinggi (1200Hz) saat produk berhasil dipindai dan nada peringatan (280Hz) saat SKU tidak ditemukan atau stok habis.
+  - **UI Manual SKU Input:** Kolom input khusus di header POS dengan ikon barcode, tombol `Enter ↵`, dan pembersihan otomatis setelah item ditambahkan.
 - **Import & Ekspor Data Excel Dinamis (Dynamic Multi-Category Excel Suite):**
   - **Template Impor `.xlsx` Asli:** Unduhan template impor massal berformat Excel (`.xlsx`) asli dengan kolom dan data contoh yang disesuaikan secara dinamis per kategori bisnis (Retail, F&B, Jasa, Rental/Properti), mencegah baris berantakan pada regional setting Indonesia.
   - **Parser Massal Cerdas:** Mendukung unggah file `.xlsx`, `.xls`, maupun `.csv`, dilengkapi pemetaan deskripsi/fasilitas, toleransi alias header (`bOps`/`biayaOperasional` $\rightarrow$ HPP, `komisi` $\rightarrow$ komisi staf), dan pembersihan teks mata uang.

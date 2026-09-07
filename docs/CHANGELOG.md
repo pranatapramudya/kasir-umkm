@@ -7,6 +7,20 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🔍 Fitur Baru: Integrasi Hardware Barcode Scanner & Audio Feedback (Retail & F&B)
+- **Global Hardware Barcode Scanner (`app/page-client.tsx`):**
+  - Menambahkan event listener global pada `window` untuk mendeteksi pemindaian barcode hardware (USB / Bluetooth HID Keyboard) secara otomatis melalui perhitungan interval keystroke cepat (< 70ms).
+  - Saat scanner mengirim tombol `Enter`, kode barcode diekstrak dan dicocokkan langsung dengan `kodeBarang` (SKU) produk.
+  - Jika produk ditemukan, otomatis memanggil `addToCart(product)` dan menambah kuantitasnya jika sudah ada di keranjang.
+- **Pencarian Cerdas & API Fallback Lintas Halaman:**
+  - Menambahkan fallback pencarian ke endpoint `/api/products?search=${code}&limit=10` jika produk yang dipindai tidak berada di 10 item pada halaman aktif (mengatasi kendala paginasi).
+- **Tactile Audio Feedback (Web Audio API):**
+  - Mengintegrasikan synthesizer audio tanpa dependensi asset eksternal: nada bip frekuensi tinggi (1200Hz) saat produk berhasil ditambahkan, dan nada peringatan (280Hz) saat SKU tidak ditemukan atau stok habis.
+- **UI Manual SKU Input Cepat:**
+  - Menambahkan input teks berikon `Barcode` di header POS di atas grid produk dengan placeholder `"Scan atau Ketik SKU/Barcode (Enter)"`, tombol `Enter ↵`, dan indikator `"Scanner Siap"`. Nilai input otomatis dikosongkan setelah produk masuk keranjang.
+- **Isolasi Kategori Bisnis:**
+  - Seluruh fitur listener dan UI pemindai barcode dibatasi secara eksklusif untuk kategori **Retail** dan **F&B** (`!isJasa && !isRental`), menjaga antarmuka Jasa dan Rental tetap bersih dan spesifik.
+
 ### 📊 Fitur Baru & Bugfix: Import/Export Excel Dinamis (4 Model Bisnis)
 - **Template Import Dinamis `.xlsx` Asli (`components/CsvImportModal.tsx`):**
   - Mengubah unduhan template dari format `.csv` statis menjadi file `.xlsx` asli (menggunakan SheetJS `xlsx`) dengan lebar kolom proporsional, mencegah baris berantakan pada Excel berbahasa Indonesia.

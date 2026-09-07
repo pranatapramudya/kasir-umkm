@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed
+  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,6 +40,7 @@ type Product = {
   image: string;
   stock: number;
   discount: number;
+  kodeBarang?: string | null;
 };
 
 type CartItem = Product & { cartItemId: string; qty: number; note?: string; workerId?: string; serviceDuration?: number; };
@@ -336,6 +337,136 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     });
     toast.success(`${product.name} ditambahkan ke keranjang!`);
   };
+
+  // --- AUDIO FEEDBACK & BARCODE SCANNER LOGIC ---
+  const playBeep = (success: boolean) => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (success) {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.12);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(280, ctx.currentTime);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      }
+    } catch (e) {
+      // Audio context blocked or unsupported
+    }
+  };
+
+  const [barcodeInput, setBarcodeInput] = useState("");
+  const [isScanning, setIsScanning] = useState(false);
+
+  const processBarcodeScan = async (rawCode: string) => {
+    const code = rawCode.trim();
+    if (!code) return;
+
+    setIsScanning(true);
+    try {
+      const cleanCode = code.toLowerCase();
+      // 1. Cek di daftar produk lokal saat ini
+      let matched = products.find(p => p.kodeBarang && p.kodeBarang.toLowerCase() === cleanCode);
+
+      // 2. Jika tidak ada di halaman saat ini, cari via API
+      if (!matched) {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(code)}&limit=10`);
+        if (res.ok) {
+          const resData = await res.json();
+          const apiProducts: Product[] = resData.products || [];
+          matched = apiProducts.find(p => p.kodeBarang && p.kodeBarang.toLowerCase() === cleanCode)
+            || apiProducts.find(p => p.kodeBarang && p.kodeBarang.toLowerCase().includes(cleanCode))
+            || apiProducts[0];
+        }
+      }
+
+      if (matched) {
+        const remaining = getRemainingStock(matched);
+        if (remaining <= 0) {
+          toast.error(`Stok ${matched.name} telah habis!`);
+          playBeep(false);
+          return;
+        }
+        addToCart(matched);
+        playBeep(true);
+      } else {
+        toast.error(`SKU / Barcode "${code}" tidak ditemukan!`);
+        playBeep(false);
+      }
+    } catch (err) {
+      console.error("Barcode scan error:", err);
+      toast.error(`Gagal memproses barcode "${code}"`);
+      playBeep(false);
+    } finally {
+      setIsScanning(false);
+      setBarcodeInput("");
+    }
+  };
+
+  // Hardware Barcode Scanner Listener (Retail & F&B Only)
+  useEffect(() => {
+    if (isJasa || isRental) return;
+
+    let buffer = '';
+    let lastKeyTime = Date.now();
+    let isRapidStreak = false;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const now = Date.now();
+      const diff = now - lastKeyTime;
+      lastKeyTime = now;
+
+      // Jika pengguna sedang mengetik di input manual barcode, biarkan handler onKeyDown lokal input yang memproses
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl as HTMLElement).id === 'manual-barcode-input') {
+        return;
+      }
+
+      // Scanner hardware biasanya mengetik sangat cepat (10ms - 50ms).
+      // Jika jeda antar karakter > 70ms, reset buffer karena kemungkinan ketikan manual manusia
+      if (diff > 70) {
+        buffer = '';
+        isRapidStreak = false;
+      } else {
+        isRapidStreak = true;
+      }
+
+      if (e.key === 'Enter') {
+        if (buffer.length >= 2 && isRapidStreak) {
+          e.preventDefault();
+          const codeToProcess = buffer.trim();
+          buffer = '';
+          isRapidStreak = false;
+          processBarcodeScan(codeToProcess);
+        } else {
+          buffer = '';
+          isRapidStreak = false;
+        }
+        return;
+      }
+
+      if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        buffer += e.key;
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isJasa, isRental, products]);
 
   const openFnbModal = (product: Product) => {
     setFnbSelectedProduct(product);
@@ -1181,6 +1312,47 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     )}
                   </div>
                 </div>
+
+                {/* Input Barcode / SKU Cepat (Khusus Retail & F&B) */}
+                {(!isJasa && !isRental) && (
+                  <div className="relative w-full max-w-md mt-1">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-blue-600 pointer-events-none">
+                      <Barcode className="w-4 h-4" />
+                    </div>
+                    <input
+                      id="manual-barcode-input"
+                      type="text"
+                      placeholder="Scan atau Ketik SKU/Barcode (Enter)"
+                      value={barcodeInput}
+                      onChange={(e) => setBarcodeInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          processBarcodeScan(barcodeInput);
+                        }
+                      }}
+                      disabled={isScanning}
+                      className="w-full pl-9 pr-24 py-2 bg-blue-50/60 border border-blue-200 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-400 rounded-lg text-sm text-slate-800 placeholder:text-blue-600/60 outline-none transition-all shadow-sm font-mono"
+                    />
+                    {isScanning ? (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                      </div>
+                    ) : barcodeInput ? (
+                      <button
+                        type="button"
+                        onClick={() => processBarcodeScan(barcodeInput)}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-2 py-1 rounded-md transition-colors"
+                      >
+                        Enter ↵
+                      </button>
+                    ) : (
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-blue-600/75 uppercase tracking-wider pointer-events-none bg-blue-100/70 px-1.5 py-0.5 rounded hidden sm:inline">
+                        Scanner Siap
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col">
