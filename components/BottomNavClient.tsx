@@ -11,6 +11,7 @@ import {
 import { usePathname } from "next/navigation";
 import { getNavigationMenu } from "@/lib/navigation";
 import { BukuPanduanModal } from "./BukuPanduanModal";
+import { usePendingBookingCount } from "@/hooks/usePendingBookingCount";
 
 interface BottomNavClientProps {
   kategoriUsaha?: string;
@@ -30,6 +31,20 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const role = user?.publicMetadata?.role as string | undefined;
   const kategoriUsaha = rawKategori ?? "Retail";
 
+  // SWR Polling & Real-time Chime Alert
+  const { pendingCount } = usePendingBookingCount(role);
+
+  const isOrderMenuItem = (item: { name: string; href: string }) => {
+    const name = item.name.toLowerCase();
+    return (
+      item.href === "/admin/orders" ||
+      item.href === "/admin/rental-calendar" ||
+      name === "pesanan online" ||
+      name.includes("pesanan") ||
+      name.includes("inbox")
+    );
+  };
+
   // Use the Single Source of Truth
   const menuGroups = getNavigationMenu(kategoriUsaha, role);
   
@@ -41,6 +56,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const moreItems = allNavItems.slice(4);
 
   const isMoreActive = moreItems.some((item) => item.href === pathname);
+  const hasPendingInMore = moreItems.some(isOrderMenuItem) && pendingCount > 0;
 
   return (
     <>
@@ -49,6 +65,9 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const isOrderItem = isOrderMenuItem(item);
+            const shouldShowBadge = isOrderItem && pendingCount > 0;
+
             return (
               <div key={item.name} className="flex justify-center flex-1 h-full relative">
                 <Link
@@ -60,7 +79,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                   }`}
                 >
                   <div
-                    className={`flex items-center justify-center transition-all duration-200 ${
+                    className={`flex items-center justify-center transition-all duration-200 relative ${
                       isActive
                         ? "absolute -top-5 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm border-4 border-slate-50"
                         : "w-auto h-auto bg-transparent shadow-none mb-1"
@@ -73,6 +92,15 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                           : "w-5 h-5 text-slate-400 group-hover:text-slate-600"
                       }`}
                     />
+                    {shouldShowBadge && (
+                      <span
+                        className={`absolute ${
+                          isActive ? "-top-1 -right-1" : "-top-1.5 -right-2.5"
+                        } bg-rose-500 text-white text-[10px] font-bold px-1.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full border-2 border-white shadow-sm pointer-events-none animate-in zoom-in duration-200`}
+                      >
+                        {pendingCount > 99 ? "99+" : pendingCount}
+                      </span>
+                    )}
                   </div>
                   <span
                     className={`text-[10px] whitespace-nowrap text-center transition-colors ${
@@ -98,7 +126,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                 }`}
               >
                 <div
-                  className={`flex items-center justify-center transition-all duration-200 ${
+                  className={`flex items-center justify-center transition-all duration-200 relative ${
                     (isMoreActive && !isMoreOpen) || isMoreOpen
                       ? "absolute -top-5 w-14 h-14 rounded-full bg-slate-800 shadow-lg shadow-slate-700/50 border-4 border-slate-50"
                       : "w-auto h-auto bg-transparent shadow-none mb-1"
@@ -111,6 +139,17 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                         : "w-5 h-5 text-slate-400 group-hover:text-slate-600"
                     }`}
                   />
+                  {hasPendingInMore && (
+                    <span
+                      className={`absolute ${
+                        (isMoreActive && !isMoreOpen) || isMoreOpen
+                          ? "-top-1 -right-1"
+                          : "-top-1.5 -right-2.5"
+                      } bg-rose-500 text-white text-[10px] font-bold px-1.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full border-2 border-white shadow-sm pointer-events-none animate-in zoom-in duration-200`}
+                    >
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
                 </div>
                 <span
                   className={`text-[10px] transition-colors ${
@@ -169,6 +208,9 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
               {moreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
+                const isOrderItem = isOrderMenuItem(item);
+                const shouldShowMoreBadge = isOrderItem && pendingCount > 0;
+
                 return (
                   <Link
                     key={item.name}
@@ -178,13 +220,18 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                     className="flex flex-col items-center gap-2 group touch-manipulation active:scale-90 transition-all duration-150"
                   >
                     <div
-                      className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-150 ${
+                      className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-150 relative ${
                         isActive
                           ? "bg-blue-100 text-blue-600"
                           : "bg-slate-50 text-slate-600 group-hover:bg-slate-100 active:bg-blue-50"
                       }`}
                     >
                       <Icon className="w-6 h-6" />
+                      {shouldShowMoreBadge && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold px-1.5 min-w-[20px] h-[20px] flex items-center justify-center rounded-full border-2 border-white shadow-sm pointer-events-none animate-in zoom-in duration-200">
+                          {pendingCount > 99 ? "99+" : pendingCount}
+                        </span>
+                      )}
                     </div>
                     <span
                       className={`text-[10px] text-center font-medium ${

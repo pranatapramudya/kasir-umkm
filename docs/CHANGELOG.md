@@ -7,6 +7,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🔔 Fitur Baru: Real-Time Mobile Order Badge, Haptic Vibration & Dual-Tone Web Audio Chime
+- **SWR Polling & Badge Merah di Mobile Bottom Nav (`components/BottomNavClient.tsx`):**
+  - Mengintegrasikan polling real-time `/api/booking/pending-count` setiap 10 detik pada navigasi bawah kasir mobile.
+  - Menerapkan rendering badge dengan posisi `absolute` di dalam kontainer ikon (`relative`) untuk menjamin **Zero Layout Shift** (tidak merusak susunan flexbox/grid pada layar HP apa pun).
+  - Badge otomatis disembunyikan jika `pendingCount === 0`, dan menampilkan nilai dinamis hingga `"99+"` dengan kontras border putih, bayangan halus, dan animasi zoom entrance.
+  - Mendukung navigasi bertingkat: badge muncul langsung pada item pesanan di bar utama, dan jika berada di menu sekunder, indikator otomatis muncul di tombol `"Lainnya"` dan di dalam drawer sheet "Menu Lainnya".
+- **Dual-Tone Web Audio Chime Bell (`lib/audio.ts`):**
+  - Mengimplementasikan synthesizer Web Audio API murni (nada harmonik ceria A5 880Hz ke D6 1174.66Hz) dengan *decay* eksponensial lembut yang berbunyi saat ada pesanan baru masuk.
+  - Zero asset overhead (tanpa file mp3 eksternal), aman dari blokir autoplay browser, serta dilengkapi *throttle debounce* 2 detik untuk mencegah gema / suara ganda saat desktop dan mobile aktif bersamaan.
+- **Haptic Vibration Feedback:**
+  - Menambahkan umpan balik getaran taktil via `navigator.vibrate([120, 80, 120])` pada perangkat mobile yang mendukung ketika pesanan baru tiba.
+- **Custom Hook & Sinkronisasi Desktop (`hooks/usePendingBookingCount.ts` & `components/SidebarClient.tsx`):**
+  - Mengisolasi logika polling, deteksi penambahan pesanan (`currentCount > prevCount`), dan proteksi initial page load ke dalam hook reusable `usePendingBookingCount`.
+  - Memutakhirkan `SidebarClient.tsx` desktop agar menggunakan hook yang sama, menjamin keselarasan visual badge dan audio alert di seluruh perangkat.
+
 ### 🔍 Fitur Baru: Integrasi Hardware Barcode Scanner & Audio Feedback (Retail & F&B)
 - **Global Hardware Barcode Scanner (`app/page-client.tsx`):**
   - Menambahkan event listener global pada `window` untuk mendeteksi pemindaian barcode hardware (USB / Bluetooth HID Keyboard) secara otomatis melalui perhitungan interval keystroke cepat (< 70ms).

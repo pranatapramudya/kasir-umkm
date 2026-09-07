@@ -41,6 +41,11 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
   - **Parser Massal Cerdas:** Mendukung unggah file `.xlsx`, `.xls`, maupun `.csv`, dilengkapi pemetaan deskripsi/fasilitas, toleransi alias header (`bOps`/`biayaOperasional` $\rightarrow$ HPP, `komisi` $\rightarrow$ komisi staf), dan pembersihan teks mata uang.
   - **Ekspor Katalog Produk Instan:** Tombol "Export Data" langsung mengunduh seluruh daftar produk/layanan/unit tenant (`GET /api/products/export`) ke file `Katalog_Produk_[NamaToko].xlsx`.
   - **Penyelarasan Header Laporan Universal:** Header laporan penjualan diselaraskan secara profesional (*"Unit / Properti / Armada"* dan *"Staf / Teknisi / Petugas"*).
+- **Real-Time Mobile Order Badge, Haptic Vibration & Web Audio Chime Suite:**
+  - **SWR Polling & Red Badge di Mobile Bottom Nav:** Polling latar belakang reaktif (`/api/booking/pending-count`) setiap 10 detik dengan badge merah berdesain *Zero Layout Shift* (`absolute` di dalam kontainer ikon), disembunyikan jika kosong dan menampilkan hingga `"99+"`. Mendukung navigasi 2 tingkat (tab utama dan tombol "Lainnya" + drawer).
+  - **Dual-Tone Web Audio Chime Bell:** Synthesizer Web Audio API murni (A5 880Hz ke D6 1174.66Hz) dengan *decay* lembut tanpa dependensi file mp3 eksternal, dilengkapi proteksi browser autoplay dan *debounce anti-echo* 2 detik untuk mencegah suara ganda pada perangkat kasir.
+  - **Haptic Tactile Feedback:** Umpan balik getaran taktil via `navigator.vibrate([120, 80, 120])` pada perangkat seluler kasir saat ada pesanan baru tiba.
+  - **Sinkronisasi Desktop & Mobile:** Logika alert dienkapsulasi ke dalam custom hook `usePendingBookingCount` yang dipakai bersama oleh Desktop Sidebar dan Mobile Bottom Navigation.
 - **Progressive Web App (PWA) Ready:** *Installable on mobile devices with standalone full-screen experience.* Dapat diinstal di homescreen perangkat Android & iOS, berjalan layaknya aplikasi native.
 - **Real-Time Web Push Notifications:** *Instant alerts for new bookings without native app overhead.* Owner & Super Admin mendapat notifikasi push saat ada booking baru, bahkan saat browser ditutup.
 - **Universal Web Bluetooth Printing:** *Direct ESC/POS thermal receipt printing from the browser.* Cetak struk nirkabel secara langsung via Bluetooth tanpa driver atau aplikasi tambahan.
