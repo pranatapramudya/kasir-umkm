@@ -27,11 +27,20 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const qsType = searchParams.get("type");
 
-    // Ambil semua transaksi
+    // Ambil semua transaksi beserta relasi
     const transactions = await prisma.transaction.findMany({
       where: { userId: targetUserId },
+      include: {
+        items: true,
+        cashier: { select: { name: true } }
+      },
       orderBy: { createdAt: "desc" },
     });
+
+    const products = await prisma.product.findMany({
+      where: { userId: targetUserId }
+    });
+    const productMap = new Map(products.map(p => [p.id, p]));
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = tenant?.name || "Kasir UMKM";
@@ -47,13 +56,19 @@ export async function GET(req: NextRequest) {
 
     let pelangganHeader = "Nama Pelanggan";
     let totalHeader = "Total Belanja (Rp)";
+    let itemHeader = "Item / Produk";
+    let staffHeader = "Kasir";
 
     if (isRental) {
       pelangganHeader = "Nama Penyewa";
       totalHeader = "Total Sewa (Rp)";
+      itemHeader = "Unit / Properti / Armada";
+      staffHeader = "Petugas / PIC";
     } else if (isService) {
       pelangganHeader = "Nama Pelanggan";
       totalHeader = "Total Tagihan (Rp)";
+      itemHeader = "Layanan";
+      staffHeader = "Staf / Teknisi / Petugas";
     }
 
     worksheet.columns = [
@@ -61,6 +76,8 @@ export async function GET(req: NextRequest) {
       { header: "ID Transaksi", key: "id", width: 15 },
       { header: "Tanggal", key: "tanggal", width: 20 },
       { header: pelangganHeader, key: "pelanggan", width: 25 },
+      { header: itemHeader, key: "item", width: 30 },
+      { header: staffHeader, key: "staff", width: 25 },
       { header: "Metode Bayar", key: "metode", width: 15 },
       { header: "Status", key: "status", width: 15 },
       { header: totalHeader, key: "total", width: 20 }
@@ -74,11 +91,14 @@ export async function GET(req: NextRequest) {
     };
 
     transactions.forEach((tx, index) => {
+      const itemsList = tx.items.map(i => productMap.get(i.productId)?.name || "Produk").join(", ");
       worksheet.addRow({
         no: index + 1,
         id: tx.id,
         tanggal: tx.createdAt.toLocaleString("id-ID"),
         pelanggan: tx.customerName || "-",
+        item: itemsList || "-",
+        staff: tx.cashier?.name || "Sistem / Owner",
         metode: tx.method.toUpperCase(),
         status: tx.status.toUpperCase(),
         total: tx.total

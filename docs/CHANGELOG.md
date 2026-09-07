@@ -7,6 +7,27 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 📊 Fitur Baru & Bugfix: Import/Export Excel Dinamis (4 Model Bisnis)
+- **Template Import Dinamis `.xlsx` Asli (`components/CsvImportModal.tsx`):**
+  - Mengubah unduhan template dari format `.csv` statis menjadi file `.xlsx` asli (menggunakan SheetJS `xlsx`) dengan lebar kolom proporsional, mencegah baris berantakan pada Excel berbahasa Indonesia.
+  - Template disesuaikan dinamis berdasarkan kategori tenant:
+    - **Retail / F&B:** `kodeBarang`, `name`, `category`, `hpp`, `hargaJual`, `stock`, `minStockThreshold`.
+    - **Jasa / Servis:** `name`, `category`, `hargaJual`, `employeeCommission`, `description` (tanpa kolom stok).
+    - **Rental / Properti:** `name`, `category`, `hpp` *(B.Ops/Maintenance)*, `hargaJual`, `description` *(fasilitas/catatan)*.
+  - Input file mendukung pengunggahan file `.xlsx`, `.xls`, dan `.csv`.
+- **Sinkronisasi Parser Backend Massal (`app/api/products/bulk/route.ts`):**
+  - Menambahkan penyimpanan kolom `description` ke model `Product` di database Prisma.
+  - Toleransi alias header: kolom `bOps` dan `biayaOperasional` otomatis dipetakan ke field `hpp`. Kolom `komisi`, `commission`, `komisiStaf` dipetakan ke `employeeCommission`.
+  - Dilengkapi fungsi pembersih format angka `parseNumber` untuk menangani teks berformat mata uang (seperti `"Rp 15.000"`).
+- **Penyelarasan Header Laporan Universal (`app/api/export/route.ts` & `app/api/admin/export-backup/route.ts`):**
+  - Mengubah label header laporan dari `"Armada"` menjadi **`"Unit / Properti / Armada"`**.
+  - Mengubah label header laporan dari `"Terapis/Kapster"` menjadi **`"Staf / Teknisi / Petugas"`**.
+  - Menyelaraskan kunci baris data transaksi dan laporan backup pemilik toko (*Owner*).
+- **Fitur Ekspor Katalog Produk Tenant (`app/api/products/export/route.ts` & `app/(protected)/admin/products/page-client.tsx`):**
+  - Menambahkan route handler baru `GET /api/products/export` untuk mengunduh seluruh katalog produk/layanan/unit tenant ke file `Katalog_Produk_[NamaToko].xlsx` (tanpa batas paginasi).
+  - Menambahkan tombol **"Export Data"** (dengan ikon `FileDown`) berdampingan dengan tombol "Import Data".
+  - Parser impor di client kini membaca file Excel `.xlsx` maupun `.csv` secara langsung via SheetJS `arrayBuffer`.
+
 ### 🛠️ Refinement UX Masif & Bugfix Lintas 4 Kategori Bisnis (Retail, F&B, Jasa, Rental)
 - **Penyempurnaan UX Terakhir (Skor 100/100):**
   - **Auto-Uppercase Plat Nomor & SKU:** Input plat nomor / kode unit pada modal sewa POS Kasir (`app/page-client.tsx`) dan form penambahan unit sewa/SKU (`admin/products`) otomatis terkapitalisasi (`.toUpperCase()`) dan dilengkapi styling `uppercase font-mono` untuk presisi identitas unit.

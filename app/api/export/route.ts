@@ -77,9 +77,9 @@ export async function GET(req: Request) {
 
     let headers: string[] = [];
     if (isRentalTravel) {
-      headers = ["Tanggal", "Nama Penyewa", "Armada", "Mulai Sewa", "Selesai Sewa", "Tujuan", "Total Sewa (Rp)"];
+      headers = ["Tanggal", "Nama Penyewa", "Unit / Properti / Armada", "Mulai Sewa", "Selesai Sewa", "Tujuan", "Total Sewa (Rp)"];
     } else if (isServiceBusiness) {
-      headers = ["Tanggal", "Nama Pelanggan", "Layanan", "Waktu Booking", "Terapis/Kapster", "Total Tagihan (Rp)"];
+      headers = ["Tanggal", "Nama Pelanggan", "Layanan", "Waktu Booking", "Staf / Teknisi / Petugas", "Total Tagihan (Rp)"];
     } else {
       headers = ["Tanggal", "Nama Pelanggan", "Item", "Qty", "Harga Satuan", "Kasir", "Total Belanja (Rp)"];
     }
@@ -103,7 +103,7 @@ export async function GET(req: Request) {
         if (isRentalTravel) {
           rowData["Tanggal"] = dateStr;
           rowData["Nama Penyewa"] = t.customerName || "-";
-          rowData["Armada"] = itemsList || "-";
+          rowData["Unit / Properti / Armada"] = itemsList || "-";
           rowData["Mulai Sewa"] = t.startDate ? t.startDate.toLocaleDateString("id-ID") : "-";
           rowData["Selesai Sewa"] = t.endDate ? t.endDate.toLocaleDateString("id-ID") : "-";
           rowData["Tujuan"] = t.dropoffLocation || "-";
@@ -113,7 +113,7 @@ export async function GET(req: Request) {
           rowData["Nama Pelanggan"] = t.customerName || "-";
           rowData["Layanan"] = itemsList || "-";
           rowData["Waktu Booking"] = t.startDate ? t.startDate.toLocaleString("id-ID") : "-";
-          rowData["Terapis/Kapster"] = t.cashier?.name || "Sistem";
+          rowData["Staf / Teknisi / Petugas"] = t.cashier?.name || "Sistem";
           rowData["Total Tagihan (Rp)"] = t.total;
         } else {
           rowData["Tanggal"] = dateStr;

@@ -61,6 +61,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
@@ -153,62 +154,93 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const handleImportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!importFile) {
-      toast.error("Pilih file CSV terlebih dahulu");
+      toast.error("Pilih file terlebih dahulu");
       return;
     }
 
     setIsImporting(true);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const text = event.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim() !== '');
-        if (lines.length <= 1) {
-          throw new Error("File CSV kosong atau tidak ada data");
-        }
-
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        const productsList = [];
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-          while (values.length < headers.length) values.push('');
-
-          const product: any = {};
-          headers.forEach((header, index) => {
-            product[header] = values[index];
-          });
-
-          if (!product.name) continue;
-
-          product.isService = isJasa;
-          productsList.push(product);
-        }
-
-        if (productsList.length === 0) throw new Error("Tidak ada baris data yang valid ditemukan.");
-
-        const res = await fetch('/api/products/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ products: productsList })
-        });
-
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error || "Gagal import massal");
-
-        toast.success(result.message || "Import berhasil");
-        mutate();
-        closeImportModal();
-      } catch (err: any) {
-        toast.error(humanizeError(err));
-      } finally {
-        setIsImporting(false);
+    try {
+      const XLSX = await import('xlsx');
+      const arrayBuffer = await importFile.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      if (!sheetName) {
+        throw new Error("File kosong atau tidak memiliki lembar kerja (sheet).");
       }
-    };
-    reader.onerror = () => {
-      toast.error("Gagal membaca file");
+      const worksheet = workbook.Sheets[sheetName];
+      const rawRows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      if (!rawRows || rawRows.length === 0) {
+        throw new Error("File tidak memiliki baris data yang valid.");
+      }
+
+      const productsList = rawRows.map((row) => {
+        return {
+          kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang / SKU'] || row.sku || row.SKU || '',
+          name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row.nama || '',
+          category: row.category || row['Kategori'] || row.kategori || 'Umum',
+          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal (HPP)'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? 0,
+          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row.harga ?? row.tarif ?? 0,
+          stock: row.stock ?? row['Stok'] ?? row.stok ?? 0,
+          minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
+          employeeCommission: row.employeeCommission ?? row['Komisi Staf (Rp)'] ?? row['Komisi'] ?? row['Komisi Staf'] ?? row.komisi ?? 0,
+          description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || '',
+          isService: isJasa
+        };
+      }).filter(p => Boolean(p.name && String(p.name).trim()));
+
+      if (productsList.length === 0) {
+        throw new Error("Tidak ada data produk yang valid ditemukan (Pastikan kolom 'name' terisi).");
+      }
+
+      const res = await fetch('/api/products/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: productsList })
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Gagal import massal");
+
+      toast.success(result.message || "Import berhasil");
+      mutate();
+      closeImportModal();
+    } catch (err: any) {
+      toast.error(humanizeError(err));
+    } finally {
       setIsImporting(false);
-    };
-    reader.readAsText(importFile);
+    }
+  };
+
+  const handleExportCatalog = async () => {
+    try {
+      setIsExporting(true);
+      const res = await fetch('/api/products/export');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Gagal mengekspor data produk');
+      }
+      const blob = await res.blob();
+      const contentDisposition = res.headers.get('Content-Disposition');
+      let filename = 'Katalog_Produk.xlsx';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^";]+)"?/);
+        if (match && match[1]) filename = match[1];
+      }
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Katalog produk berhasil diekspor!');
+    } catch (err: any) {
+      toast.error(humanizeError(err));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -307,8 +339,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
       }
 
       toast.success(
-        editingProduct 
-          ? (isRental ? 'Unit sewa berhasil diperbarui!' : isPureJasa ? 'Layanan berhasil diperbarui!' : isFNB ? 'Menu berhasil diperbarui!' : 'Produk berhasil diperbarui!') 
+        editingProduct
+          ? (isRental ? 'Unit sewa berhasil diperbarui!' : isPureJasa ? 'Layanan berhasil diperbarui!' : isFNB ? 'Menu berhasil diperbarui!' : 'Produk berhasil diperbarui!')
           : (isRental ? 'Unit sewa baru ditambahkan!' : isPureJasa ? 'Layanan baru ditambahkan!' : isFNB ? 'Menu baru ditambahkan!' : 'Produk baru ditambahkan!')
       );
       mutate();
@@ -391,15 +423,23 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
               onClick={() => setIsImportModalOpen(true)}
               className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
             >
-              <PackagePlus className="w-5 h-5 text-gray-500" />
+              <Upload className="w-5 h-5 text-gray-500" />
               <span>Import Data</span>
+            </button>
+            <button
+              onClick={handleExportCatalog}
+              disabled={isExporting}
+              className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0 disabled:opacity-50"
+            >
+              {isExporting ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" /> : <FileDown className="w-5 h-5 text-gray-500" />}
+              <span>Export Data</span>
             </button>
             <button
               onClick={() => openModal()}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
             >
               <Plus className="w-5 h-5" />
-              {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
+              {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
             </button>
           </div>
         )}
@@ -422,8 +462,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
             onBlur={() => setIsCategoryMenuOpen(false)}
             className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedCategory === "Semua"
-                ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+              ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+              : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
               }`}
             title="Filter Kategori"
           >
@@ -766,7 +806,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                     </div>
                     <p className="text-xs text-slate-500 mt-1">Potongan harga langsung untuk produk ini.</p>
                   </div>
-                  
+
                   {isRental && (
                     <div className="sm:col-span-2">
                       <label className="block text-sm font-bold text-slate-700 mb-1">Fasilitas / Catatan Tambahan (Opsional)</label>
@@ -890,6 +930,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         setImportFile={setImportFile}
         isImporting={isImporting}
         handleImportSubmit={handleImportSubmit}
+        kategoriUsaha={kategoriUsaha}
       />
     </div>
   );

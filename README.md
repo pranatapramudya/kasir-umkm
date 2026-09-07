@@ -31,8 +31,11 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Manajemen Meja & Takeaway Resto:** Visualisasi ketersediaan status meja real-time serta opsi khusus *Takeaway / Bungkus / Konter* tanpa meja fisik untuk bisnis F&B.
 - **Keamanan Transaksi & Data (Soft Delete):** Menggunakan flag `isActive` pada produk untuk menjaga integritas data historis transaksi (mencegah isu *Time-of-Check to Time-of-Use / TOCTOU*).
 - **Point of Sales (POS) Responsif:** Antarmuka Kasir *Mobile-First* yang lancar digunakan pada tablet atau *smartphone*, dilengkapi fitur keranjang dan kalkulasi diskon otomatis.
-- **Dasbor Analitik Dinamis:** Perhitungan *real-time* untuk Laba Bersih, Pendapatan, dan Riwayat Transaksi berdasarkan HPP (Harga Pokok Penjualan).
-- **Ekspor Data Excel Dinamis (Dynamic Excel Export):** Laporan otomatis menyesuaikan kolom dengan jenis kategori bisnis (F&B, Retail, Jasa, Rental) sehingga riwayat penjualan rapi tanpa kebocoran data.
+- **Import & Ekspor Data Excel Dinamis (Dynamic Multi-Category Excel Suite):**
+  - **Template Impor `.xlsx` Asli:** Unduhan template impor massal berformat Excel (`.xlsx`) asli dengan kolom dan data contoh yang disesuaikan secara dinamis per kategori bisnis (Retail, F&B, Jasa, Rental/Properti), mencegah baris berantakan pada regional setting Indonesia.
+  - **Parser Massal Cerdas:** Mendukung unggah file `.xlsx`, `.xls`, maupun `.csv`, dilengkapi pemetaan deskripsi/fasilitas, toleransi alias header (`bOps`/`biayaOperasional` $\rightarrow$ HPP, `komisi` $\rightarrow$ komisi staf), dan pembersihan teks mata uang.
+  - **Ekspor Katalog Produk Instan:** Tombol "Export Data" langsung mengunduh seluruh daftar produk/layanan/unit tenant (`GET /api/products/export`) ke file `Katalog_Produk_[NamaToko].xlsx`.
+  - **Penyelarasan Header Laporan Universal:** Header laporan penjualan diselaraskan secara profesional (*"Unit / Properti / Armada"* dan *"Staf / Teknisi / Petugas"*).
 - **Progressive Web App (PWA) Ready:** *Installable on mobile devices with standalone full-screen experience.* Dapat diinstal di homescreen perangkat Android & iOS, berjalan layaknya aplikasi native.
 - **Real-Time Web Push Notifications:** *Instant alerts for new bookings without native app overhead.* Owner & Super Admin mendapat notifikasi push saat ada booking baru, bahkan saat browser ditutup.
 - **Universal Web Bluetooth Printing:** *Direct ESC/POS thermal receipt printing from the browser.* Cetak struk nirkabel secara langsung via Bluetooth tanpa driver atau aplikasi tambahan.
