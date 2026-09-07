@@ -161,7 +161,13 @@ export default function AdminDashboardClient({
           )}
 
           {/* Backup Button for Owner */}
-          {role !== 'CASHIER' && <ExportBackupButton category={analytics?.category} />}
+          {role !== 'CASHIER' && (
+            <ExportBackupButton 
+              category={analytics?.category} 
+              filter={dateFilter}
+              customDate={customDate}
+            />
+          )}
         </div>
       </div>
 

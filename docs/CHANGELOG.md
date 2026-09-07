@@ -7,6 +7,18 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🐛 Bugfix: Penyelesaian Masalah Unduh Laporan Excel di Dashboard
+- **Koreksi Role Check & Autentikasi (`app/api/admin/export-backup/route.ts`):**
+  - Mengubah pengecekan hak akses dari `if (role !== 'OWNER')` yang memblokir semua merchant (HTTP 403) menjadi standar Clerk `if (role === 'CASHIER') return 403`, memberikan akses penuh kepada pemilik toko dan admin toko.
+- **Migrasi Penuh ke SheetJS (`xlsx`):**
+  - Menggantikan engine `ExcelJS` lama dengan SheetJS `xlsx` native berkecepatan tinggi, dilengkapi auto column widths (`worksheet['!cols']`) dan penyesuaian header multi-tenant (Retail, F&B, Jasa, Rental/Properti).
+- **Sinkronisasi Filter Periode Dashboard:**
+  - Menghubungkan dropdown filter periode aktif pada Dashboard (`filter` & `customDate`) ke endpoint `/api/admin/export-backup` via komponen `ExportBackupButton`.
+- **Peningkatan UX Feedback State (`components/ExportBackupButton.tsx`):**
+  - Menambahkan indikator loading `"Menyiapkan Laporan..."`, ekstraksi nama berkas dinamis dari `Content-Disposition`, dan parsing pesan error JSON responsif.
+- **Penyelarasan Lebar Kolom Analitik (`app/api/export/route.ts`):**
+  - Menambahkan proporsional column widths (`worksheet['!cols']`) pada laporan analitik.
+
 ### 🔔 Fitur Baru: Real-Time Mobile Order Badge, Haptic Vibration & Dual-Tone Web Audio Chime
 - **SWR Polling & Badge Merah di Mobile Bottom Nav (`components/BottomNavClient.tsx`):**
   - Mengintegrasikan polling real-time `/api/booking/pending-count` setiap 10 detik pada navigasi bawah kasir mobile.

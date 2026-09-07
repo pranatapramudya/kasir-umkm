@@ -131,6 +131,10 @@ export async function GET(req: Request) {
 
     // Generate Excel File
     const worksheet = xlsx.utils.json_to_sheet(formattedData, { header: headers });
+    worksheet["!cols"] = headers.map(h => ({
+      wch: Math.max(h.length + 4, 15)
+    }));
+
     const workbook = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(workbook, worksheet, "Laporan Transaksi");
 
