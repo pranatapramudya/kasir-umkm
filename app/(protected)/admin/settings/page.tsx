@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Settings } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/url";
+import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 import SlugForm from "./SlugForm";
 import PaymentSettingsForm from "./PaymentSettingsForm";
 
@@ -31,6 +32,7 @@ export default async function AdminSettingsPage() {
   });
 
   const appUrl = getAppUrl();
+  const isJasaOrRental = isServiceBusinessCategory(tenant?.category) || isRentalTravelCategory(tenant?.category);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
@@ -48,14 +50,16 @@ export default async function AdminSettingsPage() {
       {/* ── Bagian Kustom: Informasi Toko ── */}
       <SlugForm initialSlug={tenant?.slug ?? null} appUrl={appUrl} tenantCategory={tenant?.category} />
       
-      {/* ── Bagian Kustom: Informasi Pembayaran ── */}
-      <PaymentSettingsForm 
-        initialWhatsApp={tenant?.adminWhatsApp ?? null}
-        initialBankName={tenant?.bankName ?? null}
-        initialBankAccount={tenant?.bankAccount ?? null}
-        initialBankAccountName={tenant?.bankAccountName ?? null}
-        tenantCategory={tenant?.category ?? null}
-      />
+      {/* ── Bagian Kustom: Informasi Pembayaran (Khusus Jasa & Rental) ── */}
+      {isJasaOrRental && (
+        <PaymentSettingsForm 
+          initialWhatsApp={tenant?.adminWhatsApp ?? null}
+          initialBankName={tenant?.bankName ?? null}
+          initialBankAccount={tenant?.bankAccount ?? null}
+          initialBankAccountName={tenant?.bankAccountName ?? null}
+          tenantCategory={tenant?.category ?? null}
+        />
+      )}
     </div>
   );
 }

@@ -4,12 +4,12 @@ import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/busines
 export function getNavigationMenu(kategoriUsaha: string, role: string | undefined) {
   const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
   const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
-  const isFnB = kategoriUsaha === "FNB" || kategoriUsaha === "F&B / Kuliner";
+  const isFnB = kategoriUsaha === "FNB" || kategoriUsaha === "F&B" || kategoriUsaha === "F&B / Kuliner";
   const isJasa = kategoriUsaha === "JASA" || kategoriUsaha === "Jasa / Servis" || kategoriUsaha === "Jasa/Servis";
   const isCashier = role === 'CASHIER';
 
   const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Transaksi Sewa" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";
-  const productMenuLabel = isRentalTravel ? "Data Armada" : isServiceBusiness ? "Layanan" : "Produk";
+  const productMenuLabel = isRentalTravel ? "Unit / Properti / Armada" : isFnB ? "Daftar Menu" : isServiceBusiness ? "Layanan" : "Produk";
 
   const menuGroups = [
     {
@@ -39,7 +39,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
         { name: "Langganan", href: "/admin/subscription", icon: CreditCard },
         { name: "Rekomendasi Hardware", href: "/admin/hardware", icon: Printer },
         { name: "Keamanan", href: "/admin/settings/security", icon: ShieldCheck },
-        ...(isServiceBusiness ? [{ name: "Informasi Toko", href: "/admin/settings", icon: Settings }] : [])
+        { name: "Informasi Toko", href: "/admin/settings", icon: Settings }
       ]
     }
   ];

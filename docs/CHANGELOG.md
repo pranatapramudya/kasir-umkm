@@ -7,6 +7,25 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🛠️ Refinement UX Masif & Bugfix Lintas 4 Kategori Bisnis (Retail, F&B, Jasa, Rental)
+- **Akses Pengaturan Toko Universal (Semua Kategori Bisnis):**
+  - Mengubah konfigurasi sidebar (`lib/navigation.ts`) agar menu "Informasi Toko / Pengaturan" dapat diakses oleh semua pemilik bisnis tanpa terkecuali (Retail, F&B, Jasa, Rental).
+  - Menerapkan *conditional rendering* pada `app/(protected)/admin/settings/page.tsx`: modul formulir rekening bank / instruksi pembayaran DP (`PaymentSettingsForm`) hanya ditampilkan untuk kategori Jasa dan Rental (`isJasaOrRental`), sedangkan untuk Retail dan F&B disembunyikan agar antarmuka tetap bersih dan relevan.
+- **Normalisasi Kategori F&B & Dinamisasi Label Menu Sidebar:**
+  - Memperluas deteksi string kategori F&B pada `lib/navigation.ts` untuk mencakup variasi `'FNB'`, `'F&B'`, dan `'F&B / Kuliner'`, memastikan konsistensi menu operasional F&B (Meja Resto, Dapur).
+  - Melakukan dinamisasi label menu sidebar Produk sesuai spesialisasi bisnis: `"Daftar Menu"` untuk F&B, `"Unit / Properti / Armada"` untuk Rental, `"Layanan"` untuk Jasa, dan `"Produk"` untuk Retail.
+- **Penyelesaian Deadlock POS Kasir Jasa & Validasi Tanggal:**
+  - Mengatasi kendala transaksi macet pada kasir Jasa saat toko belum mendaftarkan karyawan: menambahkan opsi fallback otomatis `"admin_owner"` (*"Dikerjakan oleh Admin/Pemilik"*) pada seleksi staf/teknisi jika `employees.length === 0`.
+  - Integrasi pencetakan struk kasir dengan teks `(Oleh: Admin/Pemilik)` saat fallback aktif.
+  - Menambahkan validasi `min` waktu saat ini pada input picker `datetime-local` (Jadwal Layanan) untuk mencegah pemilihan tanggal masa lalu secara tidak disengaja.
+- **Penyempurnaan Modul Unit Sewa & Biaya Operasional (Rental):**
+  - Memperbaiki logika ternary badge Biaya Operasional (B. Ops) pada `app/(protected)/admin/products/page-client.tsx` dengan memisahkan `isPureJasa = isJasa && !isRental`, sehingga indikator B. Ops dapat tampil presisi pada kartu unit sewa / armada.
+  - Memperbarui label copywriting form penambahan unit Rental menjadi `"Unit Sewa / Armada"` serta menghapus teks petunjuk berlebih pada textarea deskripsi.
+- **Upgrade Engine Unduh Tiket Reservasi & Proteksi Autofill:**
+  - Mengganti pustaka kanvas ke `html2canvas-pro` (v2.4.1) untuk mendukung penuh skema warna modern Tailwind CSS v4 (`oklch(...)`) yang sebelumnya menyebabkan *parsing crash* pada `html2canvas` standar.
+  - Mengamankan opsi tangkapan kanvas dengan `useCORS: true`, `backgroundColor: "#ffffff"`, dan menonaktifkan `allowTaint` agar `canvas.toDataURL()` tidak memicu `SecurityError`.
+  - Menambahkan proteksi *controlled input* dengan deteksi duplikasi teks pada field nama dan nomor WhatsApp di form booking publik (`app/book/[slug]/BookingForm.tsx`) untuk menangkal anomali pengisian ganda akibat *aggressive browser autofill*.
+
 ### 🌐 UX & Copywriting: Universalisasi Modul Rental (Properti & Kendaraan)
 - **Netralisasi Status & Filter:** Mengubah status `COMPLETED` dari "Siap Berangkat" menjadi "Sedang Disewa" dan `IN_PROGRESS` dari "Sedang Jalan" menjadi "Berjalan" pada Kalender Sewa, Booking Dashboard, dan Inbox Pesanan.
 - **Action Buttons & Copywriting:** Mengubah tombol "Mulai Perjalanan / Start" menjadi "🚀 Mulai / Start" dan "Tiba di Pool / Finish" menjadi "✅ Selesai / Finish", serta mengganti rujukan "Info Armada" / "Armada/Layanan" menjadi "Info Unit" / "Unit/Layanan".

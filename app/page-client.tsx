@@ -319,7 +319,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
     setCart((prev) => {
       if (isJasa) {
-        return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note }];
+        const defaultWorkerId = employees.length === 0 ? "admin_owner" : (employees.length === 1 ? employees[0].id : undefined);
+        return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note, workerId: defaultWorkerId }];
       }
 
       if (isFNB && note) {
@@ -863,20 +864,26 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               {/* Pilihan Pekerja (Khusus Jasa) */}
               {isJasa && (
                 <div className="mb-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Dikerjakan oleh:</label>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Dikerjakan oleh: *</label>
                   <select
                     className="w-full text-xs p-1.5 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    value={item.workerId || ""}
+                    value={item.workerId || (employees.length === 0 ? "admin_owner" : "")}
                     onChange={(e) => {
                       const val = e.target.value;
                       setCart(prev => prev.map(cartItem => cartItem.cartItemId === item.cartItemId ? { ...cartItem, workerId: val } : cartItem));
                     }}
                   >
                     <option value="" disabled>-- Pilih Staf / Teknisi / Kapster --</option>
+                    <option value="admin_owner">Dikerjakan oleh Admin/Pemilik</option>
                     {employees.map(emp => (
                       <option key={emp.id} value={emp.id}>{emp.name}</option>
                     ))}
                   </select>
+                  {employees.length === 0 && (
+                    <p className="text-[10px] text-amber-600 mt-1">
+                      💡 Belum ada data staf terdaftar. Menggunakan Admin/Pemilik secara otomatis.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -950,6 +957,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               <label className="text-xs font-bold text-gray-500 mb-1 block">Waktu Layanan *</label>
               <input
                 type="datetime-local"
+                min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
                 value={serviceDate}
                 onChange={(e) => setServiceDate(e.target.value)}
                 className="w-full p-2.5 bg-white border border-blue-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-lg text-sm transition-all"
@@ -1079,8 +1087,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
           <button
             onClick={handleCheckout}
-            disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && cart.some(item => !item.workerId))}
-            className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
+            disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))}
+            className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
           >
             {isCheckoutLoading && <Loader2 className="w-5 h-5 animate-spin" />}
             {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' :
@@ -1376,7 +1384,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       </tr>
                       {item.workerId && (
                         <tr>
-                          <td colSpan={3} className="text-gray-600 text-[10px] pl-2">(Oleh: {employees.find((e: any) => e.id === item.workerId)?.name || item.workerId})</td>
+                          <td colSpan={3} className="text-gray-600 text-[10px] pl-2">(Oleh: {item.workerId === 'admin_owner' ? 'Admin/Pemilik' : (employees.find((e: any) => e.id === item.workerId)?.name || item.workerId)})</td>
                         </tr>
                       )}
                       {item.note && (

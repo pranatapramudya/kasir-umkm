@@ -45,6 +45,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
   const isRental = isRentalTravelCategory(kategoriUsaha);
+  const isPureJasa = isJasa && !isRental;
   const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -304,7 +305,11 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
         throw new Error(result?.error || (typeof result === 'object' ? JSON.stringify(result) : `Terjadi kesalahan (${res.status})`));
       }
 
-      toast.success(editingProduct ? 'Produk berhasil diperbarui!' : 'Produk baru ditambahkan!');
+      toast.success(
+        editingProduct 
+          ? (isRental ? 'Unit sewa berhasil diperbarui!' : isPureJasa ? 'Layanan berhasil diperbarui!' : isFNB ? 'Menu berhasil diperbarui!' : 'Produk berhasil diperbarui!') 
+          : (isRental ? 'Unit sewa baru ditambahkan!' : isPureJasa ? 'Layanan baru ditambahkan!' : isFNB ? 'Menu baru ditambahkan!' : 'Produk baru ditambahkan!')
+      );
       mutate();
       closeModal();
     } catch (err: any) {
@@ -505,7 +510,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
                     <div className="mt-auto pt-3 flex items-end justify-between">
                       <div>
-                        {!isJasa && <div className="text-[10px] text-slate-400 font-medium mb-0.5">{isRental ? 'B. Ops' : isFNB ? 'HPP' : 'HPP'}: {formatRupiah(product.hpp)}</div>}
+                        {!isPureJasa && <div className="text-[10px] text-slate-400 font-medium mb-0.5">{isRental ? 'B. Ops' : isFNB ? 'HPP' : 'HPP'}: {formatRupiah(product.hpp)}</div>}
                         {product.discount > 0 ? (
                           <div className="flex flex-col">
                             <span className="text-[10px] text-slate-400 line-through leading-none mb-0.5">{formatRupiah(product.hargaJual)}</span>
@@ -534,15 +539,19 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
             <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
               <PackageX className="w-10 h-10 text-slate-400" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Belum ada {isJasa ? "layanan" : isFNB ? "menu" : "produk"}</h3>
-            <p className="text-slate-500 max-w-sm mb-6">Anda belum menambahkan {isJasa ? "layanan" : isFNB ? "menu" : "produk"} apapun. Silakan tambah {isJasa ? "layanan" : isFNB ? "menu" : "produk"} pertama Anda untuk mulai berjualan.</p>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">
+              Belum ada {isRental ? "unit sewa" : isPureJasa ? "layanan" : isFNB ? "menu" : "produk"}
+            </h3>
+            <p className="text-slate-500 max-w-sm mb-6">
+              Anda belum menambahkan {isRental ? "unit sewa" : isPureJasa ? "layanan" : isFNB ? "menu" : "produk"} apapun. Silakan tambah {isRental ? "unit sewa / armada" : isPureJasa ? "layanan" : isFNB ? "menu" : "produk"} pertama Anda untuk mulai berjualan.
+            </p>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <button
                 onClick={() => openModal()}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-6 py-3 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
               >
                 <Plus className="w-5 h-5" />
-                {isJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
+                {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
               </button>
               <button
                 onClick={() => setIsImportModalOpen(true)}
@@ -562,7 +571,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-gray-900">
-                {editingProduct ? (isJasa ? 'Edit Layanan' : isFNB ? 'Edit Menu' : 'Edit Produk') : (isJasa ? 'Tambah Layanan Baru' : isFNB ? 'Tambah Menu Baru' : 'Tambah Produk Baru')}
+                {editingProduct ? (isRental ? 'Edit Unit Sewa / Armada' : isPureJasa ? 'Edit Layanan' : isFNB ? 'Edit Menu' : 'Edit Produk') : (isRental ? 'Tambah Unit Sewa / Armada Baru' : isPureJasa ? 'Tambah Layanan Baru' : isFNB ? 'Tambah Menu Baru' : 'Tambah Produk Baru')}
               </h2>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-50 rounded-full">
                 <X className="w-5 h-5" />
@@ -573,7 +582,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
               <form id="product-form" onSubmit={handleSubmit} className="p-3 space-y-4">
                 {/* Image Upload Area */}
                 <div className="mb-6">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Foto {isJasa ? 'Layanan' : isFNB ? 'Menu' : 'Produk'} <span className="text-gray-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Foto {isRental ? 'Unit / Armada' : isPureJasa ? 'Layanan' : isFNB ? 'Menu' : 'Produk'} <span className="text-gray-400 font-normal">(Opsional)</span></label>
                   {formData.image ? (
                     <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 group">
                       <Image src={formData.image} alt="Preview" fill className="object-cover" />
@@ -767,7 +776,6 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                         placeholder="Misal: Harga sudah termasuk Listrik & WiFi, atau untuk luar kota dikenakan tambahan Rp 100.000."
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 min-h-[80px]"
                       />
-                      <p className="text-xs text-slate-500 mt-1">Misal: Harga sudah termasuk Listrik & WiFi, atau untuk luar kota dikenakan tambahan Rp 100.000.</p>
                     </div>
                   )}
                 </div>

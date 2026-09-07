@@ -20,7 +20,12 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Production-Ready Enterprise Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.
 - **Sistem Pembayaran & Subscription Dinamis:** Terintegrasi dengan payment gateway (Mayar) via webhook untuk aktivasi otomatis paket langganan (Pro 1 Bulan, 6 Bulan, 1 Tahun) secara real-time, beserta alur pendaftaran *Manual ACC* yang dikelola via Dasbor Superadmin.
 - **Optimasi SEO & UI Enterprise:** Injeksi SEO pada *Landing Page* untuk pencarian organik maksimal, dipadukan dengan desain *glassmorphism* modern, profesional, dan responsif.
-- **Dukungan Multi-Bisnis 100% Universal:** Logika dinamis adaptif untuk Retail (SKU/Barcode, HPP, Stok Akhir), F&B (Meja & Opsi Takeaway/Bungkus/Konter), Jasa/Servis (Staf/Teknisi/Kapster & Komisi Layanan), hingga Rental & Travel (No. Seri/Kode Unit/Plat, Jaminan & Operator).
+- **Dukungan Multi-Bisnis 100% Universal:** Logika dinamis adaptif untuk:
+  - **Retail:** Manajemen SKU/Barcode, HPP, stok otomatis, dan POS kasir cepat langsung transaksi.
+  - **F&B (Kuliner):** Label sidebar adaptif *"Daftar Menu"*, denah meja & status *Takeaway/Bungkus*, serta cetak tiket dapur terpisah.
+  - **Jasa & Servis:** Label sidebar adaptif *"Layanan"*, pemilihan staf/teknisi dengan *smart fallback* (*"Dikerjakan oleh Admin/Pemilik"* untuk solo operator/toko baru), validasi picker jadwal real-time, dan kalkulasi komisi staf.
+  - **Rental & Travel/Properti:** Label sidebar adaptif *"Unit / Properti / Armada"*, indikator Biaya Operasional (B. Ops), kalender sewa anti double-booking, serta cetak surat jalan / bukti sewa.
+- **Pengaturan Toko Adaptif & Universal:** Akses menu "Informasi Toko / Pengaturan" dibuka untuk seluruh kategori bisnis dengan sistem *conditional rendering* cerdas (modul rekening bank & DP 50% hanya aktif untuk Jasa & Rental, sedangkan Retail & F&B tetap ramping dan bersih).
 - **Role-Based Access Control (RBAC):** Pemisahan hak akses ketat antara *Owner/Superadmin* dan *Karyawan/Kasir* menggunakan proteksi route tingkat server (Middleware & API), termasuk halaman panduan khusus karyawan.
 - **Manajemen Karyawan & Sistem Komisi:** Pelacakan performa staf dan kalkulasi komisi otomatis berdasarkan transaksi yang diselesaikan (sangat cocok untuk bisnis Jasa/Salon/Bengkel).
 - **Manajemen Meja & Takeaway Resto:** Visualisasi ketersediaan status meja real-time serta opsi khusus *Takeaway / Bungkus / Konter* tanpa meja fisik untuk bisnis F&B.
@@ -31,7 +36,7 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Progressive Web App (PWA) Ready:** *Installable on mobile devices with standalone full-screen experience.* Dapat diinstal di homescreen perangkat Android & iOS, berjalan layaknya aplikasi native.
 - **Real-Time Web Push Notifications:** *Instant alerts for new bookings without native app overhead.* Owner & Super Admin mendapat notifikasi push saat ada booking baru, bahkan saat browser ditutup.
 - **Universal Web Bluetooth Printing:** *Direct ESC/POS thermal receipt printing from the browser.* Cetak struk nirkabel secara langsung via Bluetooth tanpa driver atau aplikasi tambahan.
-- **Dynamic Multi-Tenant Booking (Rental & Travel/Jasa):** *Self-service appointment & date-range scheduling dengan Anti-Double Booking guard.* Setiap tenant memiliki halaman booking publik (`/book/[slug]`) dengan validasi slot kalender interaktif secara real-time.
+- **Dynamic Multi-Tenant Booking & Unduh Tiket HD:** *Self-service appointment & date-range scheduling dengan Anti-Double Booking guard.* Setiap tenant memiliki halaman booking publik (`/book/[slug]`) dengan validasi slot kalender interaktif secara real-time, perlindungan *browser autofill duplicate*, dan generator tiket digital beresolusi tinggi menggunakan `html2canvas-pro` (dukungan penuh Tailwind CSS v4 `oklch`).
 
 ## 🛠️ Cara Menjalankan Lokal (Getting Started)
 

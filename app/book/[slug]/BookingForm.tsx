@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { RentalDatePicker } from "@/components/RentalDatePicker";
 import { isRentalTravelCategory } from "@/lib/business-category";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 interface Service {
   id: number;
@@ -76,33 +76,39 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
   // Anti-double booking state
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [isCheckingSlots, setIsCheckingSlots] = useState(false);
-  const [bookedRentalRanges, setBookedRentalRanges] = useState<{startDate: string, endDate: string}[]>([]);
+  const [bookedRentalRanges, setBookedRentalRanges] = useState<{ startDate: string, endDate: string }[]>([]);
 
   // Receipt / ticket state
   const ticketRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
   async function handleDownloadTicket() {
-    if (!ticketRef.current) return;
+    if (!ticketRef.current) {
+      console.error("Gagal mengunduh tiket: Elemen tiket (ticketRef) tidak ditemukan di DOM.");
+      return;
+    }
     setIsDownloading(true);
     try {
       const canvas = await html2canvas(ticketRef.current, {
-        background: "#ffffff", // white agar cocok dengan light theme
-        scale: 2, // retina quality
+        backgroundColor: "#ffffff",
+        scale: 2,
         useCORS: true,
-        allowTaint: true,
-      } as any);
+        logging: false,
+      });
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = dataUrl;
-      
-      const cleanTenantName = tenantName.replace(/\s+/g, "_");
-      const cleanCustomerName = formData.customerName.replace(/\s+/g, "_");
+
+      const cleanTenantName = (tenantName || "Toko").trim().replace(/\s+/g, "_");
+      const cleanCustomerName = (formData.customerName || "Pelanggan").trim().replace(/\s+/g, "_");
       const txId = bookingId ? `#${bookingId.slice(0, 8)}` : "unknown";
-      
+
       link.download = `Tiket_${cleanTenantName}_${cleanCustomerName}_${txId}.png`;
+      document.body.appendChild(link);
       link.click();
-    } catch {
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Gagal membuat/mengunduh tiket reservasi:", error);
       alert("Gagal mengunduh tiket. Coba lagi.");
     } finally {
       setIsDownloading(false);
@@ -116,8 +122,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       return;
     }
     const btn = document.getElementById('gps-btn');
-    if(btn) btn.innerHTML = "⏳";
-    
+    if (btn) btn.innerHTML = "⏳";
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
@@ -126,11 +132,11 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           ...prev,
           pickupLocation: `https://maps.google.com/?q=${lat},${lon}`
         }));
-        if(btn) btn.innerHTML = "📍 GPS";
+        if (btn) btn.innerHTML = "📍 GPS";
       },
       (error) => {
         alert("Gagal mendapatkan lokasi. Pastikan izin lokasi diberikan.");
-        if(btn) btn.innerHTML = "📍 GPS";
+        if (btn) btn.innerHTML = "📍 GPS";
       }
     );
   }
@@ -308,7 +314,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       checkSlots(formData.bookingDate);
     }
   }, [formData.bookingDate, formData.productId, checkSlots, isRental]);
-  
+
   const checkRentalRanges = useCallback(
     async (productId: string) => {
       if (!isRental || !productId) return;
@@ -337,9 +343,9 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
     if (isRental && rentalCategoryType === "vehicle" && rentalData.startDate && rentalData.endDate) {
       const start = new Date(rentalData.startDate);
       const end = new Date(rentalData.endDate);
-      start.setHours(0,0,0,0);
-      end.setHours(23,59,59,999);
-      
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
       let isOverlap = false;
       for (const range of bookedRentalRanges) {
         const rangeStart = new Date(range.startDate);
@@ -363,7 +369,49 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      if (prev[name as keyof typeof prev] === value) return prev;
+      return { ...prev, [name]: value };
+    });
+    setError(null);
+  }
+
+  function handleCustomerNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let val = e.target.value;
+    // Deteksi bug autofill browser yang menempelkan string duplikat (misal: "Budi SantosoBudi Santoso")
+    if (val.length >= 6 && val.length % 2 === 0) {
+      const half = val.length / 2;
+      if (val.slice(0, half) === val.slice(half)) {
+        val = val.slice(0, half);
+      }
+    }
+    if (val.length >= 9 && val.length % 3 === 0) {
+      const third = val.length / 3;
+      if (val.slice(0, third) === val.slice(third, third * 2) && val.slice(0, third) === val.slice(third * 2)) {
+        val = val.slice(0, third);
+      }
+    }
+    setFormData((prev) => (prev.customerName === val ? prev : { ...prev, customerName: val }));
+    setError(null);
+  }
+
+  function handleCustomerPhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let val = e.target.value.replace(/[^\d+\-\s]/g, "");
+    // Deteksi duplikasi nomor telepon berulang dari autofill agresif (misal: "081234567890081234567890")
+    if (val.length >= 16 && val.length % 2 === 0) {
+      const half = val.length / 2;
+      if (val.slice(0, half) === val.slice(half)) {
+        val = val.slice(0, half);
+      }
+    }
+    if (val.length >= 24 && val.length % 3 === 0) {
+      const third = val.length / 3;
+      if (val.slice(0, third) === val.slice(third, third * 2) && val.slice(0, third) === val.slice(third * 2)) {
+        val = val.slice(0, third);
+      }
+    }
+    setFormData((prev) => (prev.customerPhone === val ? prev : { ...prev, customerPhone: val }));
     setError(null);
   }
 
@@ -373,46 +421,46 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
       const serviceText = selectedService ? ` untuk *${selectedService.name}*` : "";
       if (rentalCategoryType === "property" && rentalModeDuration === "hourly") {
         text = `Halo, saya ingin mengkonfirmasi reservasi kamar/unit dengan ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-               `Nama Pemesan: *${formData.customerName}*\n` +
-               `Properti: *${tenantName}*${serviceText}\n` +
-               `Waktu Check-in: *${hourlyCheckoutInfo.checkInLabel}*\n` +
-               `Waktu Check-out: *${hourlyCheckoutInfo.checkOutLabel}* (*${hourlyData.durationHours} Jam Transit*).\n\n` +
-               `Berikut bukti transfernya...`;
+          `Nama Pemesan: *${formData.customerName}*\n` +
+          `Properti: *${tenantName}*${serviceText}\n` +
+          `Waktu Check-in: *${hourlyCheckoutInfo.checkInLabel}*\n` +
+          `Waktu Check-out: *${hourlyCheckoutInfo.checkOutLabel}* (*${hourlyData.durationHours} Jam Transit*).\n\n` +
+          `Berikut bukti transfernya...`;
       } else if (rentalCategoryType === "property") {
         const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-        const endLabel   = new Date(rentalData.endDate).toLocaleDateString("id-ID",   { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
         text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-               `Nama Pemesan: *${formData.customerName}*\n` +
-               `Properti: *${tenantName}*${serviceText}\n` +
-               `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
-               `Berikut bukti transfernya...`;
+          `Nama Pemesan: *${formData.customerName}*\n` +
+          `Properti: *${tenantName}*${serviceText}\n` +
+          `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
+          `Berikut bukti transfernya...`;
       } else {
         const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-        const endLabel   = new Date(rentalData.endDate).toLocaleDateString("id-ID",   { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
         text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-               `Nama Pemesan: *${formData.customerName}*\n` +
-               `Layanan: *${tenantName}*${serviceText}\n` +
-               `Tanggal Sewa: *${startLabel}* jam *${rentalData.pickupTime}* s/d *${endLabel}*.\n\n` +
-               `Berikut bukti transfernya...`;
+          `Nama Pemesan: *${formData.customerName}*\n` +
+          `Layanan: *${tenantName}*${serviceText}\n` +
+          `Tanggal Sewa: *${startLabel}* jam *${rentalData.pickupTime}* s/d *${endLabel}*.\n\n` +
+          `Berikut bukti transfernya...`;
       }
     } else {
       const dateLabel = new Date(`${formData.bookingDate}T${formData.bookingTime}`).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
       const serviceText = selectedService ? ` untuk layanan *${selectedService.name}*` : "";
-      
+
       text = (tenantCategory === "Jasa / Servis" || tenantCategory === "Jasa/Servis" || tenantCategory === "JASA")
         ? `Halo, saya ingin mengkonfirmasi reservasi jadwal dengan ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-          `Nama Pemesan: *${formData.customerName}*\n` +
-          `Layanan: *${tenantName}*${serviceText}\n` +
-          `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.`
+        `Nama Pemesan: *${formData.customerName}*\n` +
+        `Layanan: *${tenantName}*${serviceText}\n` +
+        `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.`
         : `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-          `Nama Pemesan: *${formData.customerName}*\n` +
-          `Layanan: *${tenantName}*${serviceText}\n` +
-          `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.\n\n` +
-          `Berikut bukti transfernya...`;
+        `Nama Pemesan: *${formData.customerName}*\n` +
+        `Layanan: *${tenantName}*${serviceText}\n` +
+        `Waktu Kunjungan: *${dateLabel}* jam *${formData.bookingTime} WIB*.\n\n` +
+        `Berikut bukti transfernya...`;
     }
-    
+
     const waNumber = adminWhatsApp ? adminWhatsApp.replace(/[^0-9]/g, '').replace(/^0/, '62') : '';
-    const url = waNumber 
+    const url = waNumber
       ? `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`
       : `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
@@ -492,7 +540,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           bookingDateTime = new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`);
           startDateIso = new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`).toISOString();
           endDateIso = new Date(`${rentalData.endDate}T23:59:59`).toISOString();
-          
+
           if (rentalCategoryType === "vehicle") {
             const provName = rentalData.dropoffProvince.split("|")[1] || "";
             const regName = rentalData.dropoffRegency.split("|")[1] || "";
@@ -575,7 +623,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           </p>
         ) : (
           <p className="text-slate-500 text-sm mb-6">
-            Antrean Anda di <span className="text-blue-600 font-semibold">{tenantName}</span> berhasil dicatat. 
+            Antrean Anda di <span className="text-blue-600 font-semibold">{tenantName}</span> berhasil dicatat.
             Silakan datang sesuai jadwal dan lakukan pembayaran di Kasir.
           </p>
         )}
@@ -617,7 +665,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 <span className="text-slate-900 font-semibold text-xs">{selectedService.name}</span>
               </div>
             )}
-            
+
             {/* === Rincian Rental (Properti Kos Transit vs Kendaraan) === */}
             {isRental ? (
               rentalCategoryType === "property" && rentalModeDuration === "hourly" ? (
@@ -742,7 +790,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
             </svg>
             {(tenantCategory === "Jasa / Servis" || tenantCategory === "Jasa/Servis" || tenantCategory === "JASA") ? "Hubungi Admin via WhatsApp" : "Konfirmasi Pembayaran via WhatsApp"}
           </button>
-          
+
           <button
             id="download-ticket-btn"
             onClick={handleDownloadTicket}
@@ -858,11 +906,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 setRentalCategoryType("property");
                 setError(null);
               }}
-              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-                rentalCategoryType === "property"
-                  ? "bg-white text-blue-600 shadow-sm border border-slate-200"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "property"
+                ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+                }`}
             >
               <span>🏨</span>
               <span>Kamar / Kos Transit</span>
@@ -873,11 +920,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 setRentalCategoryType("vehicle");
                 setError(null);
               }}
-              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-                rentalCategoryType === "vehicle"
-                  ? "bg-white text-blue-600 shadow-sm border border-slate-200"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "vehicle"
+                ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+                }`}
             >
               <span>🚗</span>
               <span>Kendaraan / Travel</span>
@@ -901,22 +947,20 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                   <button
                     type="button"
                     onClick={() => setRentalModeDuration("hourly")}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                      rentalModeDuration === "hourly"
-                        ? "bg-amber-500 text-white shadow-sm"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${rentalModeDuration === "hourly"
+                      ? "bg-amber-500 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
                   >
                     ⏱️ Transit Jam
                   </button>
                   <button
                     type="button"
                     onClick={() => setRentalModeDuration("daily")}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                      rentalModeDuration === "daily"
-                        ? "bg-amber-500 text-white shadow-sm"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${rentalModeDuration === "daily"
+                      ? "bg-amber-500 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
                   >
                     📅 Harian
                   </button>
@@ -984,11 +1028,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                               setHourlyData(prev => ({ ...prev, durationHours: hours }));
                               setError(null);
                             }}
-                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all ${
-                              isSelected
-                                ? "bg-amber-500 text-white border border-amber-500 shadow-md scale-[1.03]"
-                                : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
-                            }`}
+                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all ${isSelected
+                              ? "bg-amber-500 text-white border border-amber-500 shadow-md scale-[1.03]"
+                              : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
+                              }`}
                           >
                             {hours} Jam
                           </button>
@@ -1087,14 +1130,14 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                   ))}
                 </select>
               </div>
-              
+
               {/* Tampilkan durasi jika ada */}
               {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
                 <p className="text-amber-600 text-xs font-medium">
                   Durasi sewa:{" "}
                   {Math.round(
                     (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
-                      (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
                   ) + 1}{" "}
                   hari
                 </p>
@@ -1117,10 +1160,10 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                     placeholder="contoh: Bandara Ngurah Rai atau Klik GPS"
                     className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
                   />
-                  <button 
+                  <button
                     id="gps-btn"
-                    type="button" 
-                    onClick={handleGeolocation} 
+                    type="button"
+                    onClick={handleGeolocation}
                     className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
                     title="Gunakan Lokasi Saat Ini"
                   >
@@ -1132,7 +1175,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
               {/* Lokasi Tujuan */}
               <div className="space-y-3">
                 {isFetchingRegion && <div className="text-[10px] text-blue-500 font-semibold animate-pulse">Memuat data wilayah...</div>}
-                
+
                 <div className="space-y-1.5">
                   <label htmlFor="rental-dropoffProvince" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     PROVINSI TUJUAN *
@@ -1150,7 +1193,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <label htmlFor="rental-dropoffRegency" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     KOTA/KABUPATEN TUJUAN *
@@ -1169,7 +1212,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <label htmlFor="rental-dropoffDistrict" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     KECAMATAN TUJUAN *
@@ -1285,7 +1328,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           type="text"
           name="customerName"
           value={formData.customerName}
-          onChange={handleChange}
+          onChange={handleCustomerNameChange}
           placeholder="contoh: Budi Santoso"
           required
           autoComplete="name"
@@ -1303,7 +1346,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
           type="tel"
           name="customerPhone"
           value={formData.customerPhone}
-          onChange={handleChange}
+          onChange={handleCustomerPhoneChange}
           placeholder="contoh: 08123456789"
           required
           autoComplete="tel"
@@ -1359,8 +1402,8 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
         type="submit"
         disabled={isSubmitting || (!isRental && isCheckingSlots)}
         className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${isSubmitting || (!isRental && isCheckingSlots)
-            ? "bg-blue-100 text-blue-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30 active:scale-[0.98]"
+          ? "bg-blue-100 text-blue-400 cursor-not-allowed"
+          : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30 active:scale-[0.98]"
           }`}
       >
         {isSubmitting ? (
