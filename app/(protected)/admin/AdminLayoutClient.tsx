@@ -7,18 +7,20 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { CustomUserButton } from "@/components/CustomUserButton";
+import { CopyBookingLinkButton } from "@/components/CopyBookingLinkButton";
 
 export default function AdminLayoutClient({
   children,
   sidebar,
   serverUserId,
-  isExpired = false
+  isExpired = false,
+  tenantSlug = null,
 }: {
   children: React.ReactNode;
   sidebar: React.ReactNode;
-
   isExpired?: boolean;
   serverUserId?: string;
+  tenantSlug?: string | null;
 }) {
   const pathname = usePathname();
 
@@ -68,7 +70,8 @@ export default function AdminLayoutClient({
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-gray-800 tracking-tight">Sistem Manajemen</h2>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <CopyBookingLinkButton initialSlug={tenantSlug} />
               <CustomUserButton />
             </div>
           </header>

@@ -99,14 +99,14 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
 
             {businessType === 'RENTAL' && (
               <>
-                <Step num="1" title="Tambah Unit / Layanan" businessType={businessType}>Buka menu <b>Armada / Unit</b>. Masukkan data unit yang bisa disewa (mobil, motor, kamar kos, penginapan, kamera, atau peralatan).</Step>
+                <Step num="1" title="Tambah Unit / Layanan" businessType={businessType}>Buka menu <b>Armada / Unit</b>. Masukkan data unit yang bisa disewa (mobil, motor, properti / kos, penginapan, kamera, atau peralatan).</Step>
                 <Step num="2" title="Atur Harga Sewa" businessType={businessType}>Tentukan harga per-hari, per-jam, atau per-malam untuk setiap unit yang Anda sewakan.</Step>
                 <Step num="3" title="Atur Rekening Pembayaran (DP 50%)" businessType={businessType}>Buka menu <b>Informasi Toko</b>, lalu lengkapi data rekening Bank / E-Wallet Anda. Ini wajib diisi agar pelanggan tahu ke mana harus mentransfer DP 50% saat melakukan reservasi online.</Step>
                 <Step num="4" title="Bagikan Link Katalog" businessType={businessType}>Di menu yang sama (<b>Informasi Toko</b>), salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa memesan mandiri.</Step>
                 <Step num="5" title="Tarik Pesanan / Input Transaksi Sewa" businessType={businessType}>
                   Pelanggan bisa memesan dari link booking, atau Anda input manual di <b>Kasir POS / Kalender Sewa</b> dengan mengisi detail sewa:
                   <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600">
-                    <li><b>No. Seri / Kode Unit / Plat:</b> Isi dengan Plat Nomor (mobil/motor), Nomor Kamar/Unit (kos/penginapan), atau Serial Number (kamera/alat).</li>
+                    <li><b>No. Seri / Kode Unit / Plat:</b> Isi dengan Plat Nomor (mobil/motor), Nomor Kamar/Unit (properti/kos/penginapan), atau Serial Number (kamera/alat).</li>
                     <li><b>Jaminan (KTP/SIM/Deposit):</b> Isi dengan jaminan fisik seperti KTP, SIM, Paspor, atau Uang Deposit.</li>
                     <li><b>Operator / Catatan Khusus:</b> Isi dengan nama supir, nama operator mesin, atau request khusus dari penyewa.</li>
                   </ul>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSWRConfig } from "swr";
 import { Store, CheckCircle2, AlertCircle, Link2, Loader2, Pencil, Copy } from "lucide-react";
 
 interface Props {
@@ -18,6 +19,7 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [origin, setOrigin] = useState("");
+  const { mutate } = useSWRConfig();
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -73,6 +75,7 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
 
       setSlug(data.slug);
       setInputValue(data.slug);
+      mutate('/api/tenant/slug');
       setIsEditing(false);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 4000);

@@ -18,22 +18,34 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     template: '%s | PJTECH Kasir UMKM',
-    default: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail, Jasa & Rental',
+    default: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail, Jasa, Rental & Properti',
   },
-  description: "Premium SaaS Boilerplate & Aplikasi Kasir POS UMKM modern. Mendukung penuh operasional bisnis Retail, F&B, Jasa (Salon/Klinik), dan kalender jadwal Booking untuk Rental/Travel.",
-  keywords: ['Aplikasi kasir rental mobil', 'Sistem POS travel', 'Aplikasi kasir jasa', 'SaaS premium boilerplate', 'Kasir Retail UMKM', 'Software booking operasional', 'POS F&B'],
+  description: "Aplikasi Kasir POS UMKM & Sistem Manajemen Properti Modern. Solusi lengkap operasional bisnis Retail, F&B, Jasa/Servis, Rental Kendaraan, hingga Booking Properti & Penginapan.",
+  keywords: [
+    'Aplikasi kasir rental mobil',
+    'Sistem POS travel',
+    'Aplikasi kasir jasa',
+    'SaaS premium boilerplate',
+    'Kasir Retail UMKM',
+    'Software booking operasional',
+    'POS F&B',
+    'Manajemen Properti',
+    'Sewa Properti',
+    'Booking Properti',
+    'Sewa Apartemen',
+  ],
   authors: [{ name: 'PJTECH' }],
   openGraph: {
-    title: 'PJTECH Kasir UMKM - Aplikasi POS 4 Pilar Bisnis',
-    description: 'Premium SaaS Boilerplate & Aplikasi Kasir POS UMKM modern. Mendukung penuh operasional bisnis Retail, F&B, Jasa, dan Rental/Travel.',
+    title: 'PJTECH Kasir UMKM - Aplikasi POS & Manajemen Properti',
+    description: 'Aplikasi Kasir POS UMKM modern & sistem reservasi untuk Retail, F&B, Jasa, Rental, dan Properti.',
     siteName: 'PJTECH Kasir UMKM',
     locale: 'id_ID',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PJTECH Kasir UMKM - Aplikasi POS 4 Pilar Bisnis',
-    description: 'Premium SaaS Boilerplate & Aplikasi Kasir POS UMKM modern untuk Retail, F&B, Jasa, dan Rental/Travel.',
+    title: 'PJTECH Kasir UMKM - Aplikasi POS & Manajemen Properti',
+    description: 'Aplikasi Kasir POS UMKM modern untuk Retail, F&B, Jasa, Rental & Properti.',
   },
   // PWA: Meta tags untuk perangkat Apple (iOS)
   appleWebApp: {

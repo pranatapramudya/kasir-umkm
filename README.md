@@ -1,6 +1,6 @@
 # PJTECH KASIR UMKM - SaaS Enterprise Platform
 
-PJTECH KASIR UMKM adalah Sistem Manajemen Kasir UMKM Premium untuk kendali penuh atas operasional bisnis. Platform Point of Sales (POS) komprehensif berbasis SaaS (Software as a Service) 100% universal yang dirancang khusus untuk memenuhi kebutuhan berbagai jenis bisnis: **F&B (Restoran/Kafe/Foodtruck), Retail (Toko/Minimarket), Jasa/Servis (Bengkel/Barbershop/Salon/Laundry), dan Rental & Travel (Mobil/Kos/Kamera/Alat)**. 
+PJTECH KASIR UMKM adalah Sistem Manajemen Kasir UMKM Premium untuk kendali penuh atas operasional bisnis. Platform Point of Sales (POS) komprehensif berbasis SaaS (Software as a Service) 100% universal yang dirancang khusus untuk memenuhi kebutuhan berbagai jenis bisnis: **F&B (Restoran/Kafe/Foodtruck), Retail (Toko/Minimarket), Jasa/Servis (Bengkel/Barbershop/Salon/Laundry), dan Rental & Properti (Mobil/Motor/Properti/Kos/Kamera/Alat)**. 
 Dibangun dengan fokus pada kecepatan, keamanan multi-tenant tingkat enterprise, dan antarmuka *Mobile-First*, platform ini siap digunakan sebagai fondasi operasional bisnis skala UMKM hingga Enterprise.
 
 ## 🚀 Tech Stack Utama

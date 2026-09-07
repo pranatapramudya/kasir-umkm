@@ -38,22 +38,22 @@ function formatRupiah(amount: number) {
   }).format(amount);
 }
 
-// Generate time slots 08:00 - 21:00, interval 30 menit
+// Generate time slots 08:00 - 22:00 (Jam Operasional Standar), interval 30 menit
 function generateTimeSlots() {
   const slots: string[] = [];
-  for (let h = 8; h <= 21; h++) {
+  for (let h = 8; h <= 22; h++) {
     slots.push(`${String(h).padStart(2, "0")}:00`);
-    if (h < 21) slots.push(`${String(h).padStart(2, "0")}:30`);
+    if (h < 22) slots.push(`${String(h).padStart(2, "0")}:30`);
   }
   return slots;
 }
 
-// Generate rental time slots 00:00 - 23:30, interval 30 menit
+// Generate rental time slots 08:00 - 22:00 (Jam Operasional Standar), interval 30 menit
 function generateRentalTimeSlots() {
   const slots: string[] = [];
-  for (let h = 0; h <= 23; h++) {
+  for (let h = 8; h <= 22; h++) {
     slots.push(`${String(h).padStart(2, "0")}:00`);
-    slots.push(`${String(h).padStart(2, "0")}:30`);
+    if (h < 22) slots.push(`${String(h).padStart(2, "0")}:30`);
   }
   return slots;
 }
@@ -912,7 +912,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
                 }`}
             >
               <span>🏨</span>
-              <span>Kamar / Kos Transit</span>
+              <span>Properti / Kos Transit</span>
             </button>
             <button
               type="button"
@@ -932,7 +932,7 @@ export default function BookingForm({ slug, tenantName, services, tenantCategory
 
           {/* Banner Informasi Mode */}
           <div className="bg-blue-50 text-blue-800 border border-blue-200 p-3 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-2">
-            <span>{rentalCategoryType === "property" ? "🏨 RESERVASI PROPERTI / KAMAR TRANSIT" : "📋 DETAIL RESERVASI KENDARAAN"}</span>
+            <span>{rentalCategoryType === "property" ? "🏨 RESERVASI PROPERTI / KOS TRANSIT" : "📋 DETAIL RESERVASI KENDARAAN"}</span>
           </div>
 
           {/* === BILA SISI PROPERTI / KOS TRANSIT === */}

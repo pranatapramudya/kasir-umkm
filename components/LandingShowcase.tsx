@@ -11,7 +11,7 @@ export default function LandingShowcase() {
           Era Modern.
         </h2>
         <p className="text-lg text-slate-600 mb-6 max-w-xl leading-relaxed">
-          Kelola bisnis F&B, Retail, Jasa, hingga Rental & Travel Anda dengan satu platform yang dirancang untuk kecepatan, keamanan, dan skalabilitas di kelas <em className="text-blue-600 font-serif italic font-medium tracking-wide">Enterprise</em>.
+          Kelola bisnis F&B, Retail, Jasa, Rental & Travel, hingga Manajemen Properti Anda dengan satu platform yang dirancang untuk kecepatan, keamanan, dan skalabilitas di kelas <em className="text-blue-600 font-serif italic font-medium tracking-wide">Enterprise</em>.
         </p>
 
         {/* Simplified Bento Grid Mockup */}

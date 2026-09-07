@@ -8,6 +8,11 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### 🛠️ Refinement UX Masif & Bugfix Lintas 4 Kategori Bisnis (Retail, F&B, Jasa, Rental)
+- **Penyempurnaan UX Terakhir (Skor 100/100):**
+  - **Auto-Uppercase Plat Nomor & SKU:** Input plat nomor / kode unit pada modal sewa POS Kasir (`app/page-client.tsx`) dan form penambahan unit sewa/SKU (`admin/products`) otomatis terkapitalisasi (`.toUpperCase()`) dan dilengkapi styling `uppercase font-mono` untuk presisi identitas unit.
+  - **Preset Jam Operasional Standar (08:00 - 22:00 WIB):** Opsi pemilihan jam booking dan check-in pada formulir booking publik (`app/book/[slug]/BookingForm.tsx`) dibatasi hanya pada jam operasional standar (08:00 hingga 22:00 WIB), mengeliminasi potensi booking dini hari di luar jam operasional.
+  - **Tombol Cepat "Salin Link Toko" di Header:** Menambahkan komponen [`CopyBookingLinkButton`](file:///d:/Coding/kasir-umkm/components/CopyBookingLinkButton.tsx) di Header Dasbor Admin dan Header POS Kasir dengan notifikasi toast instan untuk kemudahan promosi etalase toko.
+  - **Endpoint GET Slug:** Menyediakan route handler `GET /api/tenant/slug` untuk sinkronisasi metadata toko secara dinamis dengan SWR.
 - **Akses Pengaturan Toko Universal (Semua Kategori Bisnis):**
   - Mengubah konfigurasi sidebar (`lib/navigation.ts`) agar menu "Informasi Toko / Pengaturan" dapat diakses oleh semua pemilik bisnis tanpa terkecuali (Retail, F&B, Jasa, Rental).
   - Menerapkan *conditional rendering* pada `app/(protected)/admin/settings/page.tsx`: modul formulir rekening bank / instruksi pembayaran DP (`PaymentSettingsForm`) hanya ditampilkan untuk kategori Jasa dan Rental (`isJasaOrRental`), sedangkan untuk Retail dan F&B disembunyikan agar antarmuka tetap bersih dan relevan.

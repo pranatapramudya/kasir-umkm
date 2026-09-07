@@ -21,7 +21,7 @@ export function detectRentalItemType(name?: string | null, description?: string 
   ];
 
   const propertyKeywords = [
-    "kamar", "room", "kos", "kost", "villa", "vila", "homestay", "hotel",
+    "properti", "property", "kamar", "room", "kos", "kost", "villa", "vila", "homestay", "hotel",
     "apartemen", "apartment", "unit", "bed", "kasur", "transit", "studio",
     "resort", "house", "rumah", "glamping", "paviliun", "penginapan", "ruang", "space"
   ];

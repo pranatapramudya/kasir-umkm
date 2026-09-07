@@ -5,6 +5,40 @@ import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 
+// [GET] Ambil data slug dan nama toko tenant yang sedang login
+export async function GET() {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    let targetUserId = userId;
+    const employee = await prisma.employee.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (employee) {
+      targetUserId = employee.tenantId;
+    }
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { userId: targetUserId },
+      select: { slug: true, name: true, category: true },
+    });
+
+    return NextResponse.json({
+      success: true,
+      slug: tenant?.slug || null,
+      name: tenant?.name || null,
+      category: tenant?.category || null,
+    });
+  } catch (error) {
+    console.error("GET /api/tenant/slug error:", error);
+    return NextResponse.json({ error: "Gagal memuat slug" }, { status: 500 });
+  }
+}
+
 // [PATCH] Update slug toko milik tenant yang sedang login
 export async function PATCH(request: Request) {
   try {

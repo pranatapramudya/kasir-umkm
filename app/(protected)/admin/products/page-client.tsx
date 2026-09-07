@@ -216,7 +216,8 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
     if (['hpp', 'hargaJual', 'discount', 'employeeCommission'].includes(name)) {
       setFormData(prev => ({ ...prev, [name]: formatNumberInput(value) }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      const finalVal = (name === 'kodeBarang' || (isRental && name === 'name')) ? value.toUpperCase() : value;
+      setFormData(prev => ({ ...prev, [name]: finalVal }));
     }
   };
 
@@ -611,7 +612,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                       name="kodeBarang"
                       value={formData.kodeBarang}
                       onChange={handleChange}
-                      className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                      className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 uppercase font-mono"
                     />
                   </div>
                 )}
@@ -626,7 +627,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                       value={formData.name}
                       onChange={handleChange}
                       placeholder={isRental ? "misal: Room 101, B 1234 ABC, atau SN-991" : ""}
-                      className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                      className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ${isRental ? 'uppercase font-mono' : ''}`}
                     />
                   </div>
 
@@ -638,7 +639,7 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
                       required
                       autoComplete="off"
                       list="category-options"
-                      placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Kos Eksklusif, dll..." : "Masukkan nama kategori..."}
+                      placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Properti / Kos, Vila, dll..." : "Masukkan nama kategori..."}
                       value={formData.category}
                       onChange={handleChange}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
