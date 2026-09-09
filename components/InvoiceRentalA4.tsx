@@ -62,22 +62,25 @@ export default function InvoiceRentalA4({
 
   return (
     <div
-      className={`bg-white text-black p-6 mx-auto ${
+      id="invoice-a4-print-target"
+      style={{ boxSizing: 'border-box' }}
+      className={`bg-white text-black mx-auto ${
         isA5
-          ? 'w-[148mm] min-w-[148mm] max-w-[148mm] print:w-[148mm] print:min-w-[148mm] print:max-w-[148mm]'
-          : 'w-[210mm] min-w-[210mm] max-w-[210mm] print:w-[210mm] print:min-w-[210mm] print:max-w-[210mm]'
-      } text-xs sm:text-sm font-sans print:block print:m-0 print:p-0 print:shadow-none`}
+          ? 'w-[148mm] min-w-[148mm] max-w-[148mm] p-4 print:p-[8mm_10mm]'
+          : 'w-[210mm] min-w-[210mm] max-w-[210mm] p-6 print:p-[12mm_15mm]'
+      } text-xs font-sans print:block print:m-0 print:shadow-none box-border print:box-border`}
     >
       <style>{`
         @media print { 
           @page { 
             size: ${isA5 ? 'A5 portrait' : 'A4 portrait'}; 
-            margin: 10mm; 
+            margin: 0 !important; 
           } 
           html, body { 
             width: ${containerWidth} !important;
             min-width: ${containerWidth} !important;
-            margin: 0 !important;
+            max-width: ${containerWidth} !important;
+            margin: 0 auto !important;
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
@@ -90,26 +93,26 @@ export default function InvoiceRentalA4({
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-5 break-inside-avoid print:break-inside-avoid">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-black uppercase text-slate-900 tracking-tight">
             {tenantName || 'PJTECH UMKM'}
           </h1>
           {tenantCategory && (
-            <p className="text-xs sm:text-sm font-bold text-slate-600 uppercase mt-0.5">
+            <p className="text-xs font-bold text-slate-600 uppercase mt-0.5">
               {tenantCategory}
             </p>
           )}
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Telp: {tenantPhone || '-'}
           </p>
         </div>
         <div className="text-right">
-          <h2 className="text-lg sm:text-xl font-bold uppercase text-slate-400 tracking-wider mb-1">
+          <h2 className="text-lg font-bold uppercase text-slate-400 tracking-wider mb-1">
             {documentTitle}
           </h2>
-          <p className="text-xs sm:text-sm font-semibold text-slate-700">
+          <p className="text-xs font-semibold text-slate-700">
             No. TRX: <span className="text-slate-900 font-mono font-bold">{transaction.id}</span>
           </p>
-          <p className="text-[11px] sm:text-xs text-slate-500">
+          <p className="text-xs text-slate-500">
             Tanggal: {transaction.date} {transaction.time}
           </p>
         </div>

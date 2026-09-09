@@ -273,13 +273,13 @@ export function buildReceiptBytes(data: ReceiptData, paperWidth = 32): Uint8Arra
  * Fungsi utama: connect -> build bytes -> kirim ke printer.
  * Menampilkan sonner toast untuk setiap tahapan.
  */
-export async function printBluetoothReceipt(data: ReceiptData): Promise<void> {
+export async function printBluetoothReceipt(data: ReceiptData, paperWidth = 32): Promise<void> {
   const toastId = toast.loading("Menghubungkan ke printer...");
   try {
     const characteristic = await connectPrinter();
     toast.loading("Printer terhubung. Mencetak...", { id: toastId });
 
-    const bytes = buildReceiptBytes(data);
+    const bytes = buildReceiptBytes(data, paperWidth);
 
     // Kirim dalam chunk (batas MTU printer ~512 bytes)
     const CHUNK_SIZE = 512;

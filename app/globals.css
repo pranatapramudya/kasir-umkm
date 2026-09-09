@@ -34,3 +34,26 @@ html, body {
 button, a, input, select, textarea, [role="button"] {
   touch-action: manipulation;
 }
+
+/* Reset Cetak Presisi Tinggi Multi-Device (Mobile, Tablet, Desktop) */
+@media print {
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Mencegah clipping vertikal/horizontal akibat nested container scroll pada mobile WebKit/Chrome */
+  div, main, section, aside, header, nav, article {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+}

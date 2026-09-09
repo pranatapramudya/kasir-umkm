@@ -70,6 +70,7 @@ type Transaction = {
   licensePlate?: string;
   pickupLocation?: string;
   dropoffLocation?: string;
+  destination?: string;
   startDate?: string;
   endDate?: string;
   serviceDate?: string;
@@ -228,6 +229,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   // State Ukuran Kertas Cetak
   const [documentPaperSize, setDocumentPaperSize] = useState<'A4' | 'A5'>('A4');
   const [thermalPaperSize, setThermalPaperSize] = useState<'58mm' | '80mm'>('58mm');
+  const [rentalPrintFormat, setRentalPrintFormat] = useState<'document' | 'thermal'>('document');
+  const [isDownloadingImage, setIsDownloadingImage] = useState(false);
 
   useEffect(() => {
     const savedDocSize = localStorage.getItem('kasir_doc_paper_size') as 'A4' | 'A5';
@@ -237,6 +240,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     const savedThermalSize = localStorage.getItem('kasir_thermal_paper_size') as '58mm' | '80mm';
     if (savedThermalSize && (savedThermalSize === '58mm' || savedThermalSize === '80mm')) {
       setThermalPaperSize(savedThermalSize);
+    }
+    const savedRentalFormat = localStorage.getItem('kasir_rental_print_format') as 'document' | 'thermal';
+    if (savedRentalFormat && (savedRentalFormat === 'document' || savedRentalFormat === 'thermal')) {
+      setRentalPrintFormat(savedRentalFormat);
     }
   }, []);
 
@@ -783,14 +790,38 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
   const printReceipt = (type: 'customer' | 'kitchen' = 'customer') => {
     setPrintType(type);
-    setTimeout(() => {
-      window.print();
-    }, 100);
+
+    // Dynamic viewport meta handling for mobile devices (iOS Safari & Android Chrome)
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    const originalViewport = viewportMeta?.getAttribute('content') || 'width=device-width, initial-scale=1';
+
+    // Temporary widen viewport on mobile to prevent narrow strip / auto-shrink distortion
+    if (viewportMeta) {
+      viewportMeta.setAttribute('content', 'width=1024, initial-scale=1');
+    }
+
+    const restoreViewport = () => {
+      if (viewportMeta) {
+        viewportMeta.setAttribute('content', originalViewport);
+      }
+      window.removeEventListener('afterprint', restoreViewport);
+    };
+
+    window.addEventListener('afterprint', restoreViewport);
+
+    // Waktu tunggu aman untuk DOM reflow dan layout calculation di perangkat mobile
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.print();
+        setTimeout(restoreViewport, 1500);
+      }, 300);
+    });
   };
 
   const handleBluetoothPrint = async () => {
     if (!lastTransaction) return;
     const parsedCash = parseInt(cashGiven.replace(/[^0-9]/g, '') || '0');
+    const bWidth = thermalPaperSize === '80mm' ? 42 : 32;
     await printBluetoothReceipt({
       storeName: tenantName || 'PJTECH KASIR POS',
       storeCategory: tenantCategory,
@@ -818,7 +849,63 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       total: lastTransaction.total,
       method: lastTransaction.method,
       cashGiven: lastTransaction.method === 'cash' ? parsedCash : undefined,
-    });
+    }, bWidth);
+  };
+
+  const handleDownloadImage = async () => {
+    if (!lastTransaction) return;
+    setIsDownloadingImage(true);
+    const toastId = toast.loading("Menyiapkan berkas gambar HD...");
+    try {
+      const html2canvas = (await import('html2canvas-pro')).default;
+      const isDocument = (isRental || isJasa) && rentalPrintFormat === 'document';
+      const targetId = isDocument ? 'invoice-a4-print-target' : 'receipt-thermal-print-target';
+      const element = document.getElementById(targetId);
+      if (!element) {
+        toast.error("Template cetak tidak ditemukan.", { id: toastId });
+        return;
+      }
+
+      // Temporarily unhide offscreen if hidden in screen mode
+      const parent = element.parentElement;
+      const wasHidden = parent?.classList.contains('hidden');
+      if (parent && wasHidden) {
+        parent.classList.remove('hidden');
+        parent.style.position = 'fixed';
+        parent.style.left = '-9999px';
+        parent.style.top = '0';
+        parent.style.display = 'block';
+        parent.style.zIndex = '-9999';
+      }
+
+      const canvas = await html2canvas(element, {
+        scale: 2.5,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      if (parent && wasHidden) {
+        parent.classList.add('hidden');
+        parent.style.position = '';
+        parent.style.left = '';
+        parent.style.top = '';
+        parent.style.display = '';
+        parent.style.zIndex = '';
+      }
+
+      const filename = `${isDocument ? 'Invoice' : 'Struk'}-${lastTransaction.id}.png`;
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      toast.success(`Berhasil mengunduh ${filename}!`, { id: toastId });
+    } catch (err) {
+      console.error("Gagal mengunduh gambar:", err);
+      toast.error("Gagal membuat gambar berkas.", { id: toastId });
+    } finally {
+      setIsDownloadingImage(false);
+    }
   };
 
   const handleProcessQueue = (booking: any) => {
@@ -1523,8 +1610,42 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               <h2 className="text-xl font-black mb-2 text-slate-800">Pembayaran Berhasil!</h2>
               <p className="text-sm text-gray-500 mb-6">Terima kasih atas pesanan Anda. Silakan cetak struk untuk pelanggan.</p>
               <div className="space-y-3">
+                {/* Format Cetak untuk Rental / Jasa */}
+                {(isRental || isJasa) && (
+                  <div className="flex items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold mb-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRentalPrintFormat('document');
+                        localStorage.setItem('kasir_rental_print_format', 'document');
+                      }}
+                      className={`flex-1 py-1.5 px-2 rounded-lg transition-all ${
+                        rentalPrintFormat === 'document'
+                          ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      📄 Dokumen (A4/A5)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRentalPrintFormat('thermal');
+                        localStorage.setItem('kasir_rental_print_format', 'thermal');
+                      }}
+                      className={`flex-1 py-1.5 px-2 rounded-lg transition-all ${
+                        rentalPrintFormat === 'thermal'
+                          ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      🧾 Struk Kasir
+                    </button>
+                  </div>
+                )}
+
                 {/* Selector Ukuran Kertas Dinamis */}
-                {(isRental || isJasa) ? (
+                {(isRental || isJasa) && rentalPrintFormat === 'document' ? (
                   <div className="flex items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold mb-1">
                     <button
                       type="button"
@@ -1592,27 +1713,39 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   onClick={() => printReceipt('customer')}
                   className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  {(isRental || isJasa) ? '🖨️ Cetak Dokumen / Invoice' : '🖨️ Cetak Struk Kasir'}
+                  {((isRental || isJasa) && rentalPrintFormat === 'document') ? '🖨️ Cetak Dokumen / Invoice' : '🖨️ Cetak Struk Kasir'}
                 </button>
-                {/* Tombol Bluetooth Printer */}
-                {isBluetoothSupported() ? (
-                  <div className="space-y-1">
-                    <button
-                      id="bluetooth-print-btn"
-                      onClick={handleBluetoothPrint}
-                      className="w-full py-3 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
-                    >
-                      🖨️ Cetak Struk (Bluetooth)
-                    </button>
-                    <button onClick={() => setIsPrinterHelpOpen(true)} className="text-xs text-blue-600 font-medium hover:underline w-full text-center py-1">
-                      Bingung Cara Print? Klik di sini
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    ⚠️ Browser Anda tidak mendukung cetak via Bluetooth.
-                    Gunakan Chrome / Edge untuk fitur ini.
-                  </p>
+
+                {/* Tombol Unduh Gambar / PDF HD */}
+                <button
+                  onClick={handleDownloadImage}
+                  disabled={isDownloadingImage}
+                  className="w-full py-2.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2 text-xs"
+                >
+                  {isDownloadingImage ? '⏳ Menyiapkan Berkas...' : '📥 Unduh Bukti (Gambar HD)'}
+                </button>
+
+                {/* Tombol Bluetooth Printer (Tampil jika format Thermal atau Retail/FNB) */}
+                {((!isRental && !isJasa) || rentalPrintFormat === 'thermal') && (
+                  isBluetoothSupported() ? (
+                    <div className="space-y-1">
+                      <button
+                        id="bluetooth-print-btn"
+                        onClick={handleBluetoothPrint}
+                        className="w-full py-3 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
+                      >
+                        🖨️ Cetak Struk (Bluetooth)
+                      </button>
+                      <button onClick={() => setIsPrinterHelpOpen(true)} className="text-xs text-blue-600 font-medium hover:underline w-full text-center py-1">
+                        Bingung Cara Print? Klik di sini
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                      ⚠️ Browser Anda tidak mendukung cetak via Bluetooth.
+                      Gunakan Chrome / Edge untuk fitur ini.
+                    </p>
+                  )
                 )}
                 {isFNB && (
                   <button
@@ -1635,9 +1768,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       </div>
 
       {/* STRUK KASIR & DOKUMEN CETAK (HANYA TAMPIL SAAT DIPRINT) */}
-      {(!isRental && !isJasa) ? (
-        /* RETAIL & FNB: FORMAT THERMAL (58mm / 80mm) */
-        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black text-[11px] leading-tight font-mono`}>
+      {(!isRental && !isJasa) || rentalPrintFormat === 'thermal' ? (
+        /* FORMAT THERMAL (58mm / 80mm) */
+        <div
+          id="receipt-thermal-print-target"
+          className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black text-[11px] leading-tight font-mono`}
+        >
           <style>{`
             @media print {
               @page { size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; margin: 0; }
@@ -1666,6 +1802,16 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <p>Kasir : {user?.fullName || user?.firstName || 'Admin'}</p>
                 <p>Pelanggan : {lastTransaction.customerName}</p>
                 {lastTransaction.tableId && <p>No. Meja : {getTableName(lastTransaction.tableId)}</p>}
+                {lastTransaction.licensePlate && <p>Unit / Plat : {lastTransaction.licensePlate}</p>}
+                {(lastTransaction.startDate || lastTransaction.endDate) && (
+                  <p>Periode : {lastTransaction.startDate || '-'} s/d {lastTransaction.endDate || '-'}</p>
+                )}
+                {lastTransaction.serviceDate && (
+                  <p>Jadwal : {new Date(lastTransaction.serviceDate).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                )}
+                {lastTransaction.driverName && <p>Operator : {lastTransaction.driverName}</p>}
+                {lastTransaction.guarantee && <p>Jaminan : {lastTransaction.guarantee}</p>}
+                {lastTransaction.destination && <p>Tujuan : {lastTransaction.destination}</p>}
                 <p>ID Transaksi : {lastTransaction.id}</p>
               </div>
 
@@ -1710,9 +1856,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   <span>{formatRupiah(lastTransaction.items.reduce((acc, i) => acc + i.hargaJual * i.qty, 0))}</span>
                 </div>
                 <div className="flex justify-between font-bold text-xs mt-1.5 pt-1.5 border-t border-dashed border-gray-400">
-                  <span>Total Belanja</span>
+                  <span>Total Transaksi</span>
                   <span>{formatRupiah(lastTransaction.total)}</span>
                 </div>
+                {Boolean(lastTransaction.downPayment && lastTransaction.downPayment > 0) && (
+                  <>
+                    <div className="flex justify-between text-[10px]">
+                      <span>Uang Muka (DP)</span>
+                      <span className="font-semibold text-green-700">-{formatRupiah(lastTransaction.downPayment || 0)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-[10px] text-red-600">
+                      <span>Sisa Tagihan</span>
+                      <span>{formatRupiah(lastTransaction.remainingBalance || 0)}</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between mt-1 text-[10px]">
                   <span>Metode</span>
                   <span className="uppercase font-semibold">{lastTransaction.method}</span>
@@ -1725,7 +1883,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     </div>
                     <div className="flex justify-between text-[10px]">
                       <span>Kembalian</span>
-                      <span>{formatRupiah(parseInt(cashGiven.replace(/[^0-9]/g, '') || "0") - lastTransaction.total)}</span>
+                      <span>{formatRupiah(parseInt(cashGiven.replace(/[^0-9]/g, '') || "0") - ((lastTransaction.downPayment && lastTransaction.downPayment > 0) ? lastTransaction.downPayment : lastTransaction.total))}</span>
                     </div>
                   </>
                 )}
