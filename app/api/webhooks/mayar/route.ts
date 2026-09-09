@@ -10,13 +10,16 @@ export async function POST(req: Request) {
     }
 
     const webhookSecret = process.env.MAYAR_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
-      // Mayar mengirim webhook secret di header Authorization (Bearer token)
-      if (!authHeader || (authHeader !== `Bearer ${webhookSecret}` && authHeader !== webhookSecret)) {
-        console.error('Invalid Webhook Secret');
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    if (!webhookSecret) {
+      console.error('Webhook secret is not configured in server');
+      return NextResponse.json({ error: 'Webhook secret is not configured in server' }, { status: 500 });
+    }
+
+    const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
+    // Mayar mengirim webhook secret di header Authorization (Bearer token)
+    if (!authHeader || (authHeader !== `Bearer ${webhookSecret}` && authHeader !== webhookSecret)) {
+      console.error('Invalid Webhook Secret');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (body.event === 'payment.success' || body.event === 'payment.received') {

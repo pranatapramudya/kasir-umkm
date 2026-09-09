@@ -122,9 +122,9 @@ export default function RekapKomisiPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                          {item.workerName.charAt(0).toUpperCase()}
+                          {(item.workerName || 'K').charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-semibold text-slate-800">{item.workerName}</span>
+                        <span className="font-semibold text-slate-800">{item.workerName || 'Karyawan'}</span>
                       </div>
                     </td>
                     <td className="p-4 text-center">

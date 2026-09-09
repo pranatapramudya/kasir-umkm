@@ -65,7 +65,19 @@ export async function GET(request: Request) {
       });
     });
 
-    const data = Object.values(commissionByWorker).sort((a, b) => b.totalCommission - a.totalCommission);
+    const workerIds = Object.keys(commissionByWorker);
+    const employees = workerIds.length > 0
+      ? await prisma.employee.findMany({
+          where: { id: { in: workerIds } },
+          select: { id: true, name: true }
+        })
+      : [];
+    const employeeMap = new Map(employees.map(e => [e.id, e.name]));
+
+    const data = Object.values(commissionByWorker).map(w => ({
+      ...w,
+      workerName: employeeMap.get(w.workerId) || 'Karyawan'
+    })).sort((a, b) => b.totalCommission - a.totalCommission);
 
     return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error: any) {
