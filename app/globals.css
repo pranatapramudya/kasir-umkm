@@ -31,9 +31,14 @@ html, body {
 }
 
 /* Native Momentum Scrolling Container */
-.overflow-y-auto, .overflow-x-auto, [data-scrollable] {
+.overflow-y-auto {
   -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x;
 }
 
 button, a, input, select, textarea, [role="button"] {

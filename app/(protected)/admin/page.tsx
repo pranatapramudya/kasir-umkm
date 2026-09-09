@@ -15,14 +15,26 @@ export default async function AdminDashboardPage() {
   // By default, cashiers see 'hari_ini', admins see 'bulan_ini'
   const initialFilter = role === 'CASHIER' ? 'hari_ini' : 'bulan_ini';
 
-  // Fetch initial data on the server to ensure fast LCP (Speed Insights optimization)
-  // getAnalyticsData already serializes all Date objects to ISO strings, preventing hydration mismatches.
-  const initialData = await getAnalyticsData(userId, initialFilter);
+  // Fetch all standard analytics periods in parallel on server for 0ms instant client filter switching
+  const [dataHariIni, dataBulanIni, dataTahunIni] = await Promise.all([
+    getAnalyticsData(userId, 'hari_ini'),
+    getAnalyticsData(userId, 'bulan_ini'),
+    getAnalyticsData(userId, 'tahun_ini'),
+  ]);
+
+  const preloadedData = {
+    'hari_ini': dataHariIni,
+    'bulan_ini': dataBulanIni,
+    'tahun_ini': dataTahunIni,
+  };
+
+  const initialData = preloadedData[initialFilter] || dataBulanIni;
 
   return (
     <AdminDashboardClient 
       initialData={initialData} 
       initialFilter={initialFilter} 
+      preloadedData={preloadedData}
     />
   );
 }

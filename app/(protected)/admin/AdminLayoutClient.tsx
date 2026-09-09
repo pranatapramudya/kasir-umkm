@@ -58,7 +58,7 @@ export default function AdminLayoutClient({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row pb-20 lg:pb-0">
       {sidebar}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden print:h-auto print:overflow-visible">
+      <div className="flex-1 flex flex-col min-w-0 lg:h-screen lg:overflow-hidden print:h-auto print:overflow-visible">
         {isExpired && (
           <div className="bg-red-600 text-white p-2 text-center text-sm font-bold shadow-sm z-50 shrink-0 print:hidden">
             ⚠️ Masa aktif paket berlangganan Anda telah berakhir. Harap perpanjang paket untuk dapat menggunakan seluruh fitur.
@@ -78,7 +78,7 @@ export default function AdminLayoutClient({
         )}
 
         {/* PAGE CONTENT */}
-        <main className={`${pathname.startsWith('/admin/pos') ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'p-6 overflow-y-auto overscroll-y-contain'} flex-1 min-h-0 min-w-0 relative print:h-auto print:overflow-visible`}>
+        <main className={`${pathname.startsWith('/admin/pos') ? 'flex flex-col h-[calc(100dvh-5rem)] lg:h-full min-h-0 overflow-hidden' : 'p-4 sm:p-6 flex-1 min-w-0 lg:overflow-y-auto'} relative print:h-auto print:overflow-visible`}>
           {children}
         </main>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import { TrendingUp, CreditCard, DollarSign, BarChart3, Calendar, ChevronDown, Loader2 } from 'lucide-react';
 
 import { useUser } from '@clerk/nextjs';
@@ -25,12 +25,15 @@ const fetcher = (args: string | [string, string]) => {
 
 export default function AdminDashboardClient({ 
   initialData, 
-  initialFilter 
+  initialFilter,
+  preloadedData = {},
 }: { 
   initialData: any; 
-  initialFilter: string; 
+  initialFilter: string;
+  preloadedData?: Record<string, any>;
 }) {
   const { user, isLoaded } = useUser();
+  const { mutate } = useSWRConfig();
   
   // Mencegah hydration error akibat perbedaan render server vs client pada komponen yg butuh auth state
   const [isMounted, setIsMounted] = useState(false);
@@ -45,6 +48,15 @@ export default function AdminDashboardClient({
   const [customDate, setCustomDate] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Proactive SWR Cache Seeding for 0ms filter changes
+  useEffect(() => {
+    if (preloadedData && currentTenantId) {
+      Object.entries(preloadedData).forEach(([fKey, fData]) => {
+        mutate([`/api/analytics?filter=${fKey}`, currentTenantId], fData, false);
+      });
+    }
+  }, [preloadedData, currentTenantId, mutate]);
+
   const dateFilterLabels: Record<string, string> = {
     'hari_ini': 'Hari Ini',
     'bulan_ini': 'Bulan Ini',
@@ -54,20 +66,24 @@ export default function AdminDashboardClient({
 
   const queryUrl = `/api/analytics?filter=${dateFilter}${dateFilter === 'manual' ? `&customDate=${customDate}` : ''}`;
   
-  // Hanya gunakan initialData jika filter belum diubah dari nilai awal
-  const isInitialFilter = dateFilter === initialFilter && !customDate;
+  // Zero-Latency Instant Memory Fallback: Immediate 0ms rendering for preloaded periods
+  const instantFallback = (!customDate && preloadedData[dateFilter]) 
+    ? preloadedData[dateFilter] 
+    : (dateFilter === initialFilter && !customDate ? initialData : undefined);
 
-  const { data: analytics, isLoading } = useSWR(
+  const { data: swrAnalytics } = useSWR(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
     { 
-      keepPreviousData: true,
-      fallbackData: isInitialFilter ? initialData : undefined,
+      keepPreviousData: false,
+      fallbackData: instantFallback,
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false
     }
   );
+
+  const analytics = swrAnalytics || instantFallback;
 
   const formatRupiah = (num: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })

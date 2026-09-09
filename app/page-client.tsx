@@ -1126,7 +1126,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col bg-slate-50 overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col bg-slate-50 touch-pan-y [-webkit-overflow-scrolling:touch]">
         {(isJasa || isRental) && (
           <div className="p-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between shadow-inner">
             <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
@@ -1540,7 +1540,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 )}
               </div>
 
-              <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50 pb-28 lg:pb-4 flex flex-col touch-pan-y [-webkit-overflow-scrolling:touch]">
                 {(isJasa || isRental) && (
                   <div className="lg:hidden p-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl flex flex-row items-center justify-between shadow-sm">
                     <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
@@ -1560,7 +1560,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       <div
                         key={product.id}
                         onClick={() => !isOutOfStock && (isFNB ? openFnbModal(product) : addToCart(product))}
-                        className={`group relative rounded-xl border p-3 flex flex-col select-none touch-manipulation transform-gpu ${
+                        className={`group relative rounded-xl border p-3 flex flex-col select-none ${
                           isOutOfStock
                             ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
                             : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
