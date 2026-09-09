@@ -1126,7 +1126,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col bg-slate-50">
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col bg-slate-50 overscroll-y-contain [-webkit-overflow-scrolling:touch]">
         {(isJasa || isRental) && (
           <div className="p-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between shadow-inner">
             <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
@@ -1420,17 +1420,17 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
   return (
     <>
-      <div className="flex h-screen bg-gray-50 overflow-hidden text-slate-900 print:hidden">
+      <div className="flex flex-col flex-1 h-full min-h-0 bg-gray-50 overflow-hidden text-slate-900 print:hidden">
         {sidebar}
         {/* MAIN AREA */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {isExpired && (
             <div className="bg-red-600 text-white p-2 text-center text-sm font-bold shadow-sm z-50">
               ⚠️ Masa aktif paket berlangganan Anda telah berakhir. Harap perpanjang paket untuk dapat menggunakan fitur Kasir POS.
             </div>
           )}
-          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
               <div className="bg-white border-b p-4">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center gap-3">
@@ -1540,7 +1540,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 )}
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col overscroll-y-contain [webkit-overflow-scrolling:touch]">
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col overscroll-y-contain [-webkit-overflow-scrolling:touch]">
                 {(isJasa || isRental) && (
                   <div className="lg:hidden p-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl flex flex-row items-center justify-between shadow-sm">
                     <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>

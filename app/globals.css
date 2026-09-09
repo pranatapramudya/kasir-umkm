@@ -25,20 +25,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* WhatsApp-Grade 120FPS Native Momentum Scrolling & Touch Engine */
+/* Clean Mobile Touch: Menghilangkan efek highlight tap tanpa memblokir gestur scroll */
 html, body {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: none;
 }
 
-/* Zero-Latency Native Scrolling Container */
+/* Native Momentum Scrolling Container */
 .overflow-y-auto, .overflow-x-auto, [data-scrollable] {
   -webkit-overflow-scrolling: touch !important;
   overscroll-behavior-y: contain;
-  scroll-behavior: auto !important;
-  transform: translateZ(0);
 }
 
 button, a, input, select, textarea, [role="button"] {
