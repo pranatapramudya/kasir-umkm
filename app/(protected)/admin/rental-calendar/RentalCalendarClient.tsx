@@ -55,7 +55,13 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
   const { data, mutate, isLoading } = useSWR<{ bookings: Booking[] }>(
     tenantId ? ["/api/booking/calendar", tenantId] : null,
     (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then((res) => res.json()),
-    { fallbackData: { bookings: initialBookings }, keepPreviousData: true }
+    {
+      fallbackData: { bookings: initialBookings },
+      keepPreviousData: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
   );
   
   const calendarBookings = data?.bookings || [];

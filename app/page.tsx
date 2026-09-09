@@ -21,7 +21,7 @@ export default function LandingPage() {
           <div className="w-full max-w-md bg-white border border-slate-100 shadow-xl rounded-[2.5rem] p-8 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden">
 
             <div className="flex flex-col items-center mb-6">
-              <Link href="/superadmin" prefetch={false} className="cursor-pointer flex flex-col items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Portal Superadmin">
+              <Link href="/superadmin" prefetch={true} className="cursor-pointer flex flex-col items-center gap-3 hover:opacity-80 transition-opacity" aria-label="Portal Superadmin">
                 <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center" aria-hidden="true">
                   <Store className="w-7 h-7 text-blue-600" />
                 </div>
@@ -35,12 +35,12 @@ export default function LandingPage() {
             <p className="text-slate-600 font-medium text-center mb-10">Akses dasbor manajemen Anda untuk memegang kendali penuh atas operasional bisnis.</p>
 
             <div className="w-full space-y-3">
-              <Link href="/sign-in?redirect_url=/auth-callback" prefetch={false} className="w-full block py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all border-0 flex items-center justify-center gap-2 text-lg active:scale-95" aria-label="Masuk sebagai Owner">
+              <Link href="/sign-in?redirect_url=/auth-callback" prefetch={true} className="w-full block py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all border-0 flex items-center justify-center gap-2 text-lg active:scale-95" aria-label="Masuk sebagai Owner">
                 Masuk (Owner) <ArrowRight className="w-5 h-5" aria-hidden="true" />
               </Link>
 
               <div>
-                <Link href="/sign-in?redirect_url=/auth-callback" prefetch={false} className="w-full block py-4 bg-white/50 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg active:scale-95" aria-label="Masuk sebagai Karyawan">
+                <Link href="/sign-in?redirect_url=/auth-callback" prefetch={true} className="w-full block py-4 bg-white/50 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-lg active:scale-95" aria-label="Masuk sebagai Karyawan">
                   Login sebagai Karyawan
                 </Link>
                 <p className="text-xs text-slate-600 text-center mt-2">
@@ -50,7 +50,7 @@ export default function LandingPage() {
             </div>
 
             <p className="text-center text-sm text-slate-600 mt-6">
-              Pemilik Bisnis Baru? <Link href="/sign-up?redirect_url=/onboarding" prefetch={false} className="text-blue-600 font-semibold hover:underline" aria-label="Daftar Toko Baru">Daftar Toko di sini</Link>
+              Pemilik Bisnis Baru? <Link href="/sign-up?redirect_url=/onboarding" prefetch={true} className="text-blue-600 font-semibold hover:underline" aria-label="Daftar Toko Baru">Daftar Toko di sini</Link>
             </p>
           </div>
 

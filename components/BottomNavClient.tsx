@@ -168,7 +168,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
 
       {/* MORE DRAWER (BOTTOM SHEET) */}
       {moreItems.length > 0 && isMoreOpen && (
-        <div className="fixed inset-0 z-30 flex items-end justify-center lg:hidden">
+        <div className="fixed inset-0 z-30 flex items-end justify-center lg:hidden print:hidden">
           <div
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setIsMoreOpen(false)}

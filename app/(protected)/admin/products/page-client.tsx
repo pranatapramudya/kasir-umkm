@@ -40,7 +40,13 @@ const fetcher = async (args: string | [string, string]) => {
   return res.json();
 };
 
-export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsaha: string }) {
+export default function AdminProductsClientPage({
+  kategoriUsaha,
+  initialData,
+}: {
+  kategoriUsaha: string;
+  initialData?: { products: Product[]; totalPages: number };
+}) {
   const { user } = useUser();
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
@@ -65,7 +71,19 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
   const [importFile, setImportFile] = useState<File | null>(null);
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
-  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher, { keepPreviousData: true });
+  const isInitialPage = currentPage === 1 && !searchQuery && selectedCategory === "Semua";
+
+  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(
+    queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
+    fetcher,
+    {
+      fallbackData: isInitialPage ? initialData : undefined,
+      keepPreviousData: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
+  );
 
   const products = data?.products || [];
   const totalPages = data?.totalPages || 1;
@@ -355,20 +373,32 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
 
   const confirmDelete = async () => {
     if (!productToDelete) return;
+    const targetId = productToDelete;
+    setProductToDelete(null);
 
-    try {
-      const res = await fetch(`/api/products/${productToDelete}`, { method: 'DELETE' });
-      const result = await res.json();
-
-      if (!res.ok) throw new Error(result.error || 'Gagal menghapus');
-
-      toast.success('Produk berhasil dihapus');
-      mutate();
-    } catch (err: any) {
+    // Optimistic UI: langsung hapus produk dari UI lokal dalam waktu < 50ms
+    mutate(
+      async (current) => {
+        const res = await fetch(`/api/products/${targetId}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Gagal menghapus');
+        toast.success('Produk berhasil dihapus');
+        return {
+          products: (current?.products || []).filter(p => p.id !== targetId),
+          totalPages: current?.totalPages || 1
+        };
+      },
+      {
+        optimisticData: (current) => ({
+          products: (current?.products || []).filter(p => p.id !== targetId),
+          totalPages: current?.totalPages || 1
+        }),
+        rollbackOnError: true,
+        revalidate: true,
+      }
+    ).catch((err: any) => {
       toast.error(humanizeError(err));
-    } finally {
-      setProductToDelete(null);
-    }
+    });
   };
 
   const handleQuickRestock = async (e: React.FormEvent) => {
@@ -381,25 +411,42 @@ export default function AdminProductsClientPage({ kategoriUsaha }: { kategoriUsa
       return;
     }
 
-    setIsRestocking(true);
-    try {
-      const res = await fetch(`/api/products/${quickRestockProduct.id}/stock`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount })
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Gagal menambah stok');
+    const targetProduct = quickRestockProduct;
+    setQuickRestockProduct(null);
+    setQuickRestockAmount('');
 
-      toast.success(`Stok ${quickRestockProduct.name} berhasil ditambahkan!`);
-      mutate();
-      setQuickRestockProduct(null);
-      setQuickRestockAmount('');
-    } catch (err: any) {
+    // Optimistic UI: langsung perbarui stok di UI lokal dalam waktu < 50ms
+    mutate(
+      async (current) => {
+        setIsRestocking(true);
+        try {
+          const res = await fetch(`/api/products/${targetProduct.id}/stock`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount })
+          });
+          const result = await res.json();
+          if (!res.ok) throw new Error(result.error || 'Gagal menambah stok');
+          toast.success(`Stok ${targetProduct.name} berhasil ditambahkan!`);
+          return {
+            products: (current?.products || []).map(p => p.id === targetProduct.id ? { ...p, stock: p.stock + amount } : p),
+            totalPages: current?.totalPages || 1
+          };
+        } finally {
+          setIsRestocking(false);
+        }
+      },
+      {
+        optimisticData: (current) => ({
+          products: (current?.products || []).map(p => p.id === targetProduct.id ? { ...p, stock: p.stock + amount } : p),
+          totalPages: current?.totalPages || 1
+        }),
+        rollbackOnError: true,
+        revalidate: true,
+      }
+    ).catch((err: any) => {
       toast.error(humanizeError(err));
-    } finally {
-      setIsRestocking(false);
-    }
+    });
   };
 
   const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);

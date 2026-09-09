@@ -92,7 +92,16 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
   const fetcher = (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then(r => r.json());
   const { user } = useUser();
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
-  const { data, error, isLoading } = useSWR(isOpen && currentTenantId ? [`/api/booking/today?date=${selectedQueueDate}`, currentTenantId as string] : null, fetcher, { keepPreviousData: true });
+  const { data, error, isLoading } = useSWR(
+    isOpen && currentTenantId ? [`/api/booking/today?date=${selectedQueueDate}`, currentTenantId as string] : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
+  );
 
   if (!isOpen) return null;
 
@@ -216,6 +225,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     return t ? t.name : id;
   };
 
+  // State Ukuran Kertas Cetak
+  const [documentPaperSize, setDocumentPaperSize] = useState<'A4' | 'A5'>('A4');
+  const [thermalPaperSize, setThermalPaperSize] = useState<'58mm' | '80mm'>('58mm');
+
+  useEffect(() => {
+    const savedDocSize = localStorage.getItem('kasir_doc_paper_size') as 'A4' | 'A5';
+    if (savedDocSize && (savedDocSize === 'A4' || savedDocSize === 'A5')) {
+      setDocumentPaperSize(savedDocSize);
+    }
+    const savedThermalSize = localStorage.getItem('kasir_thermal_paper_size') as '58mm' | '80mm';
+    if (savedThermalSize && (savedThermalSize === '58mm' || savedThermalSize === '80mm')) {
+      setThermalPaperSize(savedThermalSize);
+    }
+  }, []);
+
   // State Rental & Travel
   const [isRentalFormModalOpen, setIsRentalFormModalOpen] = useState(false);
   const [rentalMode, setRentalMode] = useState<'property' | 'vehicle'>('vehicle');
@@ -264,7 +288,13 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const { data: swrResponse, error, mutate } = useSWR<{ products: Product[], totalPages: number }>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
-    { fallbackData: initialData, keepPreviousData: true }
+    {
+      fallbackData: initialData,
+      keepPreviousData: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
   );
 
   const products = swrResponse?.products || [];
@@ -276,7 +306,13 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   // Fetch data karyawan (khusus untuk Jasa)
   const { data: employeesData } = useSWR<{ success: boolean, employees: Employee[] }>(
     isJasa && currentTenantId ? ['/api/employees', currentTenantId as string] : null,
-    fetcher
+    fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      keepPreviousData: true
+    }
   );
   const employees = employeesData?.employees || [];
 
@@ -633,8 +669,27 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       setLastTransaction(newTransaction);
       setIsModalOpen(true); // Tampilkan modal sukses
 
-      // Sinkronisasi stok real-time (Bypass Cache)
-      mutate();
+      // Optimistic UI: Kurangi stok lokal secara instan (<50ms)
+      mutate(
+        (current) => {
+          if (!current) return current;
+          const cartItemMap = new Map<number, number>();
+          cart.forEach(item => {
+            cartItemMap.set(item.id, (cartItemMap.get(item.id) || 0) + item.qty);
+          });
+          return {
+            ...current,
+            products: current.products.map(p => {
+              const boughtQty = cartItemMap.get(p.id) || 0;
+              if (boughtQty > 0 && !isJasa) {
+                return { ...p, stock: Math.max(0, p.stock - boughtQty) };
+              }
+              return p;
+            })
+          };
+        },
+        { revalidate: true }
+      );
 
     } catch (err: any) {
       if (!navigator.onLine || err.message === 'Failed to fetch') {
@@ -1468,11 +1523,76 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               <h2 className="text-xl font-black mb-2 text-slate-800">Pembayaran Berhasil!</h2>
               <p className="text-sm text-gray-500 mb-6">Terima kasih atas pesanan Anda. Silakan cetak struk untuk pelanggan.</p>
               <div className="space-y-3">
+                {/* Selector Ukuran Kertas Dinamis */}
+                {(isRental || isJasa) ? (
+                  <div className="flex items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold mb-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDocumentPaperSize('A4');
+                        localStorage.setItem('kasir_doc_paper_size', 'A4');
+                      }}
+                      className={`flex-1 py-1.5 px-2 rounded-lg transition-all ${
+                        documentPaperSize === 'A4'
+                          ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      📄 A4 (Standar)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDocumentPaperSize('A5');
+                        localStorage.setItem('kasir_doc_paper_size', 'A5');
+                      }}
+                      className={`flex-1 py-1.5 px-2 rounded-lg transition-all ${
+                        documentPaperSize === 'A5'
+                          ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      📑 A5 (Kompak)
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold mb-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setThermalPaperSize('58mm');
+                        localStorage.setItem('kasir_thermal_paper_size', '58mm');
+                      }}
+                      className={`flex-1 py-1.5 px-2 rounded-lg transition-all ${
+                        thermalPaperSize === '58mm'
+                          ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      🧾 58mm (Standar)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setThermalPaperSize('80mm');
+                        localStorage.setItem('kasir_thermal_paper_size', '80mm');
+                      }}
+                      className={`flex-1 py-1.5 px-2 rounded-lg transition-all ${
+                        thermalPaperSize === '80mm'
+                          ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      🧾 80mm (Lebar)
+                    </button>
+                  </div>
+                )}
+
                 <button
                   onClick={() => printReceipt('customer')}
                   className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  🖨️ Cetak Struk
+                  {(isRental || isJasa) ? '🖨️ Cetak Dokumen / Invoice' : '🖨️ Cetak Struk Kasir'}
                 </button>
                 {/* Tombol Bluetooth Printer */}
                 {isBluetoothSupported() ? (
@@ -1514,24 +1634,34 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         )}
       </div>
 
-      {/* STRUK KASIR (HANYA TAMPIL SAAT DIPRINT) */}
-      {!isRental ? (
-        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} w-[80mm] max-w-[80mm] mx-auto overflow-hidden p-4 bg-white text-black text-xs font-mono`}>
+      {/* STRUK KASIR & DOKUMEN CETAK (HANYA TAMPIL SAAT DIPRINT) */}
+      {(!isRental && !isJasa) ? (
+        /* RETAIL & FNB: FORMAT THERMAL (58mm / 80mm) */
+        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black text-[11px] leading-tight font-mono`}>
           <style>{`
             @media print {
-              @page { size: 80mm 297mm; margin: 0; }
-              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              @page { size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; margin: 0; }
+              html, body {
+                width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
             }
           `}</style>
-          <div className="text-center mb-4 border-b border-dashed border-gray-400 pb-4">
-            <h1 className="text-lg font-bold uppercase mb-1">{tenantName || "PJTECH KASIR POS"}</h1>
-            {tenantCategory && <p className="mb-1 text-[10px] uppercase font-bold">{tenantCategory}</p>}
-            <p>Telp: {tenantPhone || "-"}</p>
+          <div className="text-center mb-3 border-b border-dashed border-gray-400 pb-3">
+            <h1 className="text-sm font-bold uppercase mb-0.5">{tenantName || "PJTECH KASIR POS"}</h1>
+            {tenantCategory && <p className="mb-0.5 text-[9px] uppercase font-bold text-gray-700">{tenantCategory}</p>}
+            <p className="text-[10px]">Telp: {tenantPhone || "-"}</p>
           </div>
 
           {lastTransaction && (
             <>
-              <div className="mb-4">
+              <div className="mb-3 space-y-0.5 text-[10px]">
                 <p>Waktu : {lastTransaction.date} {lastTransaction.time}</p>
                 <p>Kasir : {user?.fullName || user?.firstName || 'Admin'}</p>
                 <p>Pelanggan : {lastTransaction.customerName}</p>
@@ -1540,7 +1670,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               </div>
 
               <div className="border-b border-dashed border-gray-400 pb-2 mb-2">
-                <table className="w-full text-left">
+                <table className="w-full text-left text-[11px] leading-tight">
                   <thead>
                     <tr className="border-b border-gray-300">
                       <th className="pb-1 font-normal w-1/2">Item</th>
@@ -1551,19 +1681,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   <tbody>
                     {lastTransaction.items.map(item => (
                       <React.Fragment key={item.cartItemId || item.id}>
-                        <tr>
-                          <td className="pt-2">{item.name}</td>
-                          <td className="pt-2 text-center">{item.qty}</td>
-                          <td className="pt-2 text-right">{formatRupiah(item.hargaJual * item.qty)}</td>
+                        <tr className="break-inside-avoid print:break-inside-avoid">
+                          <td className="pt-1.5 pr-1">{item.name}</td>
+                          <td className="pt-1.5 text-center whitespace-nowrap">{item.qty}</td>
+                          <td className="pt-1.5 text-right whitespace-nowrap">{formatRupiah(item.hargaJual * item.qty)}</td>
                         </tr>
                         {item.workerId && (
-                          <tr>
-                            <td colSpan={3} className="text-gray-600 text-[10px] pl-2">(Oleh: {item.workerId === 'admin_owner' ? 'Admin/Pemilik' : (employees.find((e: any) => e.id === item.workerId)?.name || item.workerId)})</td>
+                          <tr className="break-inside-avoid print:break-inside-avoid">
+                            <td colSpan={3} className="text-gray-600 text-[9px] pl-1.5">
+                              (Oleh: {item.workerId === 'admin_owner' ? 'Admin/Pemilik' : (employees.find((e: any) => e.id === item.workerId)?.name || item.workerId)})
+                            </td>
                           </tr>
                         )}
                         {item.note && (
-                          <tr>
-                            <td colSpan={3} className="text-gray-500 italic pl-2">- {item.note}</td>
+                          <tr className="break-inside-avoid print:break-inside-avoid">
+                            <td colSpan={3} className="text-gray-500 italic pl-1.5 text-[9px]">* {item.note}</td>
                           </tr>
                         )}
                       </React.Fragment>
@@ -1572,26 +1704,26 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </table>
               </div>
 
-              <div className="space-y-1 mb-4">
+              <div className="space-y-0.5 mb-3 text-[11px]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span>{formatRupiah(lastTransaction.items.reduce((acc, i) => acc + i.hargaJual * i.qty, 0))}</span>
                 </div>
-                <div className="flex justify-between font-bold text-sm mt-2 pt-2 border-t border-dashed border-gray-400">
+                <div className="flex justify-between font-bold text-xs mt-1.5 pt-1.5 border-t border-dashed border-gray-400">
                   <span>Total Belanja</span>
                   <span>{formatRupiah(lastTransaction.total)}</span>
                 </div>
-                <div className="flex justify-between mt-1">
+                <div className="flex justify-between mt-1 text-[10px]">
                   <span>Metode</span>
-                  <span className="uppercase">{lastTransaction.method}</span>
+                  <span className="uppercase font-semibold">{lastTransaction.method}</span>
                 </div>
                 {lastTransaction.method === 'cash' && (
                   <>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-[10px]">
                       <span>Tunai</span>
                       <span>{formatRupiah(parseInt(cashGiven.replace(/[^0-9]/g, '') || "0"))}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-[10px]">
                       <span>Kembalian</span>
                       <span>{formatRupiah(parseInt(cashGiven.replace(/[^0-9]/g, '') || "0") - lastTransaction.total)}</span>
                     </div>
@@ -1599,64 +1731,75 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 )}
               </div>
 
-              <div className="text-center mt-6 pt-4 border-t border-dashed border-gray-400">
+              <div className="text-center mt-4 pt-3 border-t border-dashed border-gray-400 text-[10px] break-inside-avoid print:break-inside-avoid">
                 <p className="font-bold">Terima Kasih!</p>
                 <p>Silakan berkunjung kembali</p>
-                <p className="mt-4 text-[10px]">Powered by PJTECH</p>
+                <p className="mt-2 text-[8px] text-gray-400">Powered by PJTECH</p>
               </div>
             </>
           )}
         </div>
       ) : (
-        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'}`}>
+        /* RENTAL & JASA: FORMAT A4 / A5 DOKUMEN */
+        <div className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} ${documentPaperSize === 'A5' ? 'print:w-[148mm] print:min-w-[148mm] print:max-w-[148mm]' : 'print:w-[210mm] print:min-w-[210mm] print:max-w-[210mm]'} mx-auto`}>
           <InvoiceRentalA4
             tenantName={tenantName || ""}
             tenantCategory={tenantCategory || ""}
             tenantPhone={tenantPhone || ""}
             transaction={lastTransaction}
             user={user}
+            paperSize={documentPaperSize}
           />
         </div>
       )}
 
       {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT) */}
-      <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} w-[80mm] max-w-[80mm] mx-auto overflow-hidden p-4 bg-white text-black font-mono`}>
+      <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black font-mono`}>
         <style>{`
           @media print {
-            @page { size: 80mm 297mm; margin: 0; }
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            @page { size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; margin: 0; }
+            html, body {
+              width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+              min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #000000 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
           }
         `}</style>
         {lastTransaction && (
           <>
-            <div className="text-center mb-6 border-b-2 border-black pb-4">
-              <h1 className="text-2xl font-black uppercase mb-2">PESANAN DAPUR</h1>
-              <h2 className="text-3xl font-black">{lastTransaction.tableId ? `MEJA ${getTableName(lastTransaction.tableId)}` : 'TAKEAWAY'}</h2>
+            <div className="text-center mb-4 border-b-2 border-black pb-2">
+              <h1 className="text-xl font-black uppercase mb-1">PESANAN DAPUR</h1>
+              <h2 className="text-2xl font-black">{lastTransaction.tableId ? `MEJA ${getTableName(lastTransaction.tableId)}` : 'TAKEAWAY'}</h2>
             </div>
 
-            <div className="mb-6">
-              <p className="text-sm font-bold">Waktu: {lastTransaction.date} {lastTransaction.time}</p>
-              <p className="text-sm font-bold">ID: {lastTransaction.id}</p>
+            <div className="mb-4 text-xs">
+              <p className="font-bold">Waktu: {lastTransaction.date} {lastTransaction.time}</p>
+              <p className="font-bold">ID: {lastTransaction.id}</p>
             </div>
 
-            <div className="border-b-2 border-black pb-4 mb-4">
+            <div className="border-b-2 border-black pb-3 mb-3">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b-2 border-black">
-                    <th className="pb-2 font-black text-lg w-3/4">Item</th>
-                    <th className="pb-2 font-black text-lg text-center w-1/4">Qty</th>
+                  <tr className="border-b-2 border-black text-xs font-black">
+                    <th className="pb-1.5 w-3/4">Item</th>
+                    <th className="pb-1.5 text-center w-1/4">Qty</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-200">
                   {lastTransaction.items.map(item => (
                     <React.Fragment key={item.id}>
-                      <tr>
-                        <td className="pt-4 font-black text-xl leading-tight pr-2">{item.name}</td>
-                        <td className="pt-4 font-black text-2xl text-center">{item.qty}</td>
+                      <tr className="break-inside-avoid print:break-inside-avoid">
+                        <td className="pt-2 font-black text-sm leading-tight pr-1">{item.name}</td>
+                        <td className="pt-2 font-black text-base text-center">{item.qty}</td>
                       </tr>
                       {item.note && (
-                        <tr>
-                          <td colSpan={2} className="text-lg italic font-bold pb-2 pt-1 uppercase">* Note: {item.note}</td>
+                        <tr className="break-inside-avoid print:break-inside-avoid">
+                          <td colSpan={2} className="text-xs italic font-bold pb-1 text-gray-700 uppercase">* Note: {item.note}</td>
                         </tr>
                       )}
                     </React.Fragment>
@@ -1664,8 +1807,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </tbody>
               </table>
             </div>
-            <div className="text-center mt-8">
-              <p className="text-sm font-bold">--- AKHIR PESANAN ---</p>
+            <div className="text-center mt-4 text-xs font-bold break-inside-avoid print:break-inside-avoid">
+              <p>--- AKHIR PESANAN ---</p>
             </div>
           </>
         )}

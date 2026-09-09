@@ -20,7 +20,9 @@ export function CopyBookingLinkButton({ initialSlug, className = "" }: Props) {
   const { data } = useSWR('/api/tenant/slug', fetcher, {
     fallbackData: initialSlug ? { slug: initialSlug } : undefined,
     revalidateOnFocus: false,
-    dedupingInterval: 30000,
+    revalidateIfStale: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000,
   });
 
   const [copied, setCopied] = useState(false);

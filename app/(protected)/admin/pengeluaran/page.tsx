@@ -52,7 +52,12 @@ export default function PengeluaranPage() {
   const { data: expenses, error, isLoading } = useSWR<Expense[]>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
-    { keepPreviousData: true }
+    {
+      keepPreviousData: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
   );
   
   const [isModalOpen, setIsModalOpen] = useState(false);

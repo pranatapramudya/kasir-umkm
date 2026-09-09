@@ -28,7 +28,12 @@ export default function ManajemenMejaPage() {
   const { data: tables, error, isLoading, mutate } = useSWR<DiningTable[]>(
     currentTenantId ? ['/api/tables', currentTenantId as string] : null, 
     fetcher,
-    { keepPreviousData: true }
+    {
+      keepPreviousData: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
   );
   
   const [isModalOpen, setIsModalOpen] = useState(false);

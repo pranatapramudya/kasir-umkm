@@ -62,7 +62,10 @@ export default function AdminDashboardClient({
     fetcher,
     { 
       keepPreviousData: true,
-      fallbackData: isInitialFilter ? initialData : undefined
+      fallbackData: isInitialFilter ? initialData : undefined,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
     }
   );
 

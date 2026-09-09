@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { detectRentalItemType } from "@/lib/business-category";
 
+import { useSWRConfig } from "swr";
+
 interface BookingItem {
   id: string;
   customerName: string;
@@ -21,44 +23,77 @@ interface BookingItem {
 export default function InboxClient({ initialOrders, isJasa }: { initialOrders: BookingItem[], isJasa?: boolean }) {
   const [orders, setOrders] = useState<BookingItem[]>(initialOrders);
   const router = useRouter();
+  const { mutate } = useSWRConfig();
 
   const [finishingOrder, setFinishingOrder] = useState<BookingItem | null>(null);
   const [overtimeFee, setOvertimeFee] = useState<string>("0");
   const [isFinishing, setIsFinishing] = useState(false);
 
+  // Optimistic UI (<50ms): Perbarui tampilan seketika, rollback jika gagal
   const handleApprove = async (id: string) => {
-    toast.loading("Memproses persetujuan...", { id: "approve" });
-    const res = await approveOrder(id);
-    if (res.success) {
-      toast.success("Pesanan disetujui!", { id: "approve" });
-      setOrders(orders.map(o => o.id === id ? { ...o, status: "COMPLETED" } : o));
-      router.refresh();
-    } else {
-      toast.error("Gagal menyetujui pesanan", { id: "approve" });
+    const previousOrders = [...orders];
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "COMPLETED" } : o));
+    mutate(
+      key => Array.isArray(key) ? key[0]?.includes?.('/api/booking/pending-count') : typeof key === 'string' && key.includes('/api/booking/pending-count'),
+      (current: any) => current ? { count: Math.max(0, current.count - 1) } : current,
+      false
+    );
+
+    try {
+      const res = await approveOrder(id);
+      if (res.success) {
+        toast.success("Pesanan disetujui!");
+        router.refresh();
+      } else {
+        setOrders(previousOrders);
+        toast.error("Gagal menyetujui pesanan");
+      }
+    } catch {
+      setOrders(previousOrders);
+      toast.error("Terjadi kesalahan jaringan");
     }
   };
 
   const handleStart = async (id: string) => {
-    toast.loading("Memproses...", { id: "start" });
-    const res = await startOrder(id);
-    if (res.success) {
-      toast.success("Sewa dimulai!", { id: "start" });
-      setOrders(orders.map(o => o.id === id ? { ...o, status: "IN_PROGRESS" } : o));
-      router.refresh();
-    } else {
-      toast.error("Gagal memproses", { id: "start" });
+    const previousOrders = [...orders];
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "IN_PROGRESS" } : o));
+
+    try {
+      const res = await startOrder(id);
+      if (res.success) {
+        toast.success("Sewa dimulai!");
+        router.refresh();
+      } else {
+        setOrders(previousOrders);
+        toast.error("Gagal memproses sewa");
+      }
+    } catch {
+      setOrders(previousOrders);
+      toast.error("Terjadi kesalahan jaringan");
     }
   };
 
   const handleReject = async (id: string) => {
-    toast.loading("Menolak pesanan...", { id: "reject" });
-    const res = await rejectOrder(id);
-    if (res.success) {
-      toast.success("Pesanan berhasil ditolak.", { id: "reject" });
-      setOrders(orders.filter(o => o.id !== id));
-      router.refresh();
-    } else {
-      toast.error("Gagal menolak pesanan", { id: "reject" });
+    const previousOrders = [...orders];
+    setOrders(prev => prev.filter(o => o.id !== id));
+    mutate(
+      key => Array.isArray(key) ? key[0]?.includes?.('/api/booking/pending-count') : typeof key === 'string' && key.includes('/api/booking/pending-count'),
+      (current: any) => current ? { count: Math.max(0, current.count - 1) } : current,
+      false
+    );
+
+    try {
+      const res = await rejectOrder(id);
+      if (res.success) {
+        toast.success("Pesanan berhasil ditolak.");
+        router.refresh();
+      } else {
+        setOrders(previousOrders);
+        toast.error("Gagal menolak pesanan");
+      }
+    } catch {
+      setOrders(previousOrders);
+      toast.error("Terjadi kesalahan jaringan");
     }
   };
 

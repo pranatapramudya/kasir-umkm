@@ -192,7 +192,13 @@ export default function BookingDashboardClient({
   const { data: bookingsData, mutate: mutateBookings, isLoading } = useSWR<{ bookings: Booking[] }>(
     tenantId ? ["/api/booking", tenantId] : null,
     (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then((res) => res.json()),
-    { fallbackData: { bookings: initialBookings }, keepPreviousData: true }
+    {
+      fallbackData: { bookings: initialBookings },
+      keepPreviousData: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false
+    }
   );
   
   const bookings = bookingsData?.bookings || [];

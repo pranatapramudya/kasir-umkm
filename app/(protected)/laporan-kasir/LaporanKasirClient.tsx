@@ -36,7 +36,10 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
     
     const { data, error, isLoading } = useSWR(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher, { 
         fallbackData: isInitialParams ? initialData : undefined,
-        keepPreviousData: true
+        keepPreviousData: true,
+        revalidateIfStale: false,
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false
     });
 
     const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);

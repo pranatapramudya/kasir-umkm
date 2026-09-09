@@ -23,5 +23,21 @@ export default async function AdminProductsPage() {
 
   const kategoriUsaha = tenant?.category || "Retail";
 
-  return <AdminProductsClientPage kategoriUsaha={kategoriUsaha} />;
+  const [products, totalCount] = await Promise.all([
+    prisma.product.findMany({
+      where: { userId: targetUserId, isArchived: false },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    }),
+    prisma.product.count({
+      where: { userId: targetUserId, isArchived: false },
+    }),
+  ]);
+
+  const initialData = {
+    products,
+    totalPages: Math.max(1, Math.ceil(totalCount / 10)),
+  };
+
+  return <AdminProductsClientPage kategoriUsaha={kategoriUsaha} initialData={initialData} />;
 }
