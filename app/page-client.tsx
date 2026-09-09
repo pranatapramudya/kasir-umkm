@@ -25,9 +25,7 @@ const PrinterHelpModal = nextDynamic(() => import('@/components/PrinterHelpModal
 const FnbModifierModal = nextDynamic(() => import('@/components/FnbModifierModal'), {
   ssr: false,
 });
-const InvoiceRentalA4 = nextDynamic(() => import('@/components/InvoiceRentalA4'), {
-  ssr: false,
-});
+import InvoiceRentalA4 from '@/components/InvoiceRentalA4';
 
 export const dynamic = 'force-dynamic';
 
@@ -791,17 +789,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const printReceipt = (type: 'customer' | 'kitchen' = 'customer') => {
     setPrintType(type);
 
-    // Dynamic viewport meta handling for mobile devices (iOS Safari & Android Chrome)
+    const isDoc = (isRental || isJasa) && rentalPrintFormat === 'document';
     const viewportMeta = document.querySelector('meta[name="viewport"]');
     const originalViewport = viewportMeta?.getAttribute('content') || 'width=device-width, initial-scale=1';
 
-    // Temporary widen viewport on mobile to prevent narrow strip / auto-shrink distortion
-    if (viewportMeta) {
+    // Hanya ubah viewport ke 1024 untuk dokumen A4/A5.
+    // JANGAN pernah ubah ke 1024 saat mencetak struk thermal (58mm/80mm) karena browser akan menganggapnya dokumen desktop A4!
+    if (viewportMeta && isDoc) {
       viewportMeta.setAttribute('content', 'width=1024, initial-scale=1');
     }
 
     const restoreViewport = () => {
-      if (viewportMeta) {
+      if (viewportMeta && isDoc) {
         viewportMeta.setAttribute('content', originalViewport);
       }
       window.removeEventListener('afterprint', restoreViewport);
@@ -809,12 +808,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
     window.addEventListener('afterprint', restoreViewport);
 
-    // Waktu tunggu aman untuk DOM reflow dan layout calculation di perangkat mobile
     requestAnimationFrame(() => {
       setTimeout(() => {
         window.print();
         setTimeout(restoreViewport, 1500);
-      }, 300);
+      }, isDoc ? 300 : 150);
     });
   };
 
@@ -866,40 +864,96 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         return;
       }
 
-      // Temporarily unhide offscreen if hidden in screen mode
-      const parent = element.parentElement;
-      const wasHidden = parent?.classList.contains('hidden');
-      if (parent && wasHidden) {
-        parent.classList.remove('hidden');
-        parent.style.position = 'fixed';
-        parent.style.left = '-9999px';
-        parent.style.top = '0';
-        parent.style.display = 'block';
-        parent.style.zIndex = '-9999';
+      // Buat offscreen capture container di area positif koordinat layar
+      const captureContainer = document.createElement('div');
+      captureContainer.style.position = 'fixed';
+      captureContainer.style.left = '0';
+      captureContainer.style.top = '0';
+      captureContainer.style.zIndex = '-99999';
+      captureContainer.style.pointerEvents = 'none';
+      captureContainer.style.opacity = '1';
+      captureContainer.style.background = '#ffffff';
+      captureContainer.style.overflow = 'visible';
+
+      // Kloning elemen target agar tidak mengganggu DOM aktif
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.id = 'active-image-capture-clone';
+      clone.classList.remove('hidden', 'print:hidden', 'print:block');
+      clone.style.display = 'block';
+      clone.style.visibility = 'visible';
+      clone.style.opacity = '1';
+
+      if (isDocument) {
+        const w = documentPaperSize === 'A5' ? 559 : 794;
+        clone.style.width = `${w}px`;
+        clone.style.minWidth = `${w}px`;
+        clone.style.maxWidth = `${w}px`;
+        clone.style.padding = documentPaperSize === 'A5' ? '25px 30px' : '40px 48px';
+      } else {
+        const w = thermalPaperSize === '80mm' ? 360 : 280;
+        clone.style.width = `${w}px`;
+        clone.style.minWidth = `${w}px`;
+        clone.style.maxWidth = `${w}px`;
+        clone.style.padding = '12px 14px';
       }
 
-      const canvas = await html2canvas(element, {
+      captureContainer.appendChild(clone);
+      document.body.appendChild(captureContainer);
+
+      // Tunggu 1 frame agar browser menyelesaikan kalkulasi tata letak dan font
+      await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 150)));
+
+      const canvas = await html2canvas(clone, {
         scale: 2.5,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
+        width: clone.offsetWidth,
+        height: clone.offsetHeight,
       });
 
-      if (parent && wasHidden) {
-        parent.classList.add('hidden');
-        parent.style.position = '';
-        parent.style.left = '';
-        parent.style.top = '';
-        parent.style.display = '';
-        parent.style.zIndex = '';
-      }
+      document.body.removeChild(captureContainer);
 
-      const filename = `${isDocument ? 'Invoice' : 'Struk'}-${lastTransaction.id}.png`;
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      toast.success(`Berhasil mengunduh ${filename}!`, { id: toastId });
+      // Konversi canvas ke Blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          toast.error("Gagal memproses gambar berkas.", { id: toastId });
+          return;
+        }
+
+        const filename = `${isDocument ? 'Invoice' : 'Struk'}-${lastTransaction.id}.png`;
+        const file = new File([blob], filename, { type: 'image/png' });
+
+        // 1. Dukungan Web Share API untuk perangkat mobile (Android & iOS)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: filename,
+              text: `Bukti Transaksi #${lastTransaction.id} - ${tenantName || 'PJTECH UMKM'}`,
+            });
+            toast.success("Berhasil dibagikan!", { id: toastId });
+            return;
+          } catch (shareErr: any) {
+            if (shareErr.name === 'AbortError') {
+              toast.dismiss(toastId);
+              return;
+            }
+            console.warn("Share sheet dibatalkan/gagal, beralih ke unduh langsung:", shareErr);
+          }
+        }
+
+        // 2. Download via Object URL (Desktop & fallback mobile)
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        toast.success(`Berhasil mengunduh ${filename}!`, { id: toastId });
+      }, 'image/png');
     } catch (err) {
       console.error("Gagal mengunduh gambar:", err);
       toast.error("Gagal membuat gambar berkas.", { id: toastId });
@@ -1772,15 +1826,20 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         /* FORMAT THERMAL (58mm / 80mm) */
         <div
           id="receipt-thermal-print-target"
-          className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black text-[11px] leading-tight font-mono`}
+          style={{ boxSizing: 'border-box' }}
+          className={`hidden ${printType === 'customer' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black text-[11px] leading-tight font-mono box-border print:box-border print:m-0`}
         >
           <style>{`
             @media print {
-              @page { size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; margin: 0; }
+              @page { 
+                size: ${thermalPaperSize === '80mm' ? '80mm 297mm' : '58mm 210mm'}; 
+                margin: 0 !important; 
+              }
               html, body {
                 width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
                 min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-                margin: 0 !important;
+                max-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                margin: 0 auto !important;
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
@@ -1912,14 +1971,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       )}
 
       {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT) */}
-      <div className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black font-mono`}>
+      <div
+        style={{ boxSizing: 'border-box' }}
+        className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black font-mono box-border print:box-border print:m-0`}
+      >
         <style>{`
           @media print {
-            @page { size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; margin: 0; }
+            @page { 
+              size: ${thermalPaperSize === '80mm' ? '80mm 297mm' : '58mm 210mm'}; 
+              margin: 0 !important; 
+            }
             html, body {
               width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
               min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-              margin: 0 !important;
+              max-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+              margin: 0 auto !important;
               padding: 0 !important;
               background: #ffffff !important;
               color: #000000 !important;
