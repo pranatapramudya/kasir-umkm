@@ -49,8 +49,8 @@ export default function InvoiceRentalA4({
   const documentTitle = isProperty
     ? 'INVOICE SEWA PROPERTI & SURAT CHECK-IN'
     : isJasa
-    ? 'INVOICE LAYANAN & SURAT PERINTAH KERJA'
-    : 'INVOICE SEWA / SURAT JALAN';
+      ? 'INVOICE LAYANAN & SURAT PERINTAH KERJA'
+      : 'INVOICE SEWA / SURAT JALAN';
 
   // Durasi / Qty Unit Label
   const getQtyLabel = (qty: number) => {
@@ -63,24 +63,21 @@ export default function InvoiceRentalA4({
   return (
     <div
       id="invoice-a4-print-target"
-      style={{ boxSizing: 'border-box' }}
-      className={`bg-white text-black mx-auto ${
-        isA5
-          ? 'w-[148mm] min-w-[148mm] max-w-[148mm] p-4 print:p-[8mm_10mm]'
-          : 'w-[210mm] min-w-[210mm] max-w-[210mm] p-6 print:p-[12mm_15mm]'
-      } text-xs font-sans print:block print:m-0 print:shadow-none box-border print:box-border`}
+      className={`bg-white text-black p-6 mx-auto ${isA5
+          ? 'w-[148mm] min-w-[148mm] max-w-[148mm] print:w-[148mm] print:min-w-[148mm] print:max-w-[148mm]'
+          : 'w-[210mm] min-w-[210mm] max-w-[210mm] print:w-[210mm] print:min-w-[210mm] print:max-w-[210mm]'
+        } text-xs font-sans print:block print:m-0 print:p-0 print:shadow-none box-border print:box-border`}
     >
       <style>{`
         @media print { 
           @page { 
             size: ${isA5 ? 'A5 portrait' : 'A4 portrait'}; 
-            margin: 0 !important; 
+            margin: ${isA5 ? '6mm' : '8mm'}; 
           } 
           html, body { 
             width: ${containerWidth} !important;
             min-width: ${containerWidth} !important;
-            max-width: ${containerWidth} !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
@@ -91,7 +88,7 @@ export default function InvoiceRentalA4({
       `}</style>
 
       {/* Header */}
-      <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-5 break-inside-avoid print:break-inside-avoid">
+      <div className="flex justify-between items-start border-b-2 border-slate-800 pb-3 mb-4 break-inside-avoid print:break-inside-avoid">
         <div>
           <h1 className="text-2xl font-black uppercase text-slate-900 tracking-tight">
             {tenantName || 'PJTECH UMKM'}
@@ -119,15 +116,15 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Grid Informasi Penyewa & Detail Reservasi (Dipaksa 2 Kolom di Print) */}
-      <div className="grid grid-cols-2 print:grid-cols-2 gap-4 mb-6 print:gap-4 print:w-full print:grid break-inside-avoid print:break-inside-avoid">
+      <div className="grid grid-cols-2 print:grid-cols-2 gap-4 mb-3.5 print:gap-4 print:w-full print:grid break-inside-avoid print:break-inside-avoid">
         {/* Kolom Kiri: Informasi Customer */}
         <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
           <h3 className="font-bold text-slate-800 mb-2 uppercase text-[11px] tracking-wider border-b border-slate-200 pb-1.5">
             {isProperty
               ? 'Informasi Tamu / Penyewa'
               : isJasa
-              ? 'Informasi Pelanggan'
-              : 'Informasi Penyewa'}
+                ? 'Informasi Pelanggan'
+                : 'Informasi Penyewa'}
           </h3>
           <table className="w-full text-xs">
             <tbody>
@@ -163,8 +160,8 @@ export default function InvoiceRentalA4({
             {isProperty
               ? 'Detail Reservasi Kamar / Unit'
               : isJasa
-              ? 'Detail Layanan / Pengerjaan'
-              : 'Detail Reservasi Armada'}
+                ? 'Detail Layanan / Pengerjaan'
+                : 'Detail Reservasi Armada'}
           </h3>
           <table className="w-full text-xs">
             <tbody>
@@ -196,28 +193,28 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Tabel Item Unit / Armada / Layanan */}
-      <div className="mb-6 overflow-hidden rounded-xl border border-slate-200 break-inside-avoid print:break-inside-avoid">
+      <div className="mb-3.5 overflow-hidden rounded-xl border border-slate-200 break-inside-avoid print:break-inside-avoid">
         <table className="w-full text-xs text-left">
           <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
             <tr>
-              <th className="px-3.5 py-2.5">
+              <th className="px-3.5 py-2">
                 {isProperty ? 'Nama Kamar / Unit / Layanan' : isJasa ? 'Deskripsi Layanan / Pekerjaan' : 'Nama Unit / Armada / Barang'}
               </th>
-              <th className="px-3.5 py-2.5 text-right w-28">Durasi / Qty</th>
-              <th className="px-3.5 py-2.5 text-right w-28">Harga Satuan</th>
-              <th className="px-3.5 py-2.5 text-right w-32">Subtotal</th>
+              <th className="px-3.5 py-2 text-right w-28">Durasi / Qty</th>
+              <th className="px-3.5 py-2 text-right w-28">Harga Satuan</th>
+              <th className="px-3.5 py-2 text-right w-32">Subtotal</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {transaction.items?.map((item: any, i: number) => (
               <tr key={i} className="break-inside-avoid print:break-inside-avoid hover:bg-slate-50">
-                <td className="px-3.5 py-2.5 font-semibold text-slate-800">
+                <td className="px-3.5 py-2 font-semibold text-slate-800">
                   {item.name}
                   {item.note && <p className="text-[11px] text-slate-500 mt-0.5 italic">* {item.note}</p>}
                 </td>
-                <td className="px-3.5 py-2.5 text-right text-slate-600 whitespace-nowrap">{getQtyLabel(item.qty)}</td>
-                <td className="px-3.5 py-2.5 text-right text-slate-600 whitespace-nowrap">{formatRupiah(item.hargaJual)}</td>
-                <td className="px-3.5 py-2.5 text-right font-bold text-slate-800 whitespace-nowrap">
+                <td className="px-3.5 py-2 text-right text-slate-600 whitespace-nowrap">{getQtyLabel(item.qty)}</td>
+                <td className="px-3.5 py-2 text-right text-slate-600 whitespace-nowrap">{formatRupiah(item.hargaJual)}</td>
+                <td className="px-3.5 py-2 text-right font-bold text-slate-800 whitespace-nowrap">
                   {formatRupiah(item.qty * item.hargaJual)}
                 </td>
               </tr>
@@ -227,31 +224,31 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Ringkasan Biaya */}
-      <div className="flex justify-end mb-6 break-inside-avoid print:break-inside-avoid">
-        <div className="w-72 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
-          <div className="flex justify-between py-1">
+      <div className="flex justify-end mb-3.5 break-inside-avoid print:break-inside-avoid">
+        <div className="w-72 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+          <div className="flex justify-between py-0.5">
             <span className="text-slate-600">{isJasa ? 'Total Biaya Layanan' : 'Total Harga Sewa'}</span>
             <span className="font-semibold text-slate-900">{formatRupiah(transaction.total)}</span>
           </div>
           {transaction.downPayment > 0 && (
             <>
-              <div className="flex justify-between py-1">
+              <div className="flex justify-between py-0.5">
                 <span className="text-slate-600">Uang Muka (DP)</span>
                 <span className="font-semibold text-green-600">-{formatRupiah(transaction.downPayment)}</span>
               </div>
-              <div className="flex justify-between py-1 border-t border-slate-200 mt-1.5 pt-1.5">
+              <div className="flex justify-between py-0.5 border-t border-slate-200 mt-1 pt-1">
                 <span className="text-slate-800 font-bold">Sisa Tagihan</span>
                 <span className="font-black text-red-600">{formatRupiah(transaction.remainingBalance || 0)}</span>
               </div>
             </>
           )}
-          <div className="flex justify-between py-1.5 border-t border-slate-200 mt-1.5 pt-1.5 items-center">
+          <div className="flex justify-between py-1 border-t border-slate-200 mt-1 pt-1 items-center">
             <span className="text-slate-800 font-bold">Total Bayar</span>
             <span className="font-black text-blue-700 text-base">
               {formatRupiah(transaction.downPayment > 0 ? transaction.downPayment : transaction.total)}
             </span>
           </div>
-          <div className="flex justify-between py-1 mt-0.5 items-center">
+          <div className="flex justify-between py-0.5 mt-0.5 items-center">
             <span className="text-slate-500 text-[11px]">Metode Pembayaran</span>
             <span className="font-bold text-[11px] uppercase bg-slate-200 px-2 py-0.5 rounded text-slate-800">
               {transaction.method}
@@ -261,9 +258,9 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Footer Tanda Tangan */}
-      <div className="flex justify-between px-10 mt-8 pt-4 border-t border-slate-200 break-inside-avoid print:break-inside-avoid text-xs">
+      <div className="flex justify-between px-10 mt-4 pt-2.5 border-t border-slate-200 break-inside-avoid print:break-inside-avoid text-xs">
         <div className="text-center">
-          <p className="text-slate-500 mb-14">
+          <p className="text-slate-500 mb-9">
             {isProperty ? 'Tamu / Penyewa' : isJasa ? 'Pelanggan / Penerima Layanan' : 'Penyewa / Operator'}
           </p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-0.5 uppercase">
@@ -271,7 +268,7 @@ export default function InvoiceRentalA4({
           </p>
         </div>
         <div className="text-center">
-          <p className="text-slate-500 mb-14">
+          <p className="text-slate-500 mb-9">
             {isProperty ? 'Resepsionis / Pengelola' : isJasa ? 'Teknisi / Admin Kasir' : 'Admin / Petugas Kasir'}
           </p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-0.5 uppercase">
@@ -281,7 +278,7 @@ export default function InvoiceRentalA4({
       </div>
 
       {/* Catatan & Ketentuan */}
-      <div className="text-center mt-6 text-[10px] text-slate-400 break-inside-avoid print:break-inside-avoid">
+      <div className="text-center mt-3.5 text-[9px] text-slate-400 break-inside-avoid print:break-inside-avoid leading-relaxed">
         {isProperty ? (
           <>
             <p>Terima kasih telah menginap dan mempercayakan kenyamanan Anda bersama kami.</p>

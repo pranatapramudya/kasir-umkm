@@ -728,6 +728,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     setIsDownPayment(false);
     setDownPaymentInput("");
     setRentalInfo({ driverName: '', licensePlate: '', pickupLocation: '', dropoffLocation: '', startDate: '', endDate: '', guarantee: '' });
+    setPrintType('customer');
   };
 
   const sendWhatsAppReceipt = () => {
@@ -788,32 +789,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
   const printReceipt = (type: 'customer' | 'kitchen' = 'customer') => {
     setPrintType(type);
-
-    const isDoc = (isRental || isJasa) && rentalPrintFormat === 'document';
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
-    const originalViewport = viewportMeta?.getAttribute('content') || 'width=device-width, initial-scale=1';
-
-    // Hanya ubah viewport ke 1024 untuk dokumen A4/A5.
-    // JANGAN pernah ubah ke 1024 saat mencetak struk thermal (58mm/80mm) karena browser akan menganggapnya dokumen desktop A4!
-    if (viewportMeta && isDoc) {
-      viewportMeta.setAttribute('content', 'width=1024, initial-scale=1');
-    }
-
-    const restoreViewport = () => {
-      if (viewportMeta && isDoc) {
-        viewportMeta.setAttribute('content', originalViewport);
-      }
-      window.removeEventListener('afterprint', restoreViewport);
-    };
-
-    window.addEventListener('afterprint', restoreViewport);
-
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        window.print();
-        setTimeout(restoreViewport, 1500);
-      }, isDoc ? 300 : 150);
-    });
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   const handleBluetoothPrint = async () => {
@@ -1832,7 +1810,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           <style>{`
             @media print {
               @page { 
-                size: ${thermalPaperSize === '80mm' ? '80mm 297mm' : '58mm 210mm'}; 
+                size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; 
                 margin: 0 !important; 
               }
               html, body {
@@ -1970,73 +1948,75 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         </div>
       )}
 
-      {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT) */}
-      <div
-        style={{ boxSizing: 'border-box' }}
-        className={`hidden ${printType === 'kitchen' ? 'print:block' : 'print:hidden'} ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black font-mono box-border print:box-border print:m-0`}
-      >
-        <style>{`
-          @media print {
-            @page { 
-              size: ${thermalPaperSize === '80mm' ? '80mm 297mm' : '58mm 210mm'}; 
-              margin: 0 !important; 
+      {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT KITCHEN) */}
+      {printType === 'kitchen' && (
+        <div
+          style={{ boxSizing: 'border-box' }}
+          className={`print:block ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black font-mono box-border print:box-border print:m-0`}
+        >
+          <style>{`
+            @media print {
+              @page { 
+                size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; 
+                margin: 0 !important; 
+              }
+              html, body {
+                width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                max-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
             }
-            html, body {
-              width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-              min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-              max-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-              margin: 0 auto !important;
-              padding: 0 !important;
-              background: #ffffff !important;
-              color: #000000 !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-          }
-        `}</style>
-        {lastTransaction && (
-          <>
-            <div className="text-center mb-4 border-b-2 border-black pb-2">
-              <h1 className="text-xl font-black uppercase mb-1">PESANAN DAPUR</h1>
-              <h2 className="text-2xl font-black">{lastTransaction.tableId ? `MEJA ${getTableName(lastTransaction.tableId)}` : 'TAKEAWAY'}</h2>
-            </div>
+          `}</style>
+          {lastTransaction && (
+            <>
+              <div className="text-center mb-4 border-b-2 border-black pb-2">
+                <h1 className="text-xl font-black uppercase mb-1">PESANAN DAPUR</h1>
+                <h2 className="text-2xl font-black">{lastTransaction.tableId ? `MEJA ${getTableName(lastTransaction.tableId)}` : 'TAKEAWAY'}</h2>
+              </div>
 
-            <div className="mb-4 text-xs">
-              <p className="font-bold">Waktu: {lastTransaction.date} {lastTransaction.time}</p>
-              <p className="font-bold">ID: {lastTransaction.id}</p>
-            </div>
+              <div className="mb-4 text-xs">
+                <p className="font-bold">Waktu: {lastTransaction.date} {lastTransaction.time}</p>
+                <p className="font-bold">ID: {lastTransaction.id}</p>
+              </div>
 
-            <div className="border-b-2 border-black pb-3 mb-3">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b-2 border-black text-xs font-black">
-                    <th className="pb-1.5 w-3/4">Item</th>
-                    <th className="pb-1.5 text-center w-1/4">Qty</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {lastTransaction.items.map(item => (
-                    <React.Fragment key={item.id}>
-                      <tr className="break-inside-avoid print:break-inside-avoid">
-                        <td className="pt-2 font-black text-sm leading-tight pr-1">{item.name}</td>
-                        <td className="pt-2 font-black text-base text-center">{item.qty}</td>
-                      </tr>
-                      {item.note && (
+              <div className="border-b-2 border-black pb-3 mb-3">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b-2 border-black text-xs font-black">
+                      <th className="pb-1.5 w-3/4">Item</th>
+                      <th className="pb-1.5 text-center w-1/4">Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {lastTransaction.items.map(item => (
+                      <React.Fragment key={item.id}>
                         <tr className="break-inside-avoid print:break-inside-avoid">
-                          <td colSpan={2} className="text-xs italic font-bold pb-1 text-gray-700 uppercase">* Note: {item.note}</td>
+                          <td className="pt-2 font-black text-sm leading-tight pr-1">{item.name}</td>
+                          <td className="pt-2 font-black text-base text-center">{item.qty}</td>
                         </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="text-center mt-4 text-xs font-bold break-inside-avoid print:break-inside-avoid">
-              <p>--- AKHIR PESANAN ---</p>
-            </div>
-          </>
-        )}
-      </div>
+                        {item.note && (
+                          <tr className="break-inside-avoid print:break-inside-avoid">
+                            <td colSpan={2} className="text-xs italic font-bold pb-1 text-gray-700 uppercase">* Note: {item.note}</td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="text-center mt-4 text-xs font-bold break-inside-avoid print:break-inside-avoid">
+                <p>--- AKHIR PESANAN ---</p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
       {/* Printer Help Modal */}
       <PrinterHelpModal isOpen={isPrinterHelpOpen} onClose={() => setIsPrinterHelpOpen(false)} />
 
