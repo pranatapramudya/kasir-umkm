@@ -78,7 +78,7 @@ export default function AdminLayoutClient({
         )}
 
         {/* PAGE CONTENT */}
-        <main className={`${pathname.startsWith('/admin/pos') ? '' : 'p-6'} flex-1 overflow-y-auto relative print:h-auto print:overflow-visible`}>
+        <main className={`${pathname.startsWith('/admin/pos') ? 'overflow-hidden' : 'p-6 overflow-y-auto overscroll-y-contain'} flex-1 relative print:h-auto print:overflow-visible`}>
           {children}
         </main>
       </div>

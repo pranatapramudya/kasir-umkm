@@ -1540,7 +1540,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 )}
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col">
+              <div className="flex-1 overflow-y-auto p-4 bg-slate-50 pb-24 lg:pb-4 flex flex-col overscroll-y-contain [webkit-overflow-scrolling:touch]">
                 {(isJasa || isRental) && (
                   <div className="lg:hidden p-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl flex flex-row items-center justify-between shadow-sm">
                     <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
@@ -1560,7 +1560,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       <div
                         key={product.id}
                         onClick={() => !isOutOfStock && (isFNB ? openFnbModal(product) : addToCart(product))}
-                        className={`group relative rounded-xl border p-3 flex flex-col select-none touch-manipulation ${
+                        className={`group relative rounded-xl border p-3 flex flex-col select-none touch-manipulation transform-gpu ${
                           isOutOfStock
                             ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
                             : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
@@ -1580,12 +1580,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                           />
                           {(!isJasa && !isRental) && (
-                            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 ${isOutOfStock ? 'bg-red-600/90 text-white shadow-sm' : 'bg-black/60 text-white'}`}>
+                            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 ${isOutOfStock ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-900/85 text-white shadow-sm'}`}>
                               {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
                             </div>
                           )}
                           {(product.discount && product.discount > 0) ? (
-                            <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm z-10 bg-red-600/90 text-white shadow-sm">
+                            <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 bg-rose-600 text-white shadow-sm">
                               Promo
                             </div>
                           ) : null}
@@ -1624,7 +1624,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
         {/* STICKY BOTTOM BAR (Mobile Only) */}
         {!isMobileCartOpen && cart.length > 0 && (
-          <div className="fixed bottom-16 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] lg:hidden z-30 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="fixed bottom-16 left-0 right-0 p-4 bg-white/95 border-t shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] lg:hidden z-30 animate-in slide-in-from-bottom-5 duration-300">
             <button
               onClick={() => setIsMobileCartOpen(true)}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out rounded-2xl py-3.5 px-5 font-bold flex justify-between items-center active:scale-[0.98]"
