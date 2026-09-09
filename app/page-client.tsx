@@ -353,9 +353,15 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const addToCart = (product: Product, note?: string) => {
     const remaining = getRemainingStock(product);
     if (remaining <= 0) {
-      toast.error(`Stok ${product.name} telah habis!`);
+      toast.error(`Stok ${product.name} telah habis!`, { id: 'stock-error' });
       return;
     }
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(8);
+      }
+    } catch {}
 
     const finalPrice = (product.discount && product.discount > 0) ? product.hargaJual - product.discount : product.hargaJual;
     const cartProduct = { ...product, hargaJual: finalPrice };
@@ -376,7 +382,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       }
       return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note }];
     });
-    toast.success(`${product.name} ditambahkan ke keranjang!`);
+    toast.success(`+1 ${product.name}`, { id: 'cart-add-toast', duration: 1000 });
   };
 
   // --- AUDIO FEEDBACK & BARCODE SCANNER LOGIC ---
@@ -528,10 +534,15 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     if (delta > 0 && cartItem) {
       const remaining = cartItem.stock - cart.filter(i => i.id === cartItem.id).reduce((acc, curr) => acc + curr.qty, 0);
       if (remaining <= 0) {
-        toast.error(`Stok ${cartItem.name} tidak mencukupi!`);
+        toast.error(`Stok ${cartItem.name} tidak mencukupi!`, { id: 'stock-error' });
         return;
       }
     }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(6);
+      }
+    } catch {}
     setCart((prev) => prev.map((item) => item.cartItemId === cartItemId ? { ...item, qty: Math.max(0, item.qty + delta) } : item).filter((item) => item.qty > 0));
   };
 
@@ -1216,10 +1227,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
                 <div className="flex flex-row flex-wrap justify-between items-center mt-2 border-t pt-2 border-dashed border-gray-100 gap-2">
                   <p className="text-sm font-black text-blue-600">{formatRupiah(item.hargaJual * item.qty)}</p>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button onClick={() => updateQty(item.cartItemId, -1)} className="p-1.5 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 active:scale-95 transition-all text-gray-600"><Minus className="w-3 h-3" /></button>
+                  <div className="flex items-center gap-2 shrink-0 select-none">
+                    <button onClick={() => updateQty(item.cartItemId, -1)} className="p-1.5 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 active:scale-90 transition-transform duration-75 text-gray-600 touch-manipulation"><Minus className="w-3 h-3" /></button>
                     <span className="font-bold w-6 text-center text-sm">{item.qty}</span>
-                    <button onClick={() => updateQty(item.cartItemId, 1)} disabled={item.qty >= item.stock} className="p-1.5 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 active:scale-95 transition-all text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><Plus className="w-3 h-3" /></button>
+                    <button onClick={() => updateQty(item.cartItemId, 1)} disabled={item.qty >= item.stock} className="p-1.5 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 active:scale-90 transition-transform duration-75 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"><Plus className="w-3 h-3" /></button>
                   </div>
                 </div>
               </div>
@@ -1549,7 +1560,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       <div
                         key={product.id}
                         onClick={() => !isOutOfStock && (isFNB ? openFnbModal(product) : addToCart(product))}
-                        className={`group relative rounded-xl border p-3 flex flex-col transition-all duration-200 ${isOutOfStock ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90' : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500'}`}
+                        className={`group relative rounded-xl border p-3 flex flex-col select-none touch-manipulation ${
+                          isOutOfStock
+                            ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
+                            : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
+                        }`}
                       >
                         {isOutOfStock && (
                           <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-red-600">

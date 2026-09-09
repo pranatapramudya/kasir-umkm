@@ -35,6 +35,21 @@ button, a, input, select, textarea, [role="button"] {
   touch-action: manipulation;
 }
 
+button, [role="button"], a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* WhatsApp-Grade Instant Tactile Feedback */
+.btn-snappy {
+  transition: transform 75ms ease-out, opacity 75ms ease-out;
+  touch-action: manipulation;
+}
+.btn-snappy:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
 /* Reset Cetak Presisi Tinggi Multi-Device (Mobile, Tablet, Desktop) */
 @media print {
   html, body {

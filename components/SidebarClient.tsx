@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getNavigationMenu } from "@/lib/navigation";
 import { Store, HelpCircle } from "lucide-react";
@@ -18,8 +18,15 @@ interface SidebarClientProps {
 export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUsaha }: SidebarClientProps) {
   const kategoriUsaha = rawKategoriUsaha || 'Retail';
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isBukuPanduanOpen, setIsBukuPanduanOpen] = useState(false);
+  const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
+
+  // Sync optimistic indicator with confirmed pathname
+  useEffect(() => {
+    setOptimisticHref(null);
+  }, [pathname]);
 
   useEffect(() => {
     const handleToggle = () => setIsOpen(prev => !prev);
@@ -39,22 +46,45 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
 
   const filteredMenuGroups = getNavigationMenu(kategoriUsaha, role);
 
+  // Proactive Cache Warming: Preload all sidebar routes
+  useEffect(() => {
+    filteredMenuGroups.forEach(group => {
+      group.items.forEach(item => {
+        try {
+          router.prefetch(item.href);
+        } catch {}
+      });
+    });
+  }, [router, filteredMenuGroups]);
+
   // SWR Polling & Real-time Chime Alert
   const { pendingCount } = usePendingBookingCount(role);
+
+  const handleLinkClick = (href: string) => {
+    setOptimisticHref(href);
+    setIsOpen(false);
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+    } catch {}
+  };
+
+  const activePath = optimisticHref || pathname;
 
   return (
     <>
       {/* Overlay Backdrop untuk Mobile/Tablet Portrait */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-300"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       <aside className={`
-        fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r shadow-[4px_0_24px_-10px_rgba(0,0,0,0.05)] z-50 flex flex-col shrink-0
-        transition-transform duration-300 ease-in-out print:hidden
+        fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r shadow-[4px_0_24px_-10px_rgba(0,0,0,0.05)] z-50 flex flex-col shrink-0 select-none
+        transition-transform duration-200 ease-in-out print:hidden
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
       <div className="p-6 border-b border-slate-100">
@@ -72,7 +102,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
           <div className="px-4 -mt-2 mb-2">
             <button
               onClick={() => setIsBukuPanduanOpen(true)}
-              className="flex items-center justify-between px-4 py-3 w-full rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group"
+              className="flex items-center justify-between px-4 py-3 w-full rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-blue-100 rounded-lg group-hover:bg-blue-600 transition-colors">
@@ -94,21 +124,22 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
               <div className="space-y-1.5">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = pathname === item.href;
+                  const isActive = activePath === item.href;
 
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
                       prefetch={true}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150 font-semibold text-sm touch-manipulation active:scale-[0.97] ${isActive
+                      onClick={() => handleLinkClick(item.href)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-75 font-semibold text-sm touch-manipulation active:scale-[0.97] ${isActive
                         ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600 shadow-sm"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent active:bg-slate-100"
                         }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-3">
-                          <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
+                          <Icon className={`w-5 h-5 transition-colors duration-75 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
                           {item.name}
                         </div>
                         {(item.name === "Pesanan Online" || item.href === "/admin/orders" || item.href === "/admin/rental-calendar") && pendingCount > 0 && (

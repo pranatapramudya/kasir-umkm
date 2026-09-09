@@ -1,14 +1,14 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Grid,
   X,
   HelpCircle,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getNavigationMenu } from "@/lib/navigation";
 import { BukuPanduanModal } from "./BukuPanduanModal";
 import { usePendingBookingCount } from "@/hooks/usePendingBookingCount";
@@ -19,9 +19,16 @@ interface BottomNavClientProps {
 
 export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useUser();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isBukuPanduanOpen, setIsBukuPanduanOpen] = useState(false);
+  const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
+
+  // Sync optimistic tab indicator with confirmed pathname
+  useEffect(() => {
+    setOptimisticHref(null);
+  }, [pathname]);
 
   const hiddenPaths = ['/sign-in', '/sign-up', '/onboarding', '/pending-approval'];
   if (hiddenPaths.includes(pathname) || pathname.startsWith('/admin/login') || pathname.startsWith('/superadmin') || pathname.startsWith('/auth-callback') || pathname.startsWith('/book') || pathname.startsWith('/toko')) {
@@ -55,16 +62,41 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
   const mainNavItems = allNavItems.slice(0, 4);
   const moreItems = allNavItems.slice(4);
 
-  const isMoreActive = moreItems.some((item) => item.href === pathname);
+  // Proactive Route Cache Warming: Preload all tab routes on mount
+  useEffect(() => {
+    mainNavItems.forEach((item) => {
+      try {
+        router.prefetch(item.href);
+      } catch {}
+    });
+    moreItems.forEach((item) => {
+      try {
+        router.prefetch(item.href);
+      } catch {}
+    });
+  }, [router]);
+
+  const handleTabClick = (href: string) => {
+    setOptimisticHref(href);
+    setIsMoreOpen(false);
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+    } catch {}
+  };
+
+  const activePath = optimisticHref || pathname;
+  const isMoreActive = moreItems.some((item) => item.href === activePath);
   const hasPendingInMore = moreItems.some(isOrderMenuItem) && pendingCount > 0;
 
   return (
     <>
-      <nav className="fixed bottom-0 w-full bg-white border-t shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] z-40 lg:hidden print:hidden">
+      <nav className="fixed bottom-0 w-full bg-white border-t shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] z-40 lg:hidden print:hidden select-none">
         <div className="flex justify-around items-center h-16 max-w-lg mx-auto relative px-2">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = activePath === item.href;
             const isOrderItem = isOrderMenuItem(item);
             const shouldShowBadge = isOrderItem && pendingCount > 0;
 
@@ -73,20 +105,20 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                 <Link
                   href={item.href}
                   prefetch={true}
-                  onClick={() => setIsMoreOpen(false)}
-                  className={`flex flex-col items-center w-full h-full group touch-manipulation active:scale-95 transition-all duration-150 ${
+                  onClick={() => handleTabClick(item.href)}
+                  className={`flex flex-col items-center w-full h-full group touch-manipulation active:scale-[0.92] transition-transform duration-75 ${
                     isActive ? "justify-end pb-2" : "justify-center"
                   }`}
                 >
                   <div
-                    className={`flex items-center justify-center transition-all duration-200 relative ${
+                    className={`flex items-center justify-center transition-all duration-150 relative ${
                       isActive
-                        ? "absolute -top-5 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm border-4 border-slate-50"
-                        : "w-auto h-auto bg-transparent shadow-none mb-1"
+                        ? "absolute -top-5 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm border-4 border-slate-50 scale-100"
+                        : "w-auto h-auto bg-transparent shadow-none mb-1 scale-95"
                     }`}
                   >
                     <Icon
-                      className={`transition-all duration-200 ${
+                      className={`transition-colors duration-100 ${
                         isActive
                           ? "w-6 h-6 text-white"
                           : "w-5 h-5 text-slate-400 group-hover:text-slate-600"
@@ -103,7 +135,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                     )}
                   </div>
                   <span
-                    className={`text-[10px] whitespace-nowrap text-center transition-colors ${
+                    className={`text-[10px] whitespace-nowrap text-center transition-colors duration-100 ${
                       isActive
                         ? "font-bold text-blue-600"
                         : "font-medium text-slate-400 group-hover:text-slate-600"
@@ -120,20 +152,27 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
           {moreItems.length > 0 && (
             <div className="flex justify-center flex-1 h-full relative">
               <button
-                onClick={() => setIsMoreOpen(!isMoreOpen)}
-                className={`flex flex-col items-center justify-center w-full h-full group touch-manipulation active:scale-95 transition-all duration-150 ${
+                onClick={() => {
+                  try {
+                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                      navigator.vibrate(10);
+                    }
+                  } catch {}
+                  setIsMoreOpen(!isMoreOpen);
+                }}
+                className={`flex flex-col items-center justify-center w-full h-full group touch-manipulation active:scale-[0.92] transition-transform duration-75 ${
                   isMoreActive && !isMoreOpen ? "pb-2" : ""
                 }`}
               >
                 <div
-                  className={`flex items-center justify-center transition-all duration-200 relative ${
+                  className={`flex items-center justify-center transition-all duration-150 relative ${
                     (isMoreActive && !isMoreOpen) || isMoreOpen
-                      ? "absolute -top-5 w-14 h-14 rounded-full bg-slate-800 shadow-lg shadow-slate-700/50 border-4 border-slate-50"
-                      : "w-auto h-auto bg-transparent shadow-none mb-1"
+                      ? "absolute -top-5 w-14 h-14 rounded-full bg-slate-800 shadow-lg shadow-slate-700/50 border-4 border-slate-50 scale-100"
+                      : "w-auto h-auto bg-transparent shadow-none mb-1 scale-95"
                   }`}
                 >
                   <Grid
-                    className={`transition-all duration-200 ${
+                    className={`transition-colors duration-100 ${
                       (isMoreActive && !isMoreOpen) || isMoreOpen
                         ? "w-6 h-6 text-white"
                         : "w-5 h-5 text-slate-400 group-hover:text-slate-600"
@@ -152,7 +191,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                   )}
                 </div>
                 <span
-                  className={`text-[10px] transition-colors ${
+                  className={`text-[10px] transition-colors duration-100 ${
                     (isMoreActive && !isMoreOpen) || isMoreOpen
                       ? "font-bold text-slate-800"
                       : "font-medium text-slate-400 group-hover:text-slate-600"
@@ -207,7 +246,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
             <div className="grid grid-cols-4 gap-4">
               {moreItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = activePath === item.href;
                 const isOrderItem = isOrderMenuItem(item);
                 const shouldShowMoreBadge = isOrderItem && pendingCount > 0;
 
@@ -216,11 +255,11 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
                     key={item.name}
                     href={item.href}
                     prefetch={true}
-                    onClick={() => setIsMoreOpen(false)}
-                    className="flex flex-col items-center gap-2 group touch-manipulation active:scale-90 transition-all duration-150"
+                    onClick={() => handleTabClick(item.href)}
+                    className="flex flex-col items-center gap-2 group touch-manipulation active:scale-[0.92] transition-transform duration-75"
                   >
                     <div
-                      className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-150 relative ${
+                      className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-100 relative ${
                         isActive
                           ? "bg-blue-100 text-blue-600"
                           : "bg-slate-50 text-slate-600 group-hover:bg-slate-100 active:bg-blue-50"
