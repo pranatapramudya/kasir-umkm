@@ -1,23 +1,71 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { useUser } from '@clerk/nextjs';
-import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package, Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package, Loader2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
 import { isRentalTravelCategory } from '@/lib/business-category';
 
-
 export default function LaporanKasirClient({ sidebar, initialDate, initialData, tenantCategory }: any) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const isRental = isRentalTravelCategory(tenantCategory);
     const isJasa = tenantCategory === 'Jasa / Servis' || tenantCategory === 'JASA';
     const isFNB = tenantCategory === 'F&B / Kuliner' || tenantCategory === 'FNB' || tenantCategory === 'F&B';
     const isRetail = tenantCategory === 'Retail / Dagang' || tenantCategory === 'RETAIL';
     const itemHeaderLabel = isRental ? "Armada / Layanan" : isJasa ? "Layanan" : isFNB ? "Menu" : isRetail ? "Produk / Barang" : "Item";
+    
     const [selectedDate, setSelectedDate] = useState(initialDate);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedTx, setSelectedTx] = useState<any>(null);
+
+    const getTodayStr = () => new Date().toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
+    const isToday = selectedDate === getTodayStr();
+
+    // Sinkronisasi jika URL query param 'date' berubah
+    useEffect(() => {
+        const paramDate = searchParams.get('date');
+        if (paramDate && paramDate !== selectedDate) {
+            setSelectedDate(paramDate);
+            setCurrentPage(1);
+        }
+    }, [searchParams]);
+
+    const applyDate = (newDate: string) => {
+        if (!newDate) return;
+        setSelectedDate(newDate);
+        setCurrentPage(1);
+        router.push(`/laporan-kasir?date=${newDate}`);
+    };
+
+    const changeDateByDays = (days: number) => {
+        const parts = selectedDate.split('-');
+        if (parts.length !== 3) return;
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        d.setDate(d.getDate() + days);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        applyDate(`${yyyy}-${mm}-${dd}`);
+    };
+
+    const formatDateIndonesian = (dateStr: string) => {
+        try {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            return dateObj.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } catch {
+            return dateStr;
+        }
+    };
 
     const fetcher = async (args: string | [string, string]) => {
         const url = Array.isArray(args) ? args[0] : args;
@@ -34,29 +82,26 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
     // Gunakan initialData HANYA jika page === 1 dan selectedDate === initialDate
     const isInitialParams = currentPage === 1 && selectedDate === initialDate;
     
-    const { data, error, isLoading } = useSWR(queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null, fetcher, { 
-        fallbackData: isInitialParams ? initialData : undefined,
-        keepPreviousData: true,
-        revalidateIfStale: false,
-        revalidateOnFocus: false,
-        revalidateOnReconnect: false
-    });
+    const { data, error, isLoading } = useSWR(
+        queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : queryUrl,
+        fetcher,
+        { 
+            fallbackData: isInitialParams ? initialData : undefined,
+            keepPreviousData: false,
+            revalidateIfStale: true,
+            revalidateOnFocus: false,
+            revalidateOnReconnect: false
+        }
+    );
 
     const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
-    const handleDateChange = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const newDate = formData.get('date') as string;
-        if (newDate) {
-            setSelectedDate(newDate);
-            setCurrentPage(1); // Reset page on date change
-        }
-    };
-
-    const transactions = data?.transactions || [];
-    const metrics = data?.metrics || { totalGross: 0, totalCash: 0, totalQRIS: 0 };
-    const totalPages = data?.totalPages || 1;
+    const activeData = data ?? (isInitialParams ? initialData : null);
+    const transactions = activeData?.transactions || [];
+    const metrics = activeData?.metrics || { totalGross: 0, totalCash: 0, totalQRIS: 0 };
+    const totalPages = activeData?.totalPages || 1;
+    const soldSummary = activeData?.soldSummary || {};
+    const isFetching = isLoading && !data;
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden text-slate-900">
@@ -76,25 +121,67 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
                     {/* Header & Date Picker */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl border shadow-sm">
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                         <div>
-                            <h2 className="text-lg font-bold">Rekonsiliasi Pendapatan Harian</h2>
-                            <p className="text-xs text-gray-500">Pantau total kas di laci dan pembayaran digital untuk mencocokkan saldo shift Anda.</p>
-                        </div>
-                        <form onSubmit={handleDateChange} className="flex items-center gap-2">
-                            <div className="relative">
-                                <Calendar className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <input 
-                                    type="date" 
-                                    name="date"
-                                    defaultValue={selectedDate}
-                                    className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                />
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-lg font-bold text-slate-800">Rekonsiliasi Pendapatan Harian</h2>
+                                {isToday && (
+                                    <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold rounded-full">
+                                        Hari Ini
+                                    </span>
+                                )}
                             </div>
-                            <button type="submit" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold shadow-sm border-0 transition-all duration-200 ease-in-out rounded-lg">
-                                Terapkan
-                            </button>
-                        </form>
+                            <p className="text-xs text-slate-500 mt-0.5">Pantau total kas di laci dan pembayaran digital untuk mencocokkan saldo shift Anda.</p>
+                            <p className="text-xs font-semibold text-blue-600 mt-1 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {formatDateIndonesian(selectedDate)}
+                            </p>
+                        </div>
+
+                        {/* Date Navigation Controls */}
+                        <div className="flex items-center flex-wrap gap-2 w-full lg:w-auto">
+                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-1 shadow-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => changeDateByDays(-1)}
+                                    title="Mundur 1 Hari (Kemarin)"
+                                    className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-white rounded-lg transition-all cursor-pointer"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                
+                                <div className="relative flex items-center px-1">
+                                    <input 
+                                        type="date" 
+                                        value={selectedDate}
+                                        onChange={(e) => {
+                                            if (e.target.value) applyDate(e.target.value);
+                                        }}
+                                        className="py-1 px-2 bg-transparent text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
+                                    />
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => changeDateByDays(1)}
+                                    title="Maju 1 Hari (Besok)"
+                                    className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-white rounded-lg transition-all cursor-pointer"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {!isToday && (
+                                <button
+                                    type="button"
+                                    onClick={() => applyDate(getTodayStr())}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    <span>Kembali ke Hari Ini</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Metrics */}
@@ -141,14 +228,14 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                     </div>
 
                     {/* Ringkasan Item Terjual */}
-                    {Object.keys(data?.soldSummary || initialData?.soldSummary || {}).length > 0 && (
+                    {Object.keys(soldSummary).length > 0 && (
                         <div className="bg-white p-4 rounded-2xl border shadow-sm flex flex-col">
                             <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
                                 <Package className="w-4 h-4 text-slate-500" />
-                                {isRental ? "Ringkasan Armada Disewa Hari Ini" : isJasa ? "Ringkasan Layanan Hari Ini" : "Ringkasan Produk Terjual Hari Ini"}
+                                {isRental ? "Ringkasan Armada Disewa" : isJasa ? "Ringkasan Layanan" : "Ringkasan Produk Terjual"} ({formatDateIndonesian(selectedDate)})
                             </h3>
                             <div className="flex flex-wrap gap-2">
-                                {Object.entries(data?.soldSummary || initialData?.soldSummary || {}).map(([name, qty]: any) => (
+                                {Object.entries(soldSummary).map(([name, qty]: any) => (
                                     <div key={name} className="bg-slate-50 border px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2">
                                         <span className="text-slate-600">{name}</span>
                                         <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">{qty}</span>
@@ -160,8 +247,8 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
 
                     {/* History Table */}
                     <div className="bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col">
-                        <div className="p-4 border-b">
-                            <h3 className="font-bold text-sm">Riwayat Transaksi Harian</h3>
+                        <div className="p-4 border-b flex items-center justify-between">
+                            <h3 className="font-bold text-sm">Riwayat Transaksi: <span className="text-blue-600 font-semibold">{formatDateIndonesian(selectedDate)}</span></h3>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
@@ -176,18 +263,18 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {(!data && !error) ? (
+                                    {(isFetching || (!activeData && !error)) ? (
                                         <tr>
                                             <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
                                                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
-                                                Memuat data transaksi...
+                                                Memuat data transaksi {formatDateIndonesian(selectedDate)}...
                                             </td>
                                         </tr>
                                     ) : transactions.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="px-4 py-6 text-center text-gray-500 text-sm">
+                                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500 text-sm">
                                                 <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                                                Belum ada transaksi pada tanggal ini.
+                                                Belum ada transaksi pada {formatDateIndonesian(selectedDate)}.
                                             </td>
                                         </tr>
                                     ) : (

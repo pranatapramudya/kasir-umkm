@@ -93,16 +93,16 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6">
       {/* Card Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-blue-50">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm">
-            <Store className="w-4.5 h-4.5 text-white w-5 h-5" />
+          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm">
+            <Link2 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-slate-800 text-base">Informasi Toko</h2>
-            <p className="text-xs text-slate-500">Atur link booking publik toko Anda</p>
+            <h2 className="font-bold text-slate-800 text-base">Link Booking & Etalase Publik</h2>
+            <p className="text-xs text-slate-500">Atur link reservasi dan booking online toko Anda</p>
           </div>
         </div>
         {!isEditing && (

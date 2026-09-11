@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { isServiceBusinessCategory } from "@/lib/business-category";
 import BookingForm from "./BookingForm";
 
 export const revalidate = 60;
@@ -37,7 +38,7 @@ export default async function BookingPage({ params }: PageProps) {
   if (!tenant) notFound();
 
   // Blokir akses jika kategori bisnis bukan Jasa atau Rental
-  const isServiceBusiness = tenant.category === "Jasa / Servis" || tenant.category === "Jasa/Servis" || tenant.category === "JASA" || tenant.category === "Rental & Travel" || tenant.category === "RENTAL";
+  const isServiceBusiness = isServiceBusinessCategory(tenant.category);
   if (!isServiceBusiness) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">

@@ -1441,7 +1441,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     </h1>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <CopyBookingLinkButton />
+                    {(isJasa || isRental) && <CopyBookingLinkButton />}
                     <CustomUserButton />
                   </div>
                 </div>

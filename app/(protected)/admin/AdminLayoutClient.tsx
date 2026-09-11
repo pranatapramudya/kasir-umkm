@@ -15,12 +15,14 @@ export default function AdminLayoutClient({
   serverUserId,
   isExpired = false,
   tenantSlug = null,
+  isBookingEnabled = false,
 }: {
   children: React.ReactNode;
   sidebar: React.ReactNode;
   isExpired?: boolean;
   serverUserId?: string;
   tenantSlug?: string | null;
+  isBookingEnabled?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -71,7 +73,7 @@ export default function AdminLayoutClient({
               <h2 className="text-lg font-bold text-gray-800 tracking-tight">Sistem Manajemen</h2>
             </div>
             <div className="flex items-center gap-3">
-              <CopyBookingLinkButton initialSlug={tenantSlug} />
+              {isBookingEnabled && <CopyBookingLinkButton initialSlug={tenantSlug} />}
               <CustomUserButton />
             </div>
           </header>

@@ -4,6 +4,7 @@ import { Settings } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/url";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
+import StoreProfileForm from "./StoreProfileForm";
 import SlugForm from "./SlugForm";
 import PaymentSettingsForm from "./PaymentSettingsForm";
 
@@ -11,18 +12,27 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Informasi Toko — PJTECH KASIR",
-  description: "Kelola slug dan informasi toko Anda.",
+  description: "Kelola profil dan informasi toko Anda.",
 };
 
 export default async function AdminSettingsPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
+  let targetUserId = userId;
+  const employee = await prisma.employee.findUnique({
+    where: { clerkUserId: userId },
+  });
+  if (employee) {
+    targetUserId = employee.tenantId;
+  }
+
   const tenant = await prisma.tenant.findUnique({
-    where: { userId },
+    where: { userId: targetUserId },
     select: { 
       slug: true, 
       name: true, 
+      phone: true,
       category: true,
       adminWhatsApp: true,
       bankName: true,
@@ -43,14 +53,25 @@ export default async function AdminSettingsPage() {
           Informasi Toko
         </h1>
         <p className="text-slate-500 text-sm">
-          Kelola informasi toko, link booking, dan instruksi pembayaran Anda.
+          {isJasaOrRental
+            ? "Kelola profil toko, link booking online, dan instruksi pembayaran Anda."
+            : "Kelola profil dan informasi identitas toko Anda."}
         </p>
       </div>
 
-      {/* ── Bagian Kustom: Informasi Toko ── */}
-      <SlugForm initialSlug={tenant?.slug ?? null} appUrl={appUrl} tenantCategory={tenant?.category} />
+      {/* ── 1. Bagian Umum: Profil & Identitas Toko (Semua Kategori: Retail, F&B, Jasa, Rental) ── */}
+      <StoreProfileForm
+        initialName={tenant?.name ?? ""}
+        initialPhone={tenant?.phone ?? ""}
+        category={tenant?.category ?? "Retail"}
+      />
+
+      {/* ── 2. Bagian Khusus: Link Booking Publik (Khusus Jasa & Rental) ── */}
+      {isJasaOrRental && (
+        <SlugForm initialSlug={tenant?.slug ?? null} appUrl={appUrl} tenantCategory={tenant?.category} />
+      )}
       
-      {/* ── Bagian Kustom: Informasi Pembayaran (Khusus Jasa & Rental) ── */}
+      {/* ── 3. Bagian Khusus: Informasi Pembayaran & Rekening DP (Khusus Jasa & Rental) ── */}
       {isJasaOrRental && (
         <PaymentSettingsForm 
           initialWhatsApp={tenant?.adminWhatsApp ?? null}
