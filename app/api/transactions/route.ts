@@ -1,19 +1,27 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { prisma } from '@/lib/prisma'; // Sesuaikan path alias jika diperlukan
+import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+
+const safeInt = (val: any, fallback = 0): number => {
+  if (val === null || val === undefined) return fallback;
+  const num = Number(val);
+  return isNaN(num) ? fallback : Math.round(num);
+};
+
+const safeParseDate = (dateVal: any): Date | null => {
+  if (!dateVal) return null;
+  const d = new Date(dateVal);
+  return isNaN(d.getTime()) ? null : d;
+};
 
 export async function POST(request: Request) {
   try {
-    // PROTEKSI: Karena ini menyinggung database (stok), 
-    // meski transaksi datang dari storefront, kita pastikan struktur dan limit sesuai.
-    // Catatan: Jika storefront sepenuhnya publik, mungkin kita tidak mewajibkan auth().
-    // Untuk saat ini kita jalankan tanpa proteksi ketat auth() clerk karena kasir (storefront) bersifat publik.
     const { userId, sessionClaims } = await auth();
 
     if (!userId) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
@@ -39,35 +47,35 @@ export async function POST(request: Request) {
 
     if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ success: false, message: 'Keranjang kosong' }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'Keranjang kosong' }, { status: 400 });
     }
 
-    const rawDiscount = Math.round(Number(body.discount || 0));
-    const rawTotal = Math.round(Number(body.total));
+    const rawDiscount = safeInt(body.discount, 0);
+    const rawTotal = safeInt(body.total, 0);
     const baseTotal = rawTotal + rawDiscount;
 
     if (rawDiscount > (baseTotal * 0.10) && isEmployee) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ success: false, message: 'Diskon >10% dari total harus disetujui Admin/Owner' }, { status: 403 });
+      return NextResponse.json({ success: false, message: 'Diskon >10% dari total harus disetujui Admin/Owner' }, { status: 403 });
     }
 
     // Ambil employeeCommission untuk snapshot
-    const productIds = body.items.map((item: any) => Math.round(Number(item.id)));
+    const productIds: number[] = Array.from(new Set<number>(body.items.map((item: any) => Math.round(Number(item.id)))));
     const productsInfo = await prisma.product.findMany({
       where: { id: { in: productIds }, userId: activeTenantId },
       select: { id: true, employeeCommission: true }
     });
     const productMap = new Map(productsInfo.map(p => [p.id, p.employeeCommission || 0]));
 
-    // 1. Validasi cashierId (Mencegah Foreign Key Constraint Error)
+    // 1. Validasi cashierId (Mencegah Foreign Key Constraint Error P2003)
     if (!validCashierId && body.cashierId) {
       try {
         const emp = await prisma.employee.findFirst({
           where: {
             tenantId: activeTenantId,
             OR: [
-              { id: body.cashierId },
-              { clerkUserId: body.cashierId }
+              { id: String(body.cashierId) },
+              { clerkUserId: String(body.cashierId) }
             ]
           }
         });
@@ -81,41 +89,97 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Eksekusi Prisma Transaction (Atomic)
+    // 2. Validasi tableId untuk Bisnis F&B (Mencegah Foreign Key Constraint Error P2003)
+    let validTableId: string | null = null;
+    if (body.tableId && typeof body.tableId === 'string' && body.tableId.trim() !== '' && body.tableId !== 'takeaway' && body.tableId !== 'TAKEAWAY') {
+      try {
+        const table = await prisma.diningTable.findFirst({
+          where: {
+            id: body.tableId.trim(),
+            userId: activeTenantId
+          },
+          select: { id: true }
+        });
+        if (table) {
+          validTableId = table.id;
+        } else {
+          console.warn(`[WARNING] tableId ${body.tableId} tidak ditemukan di DiningTable. Menggunakan null.`);
+        }
+      } catch (err) {
+        console.error("Gagal memvalidasi tableId:", err);
+      }
+    }
+
+    // 3. Validasi workerId untuk Bisnis Jasa (Mencegah Foreign Key Constraint Error P2003 jika admin_owner atau staf tidak valid)
+    const candidateWorkerIds: string[] = Array.from(
+      new Set<string>(
+        body.items
+          .map((it: any) => (it?.workerId ? String(it.workerId).trim() : ''))
+          .filter((wId: string) => Boolean(wId) && wId !== 'admin_owner')
+      )
+    );
+
+    const validWorkerIdSet = new Set<string>();
+    if (candidateWorkerIds.length > 0) {
+      try {
+        const validEmps = await prisma.employee.findMany({
+          where: {
+            tenantId: activeTenantId,
+            id: { in: candidateWorkerIds }
+          },
+          select: { id: true }
+        });
+        validEmps.forEach(emp => validWorkerIdSet.add(emp.id));
+      } catch (err) {
+        console.error("Gagal memvalidasi workerIds:", err);
+      }
+    }
+
+    // 4. Eksekusi Prisma Transaction (Atomic)
     const result = await prisma.$transaction(async (tx) => {
 
       const newTransaction = await tx.transaction.create({
         data: {
-          id: body.id, // e.g. "#1234"
-          userId: activeTenantId, // Use activeTenantId (Tenant ID)
-          timestamp: Math.round(Number(body.timestamp)),
-          customerName: body.customerName,
-          tableId: body.tableId || null,
+          id: String(body.id), // e.g. "#1234"
+          userId: activeTenantId, // Multi-tenant isolation
+          timestamp: safeInt(body.timestamp, Date.now()),
+          customerName: body.customerName ? String(body.customerName).trim() : "Pelanggan",
+          tableId: validTableId,
           total: rawTotal,
           discount: rawDiscount,
           cashierId: validCashierId,
-          method: body.method,
-          status: (Math.round(Number(body.remainingBalance || 0)) > 0) ? 'partial' : 'completed',
-          driverName: body.driverName || null,
-          licensePlate: body.licensePlate || null,
-          pickupLocation: body.pickupLocation || null,
-          dropoffLocation: body.dropoffLocation || null,
-          startDate: body.startDate ? new Date(body.startDate) : null,
-          endDate: body.endDate ? new Date(body.endDate) : null,
-          serviceDate: body.serviceDate ? new Date(body.serviceDate) : null,
-          guarantee: body.guarantee || null,
-          downPayment: Math.round(Number(body.downPayment || 0)),
-          remainingBalance: Math.round(Number(body.remainingBalance || 0)),
+          method: String(body.method || "Tunai"),
+          status: (safeInt(body.remainingBalance, 0) > 0) ? 'partial' : 'completed',
+          driverName: body.driverName ? String(body.driverName).trim() : null,
+          licensePlate: body.licensePlate ? String(body.licensePlate).trim() : null,
+          pickupLocation: body.pickupLocation ? String(body.pickupLocation).trim() : null,
+          dropoffLocation: body.dropoffLocation ? String(body.dropoffLocation).trim() : null,
+          startDate: safeParseDate(body.startDate),
+          endDate: safeParseDate(body.endDate),
+          serviceDate: safeParseDate(body.serviceDate),
+          guarantee: body.guarantee ? String(body.guarantee).trim() : null,
+          downPayment: safeInt(body.downPayment, 0),
+          remainingBalance: safeInt(body.remainingBalance, 0),
           items: {
             create: body.items.map((item: any) => {
               const pId = Math.round(Number(item.id));
+              const rawWorkerId = item.workerId ? String(item.workerId).trim() : null;
+              const isOwnerWorker = rawWorkerId === 'admin_owner';
+              // workerId hanya diisi jika ID ada di tabel Employee (valid relational FK)
+              const safeWorkerId = (rawWorkerId && validWorkerIdSet.has(rawWorkerId)) ? rawWorkerId : null;
+
+              let itemNote = item.note ? String(item.note).trim() : null;
+              if (isOwnerWorker && (!itemNote || !itemNote.includes('Admin/Pemilik'))) {
+                itemNote = itemNote ? `${itemNote} (Dikerjakan oleh Admin/Pemilik)` : 'Dikerjakan oleh Admin/Pemilik';
+              }
+
               return {
                 productId: pId,
-                qty: Math.round(Number(item.qty)),
-                price: Math.round(Number(item.hargaJual)),
-                note: item.note ? String(item.note) : null,
-                workerId: item.workerId ? String(item.workerId) : null,
-                serviceDuration: item.serviceDuration ? Math.round(Number(item.serviceDuration)) : 0,
+                qty: Math.max(1, safeInt(item.qty, 1)),
+                price: safeInt(item.hargaJual, 0),
+                note: itemNote || null,
+                workerId: safeWorkerId,
+                serviceDuration: safeInt(item.serviceDuration, 0),
                 commissionSnapshot: productMap.get(pId) || 0,
               };
             })
@@ -123,46 +187,64 @@ export async function POST(request: Request) {
         }
       });
 
-      // b. Pencegahan N+1 Query (Pre-fetch & Promise.all)
-      const itemIds = body.items.map((i: any) => Math.round(Number(i.id)));
+      // b. Akumulasi & Validasi Stok (Mendukung Keranjang dengan Item Duplikat & Mencegah Deadlock)
+      const qtyPerProduct = new Map<number, number>();
+      for (const item of body.items) {
+        const pId = Math.round(Number(item.id));
+        const qty = Math.max(1, safeInt(item.qty, 1));
+        qtyPerProduct.set(pId, (qtyPerProduct.get(pId) || 0) + qty);
+      }
+
+      const uniqueItemIds = Array.from(qtyPerProduct.keys());
       const productsInCart = await tx.product.findMany({
-        where: { id: { in: itemIds }, userId: activeTenantId }
+        where: { id: { in: uniqueItemIds }, userId: activeTenantId }
       });
 
-      if (productsInCart.length !== itemIds.length) {
+      if (productsInCart.length !== uniqueItemIds.length) {
         throw new Error(`Beberapa produk tidak ditemukan atau akses ditolak.`);
       }
 
       const productStockMap = new Map(productsInCart.map(p => [p.id, p]));
 
       // Validasi Stok di Memori
-      for (const item of body.items) {
-        const product = productStockMap.get(item.id);
-        if (!product?.isService && product!.stock < item.qty) {
-          throw new Error(`Stok produk ${product!.name} tidak mencukupi.`);
+      for (const [pId, neededQty] of qtyPerProduct.entries()) {
+        const product = productStockMap.get(pId);
+        if (!product?.isService && product!.stock < neededQty) {
+          throw new Error(`Stok produk "${product!.name}" tidak mencukupi (Tersisa: ${product!.stock}, Dibutuhkan: ${neededQty}).`);
         }
       }
 
-      // Kurangi stok serentak tanpa loop await sekuensial (Konkuren)
-      const stockUpdatePromises = body.items.map((item: any) => {
-        const product = productStockMap.get(item.id);
+      // Kurangi stok serentak tanpa duplicate conflict
+      const stockUpdatePromises: Promise<any>[] = [];
+      for (const [pId, totalQty] of qtyPerProduct.entries()) {
+        const product = productStockMap.get(pId);
         if (!product?.isService) {
-          return tx.product.update({
-            where: { id: item.id },
-            data: { stock: { decrement: item.qty } }
-          });
+          stockUpdatePromises.push(
+            tx.product.update({
+              where: { id: pId },
+              data: { stock: { decrement: totalQty } }
+            })
+          );
         }
-        return Promise.resolve();
-      });
+      }
 
       await Promise.all(stockUpdatePromises);
 
       // d. Update Booking if bookingId is provided (Tarik Antrean)
       if (body.bookingId) {
-        await tx.booking.update({
-          where: { id: body.bookingId },
-          data: { status: "FINISHED" }
-        });
+        try {
+          const existingBooking = await tx.booking.findFirst({
+            where: { id: String(body.bookingId), userId: activeTenantId }
+          });
+          if (existingBooking) {
+            await tx.booking.update({
+              where: { id: existingBooking.id },
+              data: { status: "FINISHED" }
+            });
+          }
+        } catch (bkErr) {
+          console.warn("Gagal update status booking:", bkErr);
+        }
       }
 
       // c. Audit Log untuk diskon besar yang di-approve owner/admin
@@ -185,15 +267,14 @@ export async function POST(request: Request) {
     });
 
     // --- SINKRONISASI STATUS MEJA (Background Process) ---
-    if (body.tableId) {
+    if (validTableId) {
       prisma.diningTable.update({
-        where: { id: body.tableId },
+        where: { id: validTableId },
         data: { status: 'Terisi' }
       }).catch(err => console.error("Gagal update otomatis status meja:", err));
     }
 
-    // Mengembalikan response sukses. 
-    // Data dikembalikan dalam bentuk string/parsial untuk mencegah isu BigInt serialization di JSON
+    // Mengembalikan response sukses
     revalidatePath('/', 'layout');
     return NextResponse.json({
       success: true,
@@ -206,7 +287,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error("[TRANSACTION_ERROR]: ", error);
-    // Jika error datang dari manual throw kita (stok kurang), message-nya akan terkirim
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: false, message: error.message || 'Terjadi kesalahan internal pada server' }, { status: 500 });
   }
