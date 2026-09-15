@@ -1,19 +1,22 @@
 "use client";
 
-import { X, BookOpen, CheckCircle } from "lucide-react";
+import { X, BookOpen, CheckCircle, MessageSquare, ExternalLink, ShieldAlert } from "lucide-react";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   category: string;
+  tenantName?: string;
 }
 
-export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
+export function BukuPanduanModal({ isOpen, onClose, category, tenantName }: Props) {
   const [mounted, setMounted] = useState(false);
-  
+  const { user } = useUser();
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -39,19 +42,19 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
             </div>
             <h2 className="font-bold text-slate-800 text-lg">Buku Panduan Penggunaan</h2>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 rounded-full transition-colors"
           >
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
-        
+
         <div className="p-6 space-y-6 overflow-y-auto">
           <p className="text-sm text-slate-600 leading-relaxed">
             Berikut adalah alur kerja operasional standar (SOP) untuk bisnis <span className="font-semibold text-slate-800">{category}</span> Anda.
           </p>
-          
+
           <div className="space-y-4">
             {businessType === 'FNB' && (
               <>
@@ -81,7 +84,7 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
             {businessType === 'JASA' && (
               <>
                 <Step num="1" title="Buat Layanan & Atur Komisi" businessType={businessType}>
-                  Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Servis Garansi, Spa). 
+                  Buka menu <b>Produk / Layanan</b>, buat daftar layanan yang Anda tawarkan (misal: Potong Rambut, Servis Garansi, Spa).
                   Anda dapat mengisi <b>Komisi Staf / Layanan</b> untuk perhitungan bagi hasil karyawan secara otomatis.
                 </Step>
                 <Step num="2" title="Bagikan Link Booking Publik" businessType={businessType}>Buka menu <b>Informasi Toko</b>, salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram agar pelanggan bisa melakukan reservasi mandiri.</Step>
@@ -116,11 +119,59 @@ export function BukuPanduanModal({ isOpen, onClose, category }: Props) {
               </>
             )}
           </div>
-          
-          <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+
+          {/* BANNER BANTUAN WHATSAPP OTOMATIS */}
+          {(() => {
+            const clientName = tenantName || user?.fullName || "Mitra PJTech";
+            const userEmail = user?.primaryEmailAddress?.emailAddress || "Tidak ada email";
+            const whatsappNumber = "6285723256427";
+
+            const messageText = `Halo Tim Support PJTech, saya butuh bantuan / melaporkan kendala pada aplikasi kasir.
+
+*Data Usaha:*
+- Nama Usaha: ${clientName}
+- Kategori Usaha: ${category}
+- Email Akun: ${userEmail}
+
+*Detail Kendala yang Dialami:*
+[Silakan ketik kendala / pertanyaan Anda di sini...]`;
+
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(messageText)}`;
+
+            return (
+              <div className="mt-8 p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-200">
+                    <MessageSquare className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                      Ada Pertanyaan atau Kendala Sistem?
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                      Tim Support siap mendampingi Anda. Klik tombol untuk langsung terhubung ke WhatsApp dengan format laporan otomatis.
+                    </p>
+                  </div>
+                </div>
+
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-200 flex items-center justify-center gap-2 shrink-0 transition-all"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Hubungi Support WhatsApp
+                  <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                </a>
+              </div>
+            );
+          })()}
+
+          <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
             <CheckCircle className="w-5 h-5 text-blue-600 shrink-0" />
             <p className="text-sm text-blue-800">
-              Sistem ini akan beradaptasi secara otomatis mengikuti operasional Anda. Jika Anda mengalami kesulitan, silakan hubungi tim Support.
+              Sistem ini akan beradaptasi secara otomatis mengikuti operasional Anda. Data dan laporan Anda tersimpan aman di cloud.
             </p>
           </div>
         </div>

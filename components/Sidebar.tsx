@@ -14,6 +14,7 @@ export async function Sidebar() {
   let plan = "TRIAL";
   let endsAt: string | undefined = undefined;
   let category = "Retail";
+  let tenantName = "";
 
   let targetUserId: string | undefined = userId ?? undefined;
 
@@ -37,11 +38,12 @@ export async function Sidebar() {
       // Pastikan merubah objek Date menjadi ISO String sebelum dikirim ke Client Component
       endsAt = tenant.subscriptionEndsAt ? tenant.subscriptionEndsAt.toISOString() : undefined;
       category = tenant.category || "Retail";
+      tenantName = tenant.name || "";
     }
   }
 
   // Instruction C: Console.log nilai endsAt ini di terminal server Anda
   console.log("DATA ENDSAT DI SIDEBAR:", endsAt);
 
-  return <SidebarClient role={role} plan={plan} endsAt={endsAt} kategoriUsaha={category} />;
+  return <SidebarClient role={role} plan={plan} endsAt={endsAt} kategoriUsaha={category} tenantName={tenantName} />;
 }

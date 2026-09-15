@@ -13,9 +13,10 @@ interface SidebarClientProps {
   plan: string;
   endsAt: string | undefined;
   kategoriUsaha: string;
+  tenantName?: string;
 }
 
-export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUsaha }: SidebarClientProps) {
+export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUsaha, tenantName }: SidebarClientProps) {
   const kategoriUsaha = rawKategoriUsaha || 'Retail';
   const pathname = usePathname();
   const router = useRouter();
@@ -161,6 +162,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
         isOpen={isBukuPanduanOpen} 
         onClose={() => setIsBukuPanduanOpen(false)} 
         category={kategoriUsaha} 
+        tenantName={tenantName}
       />
     </aside>
     </>
