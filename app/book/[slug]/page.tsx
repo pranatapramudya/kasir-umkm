@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { isServiceBusinessCategory } from "@/lib/business-category";
+import { isServiceBusinessCategory, isRentalTravelCategory } from "@/lib/business-category";
 import BookingForm from "./BookingForm";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +13,12 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const tenant = await prisma.tenant.findUnique({ where: { slug } });
   if (!tenant) return { title: "Toko Tidak Ditemukan" };
+  const isRental = isRentalTravelCategory(tenant.category);
   return {
-    title: `Buat Jadwal — ${tenant.name}`,
-    description: `Pesan layanan dari ${tenant.name} secara online. Cepat, mudah, dan langsung dikonfirmasi.`,
+    title: isRental ? `Reservasi Sewa — ${tenant.name}` : `Booking Layanan — ${tenant.name}`,
+    description: isRental
+      ? `Reservasi sewa unit atau armada dari ${tenant.name} secara online. Cepat, mudah, dan langsung dikonfirmasi.`
+      : `Pesan jadwal layanan dari ${tenant.name} secara online. Cepat, mudah, dan langsung dikonfirmasi.`,
   };
 }
 
@@ -87,7 +90,9 @@ export default async function BookingPage({ params }: PageProps) {
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-1">{tenant.name}</h1>
         <p className="text-slate-500 text-sm">
-          Buat jadwal kunjungan Anda dengan mudah
+          {isRentalTravelCategory(tenant.category)
+            ? "Reservasi sewa unit atau armada secara online"
+            : "Booking antrean & buat jadwal kunjungan layanan secara online"}
         </p>
       </header>
 
