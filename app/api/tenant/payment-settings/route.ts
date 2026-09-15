@@ -45,11 +45,17 @@ export async function PATCH(request: Request) {
         adminWhatsApp: true, 
         bankName: true, 
         bankAccount: true, 
-        bankAccountName: true 
+        bankAccountName: true,
+        slug: true,
       },
     });
 
     revalidatePath('/', 'layout');
+    revalidatePath('/admin', 'layout');
+    revalidatePath('/admin/settings');
+    if (updated.slug) {
+      revalidatePath(`/book/${updated.slug}`);
+    }
     return NextResponse.json({ success: true, ...updated });
   } catch (error) {
     console.error("PATCH /api/tenant/payment-settings error:", error);

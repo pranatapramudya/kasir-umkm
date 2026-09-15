@@ -21,6 +21,9 @@ interface BookingFormProps {
   bankName?: string | null;
   bankAccount?: string | null;
   bankAccountName?: string | null;
+  bookingOpenTime?: string | null;
+  bookingCloseTime?: string | null;
+  bookingSlotDuration?: number | null;
 }
 
 interface Region {
@@ -38,13 +41,36 @@ function formatRupiah(amount: number) {
   }).format(amount);
 }
 
-// Generate time slots 08:00 - 22:00 (Jam Operasional Standar), interval 30 menit
-function generateTimeSlots() {
+// Generate time slots dinamis berdasarkan jam buka, jam tutup, dan durasi jeda menit
+function generateTimeSlots(
+  openTimeStr: string = "08:00",
+  closeTimeStr: string = "21:00",
+  durationMinutes: number = 30
+) {
   const slots: string[] = [];
-  for (let h = 8; h <= 22; h++) {
-    slots.push(`${String(h).padStart(2, "0")}:00`);
-    if (h < 22) slots.push(`${String(h).padStart(2, "0")}:30`);
+
+  const parseMinutes = (timeStr: string) => {
+    const [h, m] = timeStr.split(":").map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+
+  const startTotalMinutes = parseMinutes(openTimeStr);
+  const endTotalMinutes = parseMinutes(closeTimeStr);
+  const interval = durationMinutes > 0 ? durationMinutes : 30;
+
+  for (let current = startTotalMinutes; current <= endTotalMinutes; current += interval) {
+    const hours = Math.floor(current / 60);
+    const mins = current % 60;
+    if (hours < 24) {
+      slots.push(`${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`);
+    }
   }
+
+  // Fallback jika perhitungan kosong
+  if (slots.length === 0) {
+    slots.push("08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00");
+  }
+
   return slots;
 }
 
@@ -63,8 +89,28 @@ function getTodayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-export default function BookingForm({ slug, tenantName, services, tenantCategory, adminWhatsApp, bankName, bankAccount, bankAccountName }: BookingFormProps) {
-  const timeSlots = useMemo(() => generateTimeSlots(), []);
+export default function BookingForm({
+  slug,
+  tenantName,
+  services,
+  tenantCategory,
+  adminWhatsApp,
+  bankName,
+  bankAccount,
+  bankAccountName,
+  bookingOpenTime,
+  bookingCloseTime,
+  bookingSlotDuration,
+}: BookingFormProps) {
+  const timeSlots = useMemo(
+    () =>
+      generateTimeSlots(
+        bookingOpenTime || "08:00",
+        bookingCloseTime || "21:00",
+        bookingSlotDuration || 30
+      ),
+    [bookingOpenTime, bookingCloseTime, bookingSlotDuration]
+  );
   const rentalTimeSlots = useMemo(() => generateRentalTimeSlots(), []);
   const todayISO = useMemo(() => getTodayISO(), []);
 

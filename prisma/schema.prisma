@@ -115,6 +115,11 @@ model Tenant {
   bankAccount        String?
   bankAccountName    String?
 
+  // === Booking Schedule Settings (Khusus Jasa / Servis) ===
+  bookingOpenTime    String?   @default("08:00")
+  bookingCloseTime   String?   @default("21:00")
+  bookingSlotDuration Int?     @default(30)
+
   @@index([subscriptionStatus])
   @@index([slug])
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { Store, Phone, Tag, CheckCircle2, AlertCircle, Loader2, Pencil, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,6 +17,8 @@ export default function StoreProfileForm({
   initialPhone,
   category,
 }: Props) {
+  const router = useRouter();
+  const { mutate } = useSWRConfig();
   const [name, setName] = useState(initialName);
   const [phone, setPhone] = useState(initialPhone);
   const [inputName, setInputName] = useState(initialName);
@@ -78,6 +82,8 @@ export default function StoreProfileForm({
       setIsEditing(false);
       setSuccess(true);
       toast.success("Profil toko berhasil diperbarui!");
+      mutate("/api/tenant/slug");
+      router.refresh();
       setTimeout(() => setSuccess(false), 4000);
     } catch {
       setError("Gagal terhubung ke server. Periksa koneksi internet Anda.");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { Store, CheckCircle2, AlertCircle, Link2, Loader2, Pencil, Copy } from "lucide-react";
 
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props) {
+  const router = useRouter();
   const [slug, setSlug] = useState(initialSlug ?? "");
   const [inputValue, setInputValue] = useState(initialSlug ?? "");
   const [isEditing, setIsEditing] = useState(false);
@@ -78,6 +80,7 @@ export default function SlugForm({ initialSlug, appUrl, tenantCategory }: Props)
       mutate('/api/tenant/slug');
       setIsEditing(false);
       setSuccess(true);
+      router.refresh();
       setTimeout(() => setSuccess(false), 4000);
     } catch {
       setError("Gagal terhubung ke server. Periksa koneksi internet Anda.");

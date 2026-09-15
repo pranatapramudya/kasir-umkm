@@ -7,6 +7,7 @@ import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/busines
 import StoreProfileForm from "./StoreProfileForm";
 import SlugForm from "./SlugForm";
 import PaymentSettingsForm from "./PaymentSettingsForm";
+import BookingScheduleForm from "./BookingScheduleForm";
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +39,15 @@ export default async function AdminSettingsPage() {
       bankName: true,
       bankAccount: true,
       bankAccountName: true,
+      bookingOpenTime: true,
+      bookingCloseTime: true,
+      bookingSlotDuration: true,
     },
   });
 
   const appUrl = getAppUrl();
   const isJasaOrRental = isServiceBusinessCategory(tenant?.category) || isRentalTravelCategory(tenant?.category);
+  const isPureJasa = isServiceBusinessCategory(tenant?.category) && !isRentalTravelCategory(tenant?.category);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
@@ -70,8 +75,17 @@ export default async function AdminSettingsPage() {
       {isJasaOrRental && (
         <SlugForm initialSlug={tenant?.slug ?? null} appUrl={appUrl} tenantCategory={tenant?.category} />
       )}
+
+      {/* ── 3. Bagian Khusus: Pengaturan Jadwal Jam Booking (KHUSUS Jasa / Servis Murni) ── */}
+      {isPureJasa && (
+        <BookingScheduleForm
+          initialOpenTime={tenant?.bookingOpenTime ?? "08:00"}
+          initialCloseTime={tenant?.bookingCloseTime ?? "21:00"}
+          initialSlotDuration={tenant?.bookingSlotDuration ?? 30}
+        />
+      )}
       
-      {/* ── 3. Bagian Khusus: Informasi Pembayaran & Rekening DP (Khusus Jasa & Rental) ── */}
+      {/* ── 4. Bagian Khusus: Informasi Pembayaran & Rekening DP (Khusus Jasa & Rental) ── */}
       {isJasaOrRental && (
         <PaymentSettingsForm 
           initialWhatsApp={tenant?.adminWhatsApp ?? null}

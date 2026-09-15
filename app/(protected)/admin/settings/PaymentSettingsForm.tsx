@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CreditCard, CheckCircle2, AlertCircle, Loader2, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 interface Props {
   initialWhatsApp: string | null;
@@ -18,6 +20,7 @@ export default function PaymentSettingsForm({
   initialBankAccountName,
   tenantCategory,
 }: Props) {
+  const router = useRouter();
   const [whatsApp, setWhatsApp] = useState(initialWhatsApp ?? "");
   const [bankName, setBankName] = useState(initialBankName ?? "");
   const [bankAccount, setBankAccount] = useState(initialBankAccount ?? "");
@@ -66,6 +69,8 @@ export default function PaymentSettingsForm({
       
       setIsEditing(false);
       setSuccess(true);
+      toast.success("Informasi pembayaran berhasil disimpan!");
+      router.refresh();
       setTimeout(() => setSuccess(false), 4000);
     } catch {
       setError("Gagal terhubung ke server. Periksa koneksi internet Anda.");

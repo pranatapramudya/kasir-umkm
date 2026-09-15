@@ -50,6 +50,12 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Real-Time Web Push Notifications:** *Instant alerts for new bookings without native app overhead.* Owner & Super Admin mendapat notifikasi push saat ada booking baru, bahkan saat browser ditutup.
 - **Universal Web Bluetooth Printing:** *Direct ESC/POS thermal receipt printing from the browser.* Cetak struk nirkabel secara langsung via Bluetooth tanpa driver atau aplikasi tambahan.
 - **Dynamic Multi-Tenant Booking & Unduh Tiket HD:** *Self-service appointment & date-range scheduling dengan Anti-Double Booking guard.* Setiap tenant memiliki halaman booking publik (`/book/[slug]`) dengan validasi slot kalender interaktif secara real-time, perlindungan *browser autofill duplicate*, dan generator tiket digital beresolusi tinggi menggunakan `html2canvas-pro` (dukungan penuh Tailwind CSS v4 `oklch`).
+- **Pusat Bantuan & Hotline WhatsApp Otomatis (Support Hotline):** Tombol bantuan langsung di modal panduan SOP dengan format pesan terstruktur otomatis yang memuat Nama Usaha, Kategori, dan Email Akun mitra UMKM ke nomor WhatsApp tim Support.
+- **Pengaturan Jam Kunjungan & Sesi Booking Khusus Jasa / Servis:** Owner bisnis Jasa/Servis (Bengkel, Barbershop, Salon, Spa, Klinik) dapat secara fleksibel mengatur jam buka (slot pertama), jam tutup (slot terakhir), serta durasi jeda waktu per sesi (15m, 30m, 45m, 60m/1 jam, 90m, 120m/2 jam) di menu Informasi Toko, yang langsung beradaptasi secara dinamis ke halaman booking publik konsumen (`/book/[slug]`).
+- **Sinkronisasi Real-Time Profil Toko & Dokumen Cetak (Zero-Stale Cache):**
+  - Pembaruan nama toko, nomor telepon, dan informasi rekening pembayaran langsung tersinkronisasi seketika ke halaman publik `/book/[slug]` (`export const dynamic = 'force-dynamic'`), dasbor admin, cetak Struk Thermal Kasir, dan Dokumen Invoice A4/A5 resmi tanpa delay cache.
+  - Revalidasi server Next.js otomatis untuk memastikan integritas data multi-tenant antar pengguna.
+
 
 ## 🛠️ Cara Menjalankan Lokal (Getting Started)
 

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isServiceBusinessCategory } from "@/lib/business-category";
 import BookingForm from "./BookingForm";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -32,6 +32,9 @@ export default async function BookingPage({ params }: PageProps) {
       bankName: true,
       bankAccount: true,
       bankAccountName: true,
+      bookingOpenTime: true,
+      bookingCloseTime: true,
+      bookingSlotDuration: true,
     },
   });
 
@@ -100,6 +103,9 @@ export default async function BookingPage({ params }: PageProps) {
             bankName={tenant.bankName}
             bankAccount={tenant.bankAccount}
             bankAccountName={tenant.bankAccountName}
+            bookingOpenTime={tenant.bookingOpenTime}
+            bookingCloseTime={tenant.bookingCloseTime}
+            bookingSlotDuration={tenant.bookingSlotDuration}
           />
         </div>
       </main>

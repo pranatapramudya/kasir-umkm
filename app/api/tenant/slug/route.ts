@@ -122,6 +122,9 @@ export async function PATCH(request: Request) {
     });
 
     revalidatePath('/', 'layout');
+    revalidatePath('/admin', 'layout');
+    revalidatePath('/admin/settings');
+    revalidatePath(`/book/${slugTrimmed}`);
     return NextResponse.json({ success: true, slug: updated.slug });
   } catch (error) {
     console.error("PATCH /api/tenant/slug error:", error);

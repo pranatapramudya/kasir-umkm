@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 
-// [PATCH] Update data profil dasar toko (nama toko & nomor telepon)
+// [PATCH] Update pengaturan jadwal booking (jam operasional & durasi jeda slot)
 export async function PATCH(request: Request) {
   try {
     const { userId } = await auth();
@@ -15,14 +15,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { name, phone } = body;
-
-    if (!name || typeof name !== "string" || !name.trim()) {
-      return NextResponse.json(
-        { error: "Nama toko / usaha wajib diisi." },
-        { status: 400 }
-      );
-    }
+    const { bookingOpenTime, bookingCloseTime, bookingSlotDuration } = body;
 
     let targetUserId = userId;
     const employee = await prisma.employee.findUnique({
@@ -34,7 +27,7 @@ export async function PATCH(request: Request) {
 
     const tenant = await prisma.tenant.findUnique({
       where: { userId: targetUserId },
-      select: { id: true },
+      select: { id: true, slug: true },
     });
 
     if (!tenant) {
@@ -44,34 +37,41 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // Validasi sederhana format HH:MM
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    const validOpen = timeRegex.test(bookingOpenTime) ? bookingOpenTime : "08:00";
+    const validClose = timeRegex.test(bookingCloseTime) ? bookingCloseTime : "21:00";
+    const validDuration = [15, 30, 45, 60, 90, 120].includes(Number(bookingSlotDuration))
+      ? Number(bookingSlotDuration)
+      : 30;
+
     const updated = await prisma.tenant.update({
       where: { userId: targetUserId },
       data: {
-        name: name.trim(),
-        phone: typeof phone === "string" ? phone.trim() : "",
+        bookingOpenTime: validOpen,
+        bookingCloseTime: validClose,
+        bookingSlotDuration: validDuration,
       },
       select: {
-        id: true,
-        name: true,
-        phone: true,
-        category: true,
-        slug: true,
+        bookingOpenTime: true,
+        bookingCloseTime: true,
+        bookingSlotDuration: true,
       },
     });
 
-    revalidatePath("/", "layout");
-    revalidatePath("/admin", "layout");
     revalidatePath("/admin/settings");
-    revalidatePath("/admin/pos");
-    if (updated.slug) {
-      revalidatePath(`/book/${updated.slug}`);
+    if (tenant.slug) {
+      revalidatePath(`/book/${tenant.slug}`);
     }
 
-    return NextResponse.json({ success: true, ...updated });
+    return NextResponse.json({
+      success: true,
+      ...updated,
+    });
   } catch (error) {
-    console.error("PATCH /api/tenant/profile error:", error);
+    console.error("PATCH /api/tenant/booking-schedule error:", error);
     return NextResponse.json(
-      { error: "Gagal menyimpan profil toko. Coba lagi." },
+      { error: "Terjadi kesalahan server saat menyimpan jadwal booking." },
       { status: 500 }
     );
   }
