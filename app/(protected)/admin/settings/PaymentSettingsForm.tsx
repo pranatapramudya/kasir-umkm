@@ -96,8 +96,12 @@ export default function PaymentSettingsForm({
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-slate-800 text-base">Informasi Pembayaran</h2>
-            <p className="text-xs text-slate-500">Data rekening untuk pembayaran & konfirmasi via WA</p>
+            <h2 className="font-bold text-slate-800 text-base">Informasi Pembayaran & Rekening DP</h2>
+            <p className="text-xs text-slate-500">
+              {isRental
+                ? "Data rekening untuk pembayaran DP 50% & konfirmasi via WA"
+                : "Isi jika layanan Anda mewajibkan DP/tanda jadi transfer. Kosongkan jika pelanggan cukup bayar langsung di kasir."}
+            </p>
           </div>
         </div>
         {!isEditing && (
