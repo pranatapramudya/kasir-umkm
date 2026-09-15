@@ -45,7 +45,7 @@ export default async function PesananOnlinePage() {
   const bookings = rawBookings.map(b => ({
     id: b.id,
     customerName: b.customerName,
-    itemName: b.product?.name || "Tanpa Armada",
+    itemName: b.product?.name || (isJasa ? "Layanan Umum" : "Tanpa Armada"),
     bookingDate: b.bookingDate.toISOString(),
     startDate: b.startDate?.toISOString() || null,
     endDate: b.endDate?.toISOString() || null,

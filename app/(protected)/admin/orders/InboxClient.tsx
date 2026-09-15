@@ -141,7 +141,7 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">ID Pesanan</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Pelanggan</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Layanan/Item</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{isJasa ? "Layanan / Jasa" : "Unit / Armada"}</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
               </tr>
@@ -203,10 +203,22 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
                         </button>
                       </div>
                     )}
-                    {order.status === "COMPLETED" && !isJasa && (
-                      <button onClick={() => handleStart(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors tooltip" title="Mulai/Start">
-                        🚀 Mulai / Start
-                      </button>
+                    {order.status === "COMPLETED" && (
+                      isJasa ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <a
+                            href="/admin/pos"
+                            className="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors inline-flex items-center gap-1"
+                            title="Proses Pembayaran di Kasir"
+                          >
+                            💳 Proses di Kasir
+                          </a>
+                        </div>
+                      ) : (
+                        <button onClick={() => handleStart(order.id)} className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors tooltip" title="Mulai/Start">
+                          🚀 Mulai / Start
+                        </button>
+                      )
                     )}
                     {order.status === "IN_PROGRESS" && !isJasa && (
                       <button 
@@ -234,7 +246,7 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white">
-              <h2 className="text-lg font-bold text-slate-800">Penyelesaian Sewa</h2>
+              <h2 className="text-lg font-bold text-slate-800">{isJasa ? "Penyelesaian Layanan" : "Penyelesaian Sewa"}</h2>
               <button onClick={() => setFinishingOrder(null)} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full">
                 <XCircle className="w-5 h-5" />
               </button>
@@ -242,11 +254,11 @@ export default function InboxClient({ initialOrders, isJasa }: { initialOrders: 
             <form onSubmit={handleFinishSubmit} className="p-5 space-y-4">
               <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Penyewa</span>
+                  <span className="text-slate-500">{isJasa ? "Pelanggan" : "Penyewa"}</span>
                   <span className="font-semibold text-slate-800">{finishingOrder.customerName}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Armada/Layanan</span>
+                  <span className="text-slate-500">{isJasa ? "Layanan / Jasa" : "Armada / Unit"}</span>
                   <span className="font-semibold text-slate-800">{finishingOrder.itemName}</span>
                 </div>
                 <div className="flex justify-between text-sm pt-2 border-t border-slate-200">
