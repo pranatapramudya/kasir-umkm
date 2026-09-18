@@ -3,6 +3,13 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { isServiceBusinessCategory } from '@/lib/business-category';
+import { 
+  cacheGet, 
+  cacheSet, 
+  cacheInvalidateByTag, 
+  CacheKeys, 
+  CacheTags 
+} from '@/lib/redis-cache';
 
 export const dynamic = 'force-dynamic'; 
 
@@ -37,6 +44,16 @@ export async function GET(request: Request) {
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
 
+    // Generate cache key based on query params
+    const cacheKey = `${CacheKeys.products(targetUserId)}:p${page}:l${limit}:s${search}:c${category}`;
+    const cacheTag = CacheTags.products(targetUserId);
+
+    // Try cache first
+    const cached = await cacheGet<{ products: any[]; totalPages: number; totalCount: number }>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached, { headers: { 'X-Cache': 'HIT' } });
+    }
+
     const whereClause: any = { userId: targetUserId, isArchived: false };
     
     if (search) {
@@ -62,8 +79,12 @@ export async function GET(request: Request) {
     ]);
     
     const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+    const response = { products, totalPages, totalCount };
     
-    return NextResponse.json({ products, totalPages, totalCount });
+    // Cache for 5 minutes
+    await cacheSet(cacheKey, response, { ttl: 300, tags: [cacheTag] });
+    
+    return NextResponse.json(response, { headers: { 'X-Cache': 'MISS' } });
   } catch (error) {
     console.error("GET Products error:", error);
     return NextResponse.json({ error: "Gagal mengambil data produk" }, { status: 500 });
@@ -78,13 +99,13 @@ export async function POST(request: Request) {
     // 1. Validasi Sesi
     if (!userId) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
     if (role === 'CASHIER') {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menambahkan produk." }, { status: 403 });
+      return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menambahkan produk." }, { status: 403 });
     }
 
     const body = await request.json();
@@ -93,7 +114,7 @@ export async function POST(request: Request) {
     // 2. Validasi Input Dasar (astikan name, hpp, dan hargaJual ada)
     if (!name || hpp === undefined || hargaJual === undefined) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Nama, HPP, dan Harga Jual wajib diisi" }, { status: 400 });
+      return NextResponse.json({ error: "Nama, HPP, dan Harga Jual wajib diisi" }, { status: 400 });
     }
 
     // 2.5 Cek Kategori Usaha untuk set isService
@@ -123,6 +144,9 @@ export async function POST(request: Request) {
       }
     });
 
+    // Invalidate cache for this tenant's products
+    await cacheInvalidateByTag(CacheTags.products(userId));
+    
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: newProduct }, { status: 201 });
   } catch (error: any) {
@@ -131,7 +155,7 @@ export async function POST(request: Request) {
     // Penanganan error Prisma jika kodeBarang duplikat dalam satu tenant
     if (error?.code === 'P2002') {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Kode Barang (SKU) sudah digunakan" }, { status: 400 });
+      return NextResponse.json({ error: "Kode Barang (SKU) sudah digunakan" }, { status: 400 });
     }
 
     revalidatePath('/', 'layout');

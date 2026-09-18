@@ -1,10 +1,15 @@
-import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck, Printer, Inbox } from "lucide-react";
+import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck, Printer, Inbox, ChefHat } from "lucide-react";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
+
+export function isFnBCategory(category: string): boolean {
+  const normalized = category?.toLowerCase().trim();
+  return normalized === "fnb" || normalized === "f&b" || normalized === "f&b / kuliner" || normalized === "resto" || normalized === "kuliner";
+}
 
 export function getNavigationMenu(kategoriUsaha: string, role: string | undefined) {
   const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
   const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
-  const isFnB = kategoriUsaha === "FNB" || kategoriUsaha === "F&B" || kategoriUsaha === "F&B / Kuliner";
+  const isFnB = isFnBCategory(kategoriUsaha);
   const isJasa = kategoriUsaha === "JASA" || kategoriUsaha === "Jasa / Servis" || kategoriUsaha === "Jasa/Servis";
   const isCashier = role === 'CASHIER';
 
@@ -12,17 +17,19 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
   const productMenuLabel = isRentalTravel ? "Unit / Properti / Armada" : isFnB ? "Daftar Menu" : isServiceBusiness ? "Layanan" : "Produk";
 
   const menuGroups = [
-    {
-      group: "MENU UTAMA",
-      items: [
-        { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        { name: kasirLabel, href: "/admin/pos", icon: ShoppingCart },
-        { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
-        ...(isFnB ? [{ name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }] : []),
-        ...(isRentalTravel ? [{ name: "Kalender Sewa", href: "/admin/rental-calendar", icon: CalendarCheck }] : []),
-        ...(isJasa ? [{ name: "Pesanan Online", href: "/admin/orders", icon: Inbox }] : [])
-      ]
-    },
+      {
+        group: "MENU UTAMA",
+        items: [
+          { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+          { name: kasirLabel, href: "/admin/pos", icon: ShoppingCart },
+          ...(isFnB ? [
+            { name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }
+          ] : []),
+          ...(isRentalTravel ? [{ name: "Kalender Sewa", href: "/admin/rental-calendar", icon: CalendarCheck }] : []),
+          ...(isJasa ? [{ name: "Pesanan Online", href: "/admin/orders", icon: Inbox }] : []),
+          { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
+        ]
+      },
     {
       group: "MANAJEMEN BISNIS",
       items: [

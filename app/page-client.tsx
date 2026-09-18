@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode
+  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -16,13 +16,34 @@ import { CopyBookingLinkButton } from '@/components/CopyBookingLinkButton';
 import { Pagination } from '@/components/Pagination';
 import { printBluetoothReceipt, isBluetoothSupported } from '@/lib/bluetooth-printer';
 import { isRentalTravelCategory, detectRentalItemType } from '@/lib/business-category';
+import { isFnBCategory } from '@/lib/navigation';
 import { humanizeError } from '@/lib/error-mapper';
+import { routeOrderItems, isBarItem } from '@/lib/printer-routing';
+import { useOffline } from '@/components/OfflineProvider';
 import nextDynamic from 'next/dynamic';
 
 const PrinterHelpModal = nextDynamic(() => import('@/components/PrinterHelpModal'), {
   ssr: false,
 });
 const FnbModifierModal = nextDynamic(() => import('@/components/FnbModifierModal'), {
+  ssr: false,
+});
+const TutorialOverlay = nextDynamic(() => import('@/components/TutorialOverlay'), {
+  ssr: false,
+});
+const TableGridModal = nextDynamic(() => import('@/components/TableGridModal'), {
+  ssr: false,
+});
+const SplitBillModal = nextDynamic(() => import('@/components/SplitBillModal'), {
+  ssr: false,
+});
+const PrinterSetupModal = nextDynamic(() => import('@/components/PrinterSetupModal'), {
+  ssr: false,
+});
+const TaxExportModal = nextDynamic(() => import('@/components/TaxExportModal'), {
+  ssr: false,
+});
+const OnboardingWizard = nextDynamic(() => import('@/components/OnboardingWizard'), {
   ssr: false,
 });
 import InvoiceRentalA4 from '@/components/InvoiceRentalA4';
@@ -39,6 +60,8 @@ type Product = {
   stock: number;
   discount: number;
   kodeBarang?: string | null;
+  minStockThreshold?: number | null;
+  employeeCommission?: number | null;
 };
 
 type CartItem = Product & { cartItemId: string; qty: number; note?: string; workerId?: string; serviceDuration?: number; };
@@ -184,13 +207,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('cash');
   const [tableId, setTableId] = useState("");
-  const isFNB = tenantCategory === 'FNB' || tenantCategory === 'F&B' || tenantCategory === 'F&B / Kuliner';
-  const isJasa = tenantCategory === 'JASA' || tenantCategory === 'Jasa / Servis' || tenantCategory === 'Jasa/Servis';
+    const isFNB = isFnBCategory(tenantCategory || '');
+    const isJasa = tenantCategory === 'JASA' || tenantCategory === 'Jasa / Servis' || tenantCategory === 'Jasa/Servis';
   const isRental = isRentalTravelCategory(tenantCategory);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+    const { isOnline, saveTransaction, forceSync, pendingCount } = useOffline();
+    const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
-  const [printType, setPrintType] = useState<'customer' | 'kitchen'>('customer');
+  const [printType, setPrintType] = useState<'customer' | 'kitchen' | 'bar'>('customer');
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false); // State untuk keranjang mobile
   const [cashGiven, setCashGiven] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -201,10 +225,37 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+    const [isSplitBillOpen, setIsSplitBillOpen] = useState(false);
+
+    // State Tutorial Overlay (Retail First-Time User)
+    const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+
   // State Edukasi & Modifiers
   const [isPrinterHelpOpen, setIsPrinterHelpOpen] = useState(false);
-  const [fnbSelectedProduct, setFnbSelectedProduct] = useState<Product | null>(null);
+  const [isPrinterSetupOpen, setIsPrinterSetupOpen] = useState(false);
+    const [printerName, setPrinterName] = useState<string>('');
+    const [isTaxExportOpen, setIsTaxExportOpen] = useState(false);
+      const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+      const [fnbSelectedProduct, setFnbSelectedProduct] = useState<Product | null>(null);
   const [fnbModifierNote, setFnbModifierNote] = useState('');
+
+  // Tutorial steps for retail users
+    const retailTutorialSteps = [
+      { target: 'product-grid', title: 'Pilih Produk', text: 'Tap pada produk yang dibeli pelanggan. Produk akan masuk ke keranjang di sisi kanan.' },
+      { target: 'cart-panel', title: 'Keranjang Belanja', text: 'Di sini daftar belanjaan pelanggan. Bisa ubah jumlah (+/-) atau hapus.' },
+      { target: 'checkout-btn', title: 'Bayar Sekarang', text: 'Tekan tombol ini setelah selesai input pembayaran. Bisa pilih Tunai atau QRIS.' },
+      { target: 'barcode-input', title: 'Scan Barcode Cepat', text: 'Ketik atau scan SKU/Barcode di sini lalu tekan Enter. Lebih cepat dari cari manual.' },
+    ];
+
+    // Tutorial steps for F&B users
+    const fnbTutorialSteps = [
+      { target: 'table-select', title: 'Pilih Meja', text: 'Pilih nomor meja pelanggan. Untuk bungkus pilih "Takeaway / Bungkus".' },
+      { target: 'product-grid', title: 'Pilih Menu', text: 'Tap menu yang dipesan. Untuk catatan (less sugar, extra shot) klik item di keranjang lalu ikon pensil.' },
+      { target: 'cart-panel', title: 'Keranjang & Split Bill', text: 'Cek pesanan. Bisa bagi tagih per orang (Split Bill) di sini.' },
+      { target: 'checkout-btn', title: 'Bayar Sekarang', text: 'Tekan tombol bayar. Pilih Tunai atau QRIS. Struk dapur otomatis tercetak.' },
+    ];
 
   const [tables, setTables] = useState<any[]>([]);
 
@@ -326,15 +377,45 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   }
 
   useEffect(() => {
-    setIsClient(true);
+      setIsClient(true);
 
-    const savedCart = localStorage.getItem('pos_cart');
-    const savedTrans = localStorage.getItem('pos_transactions');
-    if (savedCart) setCart(JSON.parse(savedCart));
-    if (savedTrans) setTransactions(JSON.parse(savedTrans));
+      const savedCart = localStorage.getItem('pos_cart');
+      const savedTrans = localStorage.getItem('pos_transactions');
+      if (savedCart) setCart(JSON.parse(savedCart));
+      if (savedTrans) setTransactions(JSON.parse(savedTrans));
 
-    setIsInitialized(true);
-  }, []);
+      setIsInitialized(true);
+    
+            // Show onboarding wizard on very first visit if products is empty or not completed
+            const onboardingCompleted = localStorage.getItem('onboarding_completed');
+            if (!onboardingCompleted) {
+              setTimeout(() => {
+                setIsOnboardingOpen(true);
+              }, 300);
+            }
+
+            // Show tutorial for retail users on first visit
+      if (!isJasa && !isRental && !isFNB) {
+        const tutorialSeen = localStorage.getItem('pos_tutorial_seen');
+        if (!tutorialSeen) {
+          setTimeout(() => {
+            setShowTutorial(true);
+            setTutorialStep(0);
+          }, 500);
+        }
+      }
+
+      // Show tutorial for F&B users on first visit
+      if (isFNB) {
+        const tutorialSeen = localStorage.getItem('pos_fnb_tutorial_seen');
+        if (!tutorialSeen) {
+          setTimeout(() => {
+            setShowTutorial(true);
+            setTutorialStep(0);
+          }, 500);
+        }
+      }
+    }, []);
 
   // --- LOGIC LAINNYA ---
   useEffect(() => {
@@ -645,8 +726,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       total: Math.round(grandTotal),
       method: paymentMethod,
       cashierId: userId || undefined,
-      status: remainingBalance > 0 ? 'pending' : 'completed', // Will be re-evaluated as 'partial' in backend
-      ...(isFNB && { tableId: (tableId === 'takeaway' || tableId === 'TAKEAWAY') ? undefined : tableId }),
+            status: isFNB ? 'pending' : (remainingBalance > 0 ? 'pending' : 'completed'), // F&B: pending for KDS, Non-F&B: pending if remainingBalance else completed
+            ...(isFNB && { tableId: (tableId === 'takeaway' || tableId === 'TAKEAWAY') ? undefined : tableId }),
       ...(isJasa && { serviceDate: serviceDate || undefined }),
       // Sertakan data rental jika mode Rental
       ...(isRental && {
@@ -708,19 +789,17 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       );
 
     } catch (err: any) {
-      if (!navigator.onLine || err.message === 'Failed to fetch') {
-        // OFFLINE MODE: Save to local storage
-        const offlineTxs = JSON.parse(localStorage.getItem('offline_transactions') || '[]');
-        offlineTxs.push(newTransaction);
-        localStorage.setItem('offline_transactions', JSON.stringify(offlineTxs));
+          if (!isOnline || err.message === 'Failed to fetch' || err.name === 'TypeError') {
+            // OFFLINE MODE: Save to IndexedDB via OfflineProvider
+            await saveTransaction(newTransaction);
 
-        setTransactions([newTransaction, ...transactions]);
-        setLastTransaction(newTransaction);
-        setIsModalOpen(true);
-        toast.success("Mode Offline: Transaksi disimpan. Akan disinkronisasi otomatis saat online.");
-      } else {
-        toast.error(humanizeError(err));
-        console.error("Checkout Error:", err);
+            setTransactions([newTransaction, ...transactions]);
+            setLastTransaction(newTransaction);
+            setIsModalOpen(true);
+            toast.success("Mode Offline: Transaksi disimpan. Akan disinkronisasi otomatis saat online.");
+          } else {
+            toast.error(humanizeError(err));
+            console.error("Checkout Error:", err);
       }
     } finally {
       setIsCheckoutLoading(false);
@@ -798,12 +877,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     window.open(`https://wa.me/?text=${encodedText}`, '_blank');
   };
 
-  const printReceipt = (type: 'customer' | 'kitchen' = 'customer') => {
-    setPrintType(type);
-    setTimeout(() => {
-      window.print();
-    }, 150);
-  };
+  const printReceipt = (type: 'customer' | 'kitchen' | 'bar' = 'customer') => {
+      setPrintType(type);
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    };
 
   const handleBluetoothPrint = async () => {
     if (!lastTransaction) return;
@@ -1242,24 +1321,56 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         <div className="p-4 space-y-4 border-t bg-white mt-auto">
 
           {/* Input Nomor Meja (Khusus F&B) */}
-          {isFNB && (
+                    {isFNB && (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-gray-500 block">Meja / Antrean *</label>
+                          <button
+                            type="button"
+                            onClick={() => setIsTableModalOpen(true)}
+                            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            🪑 Buka Denah Meja
+                          </button>
+                        </div>
+
+                        {/* Tombol Visual Meja Terpilih */}
+                        <button
+                          id="table-select"
+                          type="button"
+                          onClick={() => setIsTableModalOpen(true)}
+                          className={`w-full p-2.5 rounded-lg border-2 text-left font-bold text-sm flex items-center justify-between transition-all ${
+                            tableId === 'takeaway'
+                              ? 'border-blue-600 bg-blue-50 text-blue-700'
+                              : tableId
+                              ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+                              : 'border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-blue-400'
+                          }`}
+                        >
+                          <span>
+                            {tableId === 'takeaway'
+                              ? '🛍️ Bungkus / Takeaway'
+                              : tableId
+                              ? `🍽️ ${getTableName(tableId)}`
+                              : '👉 Klik Disini untuk Pilih Meja'}
+                          </span>
+                          <span className="text-xs text-blue-600 font-semibold underline">Ganti</span>
+                        </button>
+                      </div>
+                    )}
+
+          {/* Retail: Konter / Tunai Langsung (non-FNB, non-Jasa, non-Rental) */}
+          {!isFNB && !isJasa && !isRental && (
             <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Meja / Antrean *</label>
+              <label className="text-xs font-bold text-gray-500 mb-1 block">Tipe Transaksi *</label>
               <select
                 value={tableId}
                 onChange={(e) => setTableId(e.target.value)}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all"
+                className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 rounded-lg text-sm transition-all"
               >
-                <option value="" disabled>-- Pilih Meja / Antrean --</option>
-                <option value="takeaway" className="font-bold text-blue-700">🛍️ [Takeaway / Bungkus / Konter]</option>
-                {tables.map(t => {
-                  const isOccupied = t.status?.toUpperCase() === 'TERISI' || t.status?.toUpperCase() === 'OCCUPIED';
-                  return (
-                    <option key={t.id} value={t.id} disabled={isOccupied}>
-                      {t.name} (Kapasitas: {t.capacity}){isOccupied ? ' - TERISI' : ''}
-                    </option>
-                  );
-                })}
+                <option value="" disabled>-- Pilih Tipe --</option>
+                <option value="counter" className="font-bold text-green-700">🛒 [Konter / Tunai Langsung]</option>
+                <option value="delivery" className="font-bold text-purple-700">🚚 [Delivery / Antar]</option>
               </select>
             </div>
           )}
@@ -1327,24 +1438,24 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
 
           {/* Input Kembalian Jika Tunai */}
-          {paymentMethod === 'cash' && cart.length > 0 && (
-            <div>
-              <label className="text-xs font-bold text-gray-500 mb-1 block">Uang Diterima</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
-                <input
-                  type="text"
-                  placeholder="0"
-                  className="w-full pl-9 pr-3 p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm font-bold transition-all"
-                  value={cashGiven}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, '');
-                    setCashGiven(val ? parseInt(val).toLocaleString('id-ID') : "");
-                  }}
-                />
-              </div>
-            </div>
-          )}
+                    {paymentMethod === 'cash' && cart.length > 0 && (
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 mb-1 block">Uang Diterima</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
+                          <input
+                            type="text"
+                            placeholder="0"
+                            className="w-full pl-9 pr-3 p-2.5 bg-white border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm font-bold text-gray-900 placeholder-gray-400 transition-all"
+                            value={cashGiven}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              setCashGiven(val ? parseInt(val).toLocaleString('id-ID') : "");
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
 
           {/* DP System */}
           {(isRental) && cart.length > 0 && (
@@ -1354,20 +1465,20 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <span className="text-sm font-bold text-gray-700">Bayar Uang Muka (DP)</span>
               </label>
               {isDownPayment && (
-                <div className="ml-6 space-y-2">
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
-                    <input
-                      type="text"
-                      placeholder="Nominal DP"
-                      className="w-full pl-9 pr-3 p-2 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all"
-                      value={downPaymentInput}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '');
-                        setDownPaymentInput(val ? parseInt(val).toLocaleString('id-ID') : "");
-                      }}
-                    />
-                  </div>
+                              <div className="ml-6 space-y-2">
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Nominal DP"
+                                    className="w-full pl-9 pr-3 p-2 bg-white border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-gray-900 placeholder-gray-400 transition-all"
+                                    value={downPaymentInput}
+                                    onChange={(e) => {
+                                      const val = e.target.value.replace(/[^0-9]/g, '');
+                                      setDownPaymentInput(val ? parseInt(val).toLocaleString('id-ID') : "");
+                                    }}
+                                  />
+                                </div>
                   <div className="flex justify-between text-xs font-medium text-gray-500 bg-gray-50 p-2 rounded">
                     <span>Sisa Tagihan:</span>
                     <span className="text-red-500 font-bold">{formatRupiah(remainingBalance)}</span>
@@ -1388,9 +1499,20 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             <span className="font-semibold text-gray-700">{formatRupiah(subTotal)}</span>
           </div>
           <div className="flex justify-between items-center pt-2 border-t">
-            <span className="font-bold text-gray-700">Total Belanja</span>
-            <span className="font-black text-xl text-blue-600">{formatRupiah(grandTotal)}</span>
-          </div>
+                      <span className="font-bold text-gray-700">Total Belanja</span>
+                      <span className="font-black text-xl text-blue-600">{formatRupiah(grandTotal)}</span>
+                    </div>
+
+                    {/* Tombol Split Bill (Khusus F&B saat ada isi keranjang) */}
+                    {isFNB && cart.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsSplitBillOpen(true)}
+                        className="w-full py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 border border-slate-200"
+                      >
+                        👥 Hitung Bagi Rata (Split Bill)
+                      </button>
+                    )}
 
           {/* Kembalian */}
           {paymentMethod === 'cash' && cart.length > 0 && (
@@ -1403,10 +1525,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           )}
 
           <button
-            onClick={handleCheckout}
-            disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))}
-            className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
-          >
+                      id="checkout-btn"
+                      onClick={handleCheckout}
+                      disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))}
+                      className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
+                    >
             {isCheckoutLoading && <Loader2 className="w-5 h-5 animate-spin" />}
             {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' :
               (isRental && isDownPayment && (parseInt(downPaymentInput.replace(/[^0-9]/g, '')) || 0) > 0 && remainingBalance > 0) ? 'SIMPAN & TAHAN JAMINAN' :
@@ -1441,9 +1564,27 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     </h1>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
-                    {(isJasa || isRental) && <CopyBookingLinkButton />}
-                    <CustomUserButton />
-                  </div>
+                                      {(isJasa || isRental) && <CopyBookingLinkButton />}
+                                      {isFNB && (
+                                                                              <Link
+                                                                                href="/admin/kitchen"
+                                                                                className="px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 font-bold text-sm"
+                                                                                title="Buka Layar Dapur (KDS)"
+                                                                              >
+                                                                                <ChefHat className="w-4 h-4 text-orange-600" />
+                                                                                <span className="hidden sm:inline">Layar Dapur</span>
+                                                                              </Link>
+                                                                            )}
+                                      <button
+                                        onClick={() => setIsTaxExportOpen(true)}
+                                        className="px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                                        title="Export Laporan Pajak (CSV/Jurnal)"
+                                      >
+                                        <FileSpreadsheet className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Laporan Pajak</span>
+                                      </button>
+                                      <CustomUserButton />
+                                    </div>
                 </div>
 
                 {/* Search Bar & Kategori */}
@@ -1499,45 +1640,60 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </div>
 
                 {/* Input Barcode / SKU Cepat (Khusus Retail & F&B) */}
-                {(!isJasa && !isRental) && (
-                  <div className="relative w-full max-w-md mt-1">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-blue-600 pointer-events-none">
-                      <Barcode className="w-4 h-4" />
-                    </div>
-                    <input
-                      id="manual-barcode-input"
-                      type="text"
-                      placeholder="Scan atau Ketik SKU/Barcode (Enter)"
-                      value={barcodeInput}
-                      onChange={(e) => setBarcodeInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          processBarcodeScan(barcodeInput);
-                        }
-                      }}
-                      disabled={isScanning}
-                      className="w-full pl-9 pr-24 py-2 bg-blue-50/60 border border-blue-200 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-400 rounded-lg text-sm text-slate-800 placeholder:text-blue-600/60 outline-none transition-all shadow-sm font-mono"
-                    />
-                    {isScanning ? (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
-                      </div>
-                    ) : barcodeInput ? (
-                      <button
-                        type="button"
-                        onClick={() => processBarcodeScan(barcodeInput)}
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-2 py-1 rounded-md transition-colors"
-                      >
-                        Enter ↵
-                      </button>
-                    ) : (
-                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-blue-600/75 uppercase tracking-wider pointer-events-none bg-blue-100/70 px-1.5 py-0.5 rounded hidden sm:inline">
-                        Scanner Siap
-                      </span>
-                    )}
-                  </div>
-                )}
+                                {(!isJasa && !isRental) && (
+                                  <div id="barcode-input" className="relative w-full max-w-md mt-1">
+                                    {/* Retail: Prominent Scan Button */}
+                                    {!isFNB && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const input = document.getElementById('manual-barcode-input') as HTMLInputElement;
+                                          input?.focus();
+                                        }}
+                                        className="w-full mb-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-2 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                                        aria-label="Buka Scanner Barcode"
+                                      >
+                                        <Barcode className="w-5 h-5" />
+                                        <span>📷 Scan Barcode / Ketik SKU</span>
+                                      </button>
+                                    )}
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-blue-600 pointer-events-none">
+                                      <Barcode className="w-4 h-4" />
+                                    </div>
+                                    <input
+                                      id="manual-barcode-input"
+                                      type="text"
+                                      placeholder="Scan atau Ketik SKU/Barcode (Enter)"
+                                      value={barcodeInput}
+                                      onChange={(e) => setBarcodeInput(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          processBarcodeScan(barcodeInput);
+                                        }
+                                      }}
+                                      disabled={isScanning}
+                                      className="w-full pl-9 pr-24 py-2 bg-blue-50/60 border border-blue-200 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-400 rounded-lg text-sm text-slate-800 placeholder:text-blue-600/60 outline-none transition-all shadow-sm font-mono"
+                                    />
+                                    {isScanning ? (
+                                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                                      </div>
+                                    ) : barcodeInput ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => processBarcodeScan(barcodeInput)}
+                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-2 py-1 rounded-md transition-colors"
+                                      >
+                                        Enter ↵
+                                      </button>
+                                    ) : (
+                                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-blue-600/75 uppercase tracking-wider pointer-events-none bg-blue-100/70 px-1.5 py-0.5 rounded hidden sm:inline">
+                                        Scanner Siap
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
               </div>
 
               <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50 pb-28 lg:pb-4 flex flex-col touch-pan-y [-webkit-overflow-scrolling:touch]">
@@ -1552,44 +1708,50 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     </button>
                   </div>
                 )}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-1 content-start">
-                  {products.map(product => {
-                    const remaining = getRemainingStock(product);
-                    const isOutOfStock = remaining <= 0;
-                    return (
-                      <div
-                        key={product.id}
-                        onClick={() => !isOutOfStock && (isFNB ? openFnbModal(product) : addToCart(product))}
-                        className={`group relative rounded-xl border p-3 flex flex-col select-none ${
-                          isOutOfStock
-                            ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
-                            : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
-                        }`}
-                      >
-                        {isOutOfStock && (
-                          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-red-600">
-                            STOK HABIS
-                          </div>
-                        )}
-                        <div className="relative mb-3 w-full h-32 rounded-lg overflow-hidden">
-                          <Image
-                            src={product.image || "https://placehold.co/400x300?text=No+Image"}
-                            alt={product.name}
-                            fill
-                            className={`object-cover ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
-                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                          />
-                          {(!isJasa && !isRental) && (
-                            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 ${isOutOfStock ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-900/85 text-white shadow-sm'}`}>
-                              {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
-                            </div>
-                          )}
-                          {(product.discount && product.discount > 0) ? (
-                            <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 bg-rose-600 text-white shadow-sm">
-                              Promo
-                            </div>
-                          ) : null}
-                        </div>
+                <div id="product-grid" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-1 content-start">
+                                  {products.map(product => {
+                                    const remaining = getRemainingStock(product);
+                                    const isOutOfStock = remaining <= 0;
+                                    const isLowStock = product.minStockThreshold && remaining > 0 && remaining <= product.minStockThreshold;
+                                    return (
+                                      <div
+                                                          key={product.id}
+                                                          onClick={() => !isOutOfStock && addToCart(product)}
+                                                          className={`group relative rounded-xl border p-3 flex flex-col select-none ${
+                                          isOutOfStock
+                                            ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
+                                            : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
+                                        }`}
+                                      >
+                                        {isOutOfStock && (
+                                          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-red-600">
+                                            STOK HABIS
+                                          </div>
+                                        )}
+                                        {isLowStock && (
+                                          <div className="absolute -top-2 -left-2 bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-amber-600">
+                                            STOK MINIMUM
+                                          </div>
+                                        )}
+                                        <div className="relative mb-3 w-full h-32 rounded-lg overflow-hidden">
+                                          <Image
+                                            src={product.image || "https://placehold.co/400x300?text=No+Image"}
+                                            alt={product.name}
+                                            fill
+                                            className={`object-cover ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
+                                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                          />
+                                          {(!isJasa && !isRental) && (
+                                            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 ${isOutOfStock ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-900/85 text-white shadow-sm'}`}>
+                                              {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
+                                            </div>
+                                          )}
+                                          {(product.discount && product.discount > 0) ? (
+                                            <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 bg-rose-600 text-white shadow-sm">
+                                              Promo
+                                            </div>
+                                          ) : null}
+                                        </div>
                         <h3 className="font-bold text-sm h-10 line-clamp-2 mb-1 group-hover:text-blue-700 transition-colors">{product.name}</h3>
                         <div className="mt-auto flex items-center justify-between">
                           <div className="flex flex-col">
@@ -1616,9 +1778,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             </div>
 
             {/* CART SIDEBAR (Desktop Only) */}
-            <div className="hidden lg:flex w-[450px] min-w-[450px] shrink-0 bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20 h-full min-h-0">
-              {renderCartContent(false)}
-            </div>
+                        <div id="cart-panel" className="hidden lg:flex w-[450px] min-w-[450px] shrink-0 bg-white border-l flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-20 h-full min-h-0">
+                          {renderCartContent(false)}
+                        </div>
           </div>
         </div>
 
@@ -1773,35 +1935,50 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </button>
 
                 {/* Tombol Bluetooth Printer (Tampil jika format Thermal atau Retail/FNB) */}
-                {((!isRental && !isJasa) || rentalPrintFormat === 'thermal') && (
-                  isBluetoothSupported() ? (
-                    <div className="space-y-1">
-                      <button
-                        id="bluetooth-print-btn"
-                        onClick={handleBluetoothPrint}
-                        className="w-full py-3 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
-                      >
-                        🖨️ Cetak Struk (Bluetooth)
-                      </button>
-                      <button onClick={() => setIsPrinterHelpOpen(true)} className="text-xs text-blue-600 font-medium hover:underline w-full text-center py-1">
-                        Bingung Cara Print? Klik di sini
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                      ⚠️ Browser Anda tidak mendukung cetak via Bluetooth.
-                      Gunakan Chrome / Edge untuk fitur ini.
-                    </p>
-                  )
-                )}
+                                {((!isRental && !isJasa) || rentalPrintFormat === 'thermal') && (
+                                  isBluetoothSupported() ? (
+                                    <div className="space-y-2">
+                                      <button
+                                        id="bluetooth-print-btn"
+                                        onClick={handleBluetoothPrint}
+                                        className="w-full py-3 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
+                                      >
+                                        🖨️ Cetak Struk (Bluetooth)
+                                      </button>
+                                      <button
+                                        onClick={() => setIsPrinterSetupOpen(true)}
+                                        className="w-full py-2 rounded-xl font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+                                      >
+                                        <Printer className="w-4 h-4" />
+                                        Setup Printer (Auto-Detect + Test Print)
+                                      </button>
+                                      <button onClick={() => setIsPrinterHelpOpen(true)} className="text-xs text-blue-600 font-medium hover:underline w-full text-center py-1">
+                                        Bingung Cara Print? Klik di sini
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                      ⚠️ Browser Anda tidak mendukung cetak via Bluetooth.
+                                      Gunakan Chrome / Edge untuk fitur ini.
+                                    </p>
+                                  )
+                                )}
                 {isFNB && (
-                  <button
-                    onClick={() => printReceipt('kitchen')}
-                    className="w-full py-3 rounded-xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
-                  >
-                    🍳 Cetak Tiket Dapur
-                  </button>
-                )}
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                      onClick={() => printReceipt('kitchen')}
+                                      className="py-2.5 px-2 rounded-xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm border-0 transition-all text-xs flex items-center justify-center gap-1.5"
+                                    >
+                                      🍳 Tiket Dapur
+                                    </button>
+                                    <button
+                                      onClick={() => printReceipt('bar')}
+                                      className="py-2.5 px-2 rounded-xl font-bold bg-cyan-600 hover:bg-cyan-700 text-white shadow-sm border-0 transition-all text-xs flex items-center justify-center gap-1.5"
+                                    >
+                                      ☕ Tiket Bar
+                                    </button>
+                                  </div>
+                                )}
                 <button
                   onClick={closeCheckoutModal}
                   className="w-full py-3 rounded-xl font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -1963,77 +2140,109 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         </div>
       )}
 
-      {/* TIKET DAPUR (HANYA TAMPIL SAAT DIPRINT KITCHEN) */}
-      {printType === 'kitchen' && (
-        <div
-          style={{ boxSizing: 'border-box' }}
-          className={`print:block ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black font-mono box-border print:box-border print:m-0`}
-        >
-          <style>{`
-            @media print {
-              @page { 
-                size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; 
-                margin: 0 !important; 
-              }
-              html, body {
-                width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-                min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-                max-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
-                margin: 0 auto !important;
-                padding: 0 !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-            }
-          `}</style>
-          {lastTransaction && (
-            <>
-              <div className="text-center mb-4 border-b-2 border-black pb-2">
-                <h1 className="text-xl font-black uppercase mb-1">PESANAN DAPUR</h1>
-                <h2 className="text-2xl font-black">{lastTransaction.tableId ? `MEJA ${getTableName(lastTransaction.tableId)}` : 'TAKEAWAY'}</h2>
-              </div>
+      {/* TIKET DAPUR / BAR (HANYA TAMPIL SAAT DIPRINT KITCHEN ATAU BAR) */}
+            {(printType === 'kitchen' || printType === 'bar') && (
+              <div
+                style={{ boxSizing: 'border-box' }}
+                className={`print:block ${thermalPaperSize === '80mm' ? 'w-[80mm] min-w-[80mm] max-w-[80mm] print:w-[80mm] print:min-w-[80mm] print:max-w-[80mm]' : 'w-[58mm] min-w-[58mm] max-w-[58mm] print:w-[58mm] print:min-w-[58mm] print:max-w-[58mm]'} mx-auto overflow-hidden p-2 bg-white text-black font-mono box-border print:box-border print:m-0`}
+              >
+                <style>{`
+                  @media print {
+                    @page { 
+                      size: ${thermalPaperSize === '80mm' ? '80mm auto' : '58mm auto'}; 
+                      margin: 0 !important; 
+                    }
+                    html, body {
+                      width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                      min-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                      max-width: ${thermalPaperSize === '80mm' ? '80mm' : '58mm'} !important;
+                      margin: 0 auto !important;
+                      padding: 0 !important;
+                      background: #ffffff !important;
+                      color: #000000 !important;
+                      -webkit-print-color-adjust: exact !important;
+                      print-color-adjust: exact !important;
+                    }
+                  }
+                `}</style>
+                {lastTransaction && (() => {
+                  const filteredItems = printType === 'bar'
+                    ? lastTransaction.items.filter(i => isBarItem(i.category, i.name))
+                    : lastTransaction.items.filter(i => !isBarItem(i.category, i.name));
+                  const displayItems = filteredItems.length > 0 ? filteredItems : lastTransaction.items;
 
-              <div className="mb-4 text-xs">
-                <p className="font-bold">Waktu: {lastTransaction.date} {lastTransaction.time}</p>
-                <p className="font-bold">ID: {lastTransaction.id}</p>
-              </div>
+                  return (
+                    <>
+                      <div className="text-center mb-4 border-b-2 border-black pb-2">
+                        <h1 className="text-xl font-black uppercase mb-1">
+                          {printType === 'bar' ? '☕ TIKET BAR / MINUMAN' : '🍳 TIKET DAPUR / MAKANAN'}
+                        </h1>
+                        <h2 className="text-2xl font-black">{lastTransaction.tableId ? `MEJA ${getTableName(lastTransaction.tableId)}` : 'TAKEAWAY'}</h2>
+                      </div>
 
-              <div className="border-b-2 border-black pb-3 mb-3">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b-2 border-black text-xs font-black">
-                      <th className="pb-1.5 w-3/4">Item</th>
-                      <th className="pb-1.5 text-center w-1/4">Qty</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {lastTransaction.items.map(item => (
-                      <React.Fragment key={item.id}>
-                        <tr className="break-inside-avoid print:break-inside-avoid">
-                          <td className="pt-2 font-black text-sm leading-tight pr-1">{item.name}</td>
-                          <td className="pt-2 font-black text-base text-center">{item.qty}</td>
-                        </tr>
-                        {item.note && (
-                          <tr className="break-inside-avoid print:break-inside-avoid">
-                            <td colSpan={2} className="text-xs italic font-bold pb-1 text-gray-700 uppercase">* Note: {item.note}</td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
+                      <div className="mb-4 text-xs">
+                        <p className="font-bold">Waktu: {lastTransaction.date} {lastTransaction.time}</p>
+                        <p className="font-bold">ID: {lastTransaction.id}</p>
+                      </div>
+
+                      <div className="border-b-2 border-black pb-3 mb-3">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="border-b-2 border-black text-xs font-black">
+                              <th className="pb-1.5 w-3/4">Item</th>
+                              <th className="pb-1.5 text-center w-1/4">Qty</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {displayItems.map(item => (
+                              <React.Fragment key={item.id}>
+                                <tr className="break-inside-avoid print:break-inside-avoid">
+                                  <td className="pt-2 font-black text-sm leading-tight pr-1">{item.name}</td>
+                                  <td className="pt-2 font-black text-base text-center">{item.qty}</td>
+                                </tr>
+                                {item.note && (
+                                  <tr className="break-inside-avoid print:break-inside-avoid">
+                                    <td colSpan={2} className="text-xs italic font-bold pb-1 text-gray-700 uppercase">* Note: {item.note}</td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="text-center mt-4 text-xs font-bold break-inside-avoid print:break-inside-avoid">
+                        <p>--- AKHIR PESANAN ---</p>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
-              <div className="text-center mt-4 text-xs font-bold break-inside-avoid print:break-inside-avoid">
-                <p>--- AKHIR PESANAN ---</p>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+            )}
       {/* Printer Help Modal */}
-      <PrinterHelpModal isOpen={isPrinterHelpOpen} onClose={() => setIsPrinterHelpOpen(false)} />
+                  <PrinterHelpModal isOpen={isPrinterHelpOpen} onClose={() => setIsPrinterHelpOpen(false)} />
+
+                  {/* Printer Setup Modal (Auto-detect + Test Print) */}
+                  <PrinterSetupModal
+                    isOpen={isPrinterSetupOpen}
+                    onClose={() => setIsPrinterSetupOpen(false)}
+                    onPrinterReady={(name) => setPrinterName(name)}
+                  />
+
+                  {/* Tax Export Modal */}
+                                                      <TaxExportModal
+                                                        isOpen={isTaxExportOpen}
+                                                        onClose={() => setIsTaxExportOpen(false)}
+                                                        transactions={transactions}
+                                                        tenantCategory={tenantCategory}
+                                                        tenantName={tenantName || 'Toko'}
+                                                      />
+
+                                                      {/* Onboarding Wizard */}
+                                                      <OnboardingWizard
+                                                        isOpen={isOnboardingOpen}
+                                                        onClose={() => setIsOnboardingOpen(false)}
+                                                        onComplete={() => {}}
+                                                      />
 
       {/* Queue Modal */}
       <QueueModal isOpen={isQueueModalOpen} onClose={() => setIsQueueModalOpen(false)} onProcess={handleProcessQueue} isRental={isRental} />
@@ -2258,6 +2467,46 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           </div>
         </div>
       )}
-    </>
-  );
-}
+    {/* Tutorial Overlay */}
+              <TutorialOverlay
+                show={showTutorial}
+                steps={isFNB ? fnbTutorialSteps : retailTutorialSteps}
+                step={tutorialStep}
+                onNext={() => setTutorialStep(prev => prev + 1)}
+                onSkip={() => {
+                  setShowTutorial(false);
+                  if (isFNB) {
+                    localStorage.setItem('pos_fnb_tutorial_seen', 'true');
+                  } else {
+                    localStorage.setItem('pos_tutorial_seen', 'true');
+                  }
+                }}
+                onFinish={() => {
+                  setShowTutorial(false);
+                  if (isFNB) {
+                    localStorage.setItem('pos_fnb_tutorial_seen', 'true');
+                  } else {
+                    localStorage.setItem('pos_tutorial_seen', 'true');
+                  }
+                }}
+              />
+
+              {/* Table Grid Modal (F&B) */}
+              <TableGridModal
+                tables={tables}
+                selectedTableId={tableId}
+                onSelectTable={setTableId}
+                isOpen={isTableModalOpen}
+                onClose={() => setIsTableModalOpen(false)}
+              />
+
+              {/* Split Bill Modal (F&B) */}
+              <SplitBillModal
+                isOpen={isSplitBillOpen}
+                onClose={() => setIsSplitBillOpen(false)}
+                totalAmount={grandTotal}
+                formatRupiah={formatRupiah}
+              />
+            </>
+          );
+        }

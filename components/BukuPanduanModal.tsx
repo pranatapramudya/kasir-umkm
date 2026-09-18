@@ -203,7 +203,7 @@ function Step({ num, title, businessType, isLast, children }: { num: string; tit
       </div>
       <div className="pb-6">
         <h3 className="font-black text-slate-800 mb-1 text-base">{title}</h3>
-        <p className="text-slate-600 text-sm leading-relaxed">{children}</p>
+        <div className="text-slate-600 text-sm leading-relaxed">{children}</div>
       </div>
     </div>
   );

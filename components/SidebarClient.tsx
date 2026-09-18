@@ -4,9 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getNavigationMenu } from "@/lib/navigation";
-import { Store, HelpCircle } from "lucide-react";
+import { Store, HelpCircle, ChefHat } from "lucide-react";
 import { BukuPanduanModal } from "./BukuPanduanModal";
 import { usePendingBookingCount } from "@/hooks/usePendingBookingCount";
+
+function isFnBCategory(category: string): boolean {
+  const normalized = category?.toLowerCase().trim();
+  return normalized === "fnb" || normalized === "f&b" || normalized === "f&b / kuliner" || normalized === "resto" || normalized === "kuliner";
+}
 
 interface SidebarClientProps {
   role: string | undefined;
@@ -118,43 +123,72 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
           </div>
 
           {filteredMenuGroups.map((group) => (
-            <div key={group.group}>
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-4">
-                {group.group}
-              </h3>
-              <div className="space-y-1.5">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activePath === item.href;
+                      <div key={group.group}>
+                        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-4">
+                          {group.group}
+                        </h3>
+                        <div className="space-y-1.5">
+                          {group.items.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = activePath === item.href;
 
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      prefetch={true}
-                      onClick={() => handleLinkClick(item.href)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-75 font-semibold text-sm touch-manipulation active:scale-[0.97] ${isActive
-                        ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600 shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent active:bg-slate-100"
-                        }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-3">
-                          <Icon className={`w-5 h-5 transition-colors duration-75 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
-                          {item.name}
+                            return (
+                              <Link
+                                key={item.name}
+                                href={item.href}
+                                prefetch={true}
+                                onClick={() => handleLinkClick(item.href)}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-75 font-semibold text-sm touch-manipulation active:scale-[0.97] ${isActive
+                                  ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600 shadow-sm"
+                                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent active:bg-slate-100"
+                                  }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center gap-3">
+                                    <Icon className={`w-5 h-5 transition-colors duration-75 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
+                                    {item.name}
+                                  </div>
+                                  {(item.name === "Pesanan Online" || item.href === "/admin/orders" || item.href === "/admin/rental-calendar") && pendingCount > 0 && (
+                                    <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center animate-in zoom-in duration-200">
+                                      {pendingCount > 99 ? "99+" : pendingCount}
+                                    </span>
+                                  )}
+                                </div>
+                              </Link>
+                            );
+                          })}
+
+                          {/* Hardcoded: Tampilan Dapur (KDS) - hanya untuk kategori F&B */}
+                          {group.group === "MENU UTAMA" && isFnBCategory(kategoriUsaha) && (
+                            <>
+                              <Link
+                                key="kds-hardcoded"
+                                href="/admin/kitchen"
+                                prefetch={true}
+                                onClick={(e) => {
+                                  // Prevent middle-click / Ctrl+click / Cmd+click from opening new tab
+                                  if (e.button === 1 || e.ctrlKey || e.metaKey) {
+                                    e.preventDefault();
+                                    handleLinkClick("/admin/kitchen");
+                                  } else {
+                                    handleLinkClick("/admin/kitchen");
+                                  }
+                                }}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-75 font-semibold text-sm touch-manipulation active:scale-[0.97] ${activePath === "/admin/kitchen"
+                                  ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600 shadow-sm"
+                                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent active:bg-slate-100"
+                                  }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <ChefHat className={`w-5 h-5 transition-colors duration-75 ${activePath === "/admin/kitchen" ? "text-blue-600" : "text-slate-400"}`} />
+                                  Tampilan Dapur (KDS)
+                                </div>
+                              </Link>
+                            </>
+                          )}
                         </div>
-                        {(item.name === "Pesanan Online" || item.href === "/admin/orders" || item.href === "/admin/rental-calendar") && pendingCount > 0 && (
-                          <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center animate-in zoom-in duration-200">
-                            {pendingCount > 99 ? "99+" : pendingCount}
-                          </span>
-                        )}
                       </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+                    ))}
         </nav>
       </div>
       

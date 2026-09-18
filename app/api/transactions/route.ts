@@ -148,9 +148,17 @@ export async function POST(request: Request) {
           total: rawTotal,
           discount: rawDiscount,
           cashierId: validCashierId,
-          method: String(body.method || "Tunai"),
-          status: (safeInt(body.remainingBalance, 0) > 0) ? 'partial' : 'completed',
-          driverName: body.driverName ? String(body.driverName).trim() : null,
+                    method: String(body.method || "Tunai"),
+                              status: (() => {
+                                // F&B: status 'pending' supaya muncul di KDS, baru dapur update ke cooking/ready/completed
+                                // Non-F&B: 'completed' langsung (atau 'partial' jika ada remainingBalance)
+                                // Gunakan isFnBCategory untuk konsistensi dengan frontend
+                                const isFNB = body.tableId && typeof body.tableId === 'string' && body.tableId.trim() !== '';
+                                const hasRemaining = safeInt(body.remainingBalance, 0) > 0;
+                                if (isFNB) return 'pending';
+                                return hasRemaining ? 'partial' : 'completed';
+                              })(),
+                    driverName: body.driverName ? String(body.driverName).trim() : null,
           licensePlate: body.licensePlate ? String(body.licensePlate).trim() : null,
           pickupLocation: body.pickupLocation ? String(body.pickupLocation).trim() : null,
           dropoffLocation: body.dropoffLocation ? String(body.dropoffLocation).trim() : null,

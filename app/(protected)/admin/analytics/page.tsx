@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import { getAnalyticsData } from "./actions";
 import Link from "next/link";
 import { getTerms } from "@/utils/terminology";
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 
-const BusyHoursChart = dynamic(() => import('@/components/BusyHoursChart'), {
+export const dynamic = 'force-dynamic';
+
+const BusyHoursChart = nextDynamic(() => import('@/components/BusyHoursChart'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center">
@@ -137,7 +139,7 @@ export default function AnalyticsPage() {
                    className="bg-transparent text-sm font-medium text-slate-700 outline-none w-full text-right sm:text-left"
                  />
               </div>
-              
+             
               <button 
                 onClick={handleExport}
                 disabled={isExporting}
@@ -152,7 +154,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        
+       
         {/* 1. Grafik Jam Sibuk */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group col-span-1 md:col-span-2 lg:col-span-1">
           {!hasAccess && <LockOverlay />}
@@ -166,7 +168,7 @@ export default function AnalyticsPage() {
                 <p className="text-xs text-slate-500 line-clamp-2">{terms.busyHoursDesc}</p>
               </div>
             </div>
-            
+           
             <div className="flex-1 min-h-[240px] -ml-4 mt-2">
               {data?.busyHours?.length > 0 ? (
                 <BusyHoursChart data={data.busyHours} />
@@ -213,8 +215,8 @@ export default function AnalyticsPage() {
                                 setIsProductFilterOpen(false);
                               }}
                               className={`block w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer ${
-                                productFilterMode === value 
-                                  ? "font-semibold text-emerald-600 bg-emerald-50/50" 
+                                productFilterMode === value
+                                  ? "font-semibold text-emerald-600 bg-emerald-50/50"
                                   : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                               }`}
                             >
@@ -228,7 +230,7 @@ export default function AnalyticsPage() {
                 )}
               </div>
             </div>
-            
+           
             <div className="flex-1 flex flex-col justify-center">
               {data?.topProducts?.length > 0 ? (
                 <div key={productFilterMode} className="animate-in fade-in duration-300">
@@ -283,7 +285,7 @@ export default function AnalyticsPage() {
                 <p className="text-xs text-slate-500 line-clamp-2">Sistem otomatis memprediksi kapan stok akan habis.</p>
               </div>
             </div>
-            
+           
             <div className="flex-1 flex flex-col">
               {data?.lowStock?.length > 0 ? (
                 <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
@@ -324,7 +326,7 @@ export default function AnalyticsPage() {
                 <p className="text-xs text-slate-500 line-clamp-2">Pantau total pendapatan dari transaksi Anda.</p>
               </div>
             </div>
-            
+           
             <div className="flex-1 flex flex-col items-center justify-center min-h-[200px]">
               {data?.cashierStats?.length > 0 ? (
                 <div className="text-center">
@@ -343,21 +345,21 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
-      
+     
       {/* PAYWALL OVERLAY */}
       {!hasAccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center border border-yellow-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400 rounded-full blur-3xl -mr-16 -mt-16 opacity-20"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500 rounded-full blur-3xl -ml-16 -mb-16 opacity-20"></div>
-            
+           
             <div className="relative z-10 flex flex-col items-center">
               <div className="w-20 h-20 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center mb-6 shadow-inner border border-yellow-200">
                 <Crown className="w-10 h-10 text-yellow-500" />
               </div>
               <h2 className="text-2xl font-black text-slate-800 mb-3">Buka Potensi Penuh Bisnis Anda!</h2>
               <p className="text-slate-500 text-sm mb-8 leading-relaxed">{terms.paywalDesc}</p>
-              
+             
               <div className="w-full space-y-3">
                 <button className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg shadow-yellow-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                   Upgrade Pro Sekarang <Crown className="w-5 h-5" />

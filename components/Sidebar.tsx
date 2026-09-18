@@ -40,10 +40,14 @@ export async function Sidebar() {
       category = tenant.category || "Retail";
       tenantName = tenant.name || "";
     }
-  }
 
-  // Instruction C: Console.log nilai endsAt ini di terminal server Anda
-  console.log("DATA ENDSAT DI SIDEBAR:", endsAt);
+    console.log("=== SIDEBAR DEBUG ===");
+    console.log("Current Store Category (raw):", tenant?.category);
+    console.log("Current Store Category (normalized):", category);
+    console.log("Role:", role);
+    console.log("Tenant Name:", tenantName);
+    console.log("========================");
+  }
 
   return <SidebarClient role={role} plan={plan} endsAt={endsAt} kategoriUsaha={category} tenantName={tenantName} />;
 }

@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { isServiceBusinessCategory } from '@/lib/business-category';
+import { cacheInvalidateByTag, CacheTags } from '@/lib/redis-cache';
 
 // [PUT] Memperbarui produk (Edit)
 export async function PUT(
@@ -16,19 +17,19 @@ export async function PUT(
 
     if (!productId || isNaN(productId)) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "ID Produk tidak ditemukan di rute API" }, { status: 400 });
+      return NextResponse.json({ error: "ID Produk tidak ditemukan di rute API" }, { status: 400 });
     }
 
     // 1. Validasi Sesi
     if (!userId) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
     if (role === 'CASHIER') {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa mengedit produk." }, { status: 403 });
+      return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa mengedit produk." }, { status: 403 });
     }
 
     const body = await request.json();
@@ -64,8 +65,11 @@ export async function PUT(
 
     if (result.count === 0) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Produk tidak ditemukan atau akses ditolak" }, { status: 404 });
+      return NextResponse.json({ error: "Produk tidak ditemukan atau akses ditolak" }, { status: 404 });
     }
+
+    // Invalidate cache for this tenant's products
+    await cacheInvalidateByTag(CacheTags.products(userId));
 
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, message: "Produk berhasil diperbarui" });
@@ -74,7 +78,7 @@ export async function PUT(
     console.error("PRISMA ERROR:", error);
     if (error?.code === 'P2002') {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Kode Barang sudah digunakan" }, { status: 400 });
+      return NextResponse.json({ error: "Kode Barang sudah digunakan" }, { status: 400 });
     }
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
@@ -94,13 +98,13 @@ export async function DELETE(
     // 1. Validasi Sesi
     if (!userId) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (sessionClaims?.metadata as any)?.role;
     if (role === 'CASHIER') {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menghapus produk." }, { status: 403 });
+      return NextResponse.json({ error: "Akses ditolak. Hanya Pemilik/Admin yang bisa menghapus produk." }, { status: 403 });
     }
 
     // 2. Keamanan dan Eksekusi Atomic (Soft Delete / Arsip)
@@ -111,8 +115,11 @@ export async function DELETE(
 
     if (result.count === 0) {
       revalidatePath('/', 'layout');
-    return NextResponse.json({ error: "Produk tidak ditemukan atau akses ditolak" }, { status: 404 });
+      return NextResponse.json({ error: "Produk tidak ditemukan atau akses ditolak" }, { status: 404 });
     }
+
+    // Invalidate cache for this tenant's products
+    await cacheInvalidateByTag(CacheTags.products(userId));
 
     revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, message: "Produk berhasil diarsipkan (soft delete)" });

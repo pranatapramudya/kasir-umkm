@@ -89,7 +89,7 @@ export default clerkMiddleware(async (auth, req) => {
     // Jika pengguna adalah CASHIER dan mencoba mengakses child-routes admin yang tidak diizinkan
     // Tolak dan kembalikan ke dashboard /admin
     if (role === 'CASHIER' && isAdminChildRoute(req)) {
-      const allowedForCashier = ['/admin/booking', '/admin/manajemen-meja'];
+      const allowedForCashier = ['/admin/booking', '/admin/manajemen-meja', '/admin/kitchen', '/admin/pos'];
       if (!allowedForCashier.some(route => req.nextUrl.pathname.startsWith(route))) {
         return NextResponse.redirect(new URL('/admin', req.url));
       }
