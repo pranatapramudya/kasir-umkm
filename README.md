@@ -85,10 +85,16 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/admin
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/admin
 
 # Neon Database URL
-DATABASE_URL="postgresql://user:password@endpoint.neon.tech/dbname?sslmode=require"
+DATABASE_URL="postgresql://user:***@endpoint.neon.tech/dbname?sslmode=require"
 
 # Mayar Webhook Secret (Dapatkan dari dashboard Mayar - Developer > Webhooks)
 MAYAR_WEBHOOK_SECRET=your_mayar_webhook_secret_here
+
+# Redis (untuk cache tag-based invalidation)
+REDIS_URL="redis://localhost:6379"
+
+# WebSocket Server (KDS Real-time)
+WS_PORT=3001
 ```
 
 ### 🏷️ Standar Identifier Kategori Bisnis
@@ -122,10 +128,57 @@ npx prisma generate
 
 ### 4. Jalankan Development Server
 ```bash
-npm run dev
+# Opsi 1: Via Orchestrator (auto-start Next.js + WebSocket + Redis)
+node scripts/orchestrator.js
+
+# Opsi 2: Manual terpisah
+npm run dev              # Next.js di port 3000
+npx tsx scripts/websocket-server.ts  # WebSocket KDS di port 3001
+redis-server             # Redis cache
 ```
 
 Buka [http://localhost:3000](http://localhost:3000) di *browser* Anda untuk melihat hasilnya. Rute utama *landing page* dan kasir berada di `/`, dan rute manajemen admin (terproteksi) berada di `/admin`.
+
+---
+
+## 📋 Changelog Terbaru (September 2026)
+
+### v2.0.0 - Four Vertical Complete + Platform Optimization
+**Retail (Offline-First):**
+- IndexedDB queue + Service Worker + auto-sync on reconnect
+- Bluetooth thermal printer auto-detect (ESC/POS)
+- CSV/Jurnal tax export
+
+**F&B (KDS Real-time):**
+- Table grid (Meja 1-10), Split Bill, Takeaway/Dine-In
+- KDS mobile accordion (light theme)
+- Kitchen/Bar ticket routing via WebSocket (<1s)
+
+**Jasa/Servis (Booking + Commission):**
+- Public booking → Dashboard → POS → Commission flow
+- Cross-product double-booking guard (slot-level)
+- Worker assignment + serviceDuration input
+- Commission snapshot + rekap-komisi report
+
+**Rental/Travel/Properti:**
+- Property & Vehicle modes, hourly (jam) & daily rental
+- Province/Regency/District cascading dropdowns
+- Rental calendar dashboard (month nav, filter tabs)
+- Date-range overlap guard
+
+**Platform Optimizations:**
+- WebSocket server (port 3001) + orchestrator auto-start
+- Redis cache with tag-based invalidation (5min TTL products)
+- Bundle analysis: xlsx 139KB, recharts 109KB gzip → lazy load targets
+
+**QA & Testing:**
+- Playwright E2E: jasa-servis-qa (21 tests), rental-travel-properti-qa (23 tests)
+- 17/23 rental pass (6 auth-only), 15/21 jasa pass
+
+**Infra:**
+- scripts/orchestrator.js auto-starts Next.js + WS + Redis
+- OfflineProvider + IndexedDB + SW auto-sync
+- Multi-tenant isolation via Clerk session (userId/tenantId)
 
 ---
 *Dibangun dengan ❤️ oleh Tim PJTECH.*
