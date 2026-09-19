@@ -154,11 +154,15 @@ Buka [http://localhost:3000](http://localhost:3000) di *browser* Anda untuk meli
 - KDS mobile accordion (light theme)
 - Kitchen/Bar ticket routing via WebSocket (<1s)
 
-**Jasa/Servis (Booking + Commission):**
+**Jasa/Servis (Booking + Commission + Template Fixes):**
 - Public booking → Dashboard → POS → Commission flow
 - Cross-product double-booking guard (slot-level)
 - Worker assignment + serviceDuration input
 - Commission snapshot + rekap-komisi report
+- **Template Excel 2 sheet: "Jasa" (unlimited stock, biayaModal) + "Sparepart" (stock, HPP)**
+- **Import bulk: auto-detect Jasa murni → hpp=0, biayaModal, stock=999999**
+- **UI: hide stock badge for Jasa murni, separate Biaya Modal field**
+- **Onboarding: hapus step "Toko" redundant (sudah di signup), 2 step Printer → Produk/Import**
 
 **Rental/Travel/Properti:**
 - Property & Vehicle modes, hourly (jam) & daily rental
@@ -179,6 +183,15 @@ Buka [http://localhost:3000](http://localhost:3000) di *browser* Anda untuk meli
 - scripts/orchestrator.js auto-starts Next.js + WS + Redis
 - OfflineProvider + IndexedDB + SW auto-sync
 - Multi-tenant isolation via Clerk session (userId/tenantId)
+
+---
+
+### v2.0.1 - Jasa/Servis Template & UX Fixes (Sep 19, 2026)
+- **Template Excel**: 2 sheet terpisah "Jasa" + "Sparepart" (download & export)
+- **biayaModal field**: Jasa murni pakai biaya modal/bahan (opsional), Sparepart pakai HPP
+- **Stok unlimited**: Jasa murni stock=999999, sembunyikan badge stok di UI
+- **Onboarding simplified**: Hapus step "Info Toko" (redundan dengan signup), tinggal Printer → Produk/Import
+- **Vertical isolation**: `isPureJasa` guard di API & UI, no cross-contamination
 
 ---
 *Dibangun dengan ❤️ oleh Tim PJTECH.*
