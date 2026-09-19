@@ -1,0 +1,49 @@
+
+> kasir-umkm@0.1.0 dev
+> node scripts/orchestrator.js
+
+[1m[32m=== KASIR UMKM ORCHESTRATOR ===[0m
+[1mStarting 2 process(es)...[0m
+
+(node:4928) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m node:events:486
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m       throw er; // Unhandled 'error' event
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m       ^
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m Error: listen EADDRINUSE: address already in use :::3001
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at Server.setupListenHandle [as _listen2] (node:net:1940:16)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at listenInCluster (node:net:1997:12)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at Server.listen (node:net:2102:7)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m     at jwt [90m(D:\Coding\kasir-umkm\[39mscripts\websocket-server.ts:87:8[90m)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m     at Object.<anonymous> [90m(D:\Coding\kasir-umkm\[39mscripts\websocket-server.ts:102:2[90m)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at Module._compile (node:internal/modules/cjs/loader:1761:14)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m     at Object.transformer [90m(D:\Coding\kasir-umkm\[39mnode_modules\[4mtsx[24m\dist\register-OY9cqBEN.cjs:9:3619[90m)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at Module.load (node:internal/modules/cjs/loader:1481:32)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at Module._load (node:internal/modules/cjs/loader:1300:12)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at TracingChannel.traceSync (node:diagnostics_channel:328:14)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m Emitted 'error' event on WebSocketServer instance at:
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at Server.emit (node:events:508:28)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at emitErrorNT (node:net:1976:8)[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m [90m    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)[39m {
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m   code: [32m'EADDRINUSE'[39m,
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m   errno: [33m-4091[39m,
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m   syscall: [32m'listen'[39m,
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m   address: [32m'::'[39m,
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m   port: [33m3001[39m
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m }
+[31m[18.04.12] [1mWebSocket Server (KDS Real-time) [ERROR][0m Node.js v24.13.0
+[35m[18.04.12] [1mWebSocket Server (KDS Real-time)[0m Process exited with code 1
+[31m[18.04.13] [1mNext.js Dev Server [ERROR][0m [33m[1m⚠[22m[39m Port 3000 is in use by process 11832, using available port 3003 instead.
+[36m[18.04.14] [1mNext.js Dev Server[0m [1m[38;2;173;127;168m▲ Next.js 16.1.1[39m[22m (Turbopack)
+[36m[18.04.14] [1mNext.js Dev Server[0m - Local:         http://localhost:3003
+[36m[18.04.14] [1mNext.js Dev Server[0m - Network:       http://192.168.100.11:3003
+[36m[18.04.14] [1mNext.js Dev Server[0m - Environments: .env.local, .env
+[36m[18.04.14] [1mNext.js Dev Server[0m - Experiments (use with caution):
+[36m[18.04.14] [1mNext.js Dev Server[0m · optimizePackageImports
+[36m[18.04.14] [1mNext.js Dev Server[0m [32m[1m✓[22m[39m Starting...
+[31m[18.04.16] [1mNext.js Dev Server [ERROR][0m [31m[1m⨯[22m[39m Unable to acquire lock at [36mD:\Coding\kasir-umkm\.next\dev\lock[39m, is another instance of [36mnext dev[39m running?
+[36m[18.04.16] [1mNext.js Dev Server[0m [37m[1m [22m[39m [1mSuggestion:[22m If you intended to restart [36mnext dev[39m, terminate the other process, and then try again.
+[36m[18.04.17] [1mNext.js Dev Server[0m [?25h
+[36m[18.04.17] [1mNext.js Dev Server[0m Process exited with code 1
+
+[1m[32mAll processes exited.[0m

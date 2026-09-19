@@ -11,7 +11,8 @@ model product {
   userId             String // Identifikasi tenant (Clerk User ID)
   kodeBarang         String? // SKU/Barcode barang (opsional)
   name               String
-  hpp                Int      @default(0) // Harga Pokok Penjualan (Modal)
+  hpp                Int      @default(0) // Harga Pokok Penjualan (Modal) - untuk Retail/FNB/Rental/Sparepart
+  biayaModal         Int      @default(0) // Biaya Modal/Bahan per pengerjaan - KHUSUS Jasa murni
   hargaJual          Int // Harga yang ditampilkan ke pelanggan (dulu price)
   category           String   @default("Umum")
   stock              Int      @default(0)

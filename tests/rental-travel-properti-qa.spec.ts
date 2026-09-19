@@ -151,10 +151,10 @@ test.describe('Rental/Travel/Properti - Authenticated Flow (requires auth setup)
       
       const categorySelect = page.locator('select[name="category"], select[id="category"]').first();
       if (await categorySelect.count() > 0) {
-        await categorySelect.selectOption({ label: /RENTAL|SEWA|PROPERTI/i });
+        await categorySelect.selectOption({ label: 'Rental' });
       }
       
-      await page.click('button:has-text("Simpan"), button[type="submit"]').first();
+      await page.click('button:has-text("Simpan"), button[type="submit"]');
       await expect(page.locator('text=Test Villa Rental')).toBeVisible({ timeout: 5000 });
     }
   });
@@ -173,10 +173,10 @@ test.describe('Rental/Travel/Properti - Authenticated Flow (requires auth setup)
       
       const categorySelect = page.locator('select[name="category"], select[id="category"]').first();
       if (await categorySelect.count() > 0) {
-        await categorySelect.selectOption({ label: /RENTAL|SEWA|KENDARAAN|TRAVEL/i });
+        await categorySelect.selectOption({ label: 'Rental' });
       }
       
-      await page.click('button:has-text("Simpan"), button[type="submit"]').first();
+      await page.click('button:has-text("Simpan"), button[type="submit"]');
       await expect(page.locator('text=Test Avanza Rental')).toBeVisible({ timeout: 5000 });
     }
   });
@@ -188,7 +188,7 @@ test.describe('Rental/Travel/Properti - Authenticated Flow (requires auth setup)
     const slugInput = page.locator('input[name="slug"], input[id="slug"]').first();
     if (await slugInput.count() > 0) {
       await slugInput.fill(TEST_SLUG);
-      await page.click('button:has-text("Simpan"), button[type="submit"]').first();
+      await page.click('button:has-text("Simpan"), button[type="submit"]');
       await expect(page.locator('text=Berhasil, text=Disimpan, text=Sukses')).toBeVisible({ timeout: 5000 });
     }
   });

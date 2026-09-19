@@ -35,10 +35,11 @@ export async function PUT(
     const body = await request.json();
     console.log("PAYLOAD DITERIMA:", body);
     console.log("ID PRODUK:", resolvedParams.id);
-    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission, description } = body;
+    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission, description, biayaModal } = body;
 
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
+    const isJasaMurni = isService && category === "Jasa";
 
     const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -48,11 +49,12 @@ export async function PUT(
       data: {
         kodeBarang: finalKodeBarang,
         name: name || "",
-        hpp: parseInt(hpp, 10) || 0,
+        hpp: isJasaMurni ? 0 : (parseInt(hpp, 10) || 0),
+        biayaModal: isJasaMurni ? (parseInt(biayaModal, 10) || parseInt(hpp, 10) || 0) : 0,
         hargaJual: parseInt(hargaJual, 10) || 0,
         category: category || "",
-        stock: isService ? 999999 : (parseInt(stock, 10) || 0),
-        minStockThreshold: isService ? 0 : (parseInt(minStockThreshold, 10) || 5),
+        stock: isJasaMurni ? 999999 : (parseInt(stock, 10) || 0),
+        minStockThreshold: isJasaMurni ? 0 : (parseInt(minStockThreshold, 10) || 5),
         discount: parseInt(discount, 10) || 0,
         brand: brand || "",
         variant: variant || "",

@@ -32,25 +32,29 @@ export async function POST(req: Request) {
     // Prepare data for createMany with alias tolerance and sanitization
     const productsToInsert = products.map((p: any, index: number) => {
       const rawName = String(p.name || p.nama || p.namaBarang || p.namaLayanan || p.unit || '').trim();
-      const rawHpp = p.hpp ?? p.bOps ?? p.biayaOperasional ?? p.bops ?? p.BiayaOperasional ?? p.BOps ?? 0;
+      const rawCategory = (p.category || p.kategori || "Umum").toString().trim();
+      const isJasaMurni = rawCategory === "Jasa";
+      const rawHpp = p.hpp ?? p.bOps ?? p.biayaOperasional ?? p.bops ?? p.BiayaOperasional ?? p.BOps ?? p['Biaya Modal / Bahan (Rp)'] ?? p['Biaya Modal'] ?? 0;
       const rawHargaJual = p.hargaJual ?? p.harga ?? p.tarif ?? p.price ?? 0;
       const rawStock = p.stock ?? p.stok ?? 0;
       const rawMinStock = p.minStockThreshold ?? p.minStock ?? p.batasMinStok ?? 5;
       const rawCommission = p.employeeCommission ?? p.komisi ?? p.commission ?? p.komisiStaf ?? 0;
       const rawDesc = p.description ?? p.deskripsi ?? p.fasilitas ?? p.keterangan ?? '';
+      const rawBiayaModal = p.biayaModal ?? p['Biaya Modal / Bahan (Rp)'] ?? p['Biaya Modal'] ?? 0;
 
       return {
         userId: targetUserId,
         kodeBarang: p.kodeBarang ? String(p.kodeBarang).trim().toUpperCase() : `SKU-${Date.now()}-${index}-${Math.floor(Math.random() * 1000)}`,
         name: rawName,
         hargaJual: parseNumber(rawHargaJual, 0),
-        hpp: parseNumber(rawHpp, 0),
-        stock: parseNumber(rawStock, 0),
-        category: (p.category || p.kategori || "Umum").toString().trim(),
+        hpp: parseNumber(isJasaMurni ? 0 : rawHpp, 0), // Jasa murni: hpp = 0, biayaModal dipakai
+        biayaModal: parseNumber(isJasaMurni ? (rawBiayaModal || rawHpp) : 0, 0), // Jasa murni: simpan biayaModal
+        stock: parseNumber(isJasaMurni ? 999999 : rawStock, 0), // Jasa murni: unlimited stock
+        category: rawCategory,
         brand: p.brand ? String(p.brand).trim() : undefined,
         variant: p.variant ? String(p.variant).trim() : undefined,
         isService: Boolean(p.isService),
-        minStockThreshold: parseNumber(rawMinStock, 5),
+        minStockThreshold: parseNumber(isJasaMurni ? 0 : rawMinStock, 5),
         employeeCommission: parseNumber(rawCommission, 0),
         description: rawDesc ? String(rawDesc).trim() : null,
       };

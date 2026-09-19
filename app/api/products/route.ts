@@ -109,17 +109,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission, description } = body;
+    const { kodeBarang, name, hpp, hargaJual, category, stock, discount, image, brand, variant, minStockThreshold, employeeCommission, description, biayaModal } = body;
 
     // 2. Validasi Input Dasar (astikan name, hpp, dan hargaJual ada)
-    if (!name || hpp === undefined || hargaJual === undefined) {
+    // Untuk Jasa murni: hpp bisa 0, biayaModal dipakai
+    if (!name || hargaJual === undefined) {
       revalidatePath('/', 'layout');
-      return NextResponse.json({ error: "Nama, HPP, dan Harga Jual wajib diisi" }, { status: 400 });
+      return NextResponse.json({ error: "Nama dan Harga Jual wajib diisi" }, { status: 400 });
     }
 
     // 2.5 Cek Kategori Usaha untuk set isService
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
+    const isJasaMurni = isService && category === "Jasa";
 
     const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -129,11 +131,12 @@ export async function POST(request: Request) {
         userId,
         kodeBarang: finalKodeBarang,
         name,
-        hpp: Number(hpp) || 0,
+        hpp: isJasaMurni ? 0 : (Number(hpp) || 0),
+        biayaModal: isJasaMurni ? (Number(biayaModal) || Number(hpp) || 0) : 0,
         hargaJual: Number(hargaJual) || 0,
         category: category || "Umum",
-        stock: isService ? 999999 : (Number(stock) || 0),
-        minStockThreshold: isService ? 0 : (Number(minStockThreshold) || 5),
+        stock: isJasaMurni ? 999999 : (Number(stock) || 0),
+        minStockThreshold: isJasaMurni ? 0 : (Number(minStockThreshold) || 5),
         discount: Number(discount) || 0,
         brand: brand || "",
         variant: variant || "",

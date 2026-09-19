@@ -23,6 +23,7 @@ type Product = {
   name: string;
   category: string;
   hpp: number;
+  biayaModal: number;
   hargaJual: number;
   stock: number;
   discount: number;
@@ -31,6 +32,7 @@ type Product = {
   variant?: string | null;
   minStockThreshold: number;
   description?: string | null;
+  employeeCommission?: number | null;
 };
 
 const fetcher = async (args: string | [string, string]) => {
@@ -101,7 +103,8 @@ export default function AdminProductsClientPage({
     variant: '',
     minStockThreshold: '',
     employeeCommission: '0',
-    description: ''
+    description: '',
+    biayaModal: ''
   });
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
@@ -123,20 +126,22 @@ export default function AdminProductsClientPage({
   const openModal = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
+      const isJasaMurni = isJasa && product.category === "Jasa";
       setFormData({
         kodeBarang: product.kodeBarang || '',
         name: product.name,
         category: product.category,
-        hpp: formatNumberInput(product.hpp.toString()),
+        hpp: formatNumberInput(isJasaMurni ? (product.biayaModal || product.hpp || 0).toString() : product.hpp.toString()),
         hargaJual: formatNumberInput(product.hargaJual.toString()),
-        stock: product.stock.toString(),
+        stock: isJasaMurni ? '' : product.stock.toString(),
         discount: formatNumberInput(product.discount.toString()),
         image: product.image,
         brand: product.brand || '',
         variant: product.variant || '',
-        minStockThreshold: product.minStockThreshold.toString(),
+        minStockThreshold: isJasaMurni ? '' : product.minStockThreshold.toString(),
         employeeCommission: formatNumberInput((product as any).employeeCommission?.toString() || '0'),
-        description: product.description || ''
+        description: product.description || '',
+        biayaModal: formatNumberInput((product.biayaModal || product.hpp || 0).toString())
       });
     } else {
       setEditingProduct(null);
@@ -153,7 +158,8 @@ export default function AdminProductsClientPage({
         variant: '',
         minStockThreshold: '',
         employeeCommission: '0',
-        description: ''
+        description: '',
+        biayaModal: ''
       });
     }
     setIsModalOpen(true);
@@ -197,7 +203,7 @@ export default function AdminProductsClientPage({
           kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang / SKU'] || row.sku || row.SKU || '',
           name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row.nama || '',
           category: row.category || row['Kategori'] || row.kategori || 'Umum',
-          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal (HPP)'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? 0,
+          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal (HPP)'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
           hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row.harga ?? row.tarif ?? 0,
           stock: row.stock ?? row['Stok'] ?? row.stok ?? 0,
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
@@ -332,10 +338,14 @@ export default function AdminProductsClientPage({
         hpp: parseInt(formData.hpp.toString().replace(/[^0-9]/g, ''), 10) || 0,
         hargaJual: parseInt(formData.hargaJual.toString().replace(/[^0-9]/g, ''), 10) || 0,
         discount: parseInt(formData.discount.toString().replace(/[^0-9]/g, ''), 10) || 0,
-        stock: isJasa ? 999999 : (parseInt(formData.stock.toString().replace(/[^0-9]/g, ''), 10) || 0),
-        minStockThreshold: isJasa ? 0 : (parseInt(formData.minStockThreshold.toString().replace(/[^0-9]/g, ''), 10) || 5),
+        // Jasa murni (category === "Jasa"): no stock, no hpp (use biayaModal instead)
+        // Sparepart (category === "Sparepart"): has stock, has hpp
+        stock: (isJasa && formData.category === "Jasa") ? 999999 : (parseInt(formData.stock.toString().replace(/[^0-9]/g, ''), 10) || 0),
+        minStockThreshold: (isJasa && formData.category === "Jasa") ? 0 : (parseInt(formData.minStockThreshold.toString().replace(/[^0-9]/g, ''), 10) || 5),
         employeeCommission: isJasa ? (parseInt(formData.employeeCommission.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
         description: isRental ? formData.description : null,
+        // biayaModal untuk Jasa murni (pakai field biayaModal, bukan hpp)
+        biayaModal: (isJasa && formData.category === "Jasa") ? (parseInt(formData.biayaModal.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
       };
 
       const res = await fetch(url, {
@@ -608,7 +618,8 @@ export default function AdminProductsClientPage({
                           <div className="text-sm font-bold text-blue-600 leading-none">{formatRupiah(product.hargaJual)}</div>
                         )}
                       </div>
-                      {!isJasa && (
+                      {/* Stok hanya untuk Retail/FNB/Rental/Sparepart, bukan Jasa murni */}
+                      {!(isJasa && product.category === "Jasa") && (
                         <div className="text-right">
                           <span className={`inline-flex min-w-[3.5rem] justify-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${product.stock > (product.minStockThreshold || 5) ? 'bg-green-50 text-green-700 border-green-200' : product.stock > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                             Sisa: {product.stock}
@@ -798,14 +809,31 @@ export default function AdminProductsClientPage({
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                       <input
                         type="text"
-                        name="hpp"
+                        name={isJasa ? "biayaModal" : "hpp"}
                         required={!isJasa}
-                        value={formData.hpp}
+                        value={formData[isJasa ? "biayaModal" : "hpp"]}
                         onChange={handleChange}
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                       />
                     </div>
                   </div>
+
+                  {isJasa && (
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">HPP (untuk Sparepart)</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
+                        <input
+                          type="text"
+                          name="hpp"
+                          value={formData.hpp}
+                          onChange={handleChange}
+                          className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Hanya untuk kategori Sparepart. Jasa murni gunakan Biaya Modal di atas.</p>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? "Harga Sewa (Per Hari)" : isJasa ? "Tarif Jasa" : "Harga Jual"} <span className="text-red-500">*</span></label>

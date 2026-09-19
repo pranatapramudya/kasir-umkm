@@ -59,23 +59,83 @@ export async function GET(req: Request) {
         "Status": p.isActive ? "Aktif" : "Nonaktif"
       }));
     } else if (isJasa) {
-      headers = [
-        "Nama Layanan",
-        "Kategori",
-        "Tarif Layanan (Rp)",
-        "Komisi Staf (Rp)",
-        "Deskripsi Layanan",
-        "Status"
-      ];
-      formattedData = products.map((p) => ({
-        "Nama Layanan": p.name,
-        "Kategori": p.category || "Umum",
-        "Tarif Layanan (Rp)": p.hargaJual,
-        "Komisi Staf (Rp)": p.employeeCommission || 0,
-        "Deskripsi Layanan": p.description || "-",
-        "Status": p.isActive ? "Aktif" : "Nonaktif"
-      }));
-    } else {
+      // Pisahkan Jasa murni vs Sparepart berdasarkan kategori
+      const jasaItems = products.filter(p => p.category === "Jasa");
+      const sparepartItems = products.filter(p => p.category === "Sparepart");
+      
+      const workbook = xlsx.utils.book_new();
+      
+      if (jasaItems.length > 0) {
+        const jasaHeaders = [
+          "Nama Layanan",
+          "Kategori",
+          "Tarif Layanan (Rp)",
+          "Biaya Modal / Bahan (Rp)",
+          "Komisi Staf (Rp)",
+          "Deskripsi Layanan",
+          "Status"
+        ];
+        const jasaData = jasaItems.map((p) => ({
+          "Nama Layanan": p.name,
+          "Kategori": p.category || "Jasa",
+          "Tarif Layanan (Rp)": p.hargaJual,
+          "Biaya Modal / Bahan (Rp)": p.biayaModal || p.hpp || 0,
+          "Komisi Staf (Rp)": p.employeeCommission || 0,
+          "Deskripsi Layanan": p.description || "-",
+          "Status": p.isActive ? "Aktif" : "Nonaktif"
+        }));
+        const jasaWorksheet = xlsx.utils.json_to_sheet(jasaData, { header: jasaHeaders });
+        jasaWorksheet["!cols"] = jasaHeaders.map(h => ({ wch: Math.max(h.length + 4, 18) }));
+        xlsx.utils.book_append_sheet(workbook, jasaWorksheet, "Jasa");
+      }
+      
+      if (sparepartItems.length > 0) {
+        const sparepartHeaders = [
+          "Nama Sparepart",
+          "Kategori",
+          "HPP (Modal)",
+          "Harga Jual (Rp)",
+          "Stok",
+          "Batas Minimum Stok",
+          "Komisi Staf (Rp)",
+          "Deskripsi",
+          "Status"
+        ];
+        const sparepartData = sparepartItems.map((p) => ({
+          "Nama Sparepart": p.name,
+          "Kategori": p.category || "Sparepart",
+          "HPP (Modal)": p.hpp,
+          "Harga Jual (Rp)": p.hargaJual,
+          "Stok": p.stock,
+          "Batas Minimum Stok": p.minStockThreshold,
+          "Komisi Staf (Rp)": p.employeeCommission || 0,
+          "Deskripsi": p.description || "-",
+          "Status": p.isActive ? "Aktif" : "Nonaktif"
+        }));
+        const sparepartWorksheet = xlsx.utils.json_to_sheet(sparepartData, { header: sparepartHeaders });
+        sparepartWorksheet["!cols"] = sparepartHeaders.map(h => ({ wch: Math.max(h.length + 4, 18) }));
+        xlsx.utils.book_append_sheet(workbook, sparepartWorksheet, "Sparepart");
+      }
+      
+      // Fallback jika tidak ada data sama sekali
+      if (jasaItems.length === 0 && sparepartItems.length === 0) {
+        const fallbackHeaders = ["Nama Layanan", "Kategori", "Tarif Layanan (Rp)", "Komisi Staf (Rp)", "Deskripsi Layanan", "Status"];
+        const fallbackData = [{ "Nama Layanan": "Belum ada data layanan/sparepart", "Kategori": "", "Tarif Layanan (Rp)": "", "Komisi Staf (Rp)": "", "Deskripsi Layanan": "", "Status": "" }];
+        const fallbackWorksheet = xlsx.utils.json_to_sheet(fallbackData, { header: fallbackHeaders });
+        xlsx.utils.book_append_sheet(workbook, fallbackWorksheet, "Jasa");
+      }
+
+      const excelBuffer = xlsx.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      const safeStoreName = storeName.replace(/[^a-zA-Z0-9]/g, "_");
+      const filename = `Katalog_Produk_${safeStoreName}.xlsx`;
+
+      return new NextResponse(excelBuffer, {
+        headers: {
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+      });
       // Retail / F&B
       headers = [
         "Kode Barang / SKU",

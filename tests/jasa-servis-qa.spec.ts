@@ -168,10 +168,10 @@ test.describe('Jasa/Servis - Authenticated Flow (requires auth setup)', () => {
       
       const categorySelect = page.locator('select[name="category"], select[id="category"]').first();
       if (await categorySelect.count() > 0) {
-        await categorySelect.selectOption({ label: /LAYANAN|JASA|SERVICE/i });
+        await categorySelect.selectOption({ label: 'Jasa' });
       }
       
-      await page.click('button:has-text("Simpan"), button[type="submit"]').first();
+      await page.click('button:has-text("Simpan"), button[type="submit"]');
       await expect(page.locator('text=Test Service QA')).toBeVisible({ timeout: 5000 });
     }
   });
@@ -183,7 +183,7 @@ test.describe('Jasa/Servis - Authenticated Flow (requires auth setup)', () => {
     const slugInput = page.locator('input[name="slug"], input[id="slug"]').first();
     if (await slugInput.count() > 0) {
       await slugInput.fill(TEST_SLUG);
-      await page.click('button:has-text("Simpan"), button[type="submit"]').first();
+      await page.click('button:has-text("Simpan"), button[type="submit"]');
       await expect(page.locator('text=Berhasil, text=Disimpan, text=Sukses')).toBeVisible({ timeout: 5000 });
     }
   });
@@ -203,7 +203,7 @@ test.describe('Jasa/Servis - Authenticated Flow (requires auth setup)', () => {
       const dateStr = tomorrow.toISOString().slice(0, 16);
       await publicPage.fill('input[name="bookingDate"], input[type="datetime-local"]', dateStr);
       
-      await publicPage.click('button[type="submit"], button:has-text("Booking"), button:has-text("Pesan")').first();
+      await publicPage.click('button[type="submit"], button:has-text("Booking"), button:has-text("Pesan")');
       await expect(publicPage.locator('text=berhasil, text=Booking berhasil, text=Terima kasih')).toBeVisible({ timeout: 10000 });
       
       await page.reload();

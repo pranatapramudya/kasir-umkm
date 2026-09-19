@@ -54,23 +54,22 @@ export default function CsvImportModal({
         ];
         filename = "template_import_rental_properti.xlsx";
       } else if (isJasa) {
-        data = [
-          {
-            name: "Potong Rambut Pria + Styling",
-            category: "Hair Treatment",
-            hargaJual: 45000,
-            employeeCommission: 15000,
-            description: "Pangkas rambut rapi, cuci bersih, dan styling pomade"
-          },
-          {
-            name: "Creambath Spa 45 Menit",
-            category: "Hair Treatment",
-            hargaJual: 65000,
-            employeeCommission: 20000,
-            description: "Perawatan rambut ekstrak lidah buaya & pijat relaksasi kepala"
-          }
+        // Jasa murni (tanpa stok)
+        const dataJasa = [
+          { name: "Potong Rambut Pria", category: "Jasa", hargaJual: 45000, employeeCommission: 15000, biayaModal: 5000, description: "Pangkas rambut + styling" },
+          { name: "Creambath Spa 45 Menit", category: "Jasa", hargaJual: 65000, employeeCommission: 20000, biayaModal: 8000, description: "Perawatan rambut + pijat kepala" },
         ];
-        filename = "template_import_jasa_servis.xlsx";
+        // Sparepart (punya stok & HPP)
+        const dataSparepart = [
+          { name: "Shampoo Profesional 500ml", category: "Sparepart", hpp: 35000, hargaJual: 65000, stock: 20, minStockThreshold: 5, employeeCommission: 5000, description: "Untuk retail di tempat" },
+          { name: "Pomade Styling 100gr", category: "Sparepart", hpp: 25000, hargaJual: 45000, stock: 15, minStockThreshold: 3, employeeCommission: 3000, description: "Produk styling" },
+        ];
+        
+        // Gabung 2 sheet
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(dataJasa), "Jasa");
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(dataSparepart), "Sparepart");
+        XLSX.writeFile(workbook, "template_import_jasa_servis.xlsx");
       } else {
         // Retail / F&B
         data = [
