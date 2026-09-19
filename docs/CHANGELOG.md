@@ -7,6 +7,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🐛 Bugfix & UX: Jasa/Servis Template & Onboarding Fixes (2026-09-19)
+- **Template Excel 2 Sheet**: Download & export terpisah "Jasa" (unlimited stock, biayaModal) + "Sparepart" (stock, HPP)
+- **biayaModal field**: Jasa murni pakai biaya modal/bahan per pengerjaan (opsional), Sparepart pakai HPP
+- **Stok unlimited**: Jasa murni `stock=999999`, sembunyikan badge stok di UI kartu produk
+- **Onboarding simplified**: Hapus step "Info Toko" (redundan dengan data signup), tinggal 2 step: Printer (opsional) → Produk/Import
+- **Vertical isolation**: `isPureJasa = isJasa && !isRental` guard di API & UI, no cross-contamination Retail/F&B/Rental
+- **Import bulk auto-detect**: `category==="Jasa"` → hpp=0, biayaModal, stock=999999
+
 ### 🐛 Bugfix: Penyelesaian Masalah Unduh Laporan Excel di Dashboard
 - **Koreksi Role Check & Autentikasi (`app/api/admin/export-backup/route.ts`):**
   - Mengubah pengecekan hak akses dari `if (role !== 'OWNER')` yang memblokir semua merchant (HTTP 403) menjadi standar Clerk `if (role === 'CASHIER') return 403`, memberikan akses penuh kepada pemilik toko dan admin toko.
