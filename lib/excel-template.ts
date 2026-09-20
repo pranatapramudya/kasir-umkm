@@ -12,11 +12,11 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
 
   if (isRental) {
     // Sheet 1: Unit Kendaraan (Travel/Sewa Mobil)
-    const wsKendaraan = workbook.addWorksheet('Armada Kendaraan');
+    const wsKendaraan = workbook.addWorksheet('1. Armada (Kendaraan/Travel)');
     wsKendaraan.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
       { header: 'Nama Unit / Plat', key: 'name', width: 32 },
-      { header: 'Tipe', key: 'tipe', width: 18 },
+      { header: 'Tipe Kendaraan', key: 'tipe', width: 20 },
       { header: 'Transmisi', key: 'transmisi', width: 16 },
       { header: 'Tahun', key: 'tahun', width: 10 },
       { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
@@ -73,7 +73,7 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
     });
 
     // Sheet 2: Unit Properti (Kos/Kamar/Homestay/Villa)
-    const wsProperti = workbook.addWorksheet('Unit Properti');
+    const wsProperti = workbook.addWorksheet('2. Properti (Kamar/Villa/Kost/Hotel)');
     wsProperti.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
       { header: 'Nama Unit / No. Kamar', key: 'name', width: 32 },
@@ -129,7 +129,7 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
     });
 
     // Sheet 3: Layanan Tambahan (Opsional - untuk jasa tambahan rental)
-    const wsLayanan = workbook.addWorksheet('Layanan Tambahan');
+    const wsLayanan = workbook.addWorksheet('3. Layanan Tambahan (Supir/Asuransi/Bensin)');
     wsLayanan.columns = [
       { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
       { header: 'Nama Layanan', key: 'name', width: 36 },
