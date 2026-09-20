@@ -838,7 +838,7 @@ export default function AdminProductsClientPage({
                     </div>
                   )}
 
-                  {(!isJasa || formData.category.toLowerCase() !== 'jasa') && (
+                  {isJasa && formData.category?.toLowerCase().includes('jasa') ? null : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 sm:col-span-2">
                       <div className={isFNB ? 'sm:col-span-2' : ''}>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Stok Awal</label>

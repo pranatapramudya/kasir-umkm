@@ -383,21 +383,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
       const savedCart = localStorage.getItem('pos_cart');
       const savedTrans = localStorage.getItem('pos_transactions');
-      if (savedCart) setCart(JSON.parse(savedCart));
-      if (savedTrans) setTransactions(JSON.parse(savedTrans));
+            if (savedCart) setCart(JSON.parse(savedCart));
+            if (savedTrans) setTransactions(JSON.parse(savedTrans));
 
-      setIsInitialized(true);
-    
-            // Show onboarding wizard on very first visit if products is empty or not completed
-            const onboardingCompleted = localStorage.getItem('onboarding_completed');
-            if (!onboardingCompleted) {
-              setTimeout(() => {
-                setIsOnboardingOpen(true);
-              }, 300);
-            }
+            setIsInitialized(true);
+   
+                  // Show onboarding wizard on very first visit for Jasa business only
+                  const onboardingCompleted = localStorage.getItem('onboarding_completed');
+                  if (isJasa && !onboardingCompleted) {
+                    setTimeout(() => {
+                      setIsOnboardingOpen(true);
+                    }, 300);
+                  }
 
-            // Show tutorial for retail users on first visit
-      if (!isJasa && !isRental && !isFNB) {
+                  // Show tutorial for retail users on first visit
+            if (!isJasa && !isRental && !isFNB) {
         const tutorialSeen = localStorage.getItem('pos_tutorial_seen');
         if (!tutorialSeen) {
           setTimeout(() => {

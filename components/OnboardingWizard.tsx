@@ -229,8 +229,8 @@ export default function OnboardingWizard({ isOpen, onClose, onComplete }: Onboar
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-gray-900"
                   >
                     <option value="">Pilih Kategori</option>
-                    <option value="Jasa">Jasa</option>
-                    <option value="Sparepart">Sparepart</option>
+                    <option value="Jasa / Servis">Jasa / Servis</option>
+                    <option value="Produk / Barang">Produk / Barang</option>
                   </select>
                 </div>
               </div>
