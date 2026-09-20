@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
       const rawHpp = p.hpp ?? p['HPP'] ?? p['Harga Modal'] ?? p['Harga Modal (HPP)'] ?? p['HPP (Modal)'] ?? p['HPP / Modal Beli (Rp)'] ?? p['HPP / Biaya Modal (Rp)'] ?? p['Modal'] ?? p.bOps ?? p.biayaOperasional ?? p.bops ?? p.BiayaOperasional ?? p.BOps ?? p['Biaya Modal / Bahan (Rp)'] ?? p['Biaya Modal'] ?? 0;
       const rawHargaJual = p.hargaJual ?? p['Harga Jual'] ?? p['Harga Jual (Rp)'] ?? p['Tarif Layanan (Rp)'] ?? p['Tarif'] ?? p.harga ?? p.tarif ?? p.price ?? 0;
-      const rawStock = p.stock ?? p['Stok'] ?? p.stok ?? p['Qty'] ?? p['Quantity'] ?? p.qty ?? p.quantity ?? 0;
+      const rawStock = p.stock ?? p['Stok'] ?? p.stok ?? p['Qty (Stok)'] ?? p['Qty'] ?? p['Quantity'] ?? p.qty ?? p.quantity ?? 0;
       const rawMinStock = p.minStockThreshold ?? p['Min Stok'] ?? p['Batas Minimum Stok'] ?? p.minStock ?? p.batasMinStok ?? 5;
       const rawCommission = p.employeeCommission ?? p.komisi ?? p.komisiKaryawan ?? p['Komisi'] ?? p['Komisi Staf (Rp)'] ?? p['Komisi Staf'] ?? p.commission ?? p.komisiStaf ?? 0;
       const rawDesc = p.description ?? p['Deskripsi'] ?? p['Deskripsi Layanan'] ?? p['Fasilitas'] ?? p.deskripsi ?? p.fasilitas ?? p.keterangan ?? '';

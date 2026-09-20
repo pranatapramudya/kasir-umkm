@@ -213,16 +213,16 @@ export default function AdminProductsClientPage({
 
       const productsList = rawRows.map((row) => {
         return {
-          kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang / SKU'] || row.sku || row.SKU || '',
-          name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row['Nama Sparepart'] || row['Nama Barang'] || row.nama || '',
+          kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang (SKU)'] || row['Kode Barang / SKU'] || row.sku || row.SKU || '',
+          name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Layanan / Produk'] || row['Nama Layanan / Barang'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row['Nama Sparepart'] || row['Nama Barang'] || row['Nama Produk / Barang'] || row.nama || '',
           category: row.category || row['Kategori'] || row.kategori || 'Umum',
           hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
-          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? 0,
-          stock: row.stock ?? row['Stok'] ?? row.stok ?? 0,
+          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Jual / Tarif (Rp)'] ?? row['Tarif Layanan'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? 0,
+          stock: row.stock ?? row['Stok'] ?? row['Qty (Stok)'] ?? row['Qty'] ?? row['Quantity'] ?? row.stok ?? row.qty ?? 0,
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
           employeeCommission: row.employeeCommission ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi Staf (Rp)'] ?? row['Komisi'] ?? row['Komisi Staf'] ?? 0,
-          description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || '',
-          isService: isJasa && (row.category?.toLowerCase() === 'jasa' || !row.category)
+          description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Deskripsi / Catatan'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || '',
+          isService: isJasa && (row.category?.toLowerCase() === 'jasa' || row.category?.toLowerCase() === 'jasa / servis' || !row.category)
         };
       }).filter(p => Boolean(p.name && String(p.name).trim()));
 
