@@ -482,10 +482,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   }, [cart, transactions, isClient, isInitialized]);
 
   // --- HELPER KALKULASI STOK ---
-  const getRemainingStock = (product: Product) => {
-    const qtyInCart = cart.filter(item => item.id === product.id).reduce((acc, curr) => acc + curr.qty, 0);
-    return product.stock - qtyInCart;
-  };
+    const getRemainingStock = (product: Product) => {
+      // Rental & Jasa Murni: tidak pakai stok kuantitas, pakai ketersediaan kalender/jadwal
+      if (isRental || isPureJasa) return 999999;
+      const qtyInCart = cart.filter(item => item.id === product.id).reduce((acc, curr) => acc + curr.qty, 0);
+      return product.stock - qtyInCart;
+    };
 
   const addToCart = (product: Product, note?: string) => {
     const remaining = getRemainingStock(product);
@@ -844,15 +846,15 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             cartItemMap.set(item.id, (cartItemMap.get(item.id) || 0) + item.qty);
           });
           return {
-            ...current,
-            products: current.products.map(p => {
-              const boughtQty = cartItemMap.get(p.id) || 0;
-                            if (boughtQty > 0 && !isPureJasa) {
-                              return { ...p, stock: Math.max(0, p.stock - boughtQty) };
-                            }
-              return p;
-            })
-          };
+                      ...current,
+                      products: current.products.map(p => {
+                        const boughtQty = cartItemMap.get(p.id) || 0;
+                                      if (boughtQty > 0 && !isPureJasa && !isRental) {
+                                        return { ...p, stock: Math.max(0, p.stock - boughtQty) };
+                                      }
+                        return p;
+                      })
+                    };
         },
         { revalidate: true }
       );
