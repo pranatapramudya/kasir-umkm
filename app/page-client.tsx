@@ -1602,20 +1602,22 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     />
                   </div>
                   <div className="relative shrink-0">
-                    <button
-                      onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                      onBlur={() => setIsCategoryMenuOpen(false)}
-                      className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedCategory === "Semua"
-                        ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                        : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-                        }`}
-                      title="Filter Kategori"
-                    >
-                      <Filter className={`w-4 h-4 ${selectedCategory === "Semua" ? "text-gray-500" : "text-blue-600"}`} />
-                      <span className={`text-sm max-w-[100px] truncate ${selectedCategory !== "Semua" && "font-semibold"}`}>
-                        {selectedCategory === "Semua" ? "Kategori" : selectedCategory}
-                      </span>
-                    </button>
+                                      <button
+                                        onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
+                                        onBlur={() => setIsCategoryMenuOpen(false)}
+                                        className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedCategory === "Semua"
+                                          ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                                          : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                                          }`}
+                                        title="Filter Kategori"
+                                      >
+                                        <Filter className={`w-4 h-4 ${selectedCategory === "Semua" ? "text-gray-500" : "text-blue-600"}`} />
+                                        <span className={`text-sm max-w-[120px] truncate ${selectedCategory !== "Semua" && "font-semibold"}`}>
+                                          {selectedCategory === "Semua" 
+                                            ? (isJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Unit & Properti" : "Semua Produk")
+                                            : selectedCategory}
+                                        </span>
+                                      </button>
 
                     {isCategoryMenuOpen && (
                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">

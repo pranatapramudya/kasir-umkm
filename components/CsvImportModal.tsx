@@ -205,8 +205,11 @@ export default function CsvImportModal({
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Import Data ({categoryTitle})</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Unggah data produk atau layanan secara massal</p>
+            <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-blue-600" />
+              Import Data ({categoryTitle})
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">Input massal: Masukkan banyak {isRental ? "unit" : isJasa ? "layanan / barang" : isFNB ? "menu" : "produk"} sekaligus dari Excel</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-50 rounded-full">
             <X className="w-5 h-5" />
@@ -214,31 +217,44 @@ export default function CsvImportModal({
         </div>
         
         <div className="p-5 space-y-4 overflow-y-auto">
+          {/* Penjelasan perbedaan Import vs Export bagi orang awam */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex gap-2.5 items-start">
+            <span className="text-base shrink-0">💡</span>
+            <div>
+              <p className="font-bold">Perbedaan Import vs Export:</p>
+              <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                <b>Import Data (Halaman Ini):</b> Untuk memasukkan data baru secara banyak dari komputer ke kasir.<br />
+                <b>Export Data (Tombol Luar):</b> Untuk mengunduh / membackup daftar produk yang saat ini sudah tersimpan di kasir.
+              </p>
+            </div>
+          </div>
+
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
-            <p className="font-bold mb-1">Panduan Import Data ({categoryTitle}):</p>
-            <ol className="list-decimal pl-4 space-y-1 text-xs sm:text-sm">
-              <li>Unduh template <b>Excel (.xlsx)</b> khusus kategori Anda melalui tombol di bawah.</li>
-              <li>Buka file menggunakan <b>Microsoft Excel</b> atau <b>Google Sheets</b>.</li>
-              <li>Isi data {isRental ? "unit/properti" : isJasa ? "layanan" : isFNB ? "menu" : "produk"} Anda (Jangan ubah nama kolom di baris pertama).</li>
-              {isRental && (
-                <li className="text-blue-900">
-                  Kolom <b>hpp</b> diisi dengan Biaya Operasional (B.Ops/Maintenance) per sewa. Kolom <b>description</b> untuk fasilitas/catatan unit.
-                </li>
-              )}
+            <p className="font-bold mb-1.5 flex items-center gap-1.5 text-blue-900">
+              <span>📋</span> Langkah Mudah Import ({categoryTitle}):
+            </p>
+            <ol className="list-decimal pl-4 space-y-1.5 text-xs text-blue-900 leading-relaxed">
+              <li>Klik tombol <b>Download Format Excel</b> di bawah untuk mendapatkan file contoh.</li>
+              <li>Buka file tersebut di <b>Microsoft Excel</b> atau <b>Google Sheets</b>.</li>
+              <li>Isi daftar {isRental ? "unit sewa / kamar" : isJasa ? "layanan jasa & produk barang" : isFNB ? "menu makanan/minuman" : "produk toko"} Anda (jangan ubah baris judul paling atas).</li>
               {isJasa && (
-                <li className="text-blue-900">
-                  Kolom <b>employeeCommission</b> untuk nominal komisi staf per pengerjaan. Kolom <b>description</b> untuk deskripsi layanan. Tidak memerlukan kolom stok.
+                <li className="bg-blue-100/60 p-2 rounded-lg font-medium text-blue-950">
+                  🛠️ <b>Khusus Jasa:</b> File memiliki 2 sheet (<b>Jasa</b> & <b>Produk</b>). Kategori bisa langsung dipilih lewat <b>dropdown Excel</b>. Kolom <b>HPP</b> diisi modal bahan/beli untuk hitung untung bersih.
                 </li>
               )}
-              <li>Simpan file Anda (format <b>.xlsx</b> atau <b>.csv</b> didukung).</li>
-              <li>Unggah kembali file tersebut pada bagian di bawah ini.</li>
+              {isRental && (
+                <li className="bg-blue-100/60 p-2 rounded-lg font-medium text-blue-950">
+                  🚗 <b>Khusus Rental:</b> Kolom <b>HPP</b> diisi Biaya Operasional (B.Ops/Maintenance). Kolom <b>description</b> untuk fasilitas unit.
+                </li>
+              )}
+              <li>Simpan file di komputer Anda, lalu upload pada kotak di bawah ini.</li>
             </ol>
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="mt-3.5 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition-all shadow-sm active:scale-95"
+              className="mt-3 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-sm active:scale-95"
             >
-              <FileDown className="w-4 h-4" /> Download Template Excel (.xlsx)
+              <FileDown className="w-4 h-4" /> Download Format Template Excel (.xlsx)
             </button>
           </div>
 

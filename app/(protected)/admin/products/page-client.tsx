@@ -492,6 +492,7 @@ export default function AdminProductsClientPage({
             <button
               onClick={() => setIsImportModalOpen(true)}
               className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
+              title="Import Data: Memasukkan banyak produk/layanan dari file Excel ke kasir (Input Massal)"
             >
               <Upload className="w-5 h-5 text-gray-500" />
               <span>Import Data</span>
@@ -500,6 +501,7 @@ export default function AdminProductsClientPage({
               onClick={handleExportCatalog}
               disabled={isExporting}
               className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0 disabled:opacity-50"
+              title="Export Data: Mengunduh & membackup daftar produk/layanan yang saat ini tersimpan di kasir ke file Excel"
             >
               {isExporting ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" /> : <FileDown className="w-5 h-5 text-gray-500" />}
               <span>Export Data</span>
@@ -538,8 +540,10 @@ export default function AdminProductsClientPage({
             title="Filter Kategori"
           >
             <Filter className={`w-4 h-4 ${selectedCategory === "Semua" ? "text-gray-500" : "text-blue-600"}`} />
-            <span className={`text-sm max-w-[100px] truncate ${selectedCategory !== "Semua" && "font-semibold"}`}>
-              {selectedCategory === "Semua" ? "Kategori" : selectedCategory}
+            <span className={`text-sm max-w-[120px] truncate ${selectedCategory !== "Semua" && "font-semibold"}`}>
+              {selectedCategory === "Semua" 
+                ? (isJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Unit & Properti" : "Semua Produk")
+                : selectedCategory}
             </span>
           </button>
 
