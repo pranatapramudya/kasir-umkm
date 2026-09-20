@@ -3,7 +3,6 @@
 import React from 'react';
 import { X, FileDown, Loader2, Upload } from 'lucide-react';
 import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
-import { downloadExcelTemplate } from '@/lib/excel-template';
 
 type CsvImportModalProps = {
   isOpen: boolean;
@@ -32,7 +31,8 @@ export default function CsvImportModal({
 
   const handleDownloadTemplate = async () => {
     try {
-      await downloadExcelTemplate(kategoriUsaha);
+      const cat = kategoriUsaha || 'Jasa';
+      window.open(`/api/onboarding/download-template?category=${encodeURIComponent(cat)}`, '_blank');
     } catch (err) {
       console.error("Gagal mendownload template Excel:", err);
     }
