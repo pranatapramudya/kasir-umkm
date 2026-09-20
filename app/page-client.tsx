@@ -389,7 +389,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             setIsInitialized(true);
    
                   // Show onboarding wizard on very first visit for Jasa business only
-                  const onboardingCompleted = localStorage.getItem('onboarding_completed');
+                  const tenantOnboardingKey = currentTenantId ? `onboarding_completed_${currentTenantId}` : 'onboarding_completed';
+                  const onboardingCompleted = localStorage.getItem(tenantOnboardingKey) || localStorage.getItem('onboarding_completed');
                   if (isJasa && !onboardingCompleted) {
                     setTimeout(() => {
                       setIsOnboardingOpen(true);
@@ -2246,8 +2247,20 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                       {/* Onboarding Wizard */}
                                                       <OnboardingWizard
                                                         isOpen={isOnboardingOpen}
-                                                        onClose={() => setIsOnboardingOpen(false)}
-                                                        onComplete={() => {}}
+                                                        onClose={() => {
+                                                          if (currentTenantId) {
+                                                            localStorage.setItem(`onboarding_completed_${currentTenantId}`, 'true');
+                                                          }
+                                                          localStorage.setItem('onboarding_completed', 'true');
+                                                          setIsOnboardingOpen(false);
+                                                        }}
+                                                        onComplete={() => {
+                                                          if (currentTenantId) {
+                                                            localStorage.setItem(`onboarding_completed_${currentTenantId}`, 'true');
+                                                          }
+                                                          localStorage.setItem('onboarding_completed', 'true');
+                                                          setIsOnboardingOpen(false);
+                                                        }}
                                                       />
 
       {/* Queue Modal */}
