@@ -246,7 +246,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { bookingId, status } = body;
 
-    if (!bookingId || !["COMPLETED", "CANCELLED"].includes(status)) {
+    if (!bookingId || !["PENDING", "IN_PROGRESS", "COMPLETED", "FINISHED", "CANCELLED"].includes(status)) {
       revalidatePath('/', 'layout');
     return NextResponse.json({ error: "Data tidak valid." }, { status: 400 });
     }

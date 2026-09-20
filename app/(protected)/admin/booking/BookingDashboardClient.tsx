@@ -120,21 +120,27 @@ function getStatusMap(isJasa: boolean): Record<
 > {
   return {
     PENDING: {
-      label: isJasa ? "Menunggu" : "Persiapan",
+      label: "Menunggu",
       color: "text-amber-600",
       bg: "bg-amber-50 border-amber-200",
       icon: <Clock className="w-3.5 h-3.5" />,
     },
-    COMPLETED: {
-      label: isJasa ? "Antrean Aktif" : "Sedang Disewa",
-      color: "text-blue-600",
-      bg: "bg-blue-50 border-blue-200",
-      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-    },
     IN_PROGRESS: {
-      label: "Berjalan",
+      label: isJasa ? "Sedang Dikerjakan" : "Sedang Disewa",
       color: "text-purple-600",
       bg: "bg-purple-50 border-purple-200",
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+    },
+    COMPLETED: {
+      label: isJasa ? "Siap Diambil / Bayar" : "Selesai Sewa",
+      color: "text-blue-600",
+      bg: "bg-blue-50 border-blue-200",
+      icon: <ShoppingCart className="w-3.5 h-3.5" />,
+    },
+    FINISHED: {
+      label: "Selesai",
+      color: "text-emerald-600",
+      bg: "bg-emerald-50 border-emerald-200",
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     },
     CANCELLED: {
@@ -142,12 +148,6 @@ function getStatusMap(isJasa: boolean): Record<
       color: "text-red-500",
       bg: "bg-red-50 border-red-200",
       icon: <XCircle className="w-3.5 h-3.5" />,
-    },
-    FINISHED: {
-      label: "Selesai",
-      color: "text-emerald-600",
-      bg: "bg-emerald-50 border-emerald-200",
-      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     },
   };
 }
@@ -157,10 +157,10 @@ function eventStyleGetter(event: BookingCalendarEvent) {
   const status = event.resource.status;
   const styleMap: Record<BookingStatus, React.CSSProperties> = {
     PENDING: { backgroundColor: "#f59e0b", color: "#fff", borderRadius: "6px", border: "none" },
-    COMPLETED: { backgroundColor: "#3b82f6", color: "#fff", borderRadius: "6px", border: "none" },
     IN_PROGRESS: { backgroundColor: "#9333ea", color: "#fff", borderRadius: "6px", border: "none" },
-    CANCELLED: { backgroundColor: "#ef4444", color: "#fff", borderRadius: "6px", border: "none" },
+    COMPLETED: { backgroundColor: "#3b82f6", color: "#fff", borderRadius: "6px", border: "none" },
     FINISHED: { backgroundColor: "#64748b", color: "#fff", borderRadius: "6px", border: "none" },
+    CANCELLED: { backgroundColor: "#ef4444", color: "#fff", borderRadius: "6px", border: "none" },
   };
   return { style: styleMap[status] ?? {} };
 }
@@ -577,32 +577,75 @@ export default function BookingDashboardClient({
                             )}
                           </div>
 
-                          {/* Actions — only for PENDING */}
-                          {isPending && (
-                            <div className="flex gap-2 pt-3 border-t border-slate-100">
+                          {/* Actions Berdasarkan Status */}
+                          <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100">
+                            {booking.status === "PENDING" && (
+                              <>
+                                <button
+                                  id={`mulai-${booking.id}`}
+                                  onClick={() => updateStatus(booking.id, "IN_PROGRESS")}
+                                  disabled={actionLoading === booking.id + "IN_PROGRESS"}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                                >
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  {actionLoading === booking.id + "IN_PROGRESS" ? "Memproses..." : (isJasa ? "Mulai Pengerjaan" : "Mulai Rental")}
+                                </button>
+                                <button
+                                  id={`proses-kasir-${booking.id}`}
+                                  onClick={() => handleProsesKeKasir(booking)}
+                                  disabled={actionLoading === booking.id + "COMPLETED"}
+                                  className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                                >
+                                  <ShoppingCart className="w-4 h-4" />
+                                  Kasir
+                                </button>
+                                <button
+                                  id={`batalkan-${booking.id}`}
+                                  onClick={() => updateStatus(booking.id, "CANCELLED")}
+                                  disabled={actionLoading === booking.id + "CANCELLED"}
+                                  className="flex items-center gap-1 px-3 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all disabled:opacity-60"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+
+                            {booking.status === "IN_PROGRESS" && (
+                              <>
+                                <button
+                                  id={`selesai-${booking.id}`}
+                                  onClick={() => updateStatus(booking.id, "FINISHED")}
+                                  disabled={actionLoading === booking.id + "FINISHED"}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                                >
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  {actionLoading === booking.id + "FINISHED" ? "Memproses..." : (isJasa ? "Selesai Pengerjaan" : "Pengembalian Selesai")}
+                                </button>
+                                <button
+                                  id={`proses-kasir-in-progress-${booking.id}`}
+                                  onClick={() => handleProsesKeKasir(booking)}
+                                  disabled={actionLoading === booking.id + "COMPLETED"}
+                                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                                >
+                                  <ShoppingCart className="w-4 h-4" />
+                                  Kasir
+                                </button>
+                              </>
+                            )}
+
+                            {booking.status === "FINISHED" && (
                               <button
-                                id={`proses-kasir-${booking.id}`}
+                                id={`proses-kasir-finished-${booking.id}`}
                                 onClick={() => handleProsesKeKasir(booking)}
                                 disabled={actionLoading === booking.id + "COMPLETED"}
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-60"
+                                className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
                               >
                                 <ShoppingCart className="w-4 h-4" />
-                                {actionLoading === booking.id + "COMPLETED"
-                                  ? "Memproses..."
-                                  : "Proses ke Kasir"}
+                                {actionLoading === booking.id + "COMPLETED" ? "Memproses..." : "Proses Pembayaran ke Kasir"}
                                 <ChevronRight className="w-3.5 h-3.5" />
                               </button>
-                              <button
-                                id={`batalkan-${booking.id}`}
-                                onClick={() => updateStatus(booking.id, "CANCELLED")}
-                                disabled={actionLoading === booking.id + "CANCELLED"}
-                                className="flex items-center gap-1.5 px-4 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all disabled:opacity-60"
-                              >
-                                <XCircle className="w-4 h-4" />
-                                Batal
-                              </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -710,42 +753,81 @@ export default function BookingDashboardClient({
             </div>
 
             {/* Modal Actions */}
-            {selectedBooking.status === "PENDING" && (
-              <div className="flex gap-2 px-5 pb-5">
+            <div className="p-5 pt-0 space-y-2">
+              {selectedBooking.status === "PENDING" && (
+                <div className="flex gap-2">
+                  <button
+                    id={`modal-mulai-${selectedBooking.id}`}
+                    onClick={() => updateStatus(selectedBooking.id, "IN_PROGRESS")}
+                    disabled={actionLoading === selectedBooking.id + "IN_PROGRESS"}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {actionLoading === selectedBooking.id + "IN_PROGRESS" ? "Memproses..." : (isJasa ? "Mulai Pengerjaan" : "Mulai Rental")}
+                  </button>
+                  <button
+                    id={`modal-proses-kasir-${selectedBooking.id}`}
+                    onClick={() => handleProsesKeKasir(selectedBooking)}
+                    disabled={actionLoading === selectedBooking.id + "COMPLETED"}
+                    className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Kasir
+                  </button>
+                  <button
+                    id={`modal-batalkan-${selectedBooking.id}`}
+                    onClick={() => updateStatus(selectedBooking.id, "CANCELLED")}
+                    disabled={actionLoading === selectedBooking.id + "CANCELLED"}
+                    className="flex items-center gap-1.5 px-3 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all disabled:opacity-60"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {selectedBooking.status === "IN_PROGRESS" && (
+                <div className="flex gap-2">
+                  <button
+                    id={`modal-selesai-${selectedBooking.id}`}
+                    onClick={() => updateStatus(selectedBooking.id, "FINISHED")}
+                    disabled={actionLoading === selectedBooking.id + "FINISHED"}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {actionLoading === selectedBooking.id + "FINISHED" ? "Memproses..." : (isJasa ? "Selesai Pengerjaan" : "Pengembalian Selesai")}
+                  </button>
+                  <button
+                    id={`modal-proses-kasir-in-progress-${selectedBooking.id}`}
+                    onClick={() => handleProsesKeKasir(selectedBooking)}
+                    disabled={actionLoading === selectedBooking.id + "COMPLETED"}
+                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Kasir
+                  </button>
+                </div>
+              )}
+
+              {selectedBooking.status === "FINISHED" && (
                 <button
-                  id={`modal-proses-kasir-${selectedBooking.id}`}
+                  id={`modal-proses-kasir-finished-${selectedBooking.id}`}
                   onClick={() => handleProsesKeKasir(selectedBooking)}
                   disabled={actionLoading === selectedBooking.id + "COMPLETED"}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  {actionLoading === selectedBooking.id + "COMPLETED"
-                    ? "Memproses..."
-                    : "Proses ke Kasir"}
+                  {actionLoading === selectedBooking.id + "COMPLETED" ? "Memproses..." : "Proses Pembayaran ke Kasir"}
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
-                <button
-                  id={`modal-batalkan-${selectedBooking.id}`}
-                  onClick={() => updateStatus(selectedBooking.id, "CANCELLED")}
-                  disabled={actionLoading === selectedBooking.id + "CANCELLED"}
-                  className="flex items-center gap-1.5 px-4 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all disabled:opacity-60"
-                >
-                  <XCircle className="w-4 h-4" />
-                  Batal
-                </button>
-              </div>
-            )}
+              )}
 
-            {selectedBooking.status !== "PENDING" && (
-              <div className="px-5 pb-5">
-                <button
-                  onClick={() => setSelectedBooking(null)}
-                  className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors"
-                >
-                  Tutup
-                </button>
-              </div>
-            )}
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}

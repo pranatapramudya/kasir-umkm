@@ -91,28 +91,40 @@ export default function AdminProductsClientPage({
   const rawProducts = data?.products || [];
   const totalPages = data?.totalPages || 1;
 
-  // Instant Client-side Filter untuk Respons 0ms
+  // Instant Client-side Filter untuk Respons 0ms (Kategori + Search)
   const filteredProducts = useMemo(() => {
     if (!rawProducts || rawProducts.length === 0) return [];
-    if (selectedCategory === "Semua") return rawProducts;
+    
+    let result = rawProducts;
 
-    const catLower = selectedCategory.toLowerCase().trim();
-    if (catLower.includes("jasa") || catLower.includes("servis")) {
-      return rawProducts.filter(p => {
-        const c = (p.category || "").toLowerCase().trim();
-        return c.includes("jasa") || c.includes("servis") || p.isService;
-      });
+    if (selectedCategory !== "Semua") {
+      const catLower = selectedCategory.toLowerCase().trim();
+      if (catLower.includes("jasa") || catLower.includes("servis")) {
+        result = result.filter(p => {
+          const c = (p.category || "").toLowerCase().trim();
+          return c.includes("jasa") || c.includes("servis") || p.isService;
+        });
+      } else if (catLower.includes("produk") || catLower.includes("barang")) {
+        result = result.filter(p => {
+          const c = (p.category || "").toLowerCase().trim();
+          return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+        });
+      } else {
+        result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+      }
     }
 
-    if (catLower.includes("produk") || catLower.includes("barang")) {
-      return rawProducts.filter(p => {
-        const c = (p.category || "").toLowerCase().trim();
-        return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
-      });
+    if (searchQuery && searchQuery.trim() !== "") {
+      const sLower = searchQuery.toLowerCase().trim();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(sLower) ||
+        (p.kodeBarang && p.kodeBarang.toLowerCase().includes(sLower)) ||
+        (p.description && p.description.toLowerCase().includes(sLower))
+      );
     }
 
-    return rawProducts.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-  }, [rawProducts, selectedCategory]);
+    return result;
+  }, [rawProducts, selectedCategory, searchQuery]);
 
   const products = filteredProducts;
 

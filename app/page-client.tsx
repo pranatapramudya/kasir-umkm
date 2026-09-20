@@ -163,25 +163,39 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
           )}
           {data && data.length > 0 && (
             <div className="space-y-3">
-              {data.map((booking: any) => (
-                <div key={booking.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-slate-800">{booking.customerName}</span>
-                    <span className="text-sm text-slate-600 flex items-center gap-1">
-                      {booking.product ? booking.product.name : 'Layanan Custom'}
-                    </span>
-                    <span className="text-xs text-slate-500 mt-1">
-                      Jam: {new Date(booking.bookingDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+              {data.map((booking: any) => {
+                const isPending = booking.status === 'PENDING';
+                const isInProgress = booking.status === 'IN_PROGRESS';
+                const isFinished = booking.status === 'FINISHED' || booking.status === 'COMPLETED';
+
+                const statusLabel = isInProgress ? '⚙️ Sedang Dikerjakan' : (isFinished ? '✅ Selesai' : '⏳ Menunggu');
+                const statusBadgeBg = isInProgress ? 'bg-purple-50 text-purple-700 border-purple-200' : (isFinished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200');
+
+                return (
+                  <div key={booking.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-bold text-slate-800">{booking.customerName}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusBadgeBg}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+                      <span className="text-sm text-slate-600 flex items-center gap-1">
+                        {booking.product ? booking.product.name : 'Layanan Custom'}
+                      </span>
+                      <span className="text-xs text-slate-500 mt-1">
+                        Jam: {new Date(booking.bookingDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => onProcess(booking)}
+                      className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold rounded-lg transition-colors shadow-sm text-sm"
+                    >
+                      {isFinished ? 'Bayar' : 'Proses'}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => onProcess(booking)}
-                    className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold rounded-lg transition-colors shadow-sm"
-                  >
-                    Proses
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -355,32 +369,45 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   );
 
   const rawProducts = swrResponse?.products || [];
-  const totalPages = swrResponse?.totalPages || 1;
+    const totalPages = swrResponse?.totalPages || 1;
 
-  // Instant Client-side Filter untuk Respons 0ms
-  const filteredProducts = useMemo(() => {
-    if (!rawProducts || rawProducts.length === 0) return [];
-    if (selectedCategory === "Semua") return rawProducts;
+    // Instant Client-side Filter untuk Respons 0ms (Kategori + Pencarian)
+    const filteredProducts = useMemo(() => {
+      if (!rawProducts || rawProducts.length === 0) return [];
+    
+      let result = rawProducts;
+    
+      // Filter kategori
+      if (selectedCategory !== "Semua") {
+        const catLower = selectedCategory.toLowerCase().trim();
+        if (catLower.includes("jasa") || catLower.includes("servis")) {
+          result = result.filter(p => {
+            const c = (p.category || "").toLowerCase().trim();
+            return c.includes("jasa") || c.includes("servis") || p.isService;
+          });
+        } else if (catLower.includes("produk") || catLower.includes("barang")) {
+          result = result.filter(p => {
+            const c = (p.category || "").toLowerCase().trim();
+            return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+          });
+        } else {
+          result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+        }
+      }
+    
+      // Filter pencarian (search)
+      if (search && search.trim() !== "") {
+        const searchLower = search.toLowerCase().trim();
+        result = result.filter(p => 
+          p.name.toLowerCase().includes(searchLower) ||
+          (p.kodeBarang && p.kodeBarang.toLowerCase().includes(searchLower))
+        );
+      }
+    
+      return result;
+    }, [rawProducts, selectedCategory, search]);
 
-    const catLower = selectedCategory.toLowerCase().trim();
-    if (catLower.includes("jasa") || catLower.includes("servis")) {
-      return rawProducts.filter(p => {
-        const c = (p.category || "").toLowerCase().trim();
-        return c.includes("jasa") || c.includes("servis") || p.isService;
-      });
-    }
-
-    if (catLower.includes("produk") || catLower.includes("barang")) {
-      return rawProducts.filter(p => {
-        const c = (p.category || "").toLowerCase().trim();
-        return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
-      });
-    }
-
-    return rawProducts.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-  }, [rawProducts, selectedCategory]);
-
-  const products = filteredProducts;
+    const products = filteredProducts;
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
   const categories = isJasa
@@ -477,20 +504,33 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     const cartProduct = { ...product, hargaJual: finalPrice };
 
     setCart((prev) => {
-      if (isJasa) {
-        const defaultWorkerId = employees.length === 0 ? "admin_owner" : (employees.length === 1 ? employees[0].id : undefined);
-        return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note, workerId: defaultWorkerId }];
+      const defaultWorkerId = isJasa ? (employees.length === 0 ? "admin_owner" : (employees.length === 1 ? employees[0].id : undefined)) : undefined;
+      const cleanNote = note ? note.trim() : undefined;
+
+      // Cari apakah item yang sama persis sudah ada di keranjang
+      const existingIndex = prev.findIndex((item) => {
+        const sameProduct = item.id === cartProduct.id;
+        const sameNote = (item.note || "") === (cleanNote || "");
+        const sameWorker = !isJasa || item.workerId === defaultWorkerId;
+        return sameProduct && sameNote && sameWorker;
+      });
+
+      if (existingIndex !== -1) {
+        return prev.map((item, idx) =>
+          idx === existingIndex ? { ...item, qty: item.qty + 1 } : item
+        );
       }
 
-      if (isFNB && note) {
-        return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note }];
-      }
-
-      const existing = prev.find((item) => item.id === cartProduct.id && !item.note);
-      if (existing) {
-        return prev.map((item) => item.id === cartProduct.id && !item.note ? { ...item, qty: item.qty + 1 } : item);
-      }
-      return [...prev, { ...cartProduct, cartItemId: crypto.randomUUID(), qty: 1, note }];
+      return [
+        ...prev,
+        {
+          ...cartProduct,
+          cartItemId: crypto.randomUUID(),
+          qty: 1,
+          note: cleanNote,
+          ...(isJasa ? { workerId: defaultWorkerId } : {}),
+        },
+      ];
     });
     toast.success(`+1 ${product.name}`, { id: 'cart-add-toast', duration: 1000 });
   };
