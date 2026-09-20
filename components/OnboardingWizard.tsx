@@ -8,11 +8,12 @@ import { downloadExcelTemplate } from '@/lib/excel-template';
 
 interface OnboardingWizardProps {
   isOpen: boolean;
+  tenantCategory?: string;
   onClose: () => void;
   onComplete: () => void;
 }
 
-export default function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWizardProps) {
+export default function OnboardingWizard({ isOpen, tenantCategory, onClose, onComplete }: OnboardingWizardProps) {
   const router = useRouter();
   const { getToken } = useAuth();
   const [step, setStep] = useState(1);
@@ -164,11 +165,11 @@ export default function OnboardingWizard({ isOpen, onClose, onComplete }: Onboar
                 <p className="text-sm text-blue-700">Download template, isi data, upload sekaligus. Paling cepat untuk katalog banyak.</p>
                 <button 
                   type="button"
-                  onClick={() => downloadExcelTemplate('Jasa')}
+                  onClick={() => downloadExcelTemplate(tenantCategory || 'Jasa')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
-                  Download Template Jasa/Servis
+                  Download Template {tenantCategory === 'RENTAL' || tenantCategory === 'Rental & Travel' || tenantCategory === 'Rental/Travel' ? 'Rental/Travel/Properti' : tenantCategory === 'FNB' || tenantCategory === 'F&B' || tenantCategory === 'F&B / Kuliner' ? 'F&B' : tenantCategory === 'JASA' || tenantCategory === 'Jasa / Servis' || tenantCategory === 'Jasa/Servis' ? 'Jasa/Servis' : 'Retail'}
                 </button>
                 <div className="flex items-center gap-2">
                   <Upload className="w-5 h-5 text-blue-600" />

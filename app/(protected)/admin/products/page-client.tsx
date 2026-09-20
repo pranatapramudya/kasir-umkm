@@ -34,6 +34,7 @@ type Product = {
   description?: string | null;
   employeeCommission?: number | null;
   isService?: boolean;
+  status?: string;
 };
 
 const fetcher = async (args: string | [string, string]) => {
@@ -677,11 +678,19 @@ export default function AdminProductsClientPage({
                           <div className="text-sm font-bold text-blue-600 leading-none">{formatRupiah(product.hargaJual)}</div>
                         )}
                       </div>
-                      {/* Stok hanya untuk Retail/FNB/Rental/Barang, bukan Jasa murni */}
-                      {!(isPureJasa && (product.category?.toLowerCase() === "jasa" || !product.category)) && (
+                      {/* Stok hanya untuk Retail/FNB/Barang, bukan Jasa murni & bukan Rental */}
+                      {!isPureJasa && !isRental && (
                         <div className="text-right">
                           <span className={`inline-flex min-w-[3.5rem] justify-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${product.stock > (product.minStockThreshold || 5) ? 'bg-green-50 text-green-700 border-green-200' : product.stock > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                             Sisa: {product.stock}
+                          </span>
+                        </div>
+                      )}
+                      {/* Rental: tampilkan status ketersediaan */}
+                      {isRental && (
+                        <div className="text-right">
+                          <span className={`inline-flex min-w-[3.5rem] justify-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${product.status === 'Tersedia' ? 'bg-green-50 text-green-700 border-green-200' : product.status === 'Disewa' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>
+                            {product.status || 'Tersedia'}
                           </span>
                         </div>
                       )}

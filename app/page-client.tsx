@@ -2313,23 +2313,24 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                       />
 
                                                       {/* Onboarding Wizard */}
-                                                      <OnboardingWizard
-                                                        isOpen={isOnboardingOpen}
-                                                        onClose={() => {
-                                                          if (currentTenantId) {
-                                                            localStorage.setItem(`onboarding_completed_${currentTenantId}`, 'true');
-                                                          }
-                                                          localStorage.setItem('onboarding_completed', 'true');
-                                                          setIsOnboardingOpen(false);
-                                                        }}
-                                                        onComplete={() => {
-                                                          if (currentTenantId) {
-                                                            localStorage.setItem(`onboarding_completed_${currentTenantId}`, 'true');
-                                                          }
-                                                          localStorage.setItem('onboarding_completed', 'true');
-                                                          setIsOnboardingOpen(false);
-                                                        }}
-                                                      />
+                                                                                                            <OnboardingWizard
+                                                                                                              isOpen={isOnboardingOpen}
+                                                                                                              tenantCategory={tenantCategory}
+                                                                                                              onClose={() => {
+                                                                                                                if (currentTenantId) {
+                                                                                                                  localStorage.setItem(`onboarding_completed_${currentTenantId}`, 'true');
+                                                                                                                }
+                                                                                                                localStorage.setItem('onboarding_completed', 'true');
+                                                                                                                setIsOnboardingOpen(false);
+                                                                                                              }}
+                                                                                                              onComplete={() => {
+                                                                                                                if (currentTenantId) {
+                                                                                                                  localStorage.setItem(`onboarding_completed_${currentTenantId}`, 'true');
+                                                                                                                }
+                                                                                                                localStorage.setItem('onboarding_completed', 'true');
+                                                                                                                setIsOnboardingOpen(false);
+                                                                                                              }}
+                                                                                                            />
 
       {/* Queue Modal */}
       <QueueModal isOpen={isQueueModalOpen} onClose={() => setIsQueueModalOpen(false)} onProcess={handleProcessQueue} isRental={isRental} />
