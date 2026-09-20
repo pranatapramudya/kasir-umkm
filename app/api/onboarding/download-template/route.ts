@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     wsKendaraan.addRow({ kodeUnit: 'UNT005', name: 'Elf Long 2022 - B 7890 MNO', tipe: 'Minibus', transmisi: 'Manual', tahun: 2022, hargaHarian: 1200000, hargaJam: 200000, biayaHarian: 250000, status: 'Tersedia', description: 'Travel 16-18 penumpang, box panjang' });
 
     // Sheet 2: Properti - max 31 chars
-    const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa, Kost)');
+    const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa, Hotel)');
     wsProperti.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
       { header: 'Nama Unit / Plat', key: 'name', width: 32 },
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     wsProperti.addRow({ kodeUnit: 'PRP005', name: 'Hotel Bisnis Deluxe - Bandung', tipe: 'Hotel', kapasitas: 2, kamarMandi: 'Dalam', hargaHarian: 650000, hargaBulanan: 0, biayaHarian: 100000, status: 'Tersedia', description: 'Sarapan gratis, meeting room, laundry service' });
 
     // Sheet 3: Layanan Tambahan - max 31 chars
-    const wsLayanan = workbook.addWorksheet('3. Layanan (Supir, Asuransi, Bensin)');
+    const wsLayanan = workbook.addWorksheet('3. Layanan (Supir, Asuransi, Bsn)');
     wsLayanan.columns = [
       { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
       { header: 'Nama Layanan', key: 'name', width: 36 },
