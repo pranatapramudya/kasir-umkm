@@ -12,7 +12,7 @@ const CsvImportModal = nextDynamic(() => import('@/components/CsvImportModal'), 
   ssr: false,
 });
 import { Pagination } from '@/components/Pagination';
-import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
+import { isServiceBusinessCategory, isRentalTravelCategory, isPureServiceCategory, detectRentalItemType } from '@/lib/business-category';
 import { humanizeError } from '@/lib/error-mapper';
 
 export const dynamic = 'force-dynamic';
@@ -54,7 +54,7 @@ export default function AdminProductsClientPage({
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
   const isRental = isRentalTravelCategory(kategoriUsaha);
-  const isPureJasa = isJasa && !isRental;
+  const isPureJasa = isPureServiceCategory(kategoriUsaha);
   const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,7 +146,7 @@ export default function AdminProductsClientPage({
   });
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-  const categories = isJasa
+  const categories = isPureJasa
     ? ["Semua", "Jasa / Servis", "Produk / Barang"]
     : ["Semua", ...uniqueCategories];
 
@@ -166,7 +166,7 @@ export default function AdminProductsClientPage({
   const openModal = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      const isJasaMurni = isJasa && (product.category?.toLowerCase().includes('jasa') || product.category?.toLowerCase().includes('servis'));
+      const isJasaMurni = isPureJasa && (product.category?.toLowerCase().includes('jasa') || product.category?.toLowerCase().includes('servis'));
       setFormData({
         kodeBarang: product.kodeBarang || '',
         name: product.name,
@@ -186,7 +186,7 @@ export default function AdminProductsClientPage({
     } else {
       setEditingProduct(null);
       // Default ke Jasa / Servis untuk bisnis Jasa agar field stok langsung tersembunyi
-      const defaultCategory = isJasa ? 'Jasa / Servis' : '';
+      const defaultCategory = isPureJasa ? 'Jasa / Servis' : '';
       setFormData({
         kodeBarang: '',
         name: '',
@@ -262,7 +262,7 @@ export default function AdminProductsClientPage({
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
           employeeCommission: row.employeeCommission ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi Staf (Rp)'] ?? row['Komisi'] ?? row['Komisi Staf'] ?? 0,
           description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Deskripsi / Catatan'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || '',
-          isService: isJasa && (row.category?.toLowerCase() === 'jasa' || row.category?.toLowerCase() === 'jasa / servis' || !row.category)
+          isService: isPureJasa && (row.category?.toLowerCase() === 'jasa' || row.category?.toLowerCase() === 'jasa / servis' || !row.category)
         };
       }).filter(p => Boolean(p.name && String(p.name).trim()));
 
@@ -393,12 +393,12 @@ export default function AdminProductsClientPage({
         discount: parseInt(formData.discount.toString().replace(/[^0-9]/g, ''), 10) || 0,
         // Jasa murni (category === "Jasa"): no stock, no hpp (use biayaModal instead)
         // Sparepart (category === "Sparepart"): has stock, has hpp
-        stock: (isJasa && formData.category === "Jasa") ? 999999 : (parseInt(formData.stock.toString().replace(/[^0-9]/g, ''), 10) || 0),
-        minStockThreshold: (isJasa && formData.category === "Jasa") ? 0 : (parseInt(formData.minStockThreshold.toString().replace(/[^0-9]/g, ''), 10) || 5),
-        employeeCommission: isJasa ? (parseInt(formData.employeeCommission.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
+        stock: (isPureJasa && formData.category === "Jasa / Servis") ? 999999 : (parseInt(formData.stock.toString().replace(/[^0-9]/g, ''), 10) || 0),
+        minStockThreshold: (isPureJasa && formData.category === "Jasa / Servis") ? 0 : (parseInt(formData.minStockThreshold.toString().replace(/[^0-9]/g, ''), 10) || 5),
+        employeeCommission: isPureJasa ? (parseInt(formData.employeeCommission.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
         description: isRental ? formData.description : null,
         // biayaModal untuk Jasa murni (pakai field biayaModal, bukan hpp)
-        biayaModal: (isJasa && formData.category === "Jasa") ? (parseInt(formData.biayaModal.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
+        biayaModal: (isPureJasa && formData.category === "Jasa / Servis") ? (parseInt(formData.biayaModal.toString().replace(/[^0-9]/g, ''), 10) || 0) : 0,
       };
 
       const res = await fetch(url, {
@@ -523,9 +523,9 @@ export default function AdminProductsClientPage({
         <div>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
             <PackageSearch className="w-6 h-6 text-blue-600" />
-            {isJasa ? "Manajemen Layanan" : isFNB ? "Manajemen Menu" : "Manajemen Produk"}
+            {isPureJasa ? "Manajemen Layanan" : isFNB ? "Manajemen Menu" : isRental ? "Manajemen Unit & Properti" : "Manajemen Produk"}
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Kelola daftar {isJasa ? "layanan" : isFNB ? "menu" : "produk"}, harga, dan {isJasa ? "ketersediaan" : "stok"} Anda.</p>
+          <p className="text-slate-500 text-sm mt-1">Kelola daftar {isPureJasa ? "layanan" : isFNB ? "menu" : isRental ? "unit & properti" : "produk"}, harga, dan {isPureJasa ? "ketersediaan" : isRental ? "ketersediaan" : "stok"} Anda.</p>
         </div>
         {(isLoading || (products && products.length > 0)) && (
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -563,7 +563,7 @@ export default function AdminProductsClientPage({
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : "Cari produk atau barcode..."}
+            placeholder={isPureJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? "Cari unit / plat / kamar..." : "Cari produk atau barcode..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
@@ -582,7 +582,7 @@ export default function AdminProductsClientPage({
             <Filter className={`w-4 h-4 ${selectedCategory === "Semua" ? "text-gray-500" : "text-blue-600"}`} />
             <span className={`text-sm max-w-[120px] truncate ${selectedCategory !== "Semua" && "font-semibold"}`}>
               {selectedCategory === "Semua" 
-                ? (isJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Unit & Properti" : "Semua Produk")
+                ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Unit & Properti" : "Semua Produk")
                 : selectedCategory}
             </span>
           </button>
@@ -642,7 +642,7 @@ export default function AdminProductsClientPage({
                         <div className="text-[11px] text-slate-500 font-mono mt-1 truncate">{product.kodeBarang || 'Tanpa SKU'}</div>
                       </div>
                       <div className="flex gap-1 shrink-0">
-                        {!isJasa && (
+                        {!isPureJasa && !isRental && (
                           <button onClick={() => { setQuickRestockProduct(product); setQuickRestockAmount(''); }} className="p-1.5 text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors" title="Tambah Stok Cepat">
                             <PackagePlus className="w-3.5 h-3.5" />
                           </button>
@@ -666,7 +666,7 @@ export default function AdminProductsClientPage({
                     <div className="mt-auto pt-3 flex items-end justify-between">
                       <div>
                         <div className="text-[10px] text-slate-400 font-medium mb-0.5">
-                          {isRental ? 'B. Ops' : isJasa ? (product.category?.toLowerCase() === 'jasa' ? 'Modal/Bahan' : 'HPP') : 'HPP'}: {formatRupiah(product.hpp || product.biayaModal || 0)}
+                          {isRental ? 'B. Ops' : isPureJasa ? (product.category?.toLowerCase() === 'jasa' ? 'Modal/Bahan' : 'HPP') : 'HPP'}: {formatRupiah(product.hpp || product.biayaModal || 0)}
                         </div>
                         {product.discount > 0 ? (
                           <div className="flex flex-col">
@@ -678,7 +678,7 @@ export default function AdminProductsClientPage({
                         )}
                       </div>
                       {/* Stok hanya untuk Retail/FNB/Rental/Barang, bukan Jasa murni */}
-                      {!(isJasa && (product.category?.toLowerCase() === "jasa" || !product.category)) && (
+                      {!(isPureJasa && (product.category?.toLowerCase() === "jasa" || !product.category)) && (
                         <div className="text-right">
                           <span className={`inline-flex min-w-[3.5rem] justify-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${product.stock > (product.minStockThreshold || 5) ? 'bg-green-50 text-green-700 border-green-200' : product.stock > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                             Sisa: {product.stock}
@@ -761,9 +761,9 @@ export default function AdminProductsClientPage({
                   )}
                 </div>
 
-                {!isFNB && !isJasa && (
+                {!isFNB && !isPureJasa && (
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Kode Barang (SKU) <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Kode Barang / SKU <span className="text-slate-400 font-normal">(Opsional)</span></label>
                     <input
                       type="text"
                       name="kodeBarang"
@@ -775,7 +775,7 @@ export default function AdminProductsClientPage({
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {isJasa && (
+                  {isPureJasa && (
                     <div className="sm:col-span-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-1">
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Jenis Item</label>
                       <div className="grid grid-cols-2 gap-2">
@@ -806,21 +806,21 @@ export default function AdminProductsClientPage({
                   )}
 
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nama Unit / Nomor Kamar / Plat Nomor' : (isJasa && (formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category)) ? 'Nama Jasa / Paket Layanan' : isJasa ? 'Nama Produk / Barang' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nama Unit / Nomor Kamar / Plat Nomor' : (isPureJasa && (formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category)) ? 'Nama Jasa / Paket Layanan' : isPureJasa ? 'Nama Produk / Barang' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       name="name"
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder={isRental ? "misal: Room 101, B 1234 ABC, atau SN-991" : (isJasa && (formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category)) ? "misal: Cuci Motor Kilat, Servis Ringan, Pangkas Rambut" : isJasa ? "misal: Oli Mesin Matic 0.8L, Pomade Styling, Shampoo 500ml" : ""}
+                      placeholder={isRental ? "misal: Room 101, Avanza B 1234 ABC, atau Villa Puncak" : (isPureJasa && (formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category)) ? "misal: Cuci Motor Kilat, Servis Ringan, Pangkas Rambut" : isPureJasa ? "misal: Oli Mesin Matic 0.8L, Pomade Styling, Shampoo 500ml" : ""}
                       className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ${isRental ? 'uppercase font-mono' : ''}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Tipe Unit (Properti / Kendaraan)' : 'Kategori'} <span className="text-red-500">*</span></label>
-                    {isJasa ? (
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Tipe Unit (Properti / Kendaraan / Travel)' : 'Kategori'} <span className="text-red-500">*</span></label>
+                    {isPureJasa ? (
                       <select
                         name="category"
                         required
@@ -839,7 +839,7 @@ export default function AdminProductsClientPage({
                           required
                           autoComplete="off"
                           list="category-options"
-                          placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Properti / Kos, Vila, dll..." : "Kategori produk"}
+                          placeholder={isRental ? "contoh: MPV, Kamar Kost, Villa, Travel, Shuttle..." : "Kategori produk"}
                           value={formData.category}
                           onChange={handleChange}
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -853,7 +853,7 @@ export default function AdminProductsClientPage({
                     )}
                   </div>
 
-                  {!isFNB && !isJasa && (
+                  {!isFNB && !isPureJasa && !isRental && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 sm:col-span-2">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Merek <span className="text-slate-400 font-normal">(Opsional)</span></label>
@@ -878,14 +878,15 @@ export default function AdminProductsClientPage({
                     </div>
                   )}
 
-                  {isJasa && (formData.category?.toLowerCase().includes('jasa') || formData.category?.toLowerCase().includes('servis') || !formData.category) ? null : (
+                  {isPureJasa && (formData.category?.toLowerCase().includes('jasa') || formData.category?.toLowerCase().includes('servis') || !formData.category) ? null : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 sm:col-span-2">
                       <div className={isFNB ? 'sm:col-span-2' : ''}>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">Stok Awal</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? "Jumlah Unit Armada" : "Stok Awal"}</label>
                         <input
                           type="number"
                           name="stock"
                           min="0"
+                          placeholder={isRental ? "1" : "0"}
                           value={formData.stock}
                           onChange={handleChange}
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -893,7 +894,7 @@ export default function AdminProductsClientPage({
                       </div>
                       {!isFNB && (
                         <div>
-                          <label className="block text-sm font-bold text-slate-700 mb-1">Batas Stok Menipis <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? "Batas Minimum Unit" : "Batas Stok Menipis"} <span className="text-slate-400 font-normal">(Opsional)</span></label>
                           <input
                             type="number"
                             name="minStockThreshold"
@@ -909,30 +910,30 @@ export default function AdminProductsClientPage({
 
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">
-                      {isRental ? 'Biaya Operasional (Opsional)' : (isJasa && formData.category.toLowerCase() === 'jasa') ? 'Biaya Modal / Bahan Dasar (Opsional)' : 'Harga Modal (HPP)'}
+                      {isRental ? 'Biaya Operasional (Opsional)' : (isPureJasa && formData.category.toLowerCase().includes('jasa')) ? 'Biaya Modal / Bahan Dasar (Opsional)' : 'Harga Modal (HPP)'}
                     </label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                       <input
                         type="text"
-                        name={(isJasa && formData.category.toLowerCase() === 'jasa') ? "biayaModal" : "hpp"}
-                        required={!isJasa || formData.category.toLowerCase() !== 'jasa'}
-                        value={formData[(isJasa && formData.category.toLowerCase() === 'jasa') ? "biayaModal" : "hpp"]}
+                        name={(isPureJasa && formData.category.toLowerCase().includes('jasa')) ? "biayaModal" : "hpp"}
+                        required={!isPureJasa || !formData.category.toLowerCase().includes('jasa')}
+                        value={formData[(isPureJasa && formData.category.toLowerCase().includes('jasa')) ? "biayaModal" : "hpp"]}
                         onChange={handleChange}
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                       />
                     </div>
-                    {isJasa && formData.category.toLowerCase() === 'jasa' && (
+                    {isPureJasa && formData.category.toLowerCase().includes('jasa') && (
                       <p className="text-xs text-slate-500 mt-1">Biaya bahan habis pakai per pengerjaan jasa (misal: sampo, oli rem).</p>
                     )}
-                    {isJasa && formData.category.toLowerCase() !== 'jasa' && (
+                    {isPureJasa && !formData.category.toLowerCase().includes('jasa') && (
                       <p className="text-xs text-slate-500 mt-1">Harga beli modal sparepart / produk dari supplier.</p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">
-                      {isRental ? "Harga Sewa (Per Hari)" : (isJasa && formData.category.toLowerCase() === 'jasa') ? "Tarif Jasa" : isJasa ? "Harga Jual Produk / Barang" : "Harga Jual"} <span className="text-red-500">*</span>
+                      {isRental ? "Harga Sewa / Tarif (Per Hari / Per Unit)" : (isPureJasa && formData.category.toLowerCase().includes('jasa')) ? "Tarif Jasa" : isPureJasa ? "Harga Jual Produk / Barang" : "Harga Jual"} <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
@@ -947,10 +948,10 @@ export default function AdminProductsClientPage({
                     </div>
                   </div>
 
-                  {isJasa && (
+                  {isPureJasa && (
                     <div className="sm:col-span-2">
                       <label className="block text-sm font-bold text-slate-700 mb-1">
-                        {formData.category.toLowerCase() === 'jasa' ? 'Komisi Staf / Teknisi (Rp)' : 'Komisi Penjualan Staf (Opsional, Rp)'}
+                        {formData.category.toLowerCase().includes('jasa') ? 'Komisi Staf / Teknisi (Rp)' : 'Komisi Penjualan Staf (Opsional, Rp)'}
                       </label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
@@ -963,7 +964,7 @@ export default function AdminProductsClientPage({
                         />
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        {formData.category.toLowerCase() === 'jasa' ? 'Nominal bagi hasil untuk teknisi/kapster/staf yang mengerjakan jasa ini.' : 'Nominal bonus/komisi staf jika berhasil menjual sparepart/barang ini.'}
+                        {formData.category.toLowerCase().includes('jasa') ? 'Nominal bagi hasil untuk teknisi/kapster/staf yang mengerjakan jasa ini.' : 'Nominal bonus/komisi staf jika berhasil menjual sparepart/barang ini.'}
                       </p>
                     </div>
                   )}
@@ -1014,7 +1015,7 @@ export default function AdminProductsClientPage({
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-8 py-2.5 rounded-xl font-bold active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center gap-2"
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-                {isSubmitting ? 'Menyimpan...' : (isJasa ? 'Simpan Layanan' : isFNB ? 'Simpan Menu' : 'Simpan Produk')}
+                {isSubmitting ? 'Menyimpan...' : (isPureJasa ? 'Simpan Layanan' : isFNB ? 'Simpan Menu' : isRental ? 'Simpan Unit' : 'Simpan Produk')}
               </button>
             </div>
           </div>

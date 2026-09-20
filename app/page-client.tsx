@@ -15,7 +15,7 @@ import { CustomUserButton } from '@/components/CustomUserButton';
 import { CopyBookingLinkButton } from '@/components/CopyBookingLinkButton';
 import { Pagination } from '@/components/Pagination';
 import { printBluetoothReceipt, isBluetoothSupported } from '@/lib/bluetooth-printer';
-import { isRentalTravelCategory, detectRentalItemType } from '@/lib/business-category';
+import { isRentalTravelCategory, isPureServiceCategory, detectRentalItemType } from '@/lib/business-category';
 import { isFnBCategory } from '@/lib/navigation';
 import { humanizeError } from '@/lib/error-mapper';
 import { routeOrderItems, isBarItem } from '@/lib/printer-routing';
@@ -223,8 +223,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('cash');
   const [tableId, setTableId] = useState("");
     const isFNB = isFnBCategory(tenantCategory || '');
-    const isJasa = tenantCategory === 'JASA' || tenantCategory === 'Jasa / Servis' || tenantCategory === 'Jasa/Servis';
-  const isRental = isRentalTravelCategory(tenantCategory);
+        const isRental = isRentalTravelCategory(tenantCategory);
+        const isPureJasa = isPureServiceCategory(tenantCategory);
     const { isOnline, saveTransaction, forceSync, pendingCount } = useOffline();
     const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
@@ -410,13 +410,13 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     const products = filteredProducts;
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-  const categories = isJasa
-    ? ["Semua", "Jasa / Servis", "Produk / Barang"]
-    : ["Semua", ...uniqueCategories];
+    const categories = isPureJasa
+      ? ["Semua", "Jasa / Servis", "Produk / Barang"]
+      : ["Semua", ...uniqueCategories];
 
-  // Fetch data karyawan (khusus untuk Jasa)
-  const { data: employeesData } = useSWR<{ success: boolean, employees: Employee[] }>(
-    isJasa && currentTenantId ? ['/api/employees', currentTenantId as string] : null,
+    // Fetch data karyawan (khusus untuk Jasa murni)
+    const { data: employeesData } = useSWR<{ success: boolean, employees: Employee[] }>(
+      isPureJasa && currentTenantId ? ['/api/employees', currentTenantId as string] : null,
     fetcher,
     {
       revalidateIfStale: false,
@@ -442,16 +442,16 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             setIsInitialized(true);
    
                   // Show onboarding wizard on very first visit for Jasa business only
-                  const tenantOnboardingKey = currentTenantId ? `onboarding_completed_${currentTenantId}` : 'onboarding_completed';
-                  const onboardingCompleted = localStorage.getItem(tenantOnboardingKey) || localStorage.getItem('onboarding_completed');
-                  if (isJasa && !onboardingCompleted) {
+                                    const tenantOnboardingKey = currentTenantId ? `onboarding_completed_${currentTenantId}` : 'onboarding_completed';
+                                    const onboardingCompleted = localStorage.getItem(tenantOnboardingKey) || localStorage.getItem('onboarding_completed');
+                                    if (isPureJasa && !onboardingCompleted) {
                     setTimeout(() => {
                       setIsOnboardingOpen(true);
                     }, 300);
                   }
 
                   // Show tutorial for retail users on first visit
-            if (!isJasa && !isRental && !isFNB) {
+                              if (!isPureJasa && !isRental && !isFNB) {
         const tutorialSeen = localStorage.getItem('pos_tutorial_seen');
         if (!tutorialSeen) {
           setTimeout(() => {
@@ -504,34 +504,34 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     const cartProduct = { ...product, hargaJual: finalPrice };
 
     setCart((prev) => {
-      const defaultWorkerId = isJasa ? (employees.length === 0 ? "admin_owner" : (employees.length === 1 ? employees[0].id : undefined)) : undefined;
-      const cleanNote = note ? note.trim() : undefined;
+          const defaultWorkerId = isPureJasa ? (employees.length === 0 ? "admin_owner" : (employees.length === 1 ? employees[0].id : undefined)) : undefined;
+          const cleanNote = note ? note.trim() : undefined;
 
-      // Cari apakah item yang sama persis sudah ada di keranjang
-      const existingIndex = prev.findIndex((item) => {
-        const sameProduct = item.id === cartProduct.id;
-        const sameNote = (item.note || "") === (cleanNote || "");
-        const sameWorker = !isJasa || item.workerId === defaultWorkerId;
-        return sameProduct && sameNote && sameWorker;
-      });
+          // Cari apakah item yang sama persis sudah ada di keranjang
+          const existingIndex = prev.findIndex((item) => {
+            const sameProduct = item.id === cartProduct.id;
+            const sameNote = (item.note || "") === (cleanNote || "");
+            const sameWorker = !isPureJasa || item.workerId === defaultWorkerId;
+            return sameProduct && sameNote && sameWorker;
+          });
 
-      if (existingIndex !== -1) {
-        return prev.map((item, idx) =>
-          idx === existingIndex ? { ...item, qty: item.qty + 1 } : item
-        );
-      }
+          if (existingIndex !== -1) {
+            return prev.map((item, idx) =>
+              idx === existingIndex ? { ...item, qty: item.qty + 1 } : item
+            );
+          }
 
-      return [
-        ...prev,
-        {
-          ...cartProduct,
-          cartItemId: crypto.randomUUID(),
-          qty: 1,
-          note: cleanNote,
-          ...(isJasa ? { workerId: defaultWorkerId } : {}),
-        },
-      ];
-    });
+          return [
+            ...prev,
+            {
+              ...cartProduct,
+              cartItemId: crypto.randomUUID(),
+              qty: 1,
+              note: cleanNote,
+              ...(isPureJasa ? { workerId: defaultWorkerId } : {}),
+            },
+          ];
+        });
     toast.success(`+1 ${product.name}`, { id: 'cart-add-toast', duration: 1000 });
   };
 
@@ -615,8 +615,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   };
 
   // Hardware Barcode Scanner Listener (Retail & F&B Only)
-  useEffect(() => {
-    if (isJasa || isRental) return;
+    useEffect(() => {
+      if (isPureJasa || isRental) return;
 
     let buffer = '';
     let lastKeyTime = Date.now();
@@ -663,7 +663,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isJasa, isRental, products]);
+  }, [isPureJasa, isRental, products]);
 
   const openFnbModal = (product: Product) => {
     setFnbSelectedProduct(product);
@@ -777,7 +777,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     if (isFNB && !tableId) return toast.error("Pilih Meja atau Takeaway!");
     if (cart.length === 0) return toast.error("Keranjang masih kosong!");
     if (isCashInsufficient) return toast.error("Uang diterima kurang dari total belanja!");
-    if (isJasa && cart.some(item => !item.workerId)) return toast.error("Pastikan semua layanan telah memilih Staf / Teknisi / Kapster!");
+    if (isPureJasa && cart.some(item => !item.workerId)) return toast.error("Pastikan semua layanan telah memilih Staf / Teknisi / Kapster!");
     // Validasi Rental
     if (isRental && !rentalInfo.driverName.trim()) return toast.error("Isi Nama Penyewa / Operator untuk transaksi sewa!");
     if (isRental && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Kamar / Plat Nomor untuk transaksi sewa!");
@@ -797,7 +797,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       cashierId: userId || undefined,
             status: isFNB ? 'pending' : (remainingBalance > 0 ? 'pending' : 'completed'), // F&B: pending for KDS, Non-F&B: pending if remainingBalance else completed
             ...(isFNB && { tableId: (tableId === 'takeaway' || tableId === 'TAKEAWAY') ? undefined : tableId }),
-      ...(isJasa && { serviceDate: serviceDate || undefined }),
+      ...(isPureJasa && { serviceDate: serviceDate || undefined }),
       // Sertakan data rental jika mode Rental
       ...(isRental && {
         driverName: rentalInfo.driverName.trim() || undefined,
@@ -847,9 +847,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             ...current,
             products: current.products.map(p => {
               const boughtQty = cartItemMap.get(p.id) || 0;
-              if (boughtQty > 0 && !isJasa) {
-                return { ...p, stock: Math.max(0, p.stock - boughtQty) };
-              }
+                            if (boughtQty > 0 && !isPureJasa) {
+                              return { ...p, stock: Math.max(0, p.stock - boughtQty) };
+                            }
               return p;
             })
           };
@@ -993,7 +993,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     const toastId = toast.loading("Menyiapkan berkas gambar HD...");
     try {
       const html2canvas = (await import('html2canvas-pro')).default;
-      const isDocument = (isRental || isJasa) && rentalPrintFormat === 'document';
+      const isDocument = (isRental || isPureJasa) && rentalPrintFormat === 'document';
       const targetId = isDocument ? 'invoice-a4-print-target' : 'receipt-thermal-print-target';
       const element = document.getElementById(targetId);
       if (!element) {
@@ -1103,7 +1103,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     setCustomerName(booking.customerName);
     setActiveBookingId(booking.id);
 
-    if (isJasa && booking.bookingDate) {
+    if (isPureJasa && booking.bookingDate) {
       const d = new Date(booking.bookingDate);
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -1251,7 +1251,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         <div className="font-bold flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-gray-700" />
           <div className="flex items-center gap-2">
-            <span>{isJasa ? 'Detail Layanan' : isRental ? 'Form Surat Jalan & Invoice' : 'Keranjang'}</span>
+            <span>{isPureJasa ? 'Detail Layanan' : isRental ? 'Form Surat Jalan & Invoice' : 'Keranjang'}</span>
             {cart.length > 0 && (
               <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
                 {cart.reduce((acc, item) => acc + item.qty, 0)}
@@ -1275,8 +1275,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col bg-slate-50 touch-pan-y [-webkit-overflow-scrolling:touch]">
-        {(isJasa || isRental) && (
-          <div className="p-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between shadow-inner">
+              {(isPureJasa || isRental) && (
+                <div className="p-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between shadow-inner">
             <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
             <button
               onClick={() => setIsQueueModalOpen(true)}
@@ -1291,7 +1291,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
               {!isRental && <ShoppingCart className="w-16 h-16 opacity-30" />}
-              <p className="text-sm font-medium text-center px-4">{isRental ? "Belum ada armada dipilih. Silakan pilih armada atau tarik pesanan online." : `Keranjang masih kosong, silakan pilih ${isJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}`}</p>
+              <p className="text-sm font-medium text-center px-4">{isRental ? "Belum ada armada dipilih. Silakan pilih armada atau tarik pesanan online." : `Keranjang masih kosong, silakan pilih ${isPureJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}`}</p>
             </div>
           ) : (
             cart.map(item => (
@@ -1326,8 +1326,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   </div>
                 </div>
 
-                {/* Pilihan Pekerja (Khusus Jasa) */}
-                {isJasa && (
+                {/* Pilihan Pekerja (Khusus Jasa Murni) */}
+                                {isPureJasa && (
                   <div className="mb-2">
                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Dikerjakan oleh: *</label>
                     <select
@@ -1428,8 +1428,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       </div>
                     )}
 
-          {/* Retail: Konter / Tunai Langsung (non-FNB, non-Jasa, non-Rental) */}
-          {!isFNB && !isJasa && !isRental && (
+          {/* Retail: Konter / Tunai Langsung (non-FNB, non-Pure Jasa, non-Rental) */}
+                    {!isFNB && !isPureJasa && !isRental && (
             <div>
               <label className="text-xs font-bold text-gray-500 mb-1 block">Tipe Transaksi *</label>
               <select
@@ -1444,8 +1444,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             </div>
           )}
 
-          {/* Form Jasa Waktu Layanan */}
-          {isJasa && (
+          {/* Form Jasa Waktu Layanan (Khursus Jasa Murni) */}
+                    {isPureJasa && (
             <div className="space-y-2.5 bg-blue-50 border border-blue-200 rounded-xl p-3">
               <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1">
                 🗓️ Jadwal Layanan
@@ -1596,8 +1596,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           <button
                       id="checkout-btn"
                       onClick={handleCheckout}
-                      disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))}
-                      className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isJasa && employees.length > 0 && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
+                      disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isPureJasa && employees.length > 0 && cart.some(item => !item.workerId))}
+                      className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isPureJasa && employees.length > 0 && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
                     >
             {isCheckoutLoading && <Loader2 className="w-5 h-5 animate-spin" />}
             {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' :
@@ -1633,7 +1633,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     </h1>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
-                                      {(isJasa || isRental) && <CopyBookingLinkButton />}
+                                      {(isPureJasa || isRental) && <CopyBookingLinkButton />}
                                       {isFNB && (
                                                                               <Link
                                                                                 href="/admin/kitchen"
@@ -1662,7 +1662,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
-                      placeholder={isJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? "Cari nama unit / kode / plat..." : "Cari produk atau barcode..."}
+                      placeholder={isPureJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? "Cari nama unit / kode / plat..." : "Cari produk atau barcode..."}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
@@ -1680,10 +1680,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                       >
                                         <Filter className={`w-4 h-4 ${selectedCategory === "Semua" ? "text-gray-500" : "text-blue-600"}`} />
                                         <span className={`text-sm max-w-[120px] truncate ${selectedCategory !== "Semua" && "font-semibold"}`}>
-                                          {selectedCategory === "Semua" 
-                                            ? (isJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Unit & Properti" : "Semua Produk")
-                                            : selectedCategory}
-                                        </span>
+                                                                                  {selectedCategory === "Semua"
+                                                                                    ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Unit & Properti" : "Semua Produk")
+                                                                                    : selectedCategory}
+                                                                                </span>
                                       </button>
 
                     {isCategoryMenuOpen && (
@@ -1711,7 +1711,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </div>
 
                 {/* Input Barcode / SKU Cepat (Khusus Retail & F&B) */}
-                                {(!isJasa && !isRental) && (
+                                                {(!isPureJasa && !isRental) && (
                                   <div id="barcode-input" className="relative w-full max-w-md mt-1">
                                     {/* Retail: Prominent Scan Button */}
                                     {!isFNB && (
@@ -1768,7 +1768,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               </div>
 
               <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50 pb-28 lg:pb-4 flex flex-col touch-pan-y [-webkit-overflow-scrolling:touch]">
-                {(isJasa || isRental) && (
+                {(isPureJasa || isRental) && (
                   <div className="lg:hidden p-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl flex flex-row items-center justify-between shadow-sm">
                     <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
                     <button
@@ -1781,8 +1781,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 )}
                 <div id="product-grid" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-1 content-start">
                   {products.map(product => {
-                    const catLower = (product.category || '').toLowerCase();
-                    const isJasaMurni = isJasa && (catLower.includes('jasa') || catLower.includes('servis') || catLower.includes('layanan') || !product.category);
+                                      const catLower = (product.category || '').toLowerCase();
+                                      const isJasaMurni = isPureJasa && (catLower.includes('jasa') || catLower.includes('servis') || catLower.includes('layanan') || !product.category);
                     const remaining = isJasaMurni ? 999999 : getRemainingStock(product);
                     const isOutOfStock = !isJasaMurni && remaining <= 0;
                     const isLowStock = !isJasaMurni && Boolean(product.minStockThreshold && product.minStockThreshold > 0 && remaining > 0 && remaining <= product.minStockThreshold);
@@ -1893,7 +1893,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               <p className="text-sm text-gray-500 mb-6">Terima kasih atas pesanan Anda. Silakan cetak struk untuk pelanggan.</p>
               <div className="space-y-3">
                 {/* Format Cetak untuk Rental / Jasa */}
-                {(isRental || isJasa) && (
+                {(isRental || isPureJasa) && (
                   <div className="flex items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold mb-2">
                     <button
                       type="button"
@@ -1927,7 +1927,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 )}
 
                 {/* Selector Ukuran Kertas Dinamis */}
-                {(isRental || isJasa) && rentalPrintFormat === 'document' ? (
+                {(isRental || isPureJasa) && rentalPrintFormat === 'document' ? (
                   <div className="flex items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold mb-1">
                     <button
                       type="button"
@@ -1995,7 +1995,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   onClick={() => printReceipt('customer')}
                   className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  {((isRental || isJasa) && rentalPrintFormat === 'document') ? '🖨️ Cetak Dokumen / Invoice' : '🖨️ Cetak Struk Kasir'}
+                  {((isRental || isPureJasa) && rentalPrintFormat === 'document') ? '🖨️ Cetak Dokumen / Invoice' : '🖨️ Cetak Struk Kasir'}
                 </button>
 
                 {/* Tombol Unduh Gambar / PDF HD */}
@@ -2008,7 +2008,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 </button>
 
                 {/* Tombol Bluetooth Printer (Tampil jika format Thermal atau Retail/FNB) */}
-                                {((!isRental && !isJasa) || rentalPrintFormat === 'thermal') && (
+                                {((!isRental && !isPureJasa) || rentalPrintFormat === 'thermal') && (
                                   isBluetoothSupported() ? (
                                     <div className="space-y-2">
                                       <button
@@ -2065,7 +2065,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       </div>
 
       {/* STRUK KASIR & DOKUMEN CETAK (HANYA TAMPIL SAAT DIPRINT) */}
-      {(!isRental && !isJasa) || rentalPrintFormat === 'thermal' ? (
+      {(!isRental && !isPureJasa) || rentalPrintFormat === 'thermal' ? (
         /* FORMAT THERMAL (58mm / 80mm) */
         <div
           id="receipt-thermal-print-target"

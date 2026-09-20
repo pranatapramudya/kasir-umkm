@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { isRentalTravelCategory, isPureServiceCategory } from '@/lib/business-category';
 
 const safeInt = (val: any, fallback = 0): number => {
   if (val === null || val === undefined) return fallback;
@@ -137,6 +138,14 @@ export async function POST(request: Request) {
 
     // 4. Eksekusi Prisma Transaction (Atomic)
     const result = await prisma.$transaction(async (tx) => {
+          // Cek kategori bisnis tenant untuk menentukan logika stok
+          const tenant = await tx.tenant.findUnique({
+            where: { userId: activeTenantId },
+            select: { category: true }
+          });
+          const tenantCategory = tenant?.category || '';
+          const isRentalBusiness = isRentalTravelCategory(tenantCategory);
+          const isPureJasaBusiness = isPureServiceCategory(tenantCategory);
 
       const newTransaction = await tx.transaction.create({
         data: {
@@ -214,29 +223,34 @@ export async function POST(request: Request) {
 
       const productStockMap = new Map(productsInCart.map(p => [p.id, p]));
 
-      // Validasi Stok di Memori
-      for (const [pId, neededQty] of qtyPerProduct.entries()) {
-        const product = productStockMap.get(pId);
-        if (!product?.isService && product!.stock < neededQty) {
-          throw new Error(`Stok produk "${product!.name}" tidak mencukupi (Tersisa: ${product!.stock}, Dibutuhkan: ${neededQty}).`);
-        }
-      }
+            // Validasi & Kurangi Stok: HANYA untuk bisnis non-Rental dan non-Jasa murni
+            // Rental: ketersediaan berbasis kalender (unit tersedia pada rentang tanggal), bukan stok kuantitas
+            // Jasa Murni: isService=true, stok tidak dibatasi
+            if (!isRentalBusiness && !isPureJasaBusiness) {
+              // Validasi Stok di Memori
+              for (const [pId, neededQty] of qtyPerProduct.entries()) {
+                const product = productStockMap.get(pId);
+                if (!product?.isService && product!.stock < neededQty) {
+                  throw new Error(`Stok produk "${product!.name}" tidak mencukupi (Tersisa: ${product!.stock}, Dibutuhkan: ${neededQty}).`);
+                }
+              }
 
-      // Kurangi stok serentak tanpa duplicate conflict
-      const stockUpdatePromises: Promise<any>[] = [];
-      for (const [pId, totalQty] of qtyPerProduct.entries()) {
-        const product = productStockMap.get(pId);
-        if (!product?.isService) {
-          stockUpdatePromises.push(
-            tx.product.update({
-              where: { id: pId },
-              data: { stock: { decrement: totalQty } }
-            })
-          );
-        }
-      }
+              // Kurangi stok serentak tanpa duplicate conflict
+              const stockUpdatePromises: Promise<any>[] = [];
+              for (const [pId, totalQty] of qtyPerProduct.entries()) {
+                const product = productStockMap.get(pId);
+                if (!product?.isService) {
+                  stockUpdatePromises.push(
+                    tx.product.update({
+                      where: { id: pId },
+                      data: { stock: { decrement: totalQty } }
+                    })
+                  );
+                }
+              }
 
-      await Promise.all(stockUpdatePromises);
+              await Promise.all(stockUpdatePromises);
+            }
 
       // d. Update Booking if bookingId is provided (Tarik Antrean)
       if (body.bookingId) {
