@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, CheckCircle2, Printer, Package, Loader2, AlertCircle, Sparkles, Download, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { downloadExcelTemplate } from '@/lib/excel-template';
+
 
 interface OnboardingWizardProps {
   isOpen: boolean;
@@ -165,7 +165,10 @@ export default function OnboardingWizard({ isOpen, tenantCategory, onClose, onCo
                 <p className="text-sm text-blue-700">Download template, isi data, upload sekaligus. Paling cepat untuk katalog banyak.</p>
                 <button 
                   type="button"
-                  onClick={() => downloadExcelTemplate(tenantCategory || 'Jasa')}
+                  onClick={() => {
+                    const cat = tenantCategory || 'Jasa';
+                    window.open(`/api/onboarding/download-template?category=${encodeURIComponent(cat)}`, '_blank');
+                  }}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
