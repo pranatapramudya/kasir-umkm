@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat
 } from 'lucide-react';
@@ -62,6 +62,7 @@ type Product = {
   kodeBarang?: string | null;
   minStockThreshold?: number | null;
   employeeCommission?: number | null;
+  isService?: boolean;
 };
 
 type CartItem = Product & { cartItemId: string; qty: number; note?: string; workerId?: string; serviceDuration?: number; };
@@ -353,8 +354,33 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     }
   );
 
-  const products = swrResponse?.products || [];
+  const rawProducts = swrResponse?.products || [];
   const totalPages = swrResponse?.totalPages || 1;
+
+  // Instant Client-side Filter untuk Respons 0ms
+  const filteredProducts = useMemo(() => {
+    if (!rawProducts || rawProducts.length === 0) return [];
+    if (selectedCategory === "Semua") return rawProducts;
+
+    const catLower = selectedCategory.toLowerCase().trim();
+    if (catLower.includes("jasa") || catLower.includes("servis")) {
+      return rawProducts.filter(p => {
+        const c = (p.category || "").toLowerCase().trim();
+        return c.includes("jasa") || c.includes("servis") || p.isService;
+      });
+    }
+
+    if (catLower.includes("produk") || catLower.includes("barang")) {
+      return rawProducts.filter(p => {
+        const c = (p.category || "").toLowerCase().trim();
+        return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+      });
+    }
+
+    return rawProducts.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+  }, [rawProducts, selectedCategory]);
+
+  const products = filteredProducts;
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
   const categories = isJasa

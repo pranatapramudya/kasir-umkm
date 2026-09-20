@@ -64,6 +64,7 @@ export async function cacheDelete(key: string, keyPrefix = 'kasir:'): Promise<bo
 }
 
 export async function cacheInvalidateByTag(tag: string): Promise<number> {
+  if (!process.env.REDIS_URL) return 0;
   try {
     const keys = await redis.smembers(`tag:${tag}`);
     if (keys.length === 0) return 0;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { toast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
@@ -33,6 +33,7 @@ type Product = {
   minStockThreshold: number;
   description?: string | null;
   employeeCommission?: number | null;
+  isService?: boolean;
 };
 
 const fetcher = async (args: string | [string, string]) => {
@@ -87,8 +88,33 @@ export default function AdminProductsClientPage({
     }
   );
 
-  const products = data?.products || [];
+  const rawProducts = data?.products || [];
   const totalPages = data?.totalPages || 1;
+
+  // Instant Client-side Filter untuk Respons 0ms
+  const filteredProducts = useMemo(() => {
+    if (!rawProducts || rawProducts.length === 0) return [];
+    if (selectedCategory === "Semua") return rawProducts;
+
+    const catLower = selectedCategory.toLowerCase().trim();
+    if (catLower.includes("jasa") || catLower.includes("servis")) {
+      return rawProducts.filter(p => {
+        const c = (p.category || "").toLowerCase().trim();
+        return c.includes("jasa") || c.includes("servis") || p.isService;
+      });
+    }
+
+    if (catLower.includes("produk") || catLower.includes("barang")) {
+      return rawProducts.filter(p => {
+        const c = (p.category || "").toLowerCase().trim();
+        return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+      });
+    }
+
+    return rawProducts.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+  }, [rawProducts, selectedCategory]);
+
+  const products = filteredProducts;
 
   const [formData, setFormData] = useState({
     kodeBarang: '',
@@ -128,7 +154,7 @@ export default function AdminProductsClientPage({
   const openModal = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      const isJasaMurni = isJasa && product.category === "Jasa";
+      const isJasaMurni = isJasa && (product.category?.toLowerCase().includes('jasa') || product.category?.toLowerCase().includes('servis'));
       setFormData({
         kodeBarang: product.kodeBarang || '',
         name: product.name,
@@ -147,10 +173,12 @@ export default function AdminProductsClientPage({
       });
     } else {
       setEditingProduct(null);
+      // Default ke Jasa / Servis untuk bisnis Jasa agar field stok langsung tersembunyi
+      const defaultCategory = isJasa ? 'Jasa / Servis' : '';
       setFormData({
         kodeBarang: '',
         name: '',
-        category: '',
+        category: defaultCategory,
         hpp: '',
         hargaJual: '',
         stock: '',
@@ -838,7 +866,7 @@ export default function AdminProductsClientPage({
                     </div>
                   )}
 
-                  {isJasa && formData.category?.toLowerCase().includes('jasa') ? null : (
+                  {isJasa && (formData.category?.toLowerCase().includes('jasa') || formData.category?.toLowerCase().includes('servis') || !formData.category) ? null : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 sm:col-span-2">
                       <div className={isFNB ? 'sm:col-span-2' : ''}>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Stok Awal</label>

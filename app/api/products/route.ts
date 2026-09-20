@@ -3,15 +3,9 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { isServiceBusinessCategory } from '@/lib/business-category';
-import { 
-  cacheGet, 
-  cacheSet, 
-  cacheInvalidateByTag, 
-  CacheKeys, 
-  CacheTags 
-} from '@/lib/redis-cache';
+import { cacheInvalidateByTag, CacheTags } from '@/lib/redis-cache';
 
-export const dynamic = 'force-dynamic'; 
+export const dynamic = 'force-dynamic';
 
 // [GET] Mengambil daftar produk milik tenant yang sedang login
 export async function GET(request: Request) {
@@ -43,16 +37,6 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10', 10);
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
-
-    // Generate cache key based on query params
-    const cacheKey = `${CacheKeys.products(targetUserId)}:p${page}:l${limit}:s${search}:c${category}`;
-    const cacheTag = CacheTags.products(targetUserId);
-
-    // Try cache first
-    const cached = await cacheGet<{ products: any[]; totalPages: number; totalCount: number }>(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached, { headers: { 'X-Cache': 'HIT' } });
-    }
 
     const whereClause: any = { userId: targetUserId, isArchived: false };
     
@@ -93,12 +77,9 @@ export async function GET(request: Request) {
     const totalPages = Math.max(1, Math.ceil(totalCount / limit));
     const response = { products, totalPages, totalCount };
     
-    // Cache for 5 minutes
-    await cacheSet(cacheKey, response, { ttl: 300, tags: [cacheTag] });
-    
-    return NextResponse.json(response, { headers: { 'X-Cache': 'MISS' } });
+    return NextResponse.json(response);
   } catch (error) {
-    console.error("GET Products error:", error);
+    console.error("[GET_PRODUCTS_ERROR]", error);
     return NextResponse.json({ error: "Gagal mengambil data produk" }, { status: 500 });
   }
 }
