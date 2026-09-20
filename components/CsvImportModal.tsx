@@ -54,63 +54,110 @@ export default function CsvImportModal({
         ];
         filename = "template_import_rental_properti.xlsx";
       } else if (isJasa) {
-        // Sheet 1: Jasa (tanpa stok, HPP = modal bahan per layanan)
-        const dataJasa = [
-          {
-            name: "Potong Rambut Pria / Servis Ringan",
-            category: "Jasa / Servis",
-            hpp: 5000,
-            hargaJual: 45000,
-            komisi: 15000,
-            description: "Pangkas rambut + styling / ganti oli + cek rem"
-          },
-          {
-            name: "Creambath Spa / Cuci Motor Kilat",
-            category: "Jasa / Servis",
-            hpp: 8000,
-            hargaJual: 65000,
-            komisi: 20000,
-            description: "Perawatan rambut + pijat kepala / cuci salju + semir ban"
-          }
+        const ExcelJS = (await import('exceljs')).default || (await import('exceljs'));
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Kasir UMKM';
+        workbook.created = new Date();
+
+        // Sheet 1: Jasa / Servis
+        const wsJasa = workbook.addWorksheet('Jasa');
+        wsJasa.columns = [
+          { header: 'Nama Layanan', key: 'name', width: 36 },
+          { header: 'Kategori', key: 'category', width: 22 },
+          { header: 'HPP / Biaya Modal (Rp)', key: 'hpp', width: 24 },
+          { header: 'Tarif Layanan (Rp)', key: 'hargaJual', width: 22 },
+          { header: 'Komisi Staf (Rp)', key: 'komisi', width: 20 },
+          { header: 'Deskripsi Layanan', key: 'description', width: 45 },
         ];
-        // Sheet 2: Produk / Barang (punya stok & HPP beli modal)
-        const dataBarang = [
-          {
-            kodeBarang: "BRG001",
-            name: "Oli Mesin Matic 0.8L / Pomade Styling",
-            category: "Produk / Barang",
-            hpp: 35000,
-            hargaJual: 55000,
-            stock: 24,
-            minStockThreshold: 5,
-            komisi: 3000,
-            description: "Oli original / Pomade oil based"
-          },
-          {
-            kodeBarang: "BRG002",
-            name: "Kampas Rem Depan / Shampoo 500ml",
-            category: "Produk / Barang",
-            hpp: 25000,
-            hargaJual: 45000,
-            stock: 15,
-            minStockThreshold: 3,
-            komisi: 2000,
-            description: "Kampas rem cakram / Shampoo salon"
-          }
+
+        wsJasa.addRow({
+          name: 'Potong Rambut Pria / Servis Ringan',
+          category: 'Jasa / Servis',
+          hpp: 5000,
+          hargaJual: 45000,
+          komisi: 15000,
+          description: 'Pangkas rambut + styling / ganti oli + cek rem'
+        });
+
+        wsJasa.addRow({
+          name: 'Creambath Spa / Cuci Motor Kilat',
+          category: 'Jasa / Servis',
+          hpp: 8000,
+          hargaJual: 65000,
+          komisi: 20000,
+          description: 'Perawatan rambut + pijat kepala / cuci salju + semir ban'
+        });
+
+        // Set Data Validation Dropdown pada kolom Kategori (B2:B200) di Sheet Jasa
+        for (let row = 2; row <= 200; row++) {
+          wsJasa.getCell(`B${row}`).dataValidation = {
+            type: 'list',
+            allowBlank: false,
+            formulae: ['"Jasa / Servis,Produk / Barang"'],
+            showErrorMessage: true,
+            errorTitle: 'Pilihan Kategori',
+            error: 'Silakan pilih Jasa / Servis atau Produk / Barang dari dropdown.'
+          };
+        }
+
+        // Sheet 2: Produk / Barang (Sparepart)
+        const wsBarang = workbook.addWorksheet('Produk');
+        wsBarang.columns = [
+          { header: 'Kode Barang (SKU)', key: 'kodeBarang', width: 20 },
+          { header: 'Nama Produk / Barang', key: 'name', width: 36 },
+          { header: 'Kategori', key: 'category', width: 22 },
+          { header: 'HPP / Modal Beli (Rp)', key: 'hpp', width: 24 },
+          { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 20 },
+          { header: 'Stok', key: 'stock', width: 14 },
+          { header: 'Batas Minimum Stok', key: 'minStockThreshold', width: 20 },
+          { header: 'Komisi Staf (Rp)', key: 'komisi', width: 20 },
+          { header: 'Deskripsi', key: 'description', width: 40 },
         ];
-        
-        // Gabung 2 sheet dengan auto column width
-        const workbook = XLSX.utils.book_new();
-        
-        const wsJasa = XLSX.utils.json_to_sheet(dataJasa);
-        wsJasa['!cols'] = Object.keys(dataJasa[0] || {}).map(key => ({ wch: Math.max(key.length + 4, 18) }));
-        XLSX.utils.book_append_sheet(workbook, wsJasa, "Jasa");
-        
-        const wsBarang = XLSX.utils.json_to_sheet(dataBarang);
-        wsBarang['!cols'] = Object.keys(dataBarang[0] || {}).map(key => ({ wch: Math.max(key.length + 4, 18) }));
-        XLSX.utils.book_append_sheet(workbook, wsBarang, "Produk");
-        
-        XLSX.writeFile(workbook, "template_import_jasa_servis.xlsx");
+
+        wsBarang.addRow({
+          kodeBarang: 'BRG001',
+          name: 'Oli Mesin Matic 0.8L / Pomade Styling',
+          category: 'Produk / Barang',
+          hpp: 35000,
+          hargaJual: 55000,
+          stock: 24,
+          minStockThreshold: 5,
+          komisi: 3000,
+          description: 'Oli original / Pomade oil based'
+        });
+
+        wsBarang.addRow({
+          kodeBarang: 'BRG002',
+          name: 'Kampas Rem Depan / Shampoo 500ml',
+          category: 'Produk / Barang',
+          hpp: 25000,
+          hargaJual: 45000,
+          stock: 15,
+          minStockThreshold: 3,
+          komisi: 2000,
+          description: 'Kampas rem cakram / Shampoo salon'
+        });
+
+        // Set Data Validation Dropdown pada kolom Kategori (C2:C200) di Sheet Produk
+        for (let row = 2; row <= 200; row++) {
+          wsBarang.getCell(`C${row}`).dataValidation = {
+            type: 'list',
+            allowBlank: false,
+            formulae: ['"Jasa / Servis,Produk / Barang"'],
+            showErrorMessage: true,
+            errorTitle: 'Pilihan Kategori',
+            error: 'Silakan pilih Jasa / Servis atau Produk / Barang dari dropdown.'
+          };
+        }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'template_import_jasa_servis.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
         return;
       } else {
         // Retail / F&B
