@@ -77,9 +77,9 @@ export default function AdminDashboardClient({
     { 
       keepPreviousData: false,
       fallbackData: instantFallback,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false
+      revalidateIfStale: true,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true
     }
   );
 
