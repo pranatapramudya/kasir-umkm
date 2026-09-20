@@ -169,8 +169,17 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       description: 'Harga mengikuti pasar, tagih ke customer',
     });
 
-    const filename = 'template_import_rental_travel_properti.xlsx';
-    await workbook.xlsx.writeFile(filename);
+    // Browser-compatible download (writeFile only works in Node.js)
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_import_rental_travel_properti.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
     return;
   } else if (isJasa) {
     // Template 1 Sheet Terpadu: Layanan Jasa & Produk Barang (Sparepart)
@@ -238,8 +247,17 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       description: 'Barang fisik dengan kontrol stok'
     });
 
-    const filename = 'template_import_jasa_servis.xlsx';
-    await workbook.xlsx.writeFile(filename);
+    // Browser-compatible download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_import_jasa_servis.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
     return;
   } else if (isFNB) {
     const ws = workbook.addWorksheet('Menu Makanan & Minuman');
@@ -283,8 +301,17 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       description: 'Minuman segar'
     });
 
-    const filename = 'template_import_fnb.xlsx';
-    await workbook.xlsx.writeFile(filename);
+    // Browser-compatible download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_import_fnb.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
     return;
   } else {
     // Default Retail
@@ -321,8 +348,17 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       description: 'Warna krem, stretch'
     });
 
-    const filename = 'template_import_retail.xlsx';
-    await workbook.xlsx.writeFile(filename);
+    // Browser-compatible download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_import_retail.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
     return;
   }
 }
