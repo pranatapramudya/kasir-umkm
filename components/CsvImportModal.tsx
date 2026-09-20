@@ -108,7 +108,7 @@ export default function CsvImportModal({
           { header: 'Kategori', key: 'category', width: 22 },
           { header: 'HPP / Modal Beli (Rp)', key: 'hpp', width: 24 },
           { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 20 },
-          { header: 'Stok', key: 'stock', width: 14 },
+          { header: 'Qty (Stok)', key: 'stock', width: 14 },
           { header: 'Batas Minimum Stok', key: 'minStockThreshold', width: 20 },
           { header: 'Komisi Staf (Rp)', key: 'komisi', width: 20 },
           { header: 'Deskripsi', key: 'description', width: 40 },
