@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, CheckCircle2, AlertCircle, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { isPureServiceCategory, isRentalTravelCategory } from '@/lib/business-category';
 
 interface Props {
   initialWhatsApp: string | null;
@@ -31,10 +32,10 @@ export default function PaymentSettingsForm({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isRental = tenantCategory === "Rental & Travel" || tenantCategory === "RENTAL";
-  const isJasa = tenantCategory === "JASA" || tenantCategory === "Jasa / Servis" || tenantCategory === "Jasa/Servis";
+  const isRental = isRentalTravelCategory(tenantCategory);
+  const isPureJasa = isPureServiceCategory(tenantCategory);
 
-  if (!isRental && !isJasa) {
+  if (!isRental && !isPureJasa) {
     return null;
   }
 

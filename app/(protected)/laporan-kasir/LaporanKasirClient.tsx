@@ -7,16 +7,16 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package, Loader2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
-import { isRentalTravelCategory } from '@/lib/business-category';
+import { isRentalTravelCategory, isPureServiceCategory } from '@/lib/business-category';
 
 export default function LaporanKasirClient({ sidebar, initialDate, initialData, tenantCategory }: any) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isRental = isRentalTravelCategory(tenantCategory);
-    const isJasa = tenantCategory === 'Jasa / Servis' || tenantCategory === 'JASA';
+    const isPureJasa = isPureServiceCategory(tenantCategory);
     const isFNB = tenantCategory === 'F&B / Kuliner' || tenantCategory === 'FNB' || tenantCategory === 'F&B';
     const isRetail = tenantCategory === 'Retail / Dagang' || tenantCategory === 'RETAIL';
-    const itemHeaderLabel = isRental ? "Armada / Layanan" : isJasa ? "Layanan" : isFNB ? "Menu" : isRetail ? "Produk / Barang" : "Item";
+    const itemHeaderLabel = isRental ? "Armada / Layanan" : isPureJasa ? "Layanan" : isFNB ? "Menu" : isRetail ? "Produk / Barang" : "Item";
     
     const [selectedDate, setSelectedDate] = useState(initialDate);
     const [currentPage, setCurrentPage] = useState(1);
@@ -232,7 +232,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                         <div className="bg-white p-4 rounded-2xl border shadow-sm flex flex-col">
                             <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
                                 <Package className="w-4 h-4 text-slate-500" />
-                                {isRental ? "Ringkasan Armada Disewa" : isJasa ? "Ringkasan Layanan" : "Ringkasan Produk Terjual"} ({formatDateIndonesian(selectedDate)})
+                                {isRental ? "Ringkasan Armada Disewa" : isPureJasa ? "Ringkasan Layanan" : "Ringkasan Produk Terjual"} ({formatDateIndonesian(selectedDate)})
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {Object.entries(soldSummary).map(([name, qty]: any) => (
