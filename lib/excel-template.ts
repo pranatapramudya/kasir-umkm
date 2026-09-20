@@ -71,6 +71,42 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       status: 'Tersedia',
       description: 'Diesel 2.4, Captain Seat, 7 seat, cocok travel jauh',
     });
+    wsKendaraan.addRow({
+      kodeUnit: 'UNT003',
+      name: 'Hiace Commuter 2023 - B 9012 GHI',
+      tipe: 'Minibus',
+      transmisi: 'Manual',
+      tahun: 2023,
+      hargaHarian: 950000,
+      hargaJam: 150000,
+      biayaHarian: 300000,
+      status: 'Tersedia',
+      description: '14 seat, diesel, cocok travel antar kota, armada travel',
+    });
+    wsKendaraan.addRow({
+      kodeUnit: 'UNT004',
+      name: 'NMAX 155 2024 - B 3456 JKL',
+      tipe: 'Motor',
+      transmisi: 'Matic',
+      tahun: 2024,
+      hargaHarian: 80000,
+      hargaJam: 15000,
+      biayaHarian: 20000,
+      status: 'Tersedia',
+      description: 'Scooter matic, irit, cocok rental harian motor',
+    });
+    wsKendaraan.addRow({
+      kodeUnit: 'UNT005',
+      name: 'Elf Long 2022 - B 7890 MNO',
+      tipe: 'Minibus',
+      transmisi: 'Manual',
+      tahun: 2022,
+      hargaHarian: 1200000,
+      hargaJam: 200000,
+      biayaHarian: 400000,
+      status: 'Perbaikan',
+      description: '19 seat, diesel, armada shuttle bandara',
+    });
 
     // Sheet 2: Unit Properti (Kos/Kamar/Homestay/Villa)
     const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa, Kost, Hotel)');
@@ -127,6 +163,42 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       status: 'Tersedia',
       description: 'Private pool, 3 kamar tidur, Dapur lengkap, Gazebo',
     });
+    wsProperti.addRow({
+      kodeUnit: 'PRP003',
+      name: 'Studio Apartment 3A - Sudirman',
+      tipe: 'Apartment',
+      kapasitas: 2,
+      kamarMandi: 'Dalam',
+      hargaHarian: 450000,
+      hargaBulanan: 8000000,
+      biayaListrik: 150000,
+      status: 'Tersedia',
+      description: 'Fully furnished, gym, pool, 24h security, strategic location',
+    });
+    wsProperti.addRow({
+      kodeUnit: 'PRP004',
+      name: 'Glamping Tenda Luxury - Lembah Pinus',
+      tipe: 'Glamping',
+      kapasitas: 4,
+      kamarMandi: 'Luar (Shared)',
+      hargaHarian: 800000,
+      hargaBulanan: 0,
+      biayaListrik: 50000,
+      status: 'Disewa',
+      description: 'Tenda bell 5m, kasur king, heater, view gunung, BBQ area',
+    });
+    wsProperti.addRow({
+      kodeUnit: 'PRP005',
+      name: 'Hotel Bisnis Deluxe - Bandung',
+      tipe: 'Hotel',
+      kapasitas: 2,
+      kamarMandi: 'Dalam',
+      hargaHarian: 650000,
+      hargaBulanan: 0,
+      biayaListrik: 0,
+      status: 'Tersedia',
+      description: 'Sarapan included, meeting room, laundry, dekat stasiun',
+    });
 
     // Sheet 3: Layanan Tambahan (Opsional - untuk jasa tambahan rental)
     const wsLayanan = workbook.addWorksheet('3. Layanan Tambahan (Supir, Asuransi, Bensin)');
@@ -167,6 +239,38 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       harga: 500000,
       satuan: 'Per Unit',
       description: 'Harga mengikuti pasar, tagih ke customer',
+    });
+    wsLayanan.addRow({
+      kodeLayanan: 'SV003',
+      name: 'Asuransi Perjalanan Personal',
+      category: 'Asuransi Perjalanan',
+      harga: 50000,
+      satuan: 'Per Hari',
+      description: 'Coverage kecelakaan, kehilangan barang, bantuan hukum',
+    });
+    wsLayanan.addRow({
+      kodeLayanan: 'SV004',
+      name: 'Antar Jemput Bandara (Shuttle)',
+      category: 'Antar Jemput',
+      harga: 350000,
+      satuan: 'Per Trip',
+      description: 'Maks 4 orang + bagasi, area Jabodetabek',
+    });
+    wsLayanan.addRow({
+      kodeLayanan: 'SV005',
+      name: 'Kebersihan Extra / Deep Clean',
+      category: 'Kebersihan Extra',
+      harga: 150000,
+      satuan: 'Per Unit',
+      description: 'Detailing interior, vacuum, fogging, wc deep clean',
+    });
+    wsLayanan.addRow({
+      kodeLayanan: 'SV006',
+      name: 'WiFi Portable / Pocket WiFi',
+      category: 'Lainnya',
+      harga: 50000,
+      satuan: 'Per Hari',
+      description: 'Unlimited data 4G/5G, bisa 10 device, powerbank 10000mAh',
     });
 
     // Browser-compatible download (writeFile only works in Node.js)
