@@ -187,12 +187,23 @@ export default function AdminProductsClientPage({
       const XLSX = await import('xlsx');
       const arrayBuffer = await importFile.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      if (!sheetName) {
+      
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
         throw new Error("File kosong atau tidak memiliki lembar kerja (sheet).");
       }
-      const worksheet = workbook.Sheets[sheetName];
-      const rawRows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      let rawRows: any[] = [];
+      for (const sheetName of workbook.SheetNames) {
+        const worksheet = workbook.Sheets[sheetName];
+        if (worksheet) {
+          const sheetRows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+          const processed = sheetRows.map((row: any) => ({
+            ...row,
+            category: row.category || row['Kategori'] || row.kategori || sheetName
+          }));
+          rawRows.push(...processed);
+        }
+      }
 
       if (!rawRows || rawRows.length === 0) {
         throw new Error("File tidak memiliki baris data yang valid.");
@@ -201,15 +212,15 @@ export default function AdminProductsClientPage({
       const productsList = rawRows.map((row) => {
         return {
           kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang / SKU'] || row.sku || row.SKU || '',
-          name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row.nama || '',
+          name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row['Nama Sparepart'] || row['Nama Barang'] || row.nama || '',
           category: row.category || row['Kategori'] || row.kategori || 'Umum',
-          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal (HPP)'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
-          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row.harga ?? row.tarif ?? 0,
+          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
+          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? 0,
           stock: row.stock ?? row['Stok'] ?? row.stok ?? 0,
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
-          employeeCommission: row.employeeCommission ?? row['Komisi Staf (Rp)'] ?? row['Komisi'] ?? row['Komisi Staf'] ?? row.komisi ?? 0,
+          employeeCommission: row.employeeCommission ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi Staf (Rp)'] ?? row['Komisi'] ?? row['Komisi Staf'] ?? 0,
           description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || '',
-          isService: isJasa
+          isService: isJasa && (row.category?.toLowerCase() === 'jasa' || !row.category)
         };
       }).filter(p => Boolean(p.name && String(p.name).trim()));
 
@@ -608,7 +619,9 @@ export default function AdminProductsClientPage({
 
                     <div className="mt-auto pt-3 flex items-end justify-between">
                       <div>
-                        {!isPureJasa && <div className="text-[10px] text-slate-400 font-medium mb-0.5">{isRental ? 'B. Ops' : isFNB ? 'HPP' : 'HPP'}: {formatRupiah(product.hpp)}</div>}
+                        <div className="text-[10px] text-slate-400 font-medium mb-0.5">
+                          {isRental ? 'B. Ops' : isJasa ? (product.category?.toLowerCase() === 'jasa' ? 'Modal/Bahan' : 'HPP') : 'HPP'}: {formatRupiah(product.hpp || product.biayaModal || 0)}
+                        </div>
                         {product.discount > 0 ? (
                           <div className="flex flex-col">
                             <span className="text-[10px] text-slate-400 line-through leading-none mb-0.5">{formatRupiah(product.hargaJual)}</span>
@@ -618,8 +631,8 @@ export default function AdminProductsClientPage({
                           <div className="text-sm font-bold text-blue-600 leading-none">{formatRupiah(product.hargaJual)}</div>
                         )}
                       </div>
-                      {/* Stok hanya untuk Retail/FNB/Rental/Sparepart, bukan Jasa murni */}
-                      {!(isJasa && product.category === "Jasa") && (
+                      {/* Stok hanya untuk Retail/FNB/Rental/Barang, bukan Jasa murni */}
+                      {!(isJasa && (product.category?.toLowerCase() === "jasa" || !product.category)) && (
                         <div className="text-right">
                           <span className={`inline-flex min-w-[3.5rem] justify-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${product.stock > (product.minStockThreshold || 5) ? 'bg-green-50 text-green-700 border-green-200' : product.stock > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                             Sisa: {product.stock}

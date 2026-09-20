@@ -59,9 +59,9 @@ export async function GET(req: Request) {
         "Status": p.isActive ? "Aktif" : "Nonaktif"
       }));
     } else if (isJasa) {
-      // Pisahkan Jasa murni vs Sparepart berdasarkan kategori
-      const jasaItems = products.filter(p => p.category === "Jasa");
-      const sparepartItems = products.filter(p => p.category === "Sparepart");
+      // Pisahkan Jasa murni vs Barang / Sparepart berdasarkan kategori
+      const jasaItems = products.filter(p => p.category?.toLowerCase() === "jasa" || p.isService);
+      const barangItems = products.filter(p => p.category?.toLowerCase() !== "jasa" && !p.isService);
       
       const workbook = xlsx.utils.book_new();
       
@@ -69,8 +69,8 @@ export async function GET(req: Request) {
         const jasaHeaders = [
           "Nama Layanan",
           "Kategori",
+          "HPP / Biaya Modal (Rp)",
           "Tarif Layanan (Rp)",
-          "Biaya Modal / Bahan (Rp)",
           "Komisi Staf (Rp)",
           "Deskripsi Layanan",
           "Status"
@@ -78,8 +78,8 @@ export async function GET(req: Request) {
         const jasaData = jasaItems.map((p) => ({
           "Nama Layanan": p.name,
           "Kategori": p.category || "Jasa",
+          "HPP / Biaya Modal (Rp)": p.hpp || p.biayaModal || 0,
           "Tarif Layanan (Rp)": p.hargaJual,
-          "Biaya Modal / Bahan (Rp)": p.biayaModal || p.hpp || 0,
           "Komisi Staf (Rp)": p.employeeCommission || 0,
           "Deskripsi Layanan": p.description || "-",
           "Status": p.isActive ? "Aktif" : "Nonaktif"
@@ -89,11 +89,12 @@ export async function GET(req: Request) {
         xlsx.utils.book_append_sheet(workbook, jasaWorksheet, "Jasa");
       }
       
-      if (sparepartItems.length > 0) {
-        const sparepartHeaders = [
-          "Nama Sparepart",
+      if (barangItems.length > 0) {
+        const barangHeaders = [
+          "Kode Barang (SKU)",
+          "Nama Barang",
           "Kategori",
-          "HPP (Modal)",
+          "HPP / Modal Beli (Rp)",
           "Harga Jual (Rp)",
           "Stok",
           "Batas Minimum Stok",
@@ -101,10 +102,11 @@ export async function GET(req: Request) {
           "Deskripsi",
           "Status"
         ];
-        const sparepartData = sparepartItems.map((p) => ({
-          "Nama Sparepart": p.name,
-          "Kategori": p.category || "Sparepart",
-          "HPP (Modal)": p.hpp,
+        const barangData = barangItems.map((p) => ({
+          "Kode Barang (SKU)": p.kodeBarang || "-",
+          "Nama Barang": p.name,
+          "Kategori": p.category || "Barang",
+          "HPP / Modal Beli (Rp)": p.hpp,
           "Harga Jual (Rp)": p.hargaJual,
           "Stok": p.stock,
           "Batas Minimum Stok": p.minStockThreshold,
@@ -112,15 +114,15 @@ export async function GET(req: Request) {
           "Deskripsi": p.description || "-",
           "Status": p.isActive ? "Aktif" : "Nonaktif"
         }));
-        const sparepartWorksheet = xlsx.utils.json_to_sheet(sparepartData, { header: sparepartHeaders });
-        sparepartWorksheet["!cols"] = sparepartHeaders.map(h => ({ wch: Math.max(h.length + 4, 18) }));
-        xlsx.utils.book_append_sheet(workbook, sparepartWorksheet, "Sparepart");
+        const barangWorksheet = xlsx.utils.json_to_sheet(barangData, { header: barangHeaders });
+        barangWorksheet["!cols"] = barangHeaders.map(h => ({ wch: Math.max(h.length + 4, 18) }));
+        xlsx.utils.book_append_sheet(workbook, barangWorksheet, "Barang");
       }
       
       // Fallback jika tidak ada data sama sekali
-      if (jasaItems.length === 0 && sparepartItems.length === 0) {
-        const fallbackHeaders = ["Nama Layanan", "Kategori", "Tarif Layanan (Rp)", "Komisi Staf (Rp)", "Deskripsi Layanan", "Status"];
-        const fallbackData = [{ "Nama Layanan": "Belum ada data layanan/sparepart", "Kategori": "", "Tarif Layanan (Rp)": "", "Komisi Staf (Rp)": "", "Deskripsi Layanan": "", "Status": "" }];
+      if (jasaItems.length === 0 && barangItems.length === 0) {
+        const fallbackHeaders = ["Nama Layanan", "Kategori", "HPP / Biaya Modal (Rp)", "Tarif Layanan (Rp)", "Komisi Staf (Rp)", "Deskripsi Layanan", "Status"];
+        const fallbackData = [{ "Nama Layanan": "Belum ada data", "Kategori": "Jasa", "HPP / Biaya Modal (Rp)": 0, "Tarif Layanan (Rp)": 0, "Komisi Staf (Rp)": 0, "Deskripsi Layanan": "", "Status": "" }];
         const fallbackWorksheet = xlsx.utils.json_to_sheet(fallbackData, { header: fallbackHeaders });
         xlsx.utils.book_append_sheet(workbook, fallbackWorksheet, "Jasa");
       }

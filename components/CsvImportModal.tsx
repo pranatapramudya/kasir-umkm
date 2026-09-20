@@ -54,21 +54,62 @@ export default function CsvImportModal({
         ];
         filename = "template_import_rental_properti.xlsx";
       } else if (isJasa) {
-        // Jasa murni (tanpa stok)
+        // Sheet 1: Jasa (tanpa stok, HPP = modal bahan per layanan)
         const dataJasa = [
-          { name: "Potong Rambut Pria", category: "Jasa", hargaJual: 45000, employeeCommission: 15000, biayaModal: 5000, description: "Pangkas rambut + styling" },
-          { name: "Creambath Spa 45 Menit", category: "Jasa", hargaJual: 65000, employeeCommission: 20000, biayaModal: 8000, description: "Perawatan rambut + pijat kepala" },
+          {
+            name: "Potong Rambut Pria / Servis Ringan",
+            category: "Jasa",
+            hpp: 5000,
+            hargaJual: 45000,
+            komisi: 15000,
+            description: "Pangkas rambut + styling / ganti oli + cek rem"
+          },
+          {
+            name: "Creambath Spa / Cuci Motor Kilat",
+            category: "Jasa",
+            hpp: 8000,
+            hargaJual: 65000,
+            komisi: 20000,
+            description: "Perawatan rambut + pijat kepala / cuci salju + semir ban"
+          }
         ];
-        // Sparepart (punya stok & HPP)
-        const dataSparepart = [
-          { name: "Shampoo Profesional 500ml", category: "Sparepart", hpp: 35000, hargaJual: 65000, stock: 20, minStockThreshold: 5, employeeCommission: 5000, description: "Untuk retail di tempat" },
-          { name: "Pomade Styling 100gr", category: "Sparepart", hpp: 25000, hargaJual: 45000, stock: 15, minStockThreshold: 3, employeeCommission: 3000, description: "Produk styling" },
+        // Sheet 2: Barang (punya stok & HPP beli modal)
+        const dataBarang = [
+          {
+            kodeBarang: "BRG001",
+            name: "Oli Mesin Matic 0.8L / Pomade Styling",
+            category: "Barang",
+            hpp: 35000,
+            hargaJual: 55000,
+            stock: 24,
+            minStockThreshold: 5,
+            komisi: 3000,
+            description: "Oli original / Pomade oil based"
+          },
+          {
+            kodeBarang: "BRG002",
+            name: "Kampas Rem Depan / Shampoo 500ml",
+            category: "Barang",
+            hpp: 25000,
+            hargaJual: 45000,
+            stock: 15,
+            minStockThreshold: 3,
+            komisi: 2000,
+            description: "Kampas rem cakram / Shampoo salon"
+          }
         ];
         
-        // Gabung 2 sheet
+        // Gabung 2 sheet dengan auto column width
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(dataJasa), "Jasa");
-        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(dataSparepart), "Sparepart");
+        
+        const wsJasa = XLSX.utils.json_to_sheet(dataJasa);
+        wsJasa['!cols'] = Object.keys(dataJasa[0] || {}).map(key => ({ wch: Math.max(key.length + 4, 18) }));
+        XLSX.utils.book_append_sheet(workbook, wsJasa, "Jasa");
+        
+        const wsBarang = XLSX.utils.json_to_sheet(dataBarang);
+        wsBarang['!cols'] = Object.keys(dataBarang[0] || {}).map(key => ({ wch: Math.max(key.length + 4, 18) }));
+        XLSX.utils.book_append_sheet(workbook, wsBarang, "Barang");
+        
         XLSX.writeFile(workbook, "template_import_jasa_servis.xlsx");
         return;
       } else {

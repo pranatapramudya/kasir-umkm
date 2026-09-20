@@ -1709,49 +1709,50 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   </div>
                 )}
                 <div id="product-grid" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-1 content-start">
-                                  {products.map(product => {
-                                    const remaining = getRemainingStock(product);
-                                    const isOutOfStock = remaining <= 0;
-                                    const isLowStock = product.minStockThreshold && remaining > 0 && remaining <= product.minStockThreshold;
-                                    return (
-                                      <div
-                                                          key={product.id}
-                                                          onClick={() => !isOutOfStock && addToCart(product)}
-                                                          className={`group relative rounded-xl border p-3 flex flex-col select-none ${
-                                          isOutOfStock
-                                            ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
-                                            : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
-                                        }`}
-                                      >
-                                        {isOutOfStock && (
-                                          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-red-600">
-                                            STOK HABIS
-                                          </div>
-                                        )}
-                                        {isLowStock && (
-                                          <div className="absolute -top-2 -left-2 bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-amber-600">
-                                            STOK MINIMUM
-                                          </div>
-                                        )}
-                                        <div className="relative mb-3 w-full h-32 rounded-lg overflow-hidden">
-                                          <Image
-                                            src={product.image || "https://placehold.co/400x300?text=No+Image"}
-                                            alt={product.name}
-                                            fill
-                                            className={`object-cover ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
-                                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                                          />
-                                          {(!isJasa && !isRental) && (
-                                            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 ${isOutOfStock ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-900/85 text-white shadow-sm'}`}>
-                                              {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
-                                            </div>
-                                          )}
-                                          {(product.discount && product.discount > 0) ? (
-                                            <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 bg-rose-600 text-white shadow-sm">
-                                              Promo
-                                            </div>
-                                          ) : null}
-                                        </div>
+                  {products.map(product => {
+                    const isJasaMurni = isJasa && (product.category?.toLowerCase() === 'jasa' || !product.category);
+                    const remaining = isJasaMurni ? 999999 : getRemainingStock(product);
+                    const isOutOfStock = !isJasaMurni && remaining <= 0;
+                    const isLowStock = !isJasaMurni && Boolean(product.minStockThreshold && product.minStockThreshold > 0 && remaining > 0 && remaining <= product.minStockThreshold);
+                    return (
+                      <div
+                        key={product.id}
+                        onClick={() => !isOutOfStock && addToCart(product)}
+                        className={`group relative rounded-xl border p-3 flex flex-col select-none ${
+                          isOutOfStock
+                            ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
+                            : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
+                        }`}
+                      >
+                        {isOutOfStock && (
+                          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-red-600">
+                            STOK HABIS
+                          </div>
+                        )}
+                        {isLowStock && (
+                          <div className="absolute -top-2 -left-2 bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-sm z-20 animate-pulse border border-amber-600">
+                            STOK MINIMUM
+                          </div>
+                        )}
+                        <div className="relative mb-3 w-full h-32 rounded-lg overflow-hidden">
+                          <Image
+                            src={product.image || "https://placehold.co/400x300?text=No+Image"}
+                            alt={product.name}
+                            fill
+                            className={`object-cover ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                          />
+                          {(!isJasaMurni && !isRental) && (
+                            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 ${isOutOfStock ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-900/85 text-white shadow-sm'}`}>
+                              {isOutOfStock ? 'HABIS' : `Sisa: ${remaining}`}
+                            </div>
+                          )}
+                          {Boolean(product.discount && product.discount > 0) && (
+                            <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded-md z-10 bg-rose-600 text-white shadow-sm">
+                              Promo
+                            </div>
+                          )}
+                        </div>
                         <h3 className="font-bold text-sm h-10 line-clamp-2 mb-1 group-hover:text-blue-700 transition-colors">{product.name}</h3>
                         <div className="mt-auto flex items-center justify-between">
                           <div className="flex flex-col">
