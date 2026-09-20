@@ -70,6 +70,7 @@ export default function CsvImportModal({
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(dataJasa), "Jasa");
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(dataSparepart), "Sparepart");
         XLSX.writeFile(workbook, "template_import_jasa_servis.xlsx");
+        return;
       } else {
         // Retail / F&B
         data = [

@@ -716,15 +716,45 @@ export default function AdminProductsClientPage({
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {isJasa && (
+                    <div className="sm:col-span-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-1">
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Jenis Item</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, category: 'Jasa' }))}
+                          className={`py-2 px-3 rounded-lg text-xs font-bold border text-center transition-all ${
+                            (formData.category.toLowerCase() === 'jasa' || !formData.category)
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                          }`}
+                        >
+                          🛠️ Layanan / Jasa (Stok Unlimited)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, category: prev.category.toLowerCase() === 'jasa' ? 'Sparepart' : (prev.category || 'Sparepart') }))}
+                          className={`py-2 px-3 rounded-lg text-xs font-bold border text-center transition-all ${
+                            formData.category.toLowerCase() !== 'jasa' && Boolean(formData.category)
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                          }`}
+                        >
+                          📦 Sparepart / Barang (Punya Stok)
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nama Unit / Nomor Kamar / Plat Nomor' : isJasa ? 'Nama Jasa / Paket' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nama Unit / Nomor Kamar / Plat Nomor' : (isJasa && formData.category.toLowerCase() === 'jasa') ? 'Nama Jasa / Paket Layanan' : isJasa ? 'Nama Sparepart / Produk / Barang' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       name="name"
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder={isRental ? "misal: Room 101, B 1234 ABC, atau SN-991" : ""}
+                      placeholder={isRental ? "misal: Room 101, B 1234 ABC, atau SN-991" : (isJasa && formData.category.toLowerCase() === 'jasa') ? "misal: Cuci Motor Kilat, Servis Ringan" : isJasa ? "misal: Oli Mesin Matic 0.8L, Kampas Rem Depan" : ""}
                       className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ${isRental ? 'uppercase font-mono' : ''}`}
                     />
                   </div>
@@ -737,7 +767,7 @@ export default function AdminProductsClientPage({
                       required
                       autoComplete="off"
                       list="category-options"
-                      placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Properti / Kos, Vila, dll..." : "Masukkan nama kategori..."}
+                      placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Properti / Kos, Vila, dll..." : (isJasa && formData.category.toLowerCase() === 'jasa') ? "Jasa" : "Sparepart"}
                       value={formData.category}
                       onChange={handleChange}
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -774,7 +804,7 @@ export default function AdminProductsClientPage({
                     </div>
                   )}
 
-                  {!isJasa && (
+                  {(!isJasa || formData.category.toLowerCase() !== 'jasa') && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 sm:col-span-2">
                       <div className={isFNB ? 'sm:col-span-2' : ''}>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Stok Awal</label>
@@ -804,39 +834,32 @@ export default function AdminProductsClientPage({
                   )}
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Biaya Operasional (Opsional)' : isJasa ? 'Biaya Modal / Bahan Dasar (Opsional)' : 'HPP (Modal)'}</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">
+                      {isRental ? 'Biaya Operasional (Opsional)' : (isJasa && formData.category.toLowerCase() === 'jasa') ? 'Biaya Modal / Bahan Dasar (Opsional)' : 'Harga Modal (HPP)'}
+                    </label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                       <input
                         type="text"
-                        name={isJasa ? "biayaModal" : "hpp"}
-                        required={!isJasa}
-                        value={formData[isJasa ? "biayaModal" : "hpp"]}
+                        name={(isJasa && formData.category.toLowerCase() === 'jasa') ? "biayaModal" : "hpp"}
+                        required={!isJasa || formData.category.toLowerCase() !== 'jasa'}
+                        value={formData[(isJasa && formData.category.toLowerCase() === 'jasa') ? "biayaModal" : "hpp"]}
                         onChange={handleChange}
                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                       />
                     </div>
+                    {isJasa && formData.category.toLowerCase() === 'jasa' && (
+                      <p className="text-xs text-slate-500 mt-1">Biaya bahan habis pakai per pengerjaan jasa (misal: sampo, oli rem).</p>
+                    )}
+                    {isJasa && formData.category.toLowerCase() !== 'jasa' && (
+                      <p className="text-xs text-slate-500 mt-1">Harga beli modal sparepart / produk dari supplier.</p>
+                    )}
                   </div>
 
-                  {isJasa && (
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">HPP (untuk Sparepart)</label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
-                        <input
-                          type="text"
-                          name="hpp"
-                          value={formData.hpp}
-                          onChange={handleChange}
-                          className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
-                        />
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">Hanya untuk kategori Sparepart. Jasa murni gunakan Biaya Modal di atas.</p>
-                    </div>
-                  )}
-
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? "Harga Sewa (Per Hari)" : isJasa ? "Tarif Jasa" : "Harga Jual"} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">
+                      {isRental ? "Harga Sewa (Per Hari)" : (isJasa && formData.category.toLowerCase() === 'jasa') ? "Tarif Jasa" : isJasa ? "Harga Jual Produk / Barang" : "Harga Jual"} <span className="text-red-500">*</span>
+                    </label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                       <input
@@ -852,7 +875,9 @@ export default function AdminProductsClientPage({
 
                   {isJasa && (
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Komisi Petugas / Driver (Rp)' : isJasa ? 'Komisi Staf / Layanan (Rp)' : 'Komisi Pekerja (Rp)'}</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">
+                        {formData.category.toLowerCase() === 'jasa' ? 'Komisi Staf / Teknisi (Rp)' : 'Komisi Penjualan Staf (Opsional, Rp)'}
+                      </label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
                         <input
@@ -863,7 +888,9 @@ export default function AdminProductsClientPage({
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">{isRental ? 'Nominal bagi hasil untuk petugas kebersihan, admin, atau driver per transaksi. Kosongkan jika tidak ada.' : 'Nominal bagi hasil untuk staf / petugas per transaksi.'}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {formData.category.toLowerCase() === 'jasa' ? 'Nominal bagi hasil untuk teknisi/kapster/staf yang mengerjakan jasa ini.' : 'Nominal bonus/komisi staf jika berhasil menjual sparepart/barang ini.'}
+                      </p>
                     </div>
                   )}
 
