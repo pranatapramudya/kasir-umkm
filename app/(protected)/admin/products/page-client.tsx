@@ -108,7 +108,9 @@ export default function AdminProductsClientPage({
   });
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-  const categories = ["Semua", ...uniqueCategories];
+  const categories = isJasa
+    ? ["Semua", "Jasa / Servis", "Produk / Barang"]
+    : ["Semua", ...uniqueCategories];
 
 
   const formatNumberInput = (val: string) => {
@@ -735,61 +737,76 @@ export default function AdminProductsClientPage({
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, category: 'Jasa' }))}
+                          onClick={() => setFormData(prev => ({ ...prev, category: 'Jasa / Servis' }))}
                           className={`py-2 px-3 rounded-lg text-xs font-bold border text-center transition-all ${
-                            (formData.category.toLowerCase() === 'jasa' || !formData.category)
+                            (formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category)
                               ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                               : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                           }`}
                         >
-                          🛠️ Layanan / Jasa (Stok Unlimited)
+                          🛠️ Jasa / Servis (Layanan)
                         </button>
                         <button
                           type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, category: prev.category.toLowerCase() === 'jasa' ? 'Sparepart' : (prev.category || 'Sparepart') }))}
+                          onClick={() => setFormData(prev => ({ ...prev, category: 'Produk / Barang' }))}
                           className={`py-2 px-3 rounded-lg text-xs font-bold border text-center transition-all ${
-                            formData.category.toLowerCase() !== 'jasa' && Boolean(formData.category)
+                            (formData.category.toLowerCase().includes('produk') || formData.category.toLowerCase().includes('barang') || formData.category.toLowerCase().includes('sparepart'))
                               ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                               : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                           }`}
                         >
-                          📦 Sparepart / Barang (Punya Stok)
+                          📦 Produk / Barang (Fisik)
                         </button>
                       </div>
                     </div>
                   )}
 
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nama Unit / Nomor Kamar / Plat Nomor' : (isJasa && formData.category.toLowerCase() === 'jasa') ? 'Nama Jasa / Paket Layanan' : isJasa ? 'Nama Sparepart / Produk / Barang' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Nama Unit / Nomor Kamar / Plat Nomor' : (isJasa && (formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category)) ? 'Nama Jasa / Paket Layanan' : isJasa ? 'Nama Produk / Barang' : isFNB ? 'Nama Menu' : 'Nama Produk'} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       name="name"
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder={isRental ? "misal: Room 101, B 1234 ABC, atau SN-991" : (isJasa && formData.category.toLowerCase() === 'jasa') ? "misal: Cuci Motor Kilat, Servis Ringan" : isJasa ? "misal: Oli Mesin Matic 0.8L, Kampas Rem Depan" : ""}
+                      placeholder={isRental ? "misal: Room 101, B 1234 ABC, atau SN-991" : (isJasa && (formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category)) ? "misal: Cuci Motor Kilat, Servis Ringan, Pangkas Rambut" : isJasa ? "misal: Oli Mesin Matic 0.8L, Pomade Styling, Shampoo 500ml" : ""}
                       className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ${isRental ? 'uppercase font-mono' : ''}`}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">{isRental ? 'Tipe Unit (Properti / Kendaraan)' : 'Kategori'} <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      name="category"
-                      required
-                      autoComplete="off"
-                      list="category-options"
-                      placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Properti / Kos, Vila, dll..." : (isJasa && formData.category.toLowerCase() === 'jasa') ? "Jasa" : "Sparepart"}
-                      value={formData.category}
-                      onChange={handleChange}
-                      className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    />
-                    <datalist id="category-options">
-                      {uniqueCategories.map(cat => (
-                        <option key={cat} value={cat} />
-                      ))}
-                    </datalist>
+                    {isJasa ? (
+                      <select
+                        name="category"
+                        required
+                        value={formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category ? 'Jasa / Servis' : 'Produk / Barang'}
+                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-semibold"
+                      >
+                        <option value="Jasa / Servis">🛠️ Jasa / Servis (Layanan)</option>
+                        <option value="Produk / Barang">📦 Produk / Barang (Barang Fisik)</option>
+                      </select>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          name="category"
+                          required
+                          autoComplete="off"
+                          list="category-options"
+                          placeholder={isRental ? "contoh: Kamar AC, Mini Bus, Properti / Kos, Vila, dll..." : "Kategori produk"}
+                          value={formData.category}
+                          onChange={handleChange}
+                          className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                        />
+                        <datalist id="category-options">
+                          {uniqueCategories.map(cat => (
+                            <option key={cat} value={cat} />
+                          ))}
+                        </datalist>
+                      </>
+                    )}
                   </div>
 
                   {!isFNB && !isJasa && (

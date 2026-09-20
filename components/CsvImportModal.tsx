@@ -58,7 +58,7 @@ export default function CsvImportModal({
         const dataJasa = [
           {
             name: "Potong Rambut Pria / Servis Ringan",
-            category: "Jasa",
+            category: "Jasa / Servis",
             hpp: 5000,
             hargaJual: 45000,
             komisi: 15000,
@@ -66,19 +66,19 @@ export default function CsvImportModal({
           },
           {
             name: "Creambath Spa / Cuci Motor Kilat",
-            category: "Jasa",
+            category: "Jasa / Servis",
             hpp: 8000,
             hargaJual: 65000,
             komisi: 20000,
             description: "Perawatan rambut + pijat kepala / cuci salju + semir ban"
           }
         ];
-        // Sheet 2: Barang (punya stok & HPP beli modal)
+        // Sheet 2: Produk / Barang (punya stok & HPP beli modal)
         const dataBarang = [
           {
             kodeBarang: "BRG001",
             name: "Oli Mesin Matic 0.8L / Pomade Styling",
-            category: "Barang",
+            category: "Produk / Barang",
             hpp: 35000,
             hargaJual: 55000,
             stock: 24,
@@ -89,7 +89,7 @@ export default function CsvImportModal({
           {
             kodeBarang: "BRG002",
             name: "Kampas Rem Depan / Shampoo 500ml",
-            category: "Barang",
+            category: "Produk / Barang",
             hpp: 25000,
             hargaJual: 45000,
             stock: 15,
@@ -108,7 +108,7 @@ export default function CsvImportModal({
         
         const wsBarang = XLSX.utils.json_to_sheet(dataBarang);
         wsBarang['!cols'] = Object.keys(dataBarang[0] || {}).map(key => ({ wch: Math.max(key.length + 4, 18) }));
-        XLSX.utils.book_append_sheet(workbook, wsBarang, "Barang");
+        XLSX.utils.book_append_sheet(workbook, wsBarang, "Produk");
         
         XLSX.writeFile(workbook, "template_import_jasa_servis.xlsx");
         return;

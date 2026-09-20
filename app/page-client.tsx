@@ -357,7 +357,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const totalPages = swrResponse?.totalPages || 1;
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-  const categories = ["Semua", ...uniqueCategories];
+  const categories = isJasa
+    ? ["Semua", "Jasa / Servis", "Produk / Barang"]
+    : ["Semua", ...uniqueCategories];
 
   // Fetch data karyawan (khusus untuk Jasa)
   const { data: employeesData } = useSWR<{ success: boolean, employees: Employee[] }>(
@@ -1710,7 +1712,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 )}
                 <div id="product-grid" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 flex-1 content-start">
                   {products.map(product => {
-                    const isJasaMurni = isJasa && (product.category?.toLowerCase() === 'jasa' || !product.category);
+                    const catLower = (product.category || '').toLowerCase();
+                    const isJasaMurni = isJasa && (catLower.includes('jasa') || catLower.includes('servis') || catLower.includes('layanan') || !product.category);
                     const remaining = isJasaMurni ? 999999 : getRemainingStock(product);
                     const isOutOfStock = !isJasaMurni && remaining <= 0;
                     const isLowStock = !isJasaMurni && Boolean(product.minStockThreshold && product.minStockThreshold > 0 && remaining > 0 && remaining <= product.minStockThreshold);

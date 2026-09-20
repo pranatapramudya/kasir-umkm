@@ -39,9 +39,12 @@ export async function PUT(
 
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
-    const isJasaMurni = isService && category === "Jasa";
+    const categoryLower = (category || "").toLowerCase().trim();
+    const isJasaMurni = isService && (categoryLower === "jasa" || categoryLower === "jasa / servis" || categoryLower === "jasa/servis" || categoryLower === "layanan" || categoryLower === "");
+    const normalizedCategory = isService ? (isJasaMurni ? "Jasa / Servis" : "Produk / Barang") : (category || "");
 
     const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const modalValue = parseInt(biayaModal, 10) || parseInt(hpp, 10) || 0;
 
     // 2 & 3. Eksekusi Atomic UpdateMany (Menghindari TOCTOU)
     const result = await prisma.product.updateMany({
@@ -49,10 +52,10 @@ export async function PUT(
       data: {
         kodeBarang: finalKodeBarang,
         name: name || "",
-        hpp: isJasaMurni ? 0 : (parseInt(hpp, 10) || 0),
-        biayaModal: isJasaMurni ? (parseInt(biayaModal, 10) || parseInt(hpp, 10) || 0) : 0,
+        hpp: modalValue,
+        biayaModal: isJasaMurni ? modalValue : 0,
         hargaJual: parseInt(hargaJual, 10) || 0,
-        category: category || "",
+        category: normalizedCategory,
         stock: isJasaMurni ? 999999 : (parseInt(stock, 10) || 0),
         minStockThreshold: isJasaMurni ? 0 : (parseInt(minStockThreshold, 10) || 5),
         discount: parseInt(discount, 10) || 0,
@@ -60,7 +63,7 @@ export async function PUT(
         variant: variant || "",
         image: image || "",
         description: description || null,
-        isService,
+        isService: isJasaMurni,
         employeeCommission: isService ? (parseInt(employeeCommission, 10) || 0) : 0,
       }
     });

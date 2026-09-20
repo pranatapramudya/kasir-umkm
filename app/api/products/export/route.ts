@@ -77,7 +77,7 @@ export async function GET(req: Request) {
         ];
         const jasaData = jasaItems.map((p) => ({
           "Nama Layanan": p.name,
-          "Kategori": p.category || "Jasa",
+          "Kategori": "Jasa / Servis",
           "HPP / Biaya Modal (Rp)": p.hpp || p.biayaModal || 0,
           "Tarif Layanan (Rp)": p.hargaJual,
           "Komisi Staf (Rp)": p.employeeCommission || 0,
@@ -105,7 +105,7 @@ export async function GET(req: Request) {
         const barangData = barangItems.map((p) => ({
           "Kode Barang (SKU)": p.kodeBarang || "-",
           "Nama Barang": p.name,
-          "Kategori": p.category || "Barang",
+          "Kategori": "Produk / Barang",
           "HPP / Modal Beli (Rp)": p.hpp,
           "Harga Jual (Rp)": p.hargaJual,
           "Stok": p.stock,
@@ -116,13 +116,13 @@ export async function GET(req: Request) {
         }));
         const barangWorksheet = xlsx.utils.json_to_sheet(barangData, { header: barangHeaders });
         barangWorksheet["!cols"] = barangHeaders.map(h => ({ wch: Math.max(h.length + 4, 18) }));
-        xlsx.utils.book_append_sheet(workbook, barangWorksheet, "Barang");
+        xlsx.utils.book_append_sheet(workbook, barangWorksheet, "Produk");
       }
       
       // Fallback jika tidak ada data sama sekali
       if (jasaItems.length === 0 && barangItems.length === 0) {
         const fallbackHeaders = ["Nama Layanan", "Kategori", "HPP / Biaya Modal (Rp)", "Tarif Layanan (Rp)", "Komisi Staf (Rp)", "Deskripsi Layanan", "Status"];
-        const fallbackData = [{ "Nama Layanan": "Belum ada data", "Kategori": "Jasa", "HPP / Biaya Modal (Rp)": 0, "Tarif Layanan (Rp)": 0, "Komisi Staf (Rp)": 0, "Deskripsi Layanan": "", "Status": "" }];
+        const fallbackData = [{ "Nama Layanan": "Belum ada data", "Kategori": "Jasa / Servis", "HPP / Biaya Modal (Rp)": 0, "Tarif Layanan (Rp)": 0, "Komisi Staf (Rp)": 0, "Deskripsi Layanan": "", "Status": "" }];
         const fallbackWorksheet = xlsx.utils.json_to_sheet(fallbackData, { header: fallbackHeaders });
         xlsx.utils.book_append_sheet(workbook, fallbackWorksheet, "Jasa");
       }

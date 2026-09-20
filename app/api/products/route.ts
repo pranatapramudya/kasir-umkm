@@ -64,7 +64,19 @@ export async function GET(request: Request) {
     }
     
     if (category && category !== 'Semua') {
-      whereClause.category = category;
+      if (category === "Jasa / Servis" || category === "Jasa") {
+        whereClause.OR = [
+          { category: { in: ["Jasa", "Jasa / Servis", "Jasa/Servis", "Layanan"] } },
+          { isService: true }
+        ];
+      } else if (category === "Produk / Barang" || category === "Produk" || category === "Barang") {
+        whereClause.OR = [
+          { category: { in: ["Produk", "Barang", "Sparepart", "Produk / Barang", "Produk/Barang"] } },
+          { isService: false }
+        ];
+      } else {
+        whereClause.category = category;
+      }
     }
 
     // 2. Ambil data dengan memfilter berdasarkan targetUserId dan paginasi
@@ -121,20 +133,23 @@ export async function POST(request: Request) {
     // 2.5 Cek Kategori Usaha untuk set isService
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
-    const isJasaMurni = isService && category === "Jasa";
+    const categoryLower = (category || "").toLowerCase().trim();
+    const isJasaMurni = isService && (categoryLower === "jasa" || categoryLower === "jasa / servis" || categoryLower === "jasa/servis" || categoryLower === "layanan" || categoryLower === "");
+    const normalizedCategory = isService ? (isJasaMurni ? "Jasa / Servis" : "Produk / Barang") : (category || "Umum");
 
     const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     // 3. Simpan ke database dengan menempelkan userId dari Clerk
+    const modalValue = Number(biayaModal) || Number(hpp) || 0;
     const newProduct = await prisma.product.create({
       data: {
         userId,
         kodeBarang: finalKodeBarang,
         name,
-        hpp: isJasaMurni ? 0 : (Number(hpp) || 0),
-        biayaModal: isJasaMurni ? (Number(biayaModal) || Number(hpp) || 0) : 0,
+        hpp: modalValue, // Simpan HPP untuk Jasa & Barang
+        biayaModal: isJasaMurni ? modalValue : 0,
         hargaJual: Number(hargaJual) || 0,
-        category: category || "Umum",
+        category: normalizedCategory,
         stock: isJasaMurni ? 999999 : (Number(stock) || 0),
         minStockThreshold: isJasaMurni ? 0 : (Number(minStockThreshold) || 5),
         discount: Number(discount) || 0,
@@ -142,7 +157,7 @@ export async function POST(request: Request) {
         variant: variant || "",
         image: image || "",
         description: description || null,
-        isService,
+        isService: isJasaMurni,
         employeeCommission: isService ? (Number(employeeCommission) || 0) : 0,
       }
     });
