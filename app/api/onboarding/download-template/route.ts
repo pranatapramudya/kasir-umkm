@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isRentalTravelCategory, isServiceBusinessCategory } from '@/lib/business-category';
 
+// Vercel function timeout: Hobby 10s, Pro 60s - set 30s for safety
+export const maxDuration = 30;
+
 export async function GET(req: NextRequest) {
   const kategoriUsaha = req.nextUrl.searchParams.get('category') || 'Jasa';
   const isRental = isRentalTravelCategory(kategoriUsaha);
@@ -13,7 +16,7 @@ export async function GET(req: NextRequest) {
   workbook.created = new Date();
 
   if (isRental) {
-    // Sheet 1: Armada (Kendaraan/Travel)
+    // Sheet 1: Armada (Kendaraan/Travel) - max 31 chars
     const wsKendaraan = workbook.addWorksheet('1. Armada (Kendaraan, Travel)');
     wsKendaraan.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
@@ -28,8 +31,8 @@ export async function GET(req: NextRequest) {
       { header: 'Catatan / Spesifikasi', key: 'description', width: 50 },
     ];
 
-    // Data validation dropdowns
-    for (let row = 2; row <= 200; row++) {
+    // Data validation dropdowns (limit rows to 50 for performance)
+    for (let row = 2; row <= 50; row++) {
       wsKendaraan.getCell(`C${row}`).dataValidation = {
         type: 'list', allowBlank: true,
         formulae: ['"MPV,SUV,Sedan,Minibus,Bus,Pickup,Truck,Motor,Matic,Bebek,Sport"'],
@@ -47,8 +50,8 @@ export async function GET(req: NextRequest) {
     wsKendaraan.addRow({ kodeUnit: 'UNT004', name: 'NMAX 155 2024 - B 3456 JKL', tipe: 'Motor', transmisi: 'Matic', tahun: 2024, hargaHarian: 80000, hargaJam: 15000, biayaHarian: 20000, status: 'Tersedia', description: 'Matic sport, ABS, cocok sewa harian' });
     wsKendaraan.addRow({ kodeUnit: 'UNT005', name: 'Elf Long 2022 - B 7890 MNO', tipe: 'Minibus', transmisi: 'Manual', tahun: 2022, hargaHarian: 1200000, hargaJam: 200000, biayaHarian: 250000, status: 'Tersedia', description: 'Travel 16-18 penumpang, box panjang' });
 
-    // Sheet 2: Properti (Kamar/Villa/Kost/Hotel)
-    const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa, Kost, Hotel)');
+    // Sheet 2: Properti - max 31 chars
+    const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa, Kost)');
     wsProperti.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
       { header: 'Nama Unit / Plat', key: 'name', width: 32 },
@@ -62,7 +65,7 @@ export async function GET(req: NextRequest) {
       { header: 'Catatan / Fasilitas', key: 'description', width: 50 },
     ];
 
-    for (let row = 2; row <= 200; row++) {
+    for (let row = 2; row <= 50; row++) {
       wsProperti.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Kamar Kost,Villa,Apartment,Hotel,Glamping,Studio,Guest House"'] };
       wsProperti.getCell(`E${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Dalam,Luar,Shared"'] };
       wsProperti.getCell(`I${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'] };
@@ -74,8 +77,8 @@ export async function GET(req: NextRequest) {
     wsProperti.addRow({ kodeUnit: 'PRP004', name: 'Glamping Tenda Luxury - Taman Safari', tipe: 'Glamping', kapasitas: 4, kamarMandi: 'Dalam', hargaHarian: 800000, hargaBulanan: 0, biayaHarian: 150000, status: 'Tersedia', description: 'Tenda glamping 4 orang, AC, toilet dalam, view gunung' });
     wsProperti.addRow({ kodeUnit: 'PRP005', name: 'Hotel Bisnis Deluxe - Bandung', tipe: 'Hotel', kapasitas: 2, kamarMandi: 'Dalam', hargaHarian: 650000, hargaBulanan: 0, biayaHarian: 100000, status: 'Tersedia', description: 'Sarapan gratis, meeting room, laundry service' });
 
-    // Sheet 3: Layanan Tambahan
-    const wsLayanan = workbook.addWorksheet('3. Layanan Tambahan (Supir, Asuransi, Bensin)');
+    // Sheet 3: Layanan Tambahan - max 31 chars
+    const wsLayanan = workbook.addWorksheet('3. Layanan (Supir, Asuransi, Bensin)');
     wsLayanan.columns = [
       { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
       { header: 'Nama Layanan', key: 'name', width: 36 },
@@ -85,7 +88,7 @@ export async function GET(req: NextRequest) {
       { header: 'Deskripsi', key: 'description', width: 50 },
     ];
 
-    for (let row = 2; row <= 200; row++) {
+    for (let row = 2; row <= 50; row++) {
       wsLayanan.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Supir/Bunker,Bensin/Isi Ulang,Asuransi,Antar Jemput,Kebersihan,Lainnya"'] };
     }
 
