@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   workbook.created = new Date();
 
   if (isRental) {
-    // Sheet 1: Armada (Kendaraan/Travel) - max 31 chars
+    // Sheet 1: Armada - max 31 chars
     const wsKendaraan = workbook.addWorksheet('1. Armada (Kendaraan, Travel)');
     wsKendaraan.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
@@ -43,15 +43,15 @@ export async function GET(req: NextRequest) {
       wsKendaraan.getCell(`I${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'] };
     }
 
-    // SAMPLE DATA - 5 units cover Travel + Rental Motor + Rental Mobil
-    wsKendaraan.addRow({ kodeUnit: 'UNT001', name: 'Avanza Veloz 2023 - B 1234 ABC', tipe: 'MPV', transmisi: 'Otomatis', tahun: 2023, hargaHarian: 450000, hargaJam: 75000, biayaHarian: 100000, status: 'Tersedia', description: 'Mobil keluarga, AC double blower, audio touchscreen' });
-    wsKendaraan.addRow({ kodeUnit: 'UNT002', name: 'Innova Reborn 2022 - B 5678 DEF', tipe: 'MPV', transmisi: 'Otomatis', tahun: 2022, hargaHarian: 650000, hargaJam: 100000, biayaHarian: 150000, status: 'Tersedia', description: 'Premium MPV, captain seat, sunroof' });
-    wsKendaraan.addRow({ kodeUnit: 'UNT003', name: 'Hiace Commuter 2023 - B 9012 GHI', tipe: 'Minibus', transmisi: 'Manual', tahun: 2023, hargaHarian: 950000, hargaJam: 150000, biayaHarian: 200000, status: 'Tersedia', description: 'Travel 12-14 penumpang, AC pendingin kuat' });
-    wsKendaraan.addRow({ kodeUnit: 'UNT004', name: 'NMAX 155 2024 - B 3456 JKL', tipe: 'Motor', transmisi: 'Matic', tahun: 2024, hargaHarian: 80000, hargaJam: 15000, biayaHarian: 20000, status: 'Tersedia', description: 'Matic sport, ABS, cocok sewa harian' });
-    wsKendaraan.addRow({ kodeUnit: 'UNT005', name: 'Elf Long 2022 - B 7890 MNO', tipe: 'Minibus', transmisi: 'Manual', tahun: 2022, hargaHarian: 1200000, hargaJam: 200000, biayaHarian: 250000, status: 'Tersedia', description: 'Travel 16-18 penumpang, box panjang' });
+    // SAMPLE DATA - use array syntax for reliability
+    wsKendaraan.addRow(['UNT001', 'Avanza Veloz 2023 - B 1234 ABC', 'MPV', 'Otomatis', 2023, 450000, 75000, 100000, 'Tersedia', 'Mobil keluarga, AC double blower, audio touchscreen']);
+    wsKendaraan.addRow(['UNT002', 'Innova Reborn 2022 - B 5678 DEF', 'MPV', 'Otomatis', 2022, 650000, 100000, 150000, 'Tersedia', 'Premium MPV, captain seat, sunroof']);
+    wsKendaraan.addRow(['UNT003', 'Hiace Commuter 2023 - B 9012 GHI', 'Minibus', 'Manual', 2023, 950000, 150000, 200000, 'Tersedia', 'Travel 12-14 penumpang, AC pendingin kuat']);
+    wsKendaraan.addRow(['UNT004', 'NMAX 155 2024 - B 3456 JKL', 'Motor', 'Matic', 2024, 80000, 15000, 20000, 'Tersedia', 'Matic sport, ABS, cocok sewa harian']);
+    wsKendaraan.addRow(['UNT005', 'Elf Long 2022 - B 7890 MNO', 'Minibus', 'Manual', 2022, 1200000, 200000, 250000, 'Tersedia', 'Travel 16-18 penumpang, box panjang']);
 
     // Sheet 2: Properti - max 31 chars
-    const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa, Hotel)');
+    const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa)');
     wsProperti.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
       { header: 'Nama Unit / Plat', key: 'name', width: 32 },
@@ -71,14 +71,14 @@ export async function GET(req: NextRequest) {
       wsProperti.getCell(`I${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'] };
     }
 
-    wsProperti.addRow({ kodeUnit: 'PRP001', name: 'Kamar Deluxe 101 - Lantai 1', tipe: 'Kamar Kost', kapasitas: 2, kamarMandi: 'Dalam', hargaHarian: 150000, hargaBulanan: 2500000, biayaHarian: 20000, status: 'Tersedia', description: 'AC, kamar mandi dalam, kasur springbed, wifi' });
-    wsProperti.addRow({ kodeUnit: 'PRP002', name: 'Villa Puncak 2 - Gunung Geulis', tipe: 'Villa', kapasitas: 6, kamarMandi: 'Dalam', hargaHarian: 1500000, hargaBulanan: 0, biayaHarian: 300000, status: 'Tersedia', description: '3 kamar tidur, kolam renang private, dapur lengkap' });
-    wsProperti.addRow({ kodeUnit: 'PRP003', name: 'Studio Apartment 3A - Sudirman', tipe: 'Apartment', kapasitas: 2, kamarMandi: 'Dalam', hargaHarian: 450000, hargaBulanan: 8000000, biayaHarian: 50000, status: 'Tersedia', description: 'Fully furnished, gym, pool, strategic location' });
-    wsProperti.addRow({ kodeUnit: 'PRP004', name: 'Glamping Tenda Luxury - Taman Safari', tipe: 'Glamping', kapasitas: 4, kamarMandi: 'Dalam', hargaHarian: 800000, hargaBulanan: 0, biayaHarian: 150000, status: 'Tersedia', description: 'Tenda glamping 4 orang, AC, toilet dalam, view gunung' });
-    wsProperti.addRow({ kodeUnit: 'PRP005', name: 'Hotel Bisnis Deluxe - Bandung', tipe: 'Hotel', kapasitas: 2, kamarMandi: 'Dalam', hargaHarian: 650000, hargaBulanan: 0, biayaHarian: 100000, status: 'Tersedia', description: 'Sarapan gratis, meeting room, laundry service' });
+    wsProperti.addRow(['PRP001', 'Kamar Deluxe 101 - Lantai 1', 'Kamar Kost', 2, 'Dalam', 150000, 2500000, 20000, 'Tersedia', 'AC, kamar mandi dalam, kasur springbed, wifi']);
+    wsProperti.addRow(['PRP002', 'Villa Puncak 2 - Gunung Geulis', 'Villa', 6, 'Dalam', 1500000, 0, 300000, 'Tersedia', '3 kamar tidur, kolam renang private, dapur lengkap']);
+    wsProperti.addRow(['PRP003', 'Studio Apartment 3A - Sudirman', 'Apartment', 2, 'Dalam', 450000, 8000000, 50000, 'Tersedia', 'Fully furnished, gym, pool, strategic location']);
+    wsProperti.addRow(['PRP004', 'Glamping Tenda Luxury - Taman Safari', 'Glamping', 4, 'Dalam', 800000, 0, 150000, 'Tersedia', 'Tenda glamping 4 orang, AC, toilet dalam, view gunung']);
+    wsProperti.addRow(['PRP005', 'Hotel Bisnis Deluxe - Bandung', 'Hotel', 2, 'Dalam', 650000, 0, 100000, 'Tersedia', 'Sarapan gratis, meeting room, laundry service']);
 
     // Sheet 3: Layanan Tambahan - max 31 chars
-    const wsLayanan = workbook.addWorksheet('3. Layanan (Supir, Asuransi, Bsn)');
+    const wsLayanan = workbook.addWorksheet('3. Layanan (Supir, Asuransi)');
     wsLayanan.columns = [
       { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
       { header: 'Nama Layanan', key: 'name', width: 36 },
@@ -92,12 +92,12 @@ export async function GET(req: NextRequest) {
       wsLayanan.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Supir/Bunker,Bensin/Isi Ulang,Asuransi,Antar Jemput,Kebersihan,Lainnya"'] };
     }
 
-    wsLayanan.addRow({ kodeLayanan: 'SV001', name: 'Supir Harian (Dalam Kota)', category: 'Supir/Bunker', harga: 200000, satuan: 'Per Hari', description: 'Termasuk makan & parkir, max 12 jam' });
-    wsLayanan.addRow({ kodeLayanan: 'SV002', name: 'Isi Ulang Bensin Full Tank', category: 'Bensin/Isi Ulang', harga: 500000, satuan: 'Per Unit', description: 'Pertalite/Pertamax, harga ikut pompa' });
-    wsLayanan.addRow({ kodeLayanan: 'SV003', name: 'Asuransi Perjalanan Per Hari', category: 'Asuransi', harga: 50000, satuan: 'Per Hari', description: 'Cover kerusakan ringan & kecelakaan' });
-    wsLayanan.addRow({ kodeLayanan: 'SV004', name: 'Antar Jemput Bandara (Shuttle)', category: 'Antar Jemput', harga: 350000, satuan: 'Per Trip', description: 'Maks 4 orang + bagasi, area Jabodetabek' });
-    wsLayanan.addRow({ kodeLayanan: 'SV005', name: 'Kebersihan Extra / Deep Clean', category: 'Kebersihan', harga: 150000, satuan: 'Per Unit', description: 'Detailing interior, vacuum, fogging, wc deep clean' });
-    wsLayanan.addRow({ kodeLayanan: 'SV006', name: 'WiFi Portable / Pocket WiFi', category: 'Lainnya', harga: 50000, satuan: 'Per Hari', description: 'Unlimited data 4G/5G, bisa 10 device, powerbank 10000mAh' });
+    wsLayanan.addRow(['SV001', 'Supir Harian (Dalam Kota)', 'Supir/Bunker', 200000, 'Per Hari', 'Termasuk makan & parkir, max 12 jam']);
+    wsLayanan.addRow(['SV002', 'Isi Ulang Bensin Full Tank', 'Bensin/Isi Ulang', 500000, 'Per Unit', 'Pertalite/Pertamax, harga ikut pompa']);
+    wsLayanan.addRow(['SV003', 'Asuransi Perjalanan Per Hari', 'Asuransi', 50000, 'Per Hari', 'Cover kerusakan ringan & kecelakaan']);
+    wsLayanan.addRow(['SV004', 'Antar Jemput Bandara (Shuttle)', 'Antar Jemput', 350000, 'Per Trip', 'Maks 4 orang + bagasi, area Jabodetabek']);
+    wsLayanan.addRow(['SV005', 'Kebersihan Extra / Deep Clean', 'Kebersihan', 150000, 'Per Unit', 'Detailing interior, vacuum, fogging, wc deep clean']);
+    wsLayanan.addRow(['SV006', 'WiFi Portable / Pocket WiFi', 'Lainnya', 50000, 'Per Hari', 'Unlimited data 4G/5G, bisa 10 device, powerbank 10000mAh']);
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, {
@@ -125,17 +125,17 @@ export async function GET(req: NextRequest) {
       { header: 'Deskripsi', key: 'description', width: 40 },
     ];
 
-    for (let row = 2; row <= 200; row++) {
+    for (let row = 2; row <= 50; row++) {
       wsMenu.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: false, formulae: ['"Makanan,Minuman,Appetizer,Dessert,Paket,Nasi,Beras,Sayur,Lauk,Snack"'], showErrorMessage: true, errorTitle: 'Kategori Tidak Valid', error: 'Pilih kategori dari dropdown.' };
       wsMenu.getCell(`F${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Makanan,Minuman"'] };
       wsMenu.getCell(`H${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Dapur,Bar,Khusus,Tidak Cetak"'] };
     }
 
-    wsMenu.addRow({ kodeMenu: 'MKN001', name: 'Nasi Goreng Spesial', category: 'Makanan', hpp: 15000, hargaJual: 25000, tipe: 'Makanan', prepTime: 10, kitchenPrinter: 'Dapur', modifiers: 'Level pedas: Tidak pedas, Sedang, Pedas, Extra pedas; Telur: Tanpa, Dadar, Ceplok', recipe: 'Beras: 200g; Bawang merah: 3 siung; Bawang putih: 2 siung; Cabai: 5 buah; Kecap manis: 2 sdm; Telur: 1 butir; Minyak goreng: 2 sdm', description: 'Nasi goreng komplit dengan telur dan kerupuk' });
-    wsMenu.addRow({ kodeMenu: 'MKN002', name: 'Ayam Geprek Sambal Matah', category: 'Makanan', hpp: 18000, hargaJual: 30000, tipe: 'Makanan', prepTime: 15, kitchenPrinter: 'Dapur', modifiers: 'Level pedas: Tidak pedas, Sedang, Pedas, Extra pedas; Nasi: Putih, Merah', recipe: 'Ayam fillet: 150g; Tepung crispy: 50g; Bawang merah: 5 siung; Cabai rawit: 10 buah; Sereh: 1 batang; Jeruk limau: 1 buah; Minyak panas: 3 sdm', description: 'Ayam crispy digeprek dengan sambal matah khas Bali' });
-    wsMenu.addRow({ kodeMenu: 'MNM001', name: 'Es Teh Manis', category: 'Minuman', hpp: 2000, hargaJual: 5000, tipe: 'Minuman', prepTime: 2, kitchenPrinter: 'Bar', modifiers: 'Gula: Normal, Kurang, Tambah; Es: Normal, Sedikit, Banyak', recipe: 'Teh celup: 1 sachet; Gula pasir: 2 sdm; Air panas: 200ml; Es batu: secukupnya', description: 'Teh manis segar dengan es batu' });
-    wsMenu.addRow({ kodeMenu: 'MNM002', name: 'Es Jeruk Peras', category: 'Minuman', hpp: 5000, hargaJual: 10000, tipe: 'Minuman', prepTime: 3, kitchenPrinter: 'Bar', modifiers: 'Gula: Normal, Kurang, Tambah; Es: Normal, Sedikit, Banyak', recipe: 'Jeruk nipis: 2 buah; Gula pasir: 2 sdm; Air putih: 200ml; Es batu: secukupnya', description: 'Jeruk peras segar tanpa pengawet' });
-    wsMenu.addRow({ kodeMenu: 'MKN003', name: 'Mie Ayam Bakso', category: 'Makanan', hpp: 12000, hargaJual: 22000, tipe: 'Makanan', prepTime: 8, kitchenPrinter: 'Dapur', modifiers: 'Bakso: Tambah, Kurang; Pangsit: Goreng, Rebus; Level pedas: Tidak, Sedang, Pedas', recipe: 'Mie telur: 150g; Ayam suwir: 50g; Bakso sapi: 3 butir; Pangsit: 3 buah; Sawi: 50g; Kuah kaldu: 300ml; Bawang goreng: 1 sdm', description: 'Mie ayam komplit dengan bakso dan pangsit' });
+    wsMenu.addRow(['MKN001', 'Nasi Goreng Spesial', 'Makanan', 15000, 25000, 'Makanan', 10, 'Dapur', 'Level pedas: Tidak pedas, Sedang, Pedas, Extra pedas; Telur: Tanpa, Dadar, Ceplok', 'Beras: 200g; Bawang merah: 3 siung; Bawang putih: 2 siung; Cabai: 5 buah; Kecap manis: 2 sdm; Telur: 1 butir; Minyak goreng: 2 sdm', 'Nasi goreng komplit dengan telur dan kerupuk']);
+    wsMenu.addRow(['MKN002', 'Ayam Geprek Sambal Matah', 'Makanan', 18000, 30000, 'Makanan', 15, 'Dapur', 'Level pedas: Tidak pedas, Sedang, Pedas, Extra pedas; Nasi: Putih, Merah', 'Ayam fillet: 150g; Tepung crispy: 50g; Bawang merah: 5 siung; Cabai rawit: 10 buah; Sereh: 1 batang; Jeruk limau: 1 buah; Minyak panas: 3 sdm', 'Ayam crispy digeprek dengan sambal matah khas Bali']);
+    wsMenu.addRow(['MNM001', 'Es Teh Manis', 'Minuman', 2000, 5000, 'Minuman', 2, 'Bar', 'Gula: Normal, Kurang, Tambah; Es: Normal, Sedikit, Banyak', 'Teh celup: 1 sachet; Gula pasir: 2 sdm; Air panas: 200ml; Es batu: secukupnya', 'Teh manis segar dengan es batu']);
+    wsMenu.addRow(['MNM002', 'Es Jeruk Peras', 'Minuman', 5000, 10000, 'Minuman', 3, 'Bar', 'Gula: Normal, Kurang, Tambah; Es: Normal, Sedikit, Banyak', 'Jeruk nipis: 2 buah; Gula pasir: 2 sdm; Air putih: 200ml; Es batu: secukupnya', 'Jeruk peras segar tanpa pengawet']);
+    wsMenu.addRow(['MKN003', 'Mie Ayam Bakso', 'Makanan', 12000, 22000, 'Makanan', 8, 'Dapur', 'Bakso: Tambah, Kurang; Pangsit: Goreng, Rebus; Level pedas: Tidak, Sedang, Pedas', 'Mie telur: 150g; Ayam suwir: 50g; Bakso sapi: 3 butir; Pangsit: 3 buah; Sawi: 50g; Kuah kaldu: 300ml; Bawang goreng: 1 sdm', 'Mie ayam komplit dengan bakso dan pangsit']);
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, {
@@ -161,13 +161,13 @@ export async function GET(req: NextRequest) {
       { header: 'Deskripsi / Catatan', key: 'description', width: 45 },
     ];
 
-    for (let row = 2; row <= 200; row++) {
+    for (let row = 2; row <= 50; row++) {
       ws.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: false, formulae: ['"Jasa / Servis,Produk / Barang"'], showErrorMessage: true, errorTitle: 'Pilihan Kategori', error: 'Silakan pilih Jasa / Servis atau Produk / Barang dari dropdown.' };
     }
 
-    ws.addRow({ kodeBarang: '', name: 'Potong Rambut Pria / Servis Ringan', category: 'Jasa / Servis', hpp: 5000, hargaJual: 45000, stock: '', minStockThreshold: '', komisi: 10000, description: 'Layanan pangkas + styling (stok otomatis tak terbatas)' });
-    ws.addRow({ kodeBarang: 'BRG001', name: 'Oli Mesin Matic 0.8L / Pomade Styling', category: 'Produk / Barang', hpp: 35000, hargaJual: 55000, stock: 24, minStockThreshold: 5, komisi: 3000, description: 'Barang fisik dengan kontrol stok' });
-    ws.addRow({ kodeBarang: 'BRG002', name: 'Kampas Rem Depan / Shampoo 500ml', category: 'Produk / Barang', hpp: 25000, hargaJual: 45000, stock: 15, minStockThreshold: 3, komisi: 2000, description: 'Sparepart / produk konsumable' });
+    ws.addRow(['', 'Potong Rambut Pria / Servis Ringan', 'Jasa / Servis', 5000, 45000, '', '', 10000, 'Layanan pangkas + styling (stok otomatis tak terbatas)']);
+    ws.addRow(['BRG001', 'Oli Mesin Matic 0.8L / Pomade Styling', 'Produk / Barang', 35000, 55000, 24, 5, 3000, 'Barang fisik dengan kontrol stok']);
+    ws.addRow(['BRG002', 'Kampas Rem Depan / Shampoo 500ml', 'Produk / Barang', 25000, 45000, 15, 3, 2000, 'Sparepart / produk konsumable']);
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, {
@@ -194,8 +194,8 @@ export async function GET(req: NextRequest) {
     { header: 'PPN %', key: 'ppn', width: 10 },
     { header: 'Deskripsi', key: 'description', width: 40 },
   ];
-  wsRetail.addRow({ kodeBarang: 'BRG001', name: 'Indomie Goreng', category: 'Makanan', hpp: 2500, hargaJual: 3500, stock: 100, minStockThreshold: 10, satuan: 'Pcs', barcode: '8992757123456', discount: 0, ppn: 11, description: 'Mie instan rasa ayam bawang' });
-  wsRetail.addRow({ kodeBarang: 'BRG002', name: 'Aqua 600ml', category: 'Minuman', hpp: 2000, hargaJual: 3000, stock: 200, minStockThreshold: 20, satuan: 'Botol', barcode: '8992757123457', discount: 0, ppn: 11, description: 'Air mineral ukuran 600ml' });
+  wsRetail.addRow(['BRG001', 'Indomie Goreng', 'Makanan', 2500, 3500, 100, 10, 'Pcs', '8992757123456', 0, 11, 'Mie instan rasa ayam bawang']);
+  wsRetail.addRow(['BRG002', 'Aqua 600ml', 'Minuman', 2000, 3000, 200, 20, 'Botol', '8992757123457', 0, 11, 'Air mineral ukuran 600ml']);
 
   const buffer = await workbook.xlsx.writeBuffer();
   return new NextResponse(buffer, {
