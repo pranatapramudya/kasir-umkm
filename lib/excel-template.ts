@@ -21,7 +21,8 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       { header: 'Tahun', key: 'tahun', width: 10 },
       { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
       { header: 'Harga Sewa/Jam (Rp)', key: 'hargaJam', width: 20 },
-      { header: 'Biaya Operasional/Hari (Rp)', key: 'biayaHarian', width: 24 },
+      { header: 'HPP / Biaya Operasional per Hari (Rp)', key: 'hppHarian', width: 28 },
+      { header: 'Margin %', key: 'marginPct', width: 12 },
       { header: 'Status', key: 'status', width: 16 },
       { header: 'Catatan / Spesifikasi', key: 'description', width: 50 },
     ];
@@ -40,11 +41,14 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
         allowBlank: true,
         formulae: ['"Manual,Otomatis"'],
       };
-      wsKendaraan.getCell(`I${row}`).dataValidation = {
+      wsKendaraan.getCell(`J${row}`).dataValidation = {
         type: 'list',
         allowBlank: true,
         formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'],
       };
+      // Margin % formula: ((Harga Harian - HPP) / Harga Harian) * 100
+      wsKendaraan.getCell(`I${row}`).value = { formula: `IF(F${row}>0,(F${row}-H${row})/F${row}*100,0)` };
+      wsKendaraan.getCell(`I${row}`).numFmt = '0.0"%"';
     }
 
     wsKendaraan.addRow({
@@ -55,9 +59,10 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       tahun: 2023,
       hargaHarian: 450000,
       hargaJam: 75000,
-      biayaHarian: 150000,
+      hppHarian: 150000,
+      marginPct: null, // formula
       status: 'Tersedia',
-      description: 'Bensin irit, 7 seat, AC double blower, transmisi CVT',
+      description: 'Bensin irit, 7 seat, AC double blower, transmisi CVT | HPP: Bensin 80k + Supir 50k + Perawatan 20k',
     });
     wsKendaraan.addRow({
       kodeUnit: 'UNT002',
@@ -67,9 +72,10 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       tahun: 2022,
       hargaHarian: 650000,
       hargaJam: 100000,
-      biayaHarian: 200000,
+      hppHarian: 200000,
+      marginPct: null,
       status: 'Tersedia',
-      description: 'Diesel 2.4, Captain Seat, 7 seat, cocok travel jauh',
+      description: 'Diesel 2.4, Captain Seat, 7 seat, cocok travel jauh | HPP: Solar 100k + Supir 70k + Perawatan 30k',
     });
     wsKendaraan.addRow({
       kodeUnit: 'UNT003',
@@ -79,9 +85,10 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       tahun: 2023,
       hargaHarian: 950000,
       hargaJam: 150000,
-      biayaHarian: 300000,
+      hppHarian: 300000,
+      marginPct: null,
       status: 'Tersedia',
-      description: '14 seat, diesel, cocok travel antar kota, armada travel',
+      description: '14 seat, diesel, cocok travel antar kota, armada travel | HPP: Solar 150k + Supir 100k + Toll/Perawatan 50k',
     });
     wsKendaraan.addRow({
       kodeUnit: 'UNT004',
@@ -91,9 +98,10 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       tahun: 2024,
       hargaHarian: 80000,
       hargaJam: 15000,
-      biayaHarian: 20000,
+      hppHarian: 20000,
+      marginPct: null,
       status: 'Tersedia',
-      description: 'Scooter matic, irit, cocok rental harian motor',
+      description: 'Scooter matic, irit, cocok rental harian motor | HPP: Bensin 15k + Perawatan 5k',
     });
     wsKendaraan.addRow({
       kodeUnit: 'UNT005',
@@ -103,9 +111,10 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       tahun: 2022,
       hargaHarian: 1200000,
       hargaJam: 200000,
-      biayaHarian: 400000,
+      hppHarian: 400000,
+      marginPct: null,
       status: 'Perbaikan',
-      description: '19 seat, diesel, armada shuttle bandara',
+      description: '19 seat, diesel, armada shuttle bandara | HPP: Solar 200k + Supir 120k + Toll/Perawatan 80k',
     });
 
     // Sheet 2: Unit Properti (Kos/Kamar/Homestay/Villa)
@@ -118,7 +127,9 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       { header: 'Kamar Mandi', key: 'kamarMandi', width: 16 },
       { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
       { header: 'Harga Sewa/Bulan (Rp)', key: 'hargaBulanan', width: 22 },
-      { header: 'Biaya Listrik/Token (Rp)', key: 'biayaListrik', width: 24 },
+      { header: 'HPP / Biaya Operasional per Hari (Rp)', key: 'hppHarian', width: 28 },
+      { header: 'Margin %', key: 'marginPct', width: 12 },
+      { header: 'Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)', key: 'hppDetail', width: 45 },
       { header: 'Status', key: 'status', width: 16 },
       { header: 'Fasilitas / Catatan', key: 'description', width: 50 },
     ];
@@ -132,11 +143,14 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
         errorTitle: 'Tipe Tidak Valid',
         error: 'Pilih dari daftar tipe properti',
       };
-      wsProperti.getCell(`I${row}`).dataValidation = {
+      wsProperti.getCell(`K${row}`).dataValidation = {
         type: 'list',
         allowBlank: true,
         formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'],
       };
+      // Margin % formula: ((Harga Harian - HPP) / Harga Harian) * 100
+      wsProperti.getCell(`I${row}`).value = { formula: `IF(F${row}>0,(F${row}-H${row})/F${row}*100,0)` };
+      wsProperti.getCell(`I${row}`).numFmt = '0.0"%"';
     }
 
     wsProperti.addRow({
@@ -147,7 +161,9 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       kamarMandi: 'Dalam',
       hargaHarian: 150000,
       hargaBulanan: 2500000,
-      biayaListrik: 50000,
+      hppHarian: 50000,
+      marginPct: null,
+      hppDetail: 'Listrik 20k + Air 10k + Internet 5k + Kebersihan 10k + Penyusutan 5k',
       status: 'Tersedia',
       description: 'AC, Kamar mandi dalam, Kasur queen, WiFi, Lemari',
     });
@@ -159,7 +175,9 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       kamarMandi: 'Dalam (2)',
       hargaHarian: 1500000,
       hargaBulanan: 0,
-      biayaListrik: 200000,
+      hppHarian: 300000,
+      marginPct: null,
+      hppDetail: 'Listrik 100k + Air 30k + Internet 20k + Kebersihan 100k + Penyusutan 50k',
       status: 'Tersedia',
       description: 'Private pool, 3 kamar tidur, Dapur lengkap, Gazebo',
     });
@@ -171,7 +189,9 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       kamarMandi: 'Dalam',
       hargaHarian: 450000,
       hargaBulanan: 8000000,
-      biayaListrik: 150000,
+      hppHarian: 150000,
+      marginPct: null,
+      hppDetail: 'Listrik 50k + Air 20k + Internet 20k + Kebersihan 40k + Penyusutan 20k',
       status: 'Tersedia',
       description: 'Fully furnished, gym, pool, 24h security, strategic location',
     });
@@ -183,7 +203,9 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       kamarMandi: 'Luar (Shared)',
       hargaHarian: 800000,
       hargaBulanan: 0,
-      biayaListrik: 50000,
+      hppHarian: 150000,
+      marginPct: null,
+      hppDetail: 'Listrik 30k + Air 10k + Internet 10k + Kebersihan 50k + Penyusutan 50k',
       status: 'Disewa',
       description: 'Tenda bell 5m, kasur king, heater, view gunung, BBQ area',
     });
@@ -195,7 +217,9 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       kamarMandi: 'Dalam',
       hargaHarian: 650000,
       hargaBulanan: 0,
-      biayaListrik: 0,
+      hppHarian: 180000,
+      marginPct: null,
+      hppDetail: 'Listrik 40k + Air 20k + Internet 15k + Kebersihan 60k + Penyusutan 45k + Sarapan 45k',
       status: 'Tersedia',
       description: 'Sarapan included, meeting room, laundry, dekat stasiun',
     });
