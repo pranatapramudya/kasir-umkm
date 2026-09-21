@@ -242,6 +242,7 @@ export default function AdminProductsClientPage({
           const sheetRows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
           const processed = sheetRows.map((row: any) => ({
             ...row,
+            _sheetName: sheetName, // Pass sheet name for server-side category detection
             category: row.category || row['Kategori'] || row.kategori || sheetName
           }));
           rawRows.push(...processed);
@@ -254,15 +255,15 @@ export default function AdminProductsClientPage({
 
       const productsList = rawRows.map((row) => {
         return {
-          kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang (SKU)'] || row['Kode Barang / SKU'] || row.sku || row.SKU || '',
+          kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang (SKU)'] || row['Kode Barang / SKU'] || row.sku || row.SKU || row['Kode Unit'] || '',
           name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Layanan / Produk'] || row['Nama Layanan / Barang'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row['Nama Sparepart'] || row['Nama Barang'] || row['Nama Produk / Barang'] || row.nama || '',
           category: row.category || row['Kategori'] || row.kategori || 'Umum',
-          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
-          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Jual / Tarif (Rp)'] ?? row['Tarif Layanan'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? 0,
+          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? row['HPP / Biaya Operasional per Hari (Rp)'] ?? row['Biaya Operasional/Hari (Rp)'] ?? 0,
+          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Jual / Tarif (Rp)'] ?? row['Tarif Layanan'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? row['Harga Sewa/Hari (Rp)'] ?? row['Harga Sewa/Jam (Rp)'] ?? 0,
           stock: row.stock ?? row['Stok'] ?? row['Qty (Stok)'] ?? row['Qty'] ?? row['Quantity'] ?? row.stok ?? row.qty ?? 0,
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
           employeeCommission: row.employeeCommission ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi Staf (Rp)'] ?? row['Komisi'] ?? row['Komisi Staf'] ?? 0,
-          description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Deskripsi / Catatan'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || '',
+          description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Deskripsi / Catatan'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || row['Catatan / Spesifikasi'] || row['Fasilitas / Catatan'] || row['Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)'] || '',
           isService: isPureJasa && (row.category?.toLowerCase() === 'jasa' || row.category?.toLowerCase() === 'jasa / servis' || !row.category)
         };
       }).filter(p => Boolean(p.name && String(p.name).trim()));

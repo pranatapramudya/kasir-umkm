@@ -84,7 +84,13 @@ export default function CsvImportModal({
               )}
               {isRental && (
                 <li className="bg-blue-100/60 p-2 rounded-lg font-medium text-blue-950">
-                  🚗 <b>Khusus Rental:</b> Kolom <b>HPP</b> diisi Biaya Operasional (B.Ops/Maintenance). Kolom <b>description</b> untuk fasilitas unit.
+                  🚗 <b>Khusus Rental/Travel/Properti:</b> File punya <b>3 Sheet</b>:
+                  <ol className="list-decimal pl-4 mt-1 text-[10px] space-y-0.5">
+                    <li><b>Sheet 1 - Armada:</b> Unit kendaraan (Mobil, Motor, Bus). 1 baris = 1 unit. <b>Stock otomatis 1</b>. Kolom <b>HPP = Biaya Operasional/Hari</b> (bensin, supir, toll, perawatan).</li>
+                    <li><b>Sheet 2 - Properti:</b> Kamar, Villa, Kost, Hotel. 1 baris = 1 unit. <b>Stock otomatis 1</b>. Kolom <b>HPP = Biaya Operasional/Hari</b> (listrik, air, internet, kebersihan, penyusutan).</li>
+                    <li><b>Sheet 3 - Layanan Tambahan:</b> Supir, Asuransi, Bensin, Kebersihan, dll. <b>Stock unlimited</b>. Kolom <b>HPP = 0</b>. Kolom <b>Satuan</b> diisi (Per Hari/Per Trip/Per Unit).</li>
+                  </ol>
+                  <b>Tips:</b> Jangan hapus nama sheet! Sistem otomatis baca sheet name untuk kategori.
                 </li>
               )}
               <li>Simpan file di komputer Anda, lalu upload pada kotak di bawah ini.</li>
