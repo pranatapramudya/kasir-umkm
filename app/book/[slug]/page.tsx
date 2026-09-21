@@ -43,9 +43,10 @@ export default async function BookingPage({ params }: PageProps) {
 
   if (!tenant) notFound();
 
-  // Blokir akses jika kategori bisnis bukan Jasa atau Rental
+  // Blokir akses jika kategori bisnis bukan Jasa atau Rental/Travel/Properti
   const isServiceBusiness = isServiceBusinessCategory(tenant.category);
-  if (!isServiceBusiness) {
+  const isRentalTravel = isRentalTravelCategory(tenant.category);
+  if (!isServiceBusiness && !isRentalTravel) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center shadow-md max-w-sm w-full">
