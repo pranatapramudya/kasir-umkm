@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
-import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
+import { isServiceBusinessCategory, isRentalTravelCategory, detectRentalItemType } from '@/lib/business-category';
 
 const parseNumber = (val: any, fallback = 0): number => {
   if (typeof val === 'number') return isNaN(val) ? fallback : Math.round(val);
@@ -15,9 +15,9 @@ const parseNumber = (val: any, fallback = 0): number => {
 // Helper: normalize category from sheet name
 const getCategoryFromSheet = (sheetName: string): string => {
   const name = sheetName.toLowerCase();
-  if (name.includes('armada') || name.includes('kendaraan') || name.includes('travel')) return 'Armada';
-  if (name.includes('properti') || name.includes('kamar') || name.includes('villa') || name.includes('kost')) return 'Properti';
-  if (name.includes('layanan') || name.includes('tambahan') || name.includes('supir') || name.includes('asuransi')) return 'Layanan Tambahan';
+  if (name.includes('armada') || name.includes('kendaraan') || name.includes('travel') || name.includes('mobil') || name.includes('motor')) return 'Armada';
+  if (name.includes('properti') || name.includes('kamar') || name.includes('villa') || name.includes('kost') || name.includes('hotel') || name.includes('penginapan')) return 'Properti';
+  if (name.includes('layanan') || name.includes('tambahan') || name.includes('supir') || name.includes('asuransi') || name.includes('extra') || name.includes('addon') || name.includes('driver')) return 'Layanan Tambahan';
   return 'Umum';
 };
 
@@ -46,17 +46,48 @@ export async function POST(req: Request) {
     // Prepare data for createMany with sheet-aware logic
     const productsToInsert = products.map((p: any, index: number) => {
       // --- Basic fields ---
-      const rawName = String(p.name || p.nama || p.namaBarang || p.namaLayanan || p.unit || p['Nama Unit'] || p['Nama Unit / Properti'] || '').trim();
+      const rawName = String(
+        p.name || 
+        p['Nama Unit Kendaraan / Plat'] || 
+        p['Nama Unit / Plat'] || 
+        p['Nama Unit Kendaraan'] || 
+        p['Nama Unit / No. Kamar'] || 
+        p['Nama Kamar / Unit'] || 
+        p['Nama Unit'] || 
+        p['Nama Unit / Properti'] || 
+        p['Nama Layanan'] || 
+        p['Nama Produk'] || 
+        p['Nama Produk / Barang'] || 
+        p['Nama Barang'] || 
+        p['Nama Menu'] || 
+        p['Nama Layanan / Produk'] || 
+        p['Nama Layanan / Barang'] || 
+        p.nama || 
+        p.namaBarang || 
+        p.namaLayanan || 
+        p.unit || 
+        ''
+      ).trim();
+
+      const rawDesc = p.description ?? p['Deskripsi'] ?? p['Deskripsi Layanan'] ?? p['Fasilitas'] ?? p.deskripsi ?? p.fasilitas ?? p.keterangan ?? p['Catatan / Spesifikasi'] ?? p['Fasilitas / Catatan'] ?? p['Catatan / Fasilitas'] ?? p['Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)'] ?? '';
       const rawCategory = (p.category || p.kategori || p.Kategori || '').toString().trim();
       const sheetCategory = getCategoryFromSheet(p._sheetName || '');
       
-      // Determine final category: prefer sheet-based for rental, fallback to row category
+      // Determine final category: prefer sheet-based for rental, fallback to smart detection
       let finalCategory = rawCategory || sheetCategory || 'Umum';
-      if (isRental && sheetCategory !== 'Umum') {
-        finalCategory = sheetCategory; // Trust sheet name for rental
+      if (isRental) {
+        if (sheetCategory !== 'Umum') {
+          finalCategory = sheetCategory; // Trust sheet name for rental
+        } else {
+          // Fallback using smart keyword detection if sheet name was modified
+          const rentalType = detectRentalItemType(rawName, String(rawDesc));
+          if (rentalType === 'vehicle') finalCategory = 'Armada';
+          else if (rentalType === 'property') finalCategory = 'Properti';
+          else finalCategory = rawCategory || 'Armada';
+        }
       }
 
-      // Normalize category for service businesses
+      // Normalize category for service businesses (strictly isolated)
       const categoryLower = finalCategory.toLowerCase();
       const isJasaMurni = isService && (categoryLower === 'jasa' || categoryLower === 'jasa / servis' || categoryLower === 'jasa/servis' || categoryLower === 'layanan' || categoryLower === 'jasa servis');
       const normalizedCategory = isService ? (isJasaMurni ? 'Jasa / Servis' : 'Produk / Barang') : finalCategory;
@@ -80,7 +111,6 @@ export async function POST(req: Request) {
       const rawStock = p.stock ?? p['Stok'] ?? p.stok ?? p['Qty (Stok)'] ?? p['Qty'] ?? p['Quantity'] ?? p.qty ?? p.quantity ?? (isRentalItem ? 1 : 0);
       const rawMinStock = p.minStockThreshold ?? p['Min Stok'] ?? p['Batas Minimum Stok'] ?? p.minStock ?? p.batasMinStok ?? (isRentalItem ? 1 : 5);
       const rawCommission = p.employeeCommission ?? p.komisi ?? p.komisiKaryawan ?? p['Komisi'] ?? p['Komisi Staf (Rp)'] ?? p['Komisi Staf'] ?? p.commission ?? p.komisiStaf ?? 0;
-      const rawDesc = p.description ?? p['Deskripsi'] ?? p['Deskripsi Layanan'] ?? p['Fasilitas'] ?? p.deskripsi ?? p.fasilitas ?? p.keterangan ?? p['Catatan / Spesifikasi'] ?? p['Fasilitas / Catatan'] ?? p['Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)'] ?? '';
 
       // Kode barang
       const kodeBarang = p.kodeBarang ? String(p.kodeBarang).trim().toUpperCase() : `SKU-${Date.now()}-${index}-${Math.floor(Math.random() * 1000)}`;

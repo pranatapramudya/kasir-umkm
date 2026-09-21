@@ -254,16 +254,38 @@ export default function AdminProductsClientPage({
       }
 
       const productsList = rawRows.map((row) => {
+        const rawName = row.name || 
+          row['Nama Unit Kendaraan / Plat'] || 
+          row['Nama Unit / Plat'] || 
+          row['Nama Unit Kendaraan'] || 
+          row['Nama Unit / No. Kamar'] || 
+          row['Nama Kamar / Unit'] || 
+          row['Nama Unit'] || 
+          row['Nama Unit / Properti'] || 
+          row['Nama Layanan'] || 
+          row['Nama Produk'] || 
+          row['Nama Produk / Barang'] || 
+          row['Nama Barang'] || 
+          row['Nama Menu'] || 
+          row['Nama Layanan / Produk'] || 
+          row['Nama Layanan / Barang'] || 
+          row['Nama Sparepart'] || 
+          row.nama || 
+          row.unit || 
+          '';
+
         return {
-          kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang (SKU)'] || row['Kode Barang / SKU'] || row.sku || row.SKU || row['Kode Unit'] || '',
-          name: row.name || row['Nama'] || row['Nama Produk'] || row['Nama Menu'] || row['Nama Layanan'] || row['Nama Layanan / Produk'] || row['Nama Layanan / Barang'] || row['Nama Unit'] || row['Nama Unit / Properti'] || row['Nama Sparepart'] || row['Nama Barang'] || row['Nama Produk / Barang'] || row.nama || '',
-          category: row.category || row['Kategori'] || row.kategori || 'Umum',
-          hpp: row.hpp ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row['Biaya Operasional (B.Ops)'] ?? row.biayaOperasional ?? row['Biaya Operasional'] ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? row['HPP / Biaya Operasional per Hari (Rp)'] ?? row['Biaya Operasional/Hari (Rp)'] ?? 0,
-          hargaJual: row.hargaJual ?? row['Harga Jual'] ?? row['Harga Jual (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Jual / Tarif (Rp)'] ?? row['Tarif Layanan'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? row['Harga Sewa/Hari (Rp)'] ?? row['Harga Sewa/Jam (Rp)'] ?? 0,
+          _sheetName: row._sheetName || '', // Wajib dikirim ke API bulk untuk deteksi kategori
+          kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang (SKU)'] || row['Kode Barang / SKU'] || row.sku || row.SKU || row['Kode Unit'] || row['Kode Layanan'] || '',
+          name: String(rawName).trim(),
+          category: row.category || row['Kategori'] || row.kategori || row._sheetName || 'Umum',
+          hpp: row.hpp ?? row['HPP / Biaya Operasional per Hari (Rp)'] ?? row['HPP / Biaya Operasional (Rp)'] ?? row['Biaya Operasional/Hari (Rp)'] ?? row['Biaya Operasional (B.Ops)'] ?? row['Biaya Operasional'] ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row.biayaOperasional ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
+          hargaJual: row.hargaJual ?? row['Harga Sewa/Hari (Rp)'] ?? row['Harga Sewa/Bulan (Rp)'] ?? row['Harga Sewa/Jam (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Jual / Tarif (Rp)'] ?? row['Harga Jual (Rp)'] ?? row['Harga Jual'] ?? row['Tarif Layanan'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? 0,
           stock: row.stock ?? row['Stok'] ?? row['Qty (Stok)'] ?? row['Qty'] ?? row['Quantity'] ?? row.stok ?? row.qty ?? 0,
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
-          employeeCommission: row.employeeCommission ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi Staf (Rp)'] ?? row['Komisi'] ?? row['Komisi Staf'] ?? 0,
-          description: row.description || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Deskripsi / Catatan'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || row['Catatan / Spesifikasi'] || row['Fasilitas / Catatan'] || row['Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)'] || '',
+          satuan: row.satuan || row['Satuan'] || '',
+          employeeCommission: row.employeeCommission ?? row['Komisi Driver (Rp)'] ?? row['Komisi Staf (Rp)'] ?? row['Komisi Staf'] ?? row['Komisi Driver'] ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi'] ?? 0,
+          description: row.description || row['Fasilitas / Catatan'] || row['Catatan / Fasilitas'] || row['Catatan / Spesifikasi'] || row['Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)'] || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Deskripsi / Catatan'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || row.keterangan || '',
           isService: isPureJasa && (row.category?.toLowerCase() === 'jasa' || row.category?.toLowerCase() === 'jasa / servis' || !row.category)
         };
       }).filter(p => Boolean(p.name && String(p.name).trim()));

@@ -6,8 +6,9 @@ export const maxDuration = 30;
 
 export async function GET(req: NextRequest) {
   const kategoriUsaha = req.nextUrl.searchParams.get('category') || 'Jasa';
+  const subType = (req.nextUrl.searchParams.get('type') || '').toLowerCase(); // 'rental' | 'properti'
   const isRental = isRentalTravelCategory(kategoriUsaha);
-  const isJasa = isServiceBusinessCategory(kategoriUsaha);
+  const isJasa = isServiceBusinessCategory(kategoriUsaha) && !isRental;
   const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
 
   const ExcelJS = (await import('exceljs')).default;
@@ -15,108 +16,190 @@ export async function GET(req: NextRequest) {
   workbook.creator = 'Kasir UMKM';
   workbook.created = new Date();
 
+  // ==========================================
+  // 1. RENTAL / TRAVEL / PROPERTI
+  // ==========================================
   if (isRental) {
-    // Sheet 1: Armada - max 31 chars
+    if (subType === 'properti') {
+      // ------------------------------------------
+      // TEMPLATE KHUSUS: PROPERTI & PENGINAPAN
+      // ------------------------------------------
+      // Sheet 1: Unit Properti
+      const wsProperti = workbook.addWorksheet('1. Unit Properti (Kamar, Villa)');
+      wsProperti.columns = [
+        { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
+        { header: 'Nama Unit / No. Kamar', key: 'name', width: 34 },
+        { header: 'Tipe Properti', key: 'tipe', width: 22 },
+        { header: 'Kapasitas (Orang)', key: 'kapasitas', width: 18 },
+        { header: 'Kamar Mandi', key: 'kamarMandi', width: 16 },
+        { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
+        { header: 'Harga Sewa/Bulan (Rp)', key: 'hargaBulanan', width: 22 },
+        { header: 'HPP / Biaya Operasional per Hari (Rp)', key: 'hppHarian', width: 30 },
+        { header: 'Margin %', key: 'marginPct', width: 14 },
+        { header: 'Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)', key: 'hppDetail', width: 45 },
+        { header: 'Status', key: 'status', width: 16 },
+        { header: 'Fasilitas / Catatan', key: 'description', width: 50 },
+      ];
+
+      for (let row = 2; row <= 50; row++) {
+        wsProperti.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Kamar Kost,Villa,Apartment,Hotel,Glamping,Studio,Homestay,Guest House"'],
+          showErrorMessage: true,
+          errorTitle: 'Pilihan Tipe',
+          error: 'Pilih dari dropdown: Kamar Kost, Villa, Apartment, Hotel, Glamping, Studio, Homestay, Guest House',
+        };
+        wsProperti.getCell(`E${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Dalam,Luar,Shared"'],
+        };
+        wsProperti.getCell(`K${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'],
+        };
+        // Auto Margin % formula
+        wsProperti.getCell(`I${row}`).value = { formula: `IF(F${row}>0,(F${row}-H${row})/F${row}*100,0)` };
+        wsProperti.getCell(`I${row}`).numFmt = '0.0"%"';
+      }
+
+      const propertiData = [
+        ['PRP001', 'Kamar Deluxe 101 - Lantai 1', 'Kamar Kost', 2, 'Dalam', 150000, 2500000, 35000, null, 'Listrik 15k + Air 5k + Wifi 5k + Kebersihan 10k', 'Tersedia', 'AC, KM Dalam, Springbed Queen, Meja Belajar, WiFi 50Mbps'],
+        ['PRP002', 'Villa Puncak Indah - 3 Bedroom', 'Villa', 8, 'Dalam', 1500000, 0, 350000, null, 'Listrik 100k + Kolam 100k + Staff 100k + Kebersihan 50k', 'Tersedia', 'Private Pool, BBQ, Karaoke, Water Heater, Dapur Lengkap'],
+        ['PRP003', 'Studio Apartment 12B - Green Valley', 'Apartment', 2, 'Dalam', 400000, 7500000, 70000, null, 'IPL 30k + Listrik 25k + Air 15k', 'Tersedia', 'Furnished, Kitchen Set, Smart TV, Gym & Swimming Pool Access'],
+        ['PRP004', 'Glamping Suite 01 - View Lembah', 'Glamping', 4, 'Dalam', 750000, 0, 180000, null, 'Listrik 40k + Breakfast 80k + Staff 40k + Laundry 20k', 'Tersedia', 'Tenda Safari Mewah, Kasur King, Kamar Mandi Batu Alam, Api Unggun'],
+        ['PRP005', 'Kamar Superior 202 - Hotel Transit', 'Hotel', 2, 'Dalam', 300000, 0, 85000, null, 'Laundry 25k + Amenities 20k + Listrik 30k + Kebersihan 10k', 'Tersedia', 'Twin Bed, TV Kabel, Safe Deposit Box, Sarapan 2 Pax'],
+      ];
+
+      propertiData.forEach((rowData, i) => {
+        rowData.forEach((val, j) => {
+          wsProperti.getCell(i + 2, j + 1).value = val;
+        });
+      });
+
+      // Sheet 2: Layanan & Add-on Properti
+      const wsAddonProp = workbook.addWorksheet('2. Layanan Tambahan Properti');
+      wsAddonProp.columns = [
+        { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
+        { header: 'Nama Layanan', key: 'name', width: 36 },
+        { header: 'Kategori', key: 'category', width: 22 },
+        { header: 'Tarif (Rp)', key: 'harga', width: 18 },
+        { header: 'Satuan', key: 'satuan', width: 18 },
+        { header: 'Komisi Staf (Rp)', key: 'komisi', width: 20 },
+        { header: 'Deskripsi', key: 'description', width: 50 },
+      ];
+
+      for (let row = 2; row <= 50; row++) {
+        wsAddonProp.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Extra Bed,Sarapan/Makan,Laundry,Late Check-out,Kebersihan,Lainnya"'],
+        };
+      }
+
+      const addonPropData = [
+        ['EX001', 'Extra Bed (Kasur Tambahan)', 'Extra Bed', 100000, 'Per Malam', 20000, 'Sudah termasuk sprei bersih, selimut tebal & bantal'],
+        ['EX002', 'Sarapan Tambahan / Breakfast Buffet', 'Sarapan/Makan', 45000, 'Per Porsi', 5000, 'Menu prasmanan nusantara + teh / kopi'],
+        ['EX003', 'Laundry Cuci Kering Setrika', 'Laundry', 20000, 'Per Kg', 3000, 'Layanan cuci express pakaian tamu dalam 12 jam'],
+        ['EX004', 'Late Check-out s/d Pukul 15:00', 'Late Check-out', 100000, 'Per Kamar', 15000, 'Perpanjangan jam checkout dengan persetujuan resepsionis'],
+        ['EX005', 'Deep Cleaning / Pembersihan Total', 'Kebersihan', 150000, 'Per Panggilan', 50000, 'Pembersihan menyeluruh kamar / villa setelah pemakaian'],
+      ];
+
+      addonPropData.forEach((rowData, i) => {
+        rowData.forEach((val, j) => {
+          wsAddonProp.getCell(i + 2, j + 1).value = val;
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="template_import_properti_penginapan.xlsx"',
+        },
+      });
+    }
+
+    // ------------------------------------------
+    // DEFAULT: TEMPLATE KHUSUS RENTAL & TRAVEL
+    // ------------------------------------------
+    // Sheet 1: Armada Kendaraan
     const wsKendaraan = workbook.addWorksheet('1. Armada (Kendaraan, Travel)');
     wsKendaraan.columns = [
       { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
-      { header: 'Nama Unit / Plat', key: 'name', width: 32 },
+      { header: 'Nama Unit Kendaraan / Plat', key: 'name', width: 34 },
       { header: 'Tipe Kendaraan', key: 'tipe', width: 20 },
       { header: 'Transmisi', key: 'transmisi', width: 16 },
       { header: 'Tahun', key: 'tahun', width: 10 },
       { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
       { header: 'Harga Sewa/Jam (Rp)', key: 'hargaJam', width: 20 },
-      { header: 'Biaya Operasional/Hari (Rp)', key: 'biayaHarian', width: 24 },
+      { header: 'HPP / Biaya Operasional per Hari (Rp)', key: 'hppHarian', width: 30 },
+      { header: 'Margin %', key: 'marginPct', width: 14 },
       { header: 'Status', key: 'status', width: 16 },
       { header: 'Catatan / Spesifikasi', key: 'description', width: 50 },
     ];
 
-    // Data validation dropdowns (limit rows to 50 for performance)
     for (let row = 2; row <= 50; row++) {
       wsKendaraan.getCell(`C${row}`).dataValidation = {
-        type: 'list', allowBlank: true,
+        type: 'list',
+        allowBlank: true,
         formulae: ['"MPV,SUV,Sedan,Minibus,Bus,Pickup,Truck,Motor,Matic,Bebek,Sport"'],
-        showErrorMessage: true, errorTitle: 'Tipe Tidak Valid',
+        showErrorMessage: true,
+        errorTitle: 'Tipe Tidak Valid',
         error: 'Pilih dari daftar: MPV, SUV, Sedan, Minibus, Bus, Pickup, Truck, Motor, Matic, Bebek, Sport',
       };
       wsKendaraan.getCell(`D${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Manual,Otomatis"'] };
-      wsKendaraan.getCell(`I${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'] };
+      wsKendaraan.getCell(`J${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'] };
+      // Auto Margin % formula
+      wsKendaraan.getCell(`I${row}`).value = { formula: `IF(F${row}>0,(F${row}-H${row})/F${row}*100,0)` };
+      wsKendaraan.getCell(`I${row}`).numFmt = '0.0"%"';
     }
 
-    // SAMPLE DATA - write directly to cells for Vercel compatibility
     const kendaraanData = [
-      ['UNT001', 'Avanza Veloz 2023 - B 1234 ABC', 'MPV', 'Otomatis', 2023, 450000, 75000, 100000, 'Tersedia', 'Mobil keluarga, AC double blower, audio touchscreen'],
-      ['UNT002', 'Innova Reborn 2022 - B 5678 DEF', 'MPV', 'Otomatis', 2022, 650000, 100000, 150000, 'Tersedia', 'Premium MPV, captain seat, sunroof'],
-      ['UNT003', 'Hiace Commuter 2023 - B 9012 GHI', 'Minibus', 'Manual', 2023, 950000, 150000, 200000, 'Tersedia', 'Travel 12-14 penumpang, AC pendingin kuat'],
-      ['UNT004', 'NMAX 155 2024 - B 3456 JKL', 'Motor', 'Matic', 2024, 80000, 15000, 20000, 'Tersedia', 'Matic sport, ABS, cocok sewa harian'],
-      ['UNT005', 'Elf Long 2022 - B 7890 MNO', 'Minibus', 'Manual', 2022, 1200000, 200000, 250000, 'Tersedia', 'Travel 16-18 penumpang, box panjang'],
+      ['UNT001', 'Avanza Veloz 2023 - D 1234 ABC', 'MPV', 'Otomatis', 2023, 450000, 75000, 150000, null, 'Tersedia', 'Bensin irit, 7 seat, AC double blower | HPP: Solar/Bensin 80k + Supir 50k + Perawatan 20k'],
+      ['UNT002', 'Innova Reborn 2022 - D 5678 DEF', 'MPV', 'Otomatis', 2022, 650000, 100000, 200000, null, 'Tersedia', 'Diesel 2.4, Captain Seat, Nyaman luar kota | HPP: Solar 100k + Supir 70k + Servis 30k'],
+      ['UNT003', 'Hiace Commuter 2023 - D 9012 GHI', 'Minibus', 'Manual', 2023, 950000, 150000, 300000, null, 'Tersedia', '14 seat penumpang, armada travel antar-kota | HPP: Solar 150k + Supir 100k + Toll 50k'],
+      ['UNT004', 'NMAX 155 Connected 2024 - D 3456 JKL', 'Motor', 'Matic', 2024, 90000, 18000, 25000, null, 'Tersedia', 'Matic irit, bagasi luas, rem ABS | HPP: Bensin 15k + Perawatan/Oli 10k'],
+      ['UNT005', 'Elf Long Giga 2022 - D 7890 MNO', 'Minibus', 'Manual', 2022, 1200000, 200000, 400000, null, 'Tersedia', '19 seat, cocok rombongan wisata / ziarah | HPP: Solar 200k + Supir 120k + Maintenance 80k'],
     ];
+
     kendaraanData.forEach((rowData, i) => {
       rowData.forEach((val, j) => {
         wsKendaraan.getCell(i + 2, j + 1).value = val;
       });
     });
 
-    // Sheet 2: Properti - max 31 chars
-    const wsProperti = workbook.addWorksheet('2. Properti (Kamar, Villa)');
-    wsProperti.columns = [
-      { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
-      { header: 'Nama Unit / Plat', key: 'name', width: 32 },
-      { header: 'Tipe Properti', key: 'tipe', width: 20 },
-      { header: 'Kapasitas', key: 'kapasitas', width: 14 },
-      { header: 'Kamar Mandi', key: 'kamarMandi', width: 16 },
-      { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
-      { header: 'Harga Sewa/Bulan (Rp)', key: 'hargaBulanan', width: 22 },
-      { header: 'Biaya Operasional/Hari (Rp)', key: 'biayaHarian', width: 24 },
-      { header: 'Status', key: 'status', width: 16 },
-      { header: 'Catatan / Fasilitas', key: 'description', width: 50 },
-    ];
-
-    for (let row = 2; row <= 50; row++) {
-      wsProperti.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Kamar Kost,Villa,Apartment,Hotel,Glamping,Studio,Guest House"'] };
-      wsProperti.getCell(`E${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Dalam,Luar,Shared"'] };
-      wsProperti.getCell(`I${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'] };
-    }
-
-    // SAMPLE DATA - write directly to cells for Vercel compatibility
-    const propertiData = [
-      ['PRP001', 'Kamar Deluxe 101 - Lantai 1', 'Kamar Kost', 2, 'Dalam', 150000, 2500000, 20000, 'Tersedia', 'AC, kamar mandi dalam, kasur springbed, wifi'],
-      ['PRP002', 'Villa Puncak 2 - Gunung Geulis', 'Villa', 6, 'Dalam', 1500000, 0, 300000, 'Tersedia', '3 kamar tidur, kolam renang private, dapur lengkap'],
-      ['PRP003', 'Studio Apartment 3A - Sudirman', 'Apartment', 2, 'Dalam', 450000, 8000000, 50000, 'Tersedia', 'Fully furnished, gym, pool, strategic location'],
-      ['PRP004', 'Glamping Tenda Luxury - Taman Safari', 'Glamping', 4, 'Dalam', 800000, 0, 150000, 'Tersedia', 'Tenda glamping 4 orang, AC, toilet dalam, view gunung'],
-      ['PRP005', 'Hotel Bisnis Deluxe - Bandung', 'Hotel', 2, 'Dalam', 650000, 0, 100000, 'Tersedia', 'Sarapan gratis, meeting room, laundry service'],
-    ];
-    propertiData.forEach((rowData, i) => {
-      rowData.forEach((val, j) => {
-        wsProperti.getCell(i + 2, j + 1).value = val;
-      });
-    });
-
-    // Sheet 3: Layanan Tambahan - max 31 chars
-    const wsLayanan = workbook.addWorksheet('3. Layanan (Supir, Asuransi)');
+    // Sheet 2: Layanan & Add-on Rental
+    const wsLayanan = workbook.addWorksheet('2. Layanan Tambahan Rental');
     wsLayanan.columns = [
       { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
       { header: 'Nama Layanan', key: 'name', width: 36 },
       { header: 'Kategori', key: 'category', width: 22 },
-      { header: 'Harga (Rp)', key: 'harga', width: 18 },
-      { header: 'Satuan', key: 'satuan', width: 16 },
+      { header: 'Tarif (Rp)', key: 'harga', width: 18 },
+      { header: 'Satuan', key: 'satuan', width: 18 },
+      { header: 'Komisi Driver (Rp)', key: 'komisi', width: 20 },
       { header: 'Deskripsi', key: 'description', width: 50 },
     ];
 
     for (let row = 2; row <= 50; row++) {
-      wsLayanan.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Supir/Bunker,Bensin/Isi Ulang,Asuransi,Antar Jemput,Kebersihan,Lainnya"'] };
+      wsLayanan.getCell(`C${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"Supir/Driver,BBM/Bensin,Asuransi,Antar Jemput,All In,Lainnya"'],
+      };
     }
 
-    // SAMPLE DATA - write directly to cells for Vercel compatibility
-    const layananData = [
-      ['SV001', 'Supir Harian (Dalam Kota)', 'Supir/Bunker', 200000, 'Per Hari', 'Termasuk makan & parkir, max 12 jam'],
-      ['SV002', 'Isi Ulang Bensin Full Tank', 'Bensin/Isi Ulang', 500000, 'Per Unit', 'Pertalite/Pertamax, harga ikut pompa'],
-      ['SV003', 'Asuransi Perjalanan Per Hari', 'Asuransi', 50000, 'Per Hari', 'Cover kerusakan ringan & kecelakaan'],
-      ['SV004', 'Antar Jemput Bandara (Shuttle)', 'Antar Jemput', 350000, 'Per Trip', 'Maks 4 orang + bagasi, area Jabodetabek'],
-      ['SV005', 'Kebersihan Extra / Deep Clean', 'Kebersihan', 150000, 'Per Unit', 'Detailing interior, vacuum, fogging, wc deep clean'],
-      ['SV006', 'WiFi Portable / Pocket WiFi', 'Lainnya', 50000, 'Per Hari', 'Unlimited data 4G/5G, bisa 10 device, powerbank 10000mAh'],
+    const layananRentalData = [
+      ['SV001', 'Jasa Supir Harian (Dalam Kota)', 'Supir/Driver', 200000, 'Per Hari', 150000, 'Sudah termasuk uang makan sopir, jam kerja max 12 jam'],
+      ['SV002', 'Jasa Supir Harian (Luar Kota / Menginap)', 'Supir/Driver', 300000, 'Per Hari', 220000, 'Luar kota, belum termasuk penginapan supir jika >1 hari'],
+      ['SV003', 'Isi BBM Full Tank (Pertalite/Dexlite)', 'BBM/Bensin', 450000, 'Per Unit', 0, 'Pengisian bahan bakar penuh saat serah terima unit'],
+      ['SV004', 'Asuransi Perjalanan / Collision Damage Waiver', 'Asuransi', 50000, 'Per Hari', 0, 'Cover lecet ringan & kecelakaan jalan raya'],
+      ['SV005', 'Antar Jemput Bandara (Drop / Pick up)', 'Antar Jemput', 250000, 'Per Trip', 50000, 'Antar jemput bandara terdekat, max 4 penumpang + koper'],
     ];
-    layananData.forEach((rowData, i) => {
+
+    layananRentalData.forEach((rowData, i) => {
       rowData.forEach((val, j) => {
         wsLayanan.getCell(i + 2, j + 1).value = val;
       });
@@ -126,12 +209,14 @@ export async function GET(req: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename="template_import_rental_travel_properti.xlsx"',
+        'Content-Disposition': 'attachment; filename="template_import_rental_kendaraan.xlsx"',
       },
     });
   }
 
-  // --- F&B ---
+  // ==========================================
+  // 2. F&B / KULINER
+  // ==========================================
   if (isFNB) {
     const wsMenu = workbook.addWorksheet('Menu Makanan & Minuman');
     wsMenu.columns = [
@@ -169,7 +254,9 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // --- Jasa/Servis ---
+  // ==========================================
+  // 3. JASA / SERVIS
+  // ==========================================
   if (isJasa) {
     const ws = workbook.addWorksheet('Katalog Jasa & Barang');
     ws.columns = [
@@ -201,7 +288,9 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // --- Retail fallback ---
+  // ==========================================
+  // 4. RETAIL (DEFAULT)
+  // ==========================================
   const wsRetail = workbook.addWorksheet('Katalog Produk Retail');
   wsRetail.columns = [
     { header: 'Kode Barang (SKU)', key: 'kodeBarang', width: 20 },
