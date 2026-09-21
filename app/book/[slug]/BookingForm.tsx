@@ -205,7 +205,7 @@ export default function BookingForm({
 
   const isRental = isRentalTravelCategory(tenantCategory);
 
-  const [rentalCategoryType, setRentalCategoryType] = useState<"property" | "vehicle">("property");
+  const [rentalCategoryType, setRentalCategoryType] = useState<"property" | "vehicle" | "equipment">("property");
   const [rentalModeDuration, setRentalModeDuration] = useState<"hourly" | "daily">("hourly");
 
   // State khusus Transit Per Jam (Hourly Property)
@@ -476,14 +476,22 @@ export default function BookingForm({
           `Waktu Check-out: *${hourlyCheckoutInfo.checkOutLabel}* (*${hourlyData.durationHours} Jam Transit*).\n\n` +
           `Berikut bukti transfernya...`;
       } else if (rentalCategoryType === "property") {
-        const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-        const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-        text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-          `Nama Pemesan: *${formData.customerName}*\n` +
-          `Properti: *${tenantName}*${serviceText}\n` +
-          `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
-          `Berikut bukti transfernya...`;
-      } else {
+              const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+              const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+              text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+                `Nama Pemesan: *${formData.customerName}*\n` +
+                `Properti: *${tenantName}*${serviceText}\n` +
+                `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
+                `Berikut bukti transfernya...`;
+            } else if (rentalCategoryType === "equipment") {
+              const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+              const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+              text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+                `Nama Pemesan: *${formData.customerName}*\n` +
+                `Alat: *${tenantName}*${serviceText}\n` +
+                `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
+                `Berikut bukti transfernya...`;
+            } else {
         const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
         const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
         text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
@@ -756,8 +764,22 @@ export default function BookingForm({
                     </span>
                   </div>
                 </>
-              ) : (
+              ) : rentalCategoryType === "equipment" ? (
                 <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Mulai Sewa</span>
+                    <span className="text-slate-900 font-semibold text-xs">
+                      {new Date(rentalData.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-xs">Selesai Sewa</span>
+                    <span className="text-slate-900 font-semibold text-xs">
+                      {new Date(rentalData.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    </span>
+                  </div>
+                </>
+              ) : (                <>
                   {(rentalData.dropoffProvince || rentalData.dropoffLocation) && (
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500 text-xs">Tujuan</span>
