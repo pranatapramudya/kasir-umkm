@@ -24,7 +24,7 @@ export function isPureServiceCategory(category?: string | null) {
   return isServiceBusinessCategory(category) && !isRentalTravelCategory(category);
 }
 
-export function detectRentalItemType(name?: string | null, description?: string | null): "property" | "vehicle" | "unknown" {
+export function detectRentalItemType(name?: string | null, description?: string | null): "property" | "vehicle" | "equipment" | "unknown" {
   const combined = `${name || ""} ${description || ""}`.toLowerCase();
   if (!combined.trim()) return "unknown";
 
@@ -41,11 +41,26 @@ export function detectRentalItemType(name?: string | null, description?: string 
     "resort", "house", "rumah", "glamping", "paviliun", "penginapan", "ruang", "space"
   ];
 
+  const equipmentKeywords = [
+    "kamera", "camera", "lensa", "lens", "drone", "gimbal", "tripod", "lighting", "audio", "sound", "speaker", "mic", "microphone", "mixer", "genset", "generator",
+    "tenda", "tent", "carrier", "matras", "sleeping bag", "kompor", "portable", "camping", "outdoor", "trekking", "hiking",
+    "playstation", "ps5", "ps4", "nintendo", "switch", "xbox", "console", "game", "vr", "headset",
+    "alat berat", "molen", "bor", "gerinda", "kompresor", "pompa", "generator", "pipa", "scaffolding",
+    "perlengkapan", "aksesoris", "kabel", "stand", "softbox", "ring light", "reflector",
+    "alat", "equipment", "gear", "rental alat", "sewa alat"
+  ];
+
   const matchesVehicle = vehicleKeywords.some(kw => combined.includes(kw));
   const matchesProperty = propertyKeywords.some(kw => combined.includes(kw));
+  const matchesEquipment = equipmentKeywords.some(kw => combined.includes(kw));
 
-  if (matchesProperty && !matchesVehicle) return "property";
-  if (matchesVehicle && !matchesProperty) return "vehicle";
+  // Priority: spesifik dulu
+  if (matchesEquipment && !matchesVehicle && !matchesProperty) return "equipment";
+  if (matchesProperty && !matchesVehicle && !matchesEquipment) return "property";
+  if (matchesVehicle && !matchesProperty && !matchesEquipment) return "vehicle";
+
+  // Fallback kalau overlapping
+  if (matchesEquipment) return "equipment";
   if (matchesProperty) return "property";
   if (matchesVehicle) return "vehicle";
 

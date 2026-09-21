@@ -204,7 +204,7 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
   );
 }
 
-export default function POSApp({ sidebar, isExpired = false, initialData, tenantName, tenantCategory, tenantPhone }: { sidebar: React.ReactNode; isExpired?: boolean; initialData?: { products: Product[], totalPages: number }, tenantName?: string, tenantCategory?: string, tenantPhone?: string }) {
+export default function POSApp({ sidebar, isExpired = false, initialData, tenantName, tenantCategory, tenantPhone, tenantSlug }: { sidebar: React.ReactNode; isExpired?: boolean; initialData?: { products: Product[], totalPages: number }, tenantName?: string, tenantCategory?: string, tenantPhone?: string, tenantSlug?: string | null }) {
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
   const { user } = useUser();
@@ -1635,7 +1635,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     </h1>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
-                                      {(isPureJasa || isRental) && <CopyBookingLinkButton />}
+                                      {(isPureJasa || isRental) && <CopyBookingLinkButton initialSlug={tenantSlug} />}
                                       {isFNB && (
                                                                               <Link
                                                                                 href="/admin/kitchen"

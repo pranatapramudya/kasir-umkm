@@ -64,6 +64,7 @@ export default async function POSAppAdminRoute() {
         tenantName={tenant?.name || ""}
         tenantCategory={tenant?.category || ""}
         tenantPhone={tenant?.phone || ""}
+        tenantSlug={tenant?.slug ?? null}
       />
     </Suspense>
   );

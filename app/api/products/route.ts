@@ -75,6 +75,16 @@ export async function GET(request: Request) {
           { category: { contains: "Add-on", mode: 'insensitive' } },
           { isService: true }
         ];
+      } else if (category === "Peralatan" || category === "Alat" || category === "Equipment") {
+        whereClause.OR = [
+          { category: { in: ["Peralatan", "Alat", "Equipment", "Unit Alat & Perlengkapan"] } },
+          { category: { contains: "Alat", mode: 'insensitive' } },
+          { category: { contains: "Kamera", mode: 'insensitive' } },
+          { category: { contains: "Sound", mode: 'insensitive' } },
+          { category: { contains: "Camping", mode: 'insensitive' } },
+          { category: { contains: "Game", mode: 'insensitive' } },
+          { AND: [{ isService: false }, { NOT: { category: { in: ["Armada", "Properti", "Layanan Tambahan", "Layanan"] } } }] }
+        ];
       } else {
         whereClause.category = category;
       }
