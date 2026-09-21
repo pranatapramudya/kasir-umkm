@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { X, FileDown, Loader2, Upload, Car, Building2 } from 'lucide-react';
+import { X, FileDown, Loader2, Upload, Car, Building2, Package } from 'lucide-react';
 import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
 
 type CsvImportModalProps = {
@@ -128,22 +128,22 @@ export default function CsvImportModal({
 
             {/* TOMBOL DOWNLOAD TEMPLATE */}
             {isRental ? (
-              <div className="pt-2 space-y-2">
+              <div className="pt-2 space-y-2.5">
                 <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">
-                  Pilih Template Sesuai Usaha Anda:
+                  Pilih Format Template Sesuai Niche Usaha Anda:
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <button
                     type="button"
                     onClick={() => handleDownloadTemplate('rental')}
                     className="flex flex-col items-start p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
                   >
-                    <div className="flex items-center gap-2 font-bold text-xs">
-                      <Car className="w-4 h-4 text-blue-200 group-hover:scale-110 transition-transform" />
-                      Template Rental & Travel
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Car className="w-4 h-4 text-blue-200 group-hover:scale-110 transition-transform shrink-0" />
+                      Rental Kendaraan
                     </div>
-                    <span className="text-[11px] text-blue-100 mt-1 leading-tight">
-                      Khusus sewa Mobil, Motor, Bus, Minibus, Shuttle & Supir
+                    <span className="text-[11px] text-blue-100 mt-1 leading-tight line-clamp-2">
+                      Mobil, Motor, Bus, Minibus, Travel & Supir
                     </span>
                   </button>
 
@@ -152,12 +152,26 @@ export default function CsvImportModal({
                     onClick={() => handleDownloadTemplate('properti')}
                     className="flex flex-col items-start p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
                   >
-                    <div className="flex items-center gap-2 font-bold text-xs">
-                      <Building2 className="w-4 h-4 text-indigo-200 group-hover:scale-110 transition-transform" />
-                      Template Properti & Kamar
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Building2 className="w-4 h-4 text-indigo-200 group-hover:scale-110 transition-transform shrink-0" />
+                      Properti & Kamar
                     </div>
-                    <span className="text-[11px] text-indigo-100 mt-1 leading-tight">
-                      Khusus Kamar Kost, Villa, Apartemen, Hotel & Glamping
+                    <span className="text-[11px] text-indigo-100 mt-1 leading-tight line-clamp-2">
+                      Kamar Kost, Villa, Apartemen, Hotel & Glamping
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadTemplate('alat')}
+                    className="flex flex-col items-start p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Package className="w-4 h-4 text-emerald-200 group-hover:scale-110 transition-transform shrink-0" />
+                      Peralatan & Alat
+                    </div>
+                    <span className="text-[11px] text-emerald-100 mt-1 leading-tight line-clamp-2">
+                      Kamera, Camping, Sound System, PS5, Alat Berat
                     </span>
                   </button>
                 </div>

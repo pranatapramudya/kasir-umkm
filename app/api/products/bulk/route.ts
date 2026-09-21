@@ -17,7 +17,8 @@ const getCategoryFromSheet = (sheetName: string): string => {
   const name = sheetName.toLowerCase();
   if (name.includes('armada') || name.includes('kendaraan') || name.includes('travel') || name.includes('mobil') || name.includes('motor')) return 'Armada';
   if (name.includes('properti') || name.includes('kamar') || name.includes('villa') || name.includes('kost') || name.includes('hotel') || name.includes('penginapan')) return 'Properti';
-  if (name.includes('layanan') || name.includes('tambahan') || name.includes('supir') || name.includes('asuransi') || name.includes('extra') || name.includes('addon') || name.includes('driver')) return 'Layanan Tambahan';
+  if (name.includes('alat') || name.includes('peralatan') || name.includes('equipment') || name.includes('kamera') || name.includes('sound') || name.includes('camping')) return 'Peralatan';
+  if (name.includes('layanan') || name.includes('tambahan') || name.includes('supir') || name.includes('asuransi') || name.includes('extra') || name.includes('addon') || name.includes('driver') || name.includes('operator')) return 'Layanan Tambahan';
   return 'Umum';
 };
 
@@ -93,11 +94,14 @@ export async function POST(req: Request) {
       const normalizedCategory = isService ? (isJasaMurni ? 'Jasa / Servis' : 'Produk / Barang') : finalCategory;
 
       // --- Rental-specific logic ---
-      const isArmada = finalCategory === 'Armada';
-      const isProperti = finalCategory === 'Properti';
-      const isLayananTambahan = finalCategory === 'Layanan Tambahan';
-      const isRentalItem = isArmada || isProperti;
-      const isLayananItem = isLayananTambahan;
+      const isLayananTambahan = finalCategory === 'Layanan Tambahan' || 
+        finalCategory.toLowerCase().includes('layanan') || 
+        finalCategory.toLowerCase().includes('tambahan') || 
+        finalCategory.toLowerCase().includes('operator') ||
+        p._sheetName?.toLowerCase().includes('layanan') ||
+        p._sheetName?.toLowerCase().includes('operator');
+      const isRentalItem = isRental && !isLayananTambahan;
+      const isLayananItem = isRental && isLayananTambahan;
 
       // HPP handling
       const rawHpp = p.hpp ?? p['HPP'] ?? p['Harga Modal'] ?? p['Harga Modal (HPP)'] ?? p['HPP (Modal)'] ?? p['HPP / Modal Beli (Rp)'] ?? p['HPP / Biaya Modal (Rp)'] ?? p['Modal'] ?? p.bOps ?? p.biayaOperasional ?? p.bops ?? p.BiayaOperasional ?? p.BOps ?? p['Biaya Modal / Bahan (Rp)'] ?? p['Biaya Modal'] ?? p['HPP / Biaya Operasional per Hari (Rp)'] ?? p['Biaya Operasional/Hari (Rp)'] ?? 0;
@@ -206,10 +210,12 @@ export async function POST(req: Request) {
       message: `${result.count} data berhasil ditambahkan ke katalog.`,
       count: result.count,
       breakdown: {
+        unitSewa: productsToInsert.filter(p => !p.isService && isRental).length,
         armada: productsToInsert.filter(p => p.category === 'Armada').length,
         properti: productsToInsert.filter(p => p.category === 'Properti').length,
-        layananTambahan: productsToInsert.filter(p => p.category === 'Layanan Tambahan').length,
-        lainnya: productsToInsert.filter(p => !['Armada', 'Properti', 'Layanan Tambahan'].includes(p.category)).length,
+        peralatan: productsToInsert.filter(p => p.category === 'Peralatan' || p.category?.toLowerCase().includes('alat') || p.category?.toLowerCase().includes('kamera') || p.category?.toLowerCase().includes('sound')).length,
+        layananTambahan: productsToInsert.filter(p => p.category === 'Layanan Tambahan' || p.isService).length,
+        lainnya: productsToInsert.filter(p => !['Armada', 'Properti', 'Peralatan', 'Layanan Tambahan'].includes(p.category) && !p.isService).length,
       }
     });
   } catch (error: any) {

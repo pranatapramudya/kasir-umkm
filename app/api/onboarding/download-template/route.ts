@@ -122,6 +122,103 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    if (subType === 'alat' || subType === 'peralatan') {
+      // ------------------------------------------
+      // TEMPLATE KHUSUS: PERALATAN, ALAT & PERLENGKAPAN
+      // (Kamera, Camping, Sound System, Game, Alat Berat, Event, Gaun)
+      // ------------------------------------------
+      // Sheet 1: Unit Alat / Barang Sewa
+      const wsAlat = workbook.addWorksheet('1. Unit Alat & Perlengkapan');
+      wsAlat.columns = [
+        { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
+        { header: 'Nama Alat / Perlengkapan', key: 'name', width: 36 },
+        { header: 'Kategori Alat', key: 'category', width: 24 },
+        { header: 'Merek / Brand', key: 'brand', width: 20 },
+        { header: 'Kelengkapan Unit', key: 'variant', width: 32 },
+        { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
+        { header: 'Harga Sewa/Jam (Rp)', key: 'hargaJam', width: 20 },
+        { header: 'HPP / Biaya Perawatan per Sewa (Rp)', key: 'hppHarian', width: 34 },
+        { header: 'Margin %', key: 'marginPct', width: 14 },
+        { header: 'Status', key: 'status', width: 16 },
+        { header: 'Catatan / Spesifikasi', key: 'description', width: 50 },
+      ];
+
+      for (let row = 2; row <= 50; row++) {
+        wsAlat.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Kamera & Lensa,Outdoor & Camping,Sound System & Event,Console & Game,Perkakas & Alat Berat,Pakaian & Kostum,Lainnya"'],
+          showErrorMessage: true,
+          errorTitle: 'Kategori Alat Tidak Valid',
+          error: 'Pilih kategori dari dropdown: Kamera & Lensa, Outdoor & Camping, Sound System & Event, Console & Game, Perkakas & Alat Berat, Pakaian & Kostum, Lainnya',
+        };
+        wsAlat.getCell(`J${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'],
+        };
+        // Auto Margin % formula
+        wsAlat.getCell(`I${row}`).value = { formula: `IF(F${row}>0,(F${row}-H${row})/F${row}*100,0)` };
+        wsAlat.getCell(`I${row}`).numFmt = '0.0"%"';
+      }
+
+      const alatData = [
+        ['ALT001', 'Sony Alpha 7 IV (Body Only)', 'Kamera & Lensa', 'Sony', 'Body, 2 Baterai, Charger, Strap, Box', 350000, 50000, 50000, null, 'Tersedia', 'Sensor 33MP Full-frame, 4K 60p, Shutter count rendah | HPP: Sensor cleaning + depresiasi'],
+        ['ALT002', 'Lensa Sony FE 24-70mm F2.8 GM II', 'Kamera & Lensa', 'Sony', 'Lensa, Hood, Tutup Depan Belakang, Pouch', 250000, 35000, 30000, null, 'Tersedia', 'Optik bening bebas jamur, Autofocus senyap cepat | HPP: Kalibrasi + pembersihan lensa'],
+        ['ALT003', 'Tenda Dome Arpenaz 4.1 Family', 'Outdoor & Camping', 'Quechua', 'Tenda, Frame Fiber, Pasak, Tas Tenda', 120000, 0, 25000, null, 'Tersedia', 'Kapasitas 4 orang + teras luas, waterproof | HPP: Laundry tenda + waterproofing spray'],
+        ['ALT004', 'Paket Sound System 5000 Watt', 'Sound System & Event', 'Yamaha', '2 Speaker 15 Inch, Subwoofer, Mixer 12 Ch, 4 Mic', 1500000, 0, 350000, null, 'Tersedia', 'Cocok panggung pernikahan, seminar, mini konser | HPP: Transport angkut + penyusutan alat'],
+        ['ALT005', 'PlayStation 5 Disc Edition + 2 Stick', 'Console & Game', 'Sony', 'PS5 Unit, 2 Stick DualSense, HDMI, Kabel Power, 5 Game', 150000, 25000, 30000, null, 'Tersedia', 'Game installed: FC 25, God of War, Spiderman 2, GTA V | HPP: Cleaning fan + pasta pendingin'],
+      ];
+
+      alatData.forEach((rowData, i) => {
+        rowData.forEach((val, j) => {
+          wsAlat.getCell(i + 2, j + 1).value = val;
+        });
+      });
+
+      // Sheet 2: Layanan & Operator Tambahan
+      const wsLayananAlat = workbook.addWorksheet('2. Layanan & Operator Alat');
+      wsLayananAlat.columns = [
+        { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
+        { header: 'Nama Layanan', key: 'name', width: 36 },
+        { header: 'Kategori', key: 'category', width: 24 },
+        { header: 'Tarif (Rp)', key: 'harga', width: 18 },
+        { header: 'Satuan', key: 'satuan', width: 18 },
+        { header: 'Komisi Operator / Kru (Rp)', key: 'komisi', width: 24 },
+        { header: 'Deskripsi', key: 'description', width: 50 },
+      ];
+
+      for (let row = 2; row <= 50; row++) {
+        wsLayananAlat.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Operator/Kru,Bongkar Pasang,Antar Jemput,Aksesoris Tambahan,Teknisi/Setting,Lainnya"'],
+        };
+      }
+
+      const layananAlatData = [
+        ['SV001', 'Jasa Operator Soundman / Kru Audio', 'Operator/Kru', 300000, 'Per Acara', 200000, 'Standby operator audio selama acara berlangsung max 8 jam'],
+        ['SV002', 'Jasa Pasang & Bongkar Tenda Camping', 'Bongkar Pasang', 50000, 'Per Unit', 35000, 'Pemasangan rapi di lokasi perkemahan sampai siap pakai'],
+        ['SV003', 'Jasa Operator Videografer Event', 'Operator/Kru', 450000, 'Per Acara', 300000, 'Operator berpengalaman dengan gimbal stabilizer'],
+        ['SV004', 'Tambahan Stick DualSense PS5', 'Aksesoris Tambahan', 40000, 'Per Hari', 0, 'Stick original wireless untuk multiplayer 3-4 pemain'],
+        ['SV005', 'Antar Jemput Unit Alat ke Lokasi', 'Antar Jemput', 75000, 'Per Trip', 40000, 'Pengiriman dan penjemputan unit alat area dalam kota'],
+      ];
+
+      layananAlatData.forEach((rowData, i) => {
+        rowData.forEach((val, j) => {
+          wsLayananAlat.getCell(i + 2, j + 1).value = val;
+        });
+      });
+
+      const bufferAlat = await workbook.xlsx.writeBuffer();
+      return new NextResponse(bufferAlat, {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="template_import_rental_peralatan_alat.xlsx"',
+        },
+      });
+    }
+
     // ------------------------------------------
     // DEFAULT: TEMPLATE KHUSUS RENTAL & TRAVEL
     // ------------------------------------------

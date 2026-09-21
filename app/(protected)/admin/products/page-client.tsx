@@ -100,7 +100,15 @@ export default function AdminProductsClientPage({
 
     if (selectedCategory !== "Semua") {
       const catLower = selectedCategory.toLowerCase().trim();
-      if (catLower.includes("jasa") || catLower.includes("servis")) {
+      if (isRental) {
+        if (selectedCategory === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit") {
+          result = result.filter(p => !p.isService);
+        } else if (selectedCategory === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan")) {
+          result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+        } else {
+          result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+        }
+      } else if (catLower.includes("jasa") || catLower.includes("servis")) {
         result = result.filter(p => {
           const c = (p.category || "").toLowerCase().trim();
           return c.includes("jasa") || c.includes("servis") || p.isService;
@@ -146,10 +154,12 @@ export default function AdminProductsClientPage({
     biayaModal: ''
   });
 
-  const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+  const uniqueCategories = Array.from(new Set(rawProducts.map(p => p.category).filter(Boolean)));
   const categories = isPureJasa
     ? ["Semua", "Jasa / Servis", "Produk / Barang"]
-    : ["Semua", ...uniqueCategories];
+    : isRental
+      ? ["Semua", "Unit Sewa", "Layanan & Add-on", ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on")]
+      : ["Semua", ...uniqueCategories];
 
 
   const formatNumberInput = (val: string) => {
@@ -260,6 +270,9 @@ export default function AdminProductsClientPage({
           row['Nama Unit Kendaraan'] || 
           row['Nama Unit / No. Kamar'] || 
           row['Nama Kamar / Unit'] || 
+          row['Nama Alat / Perlengkapan'] || 
+          row['Nama Alat'] || 
+          row['Nama Perlengkapan'] || 
           row['Nama Unit'] || 
           row['Nama Unit / Properti'] || 
           row['Nama Layanan'] || 
@@ -278,13 +291,15 @@ export default function AdminProductsClientPage({
           _sheetName: row._sheetName || '', // Wajib dikirim ke API bulk untuk deteksi kategori
           kodeBarang: row.kodeBarang || row['Kode Barang'] || row['Kode Barang (SKU)'] || row['Kode Barang / SKU'] || row.sku || row.SKU || row['Kode Unit'] || row['Kode Layanan'] || '',
           name: String(rawName).trim(),
-          category: row.category || row['Kategori'] || row.kategori || row._sheetName || 'Umum',
-          hpp: row.hpp ?? row['HPP / Biaya Operasional per Hari (Rp)'] ?? row['HPP / Biaya Operasional (Rp)'] ?? row['Biaya Operasional/Hari (Rp)'] ?? row['Biaya Operasional (B.Ops)'] ?? row['Biaya Operasional'] ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row.biayaOperasional ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
+          category: row.category || row['Kategori Alat'] || row['Kategori'] || row.kategori || row._sheetName || 'Umum',
+          brand: row.brand || row['Merek / Brand'] || row['Merek'] || row['Brand'] || '',
+          variant: row.variant || row['Kelengkapan Unit'] || row['Kelengkapan'] || row['Varian'] || '',
+          hpp: row.hpp ?? row['HPP / Biaya Perawatan per Sewa (Rp)'] ?? row['HPP / Biaya Operasional per Hari (Rp)'] ?? row['HPP / Biaya Operasional (Rp)'] ?? row['Biaya Operasional/Hari (Rp)'] ?? row['Biaya Operasional (B.Ops)'] ?? row['Biaya Operasional'] ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row.biayaOperasional ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
           hargaJual: row.hargaJual ?? row['Harga Sewa/Hari (Rp)'] ?? row['Harga Sewa/Bulan (Rp)'] ?? row['Harga Sewa/Jam (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Jual / Tarif (Rp)'] ?? row['Harga Jual (Rp)'] ?? row['Harga Jual'] ?? row['Tarif Layanan'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? 0,
           stock: row.stock ?? row['Stok'] ?? row['Qty (Stok)'] ?? row['Qty'] ?? row['Quantity'] ?? row.stok ?? row.qty ?? 0,
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
           satuan: row.satuan || row['Satuan'] || '',
-          employeeCommission: row.employeeCommission ?? row['Komisi Driver (Rp)'] ?? row['Komisi Staf (Rp)'] ?? row['Komisi Staf'] ?? row['Komisi Driver'] ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi'] ?? 0,
+          employeeCommission: row.employeeCommission ?? row['Komisi Operator / Kru (Rp)'] ?? row['Komisi Driver (Rp)'] ?? row['Komisi Staf (Rp)'] ?? row['Komisi Staf'] ?? row['Komisi Driver'] ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi'] ?? 0,
           description: row.description || row['Fasilitas / Catatan'] || row['Catatan / Fasilitas'] || row['Catatan / Spesifikasi'] || row['Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)'] || row['Fasilitas / Deskripsi'] || row['Deskripsi Layanan'] || row['Deskripsi'] || row['Deskripsi / Catatan'] || row['Fasilitas'] || row.deskripsi || row.fasilitas || row.keterangan || '',
           isService: isPureJasa && (row.category?.toLowerCase() === 'jasa' || row.category?.toLowerCase() === 'jasa / servis' || !row.category)
         };
@@ -624,8 +639,13 @@ export default function AdminProductsClientPage({
                       }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedCategory === cat ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                     >
-                      {cat}
-                      {selectedCategory === cat && <Check className="w-4 h-4" />}
+                      <span className="truncate">
+                        {isRental && cat === "Semua" ? "🌐 Semua Unit & Layanan"
+                          : isRental && cat === "Unit Sewa" ? "📦 Unit Sewa (Fisik)"
+                          : isRental && cat === "Layanan & Add-on" ? "🛠️ Layanan & Add-on"
+                          : cat}
+                      </span>
+                      {selectedCategory === cat && <Check className="w-4 h-4 shrink-0" />}
                     </button>
                   </li>
                 ))}

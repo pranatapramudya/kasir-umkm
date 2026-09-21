@@ -58,6 +58,23 @@ export async function GET(request: Request) {
           { category: { in: ["Produk", "Barang", "Sparepart", "Produk / Barang", "Produk/Barang"] } },
           { isService: false }
         ];
+      } else if (category === "Unit Sewa") {
+        whereClause.OR = [
+          { category: "Armada" },
+          { category: "Properti" },
+          { category: { contains: "Armada", mode: 'insensitive' } },
+          { category: { contains: "Properti", mode: 'insensitive' } },
+          { category: { contains: "Unit", mode: 'insensitive' } },
+          { AND: [{ isService: false }, { NOT: { category: { in: ["Layanan Tambahan", "Layanan"] } } }] }
+        ];
+      } else if (category === "Layanan & Add-on") {
+        whereClause.OR = [
+          { category: "Layanan Tambahan" },
+          { category: { contains: "Layanan", mode: 'insensitive' } },
+          { category: { contains: "Tambahan", mode: 'insensitive' } },
+          { category: { contains: "Add-on", mode: 'insensitive' } },
+          { isService: true }
+        ];
       } else {
         whereClause.category = category;
       }
