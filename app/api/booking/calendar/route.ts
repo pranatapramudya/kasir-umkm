@@ -10,7 +10,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const tenantId = (sessionClaims?.metadata as any)?.tenantId || userId;
+    // Resolve tenantId (same pattern as other pages)
+    let tenantId = (sessionClaims?.metadata as any)?.tenantId || userId;
+    const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
+    if (employee) {
+      tenantId = employee.tenantId;
+    }
 
     const rawBookings = await prisma.booking.findMany({
       where: {
@@ -53,12 +58,16 @@ export async function GET(req: Request) {
         derivedStatus = "OVERDUE" as any;
       }
 
+      // Handle potential null dates
+      const safeStart = start ? start.toISOString() : new Date().toISOString();
+      const safeEnd = end ? end.toISOString() : new Date().toISOString();
+
       return {
         id: b.id,
         customerName: b.customerName,
         itemName: b.product?.name || "Tanpa Armada",
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
+        startDate: safeStart,
+        endDate: safeEnd,
         status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
         pickupLocation: b.pickupLocation || undefined,
         dropoffLocation: b.dropoffLocation || undefined,
@@ -70,9 +79,14 @@ export async function GET(req: Request) {
     });
 
     const txBookings = rawTransactions.map(tx => {
-      let derivedStatus = "FINISHED"; 
-      const start = tx.startDate!;
-      const end = tx.endDate || tx.startDate!;
+      let derivedStatus = "FINISHED";
+      const start = tx.startDate;
+      const end = tx.endDate || tx.startDate;
+
+      if (!start || !end) {
+        // Skip invalid transactions
+        return null;
+      }
 
       if (now > end) {
         derivedStatus = "OVERDUE";
@@ -94,7 +108,7 @@ export async function GET(req: Request) {
         conditionNotes: tx.conditionNotes || undefined,
         source: "POS" as const
       };
-    });
+    }).filter((b): b is NonNullable<typeof b> => b !== null);
 
     const allBookings = [...bookings, ...txBookings].sort(
       (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()

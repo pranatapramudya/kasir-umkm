@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
 import { checkSubscriptionStatus } from '@/lib/subscription';
 import LaporanKasirClient from './LaporanKasirClient';
+import { isRentalTravelCategory } from '@/lib/business-category';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,22 +30,31 @@ export default async function LaporanKasirPage(props: {
   const isEmployee = !!employee;
   const activeTenantId = employee ? employee.tenantId : userId;
 
-  let whereClause: any = {
-    createdAt: { gte: startOfDay, lte: endOfDay },
-    userId: activeTenantId
-  };
-
   const tenant = await prisma.tenant.findUnique({
     where: { userId: activeTenantId },
     select: { category: true }
   });
   const tenantCategory = tenant?.category || null;
+  const isRental = isRentalTravelCategory(tenantCategory);
+
+  let whereClause: any = {
+    createdAt: { gte: startOfDay, lte: endOfDay },
+    userId: activeTenantId
+  };
 
   if (isEmployee) {
     whereClause.cashierId = employee.id; // Hanya tampilkan transaksi kasir ini
   }
 
-  const [transactions, totalCount, aggResult, allTransactions] = await Promise.all([
+  const [
+    transactions,
+    totalCount,
+    aggResult,
+    allTransactions,
+    products,
+    bookingDPGroups,
+    bookingTransactions
+  ] = await Promise.all([
     prisma.transaction.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
@@ -61,13 +71,24 @@ export default async function LaporanKasirPage(props: {
     prisma.transaction.findMany({
       where: whereClause,
       select: { items: true }
-    })
+    }),
+    prisma.product.findMany({
+      where: { userId: activeTenantId },
+      select: { id: true, name: true }
+    }),
+    // DP Booking Metrics (Khusus Rental)
+    isRental ? prisma.booking.groupBy({
+      by: ['paymentMethod'],
+      where: { userId: activeTenantId, createdAt: { gte: startOfDay, lte: endOfDay }, downPayment: { gt: 0 } },
+      _sum: { downPayment: true },
+    }) : Promise.resolve([]),
+    // DP Booking Transactions (Khusus Rental)
+    isRental ? prisma.booking.findMany({
+      where: { userId: activeTenantId, createdAt: { gte: startOfDay, lte: endOfDay }, downPayment: { gt: 0 } },
+      orderBy: { createdAt: 'desc' },
+    }) : Promise.resolve([]),
   ]);
 
-  const products = await prisma.product.findMany({
-    where: { userId: activeTenantId },
-    select: { id: true, name: true }
-  });
   const productMap = new Map(products.map(p => [p.id, p.name]));
 
   const soldSummary: Record<string, number> = {};
@@ -95,6 +116,17 @@ export default async function LaporanKasirPage(props: {
     if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += sum;
     if (methodStr === 'QRIS') totalQRIS += sum;
   });
+
+  // DP Booking (Rental Khusus)
+  if (isRental) {
+    bookingDPGroups.forEach((group: any) => {
+      const dp = group._sum.downPayment ?? 0;
+      totalGross += dp;
+      const methodStr = (group.paymentMethod || '').toUpperCase();
+      if (methodStr === 'CASH' || methodStr === 'TUNAI') totalCash += dp;
+      if (methodStr === 'QRIS') totalQRIS += dp;
+    });
+  }
 
   const totalPages = Math.max(1, Math.ceil(totalCount / 10));
 

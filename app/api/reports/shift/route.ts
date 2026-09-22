@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
+import { isRentalTravelCategory } from '@/lib/business-category';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     const activeTenantId = employee ? employee.tenantId : userId;
 
     const tenant = await prisma.tenant.findUnique({ where: { userId: activeTenantId } });
-    const isRental = tenant?.category === "Rental & Travel" || tenant?.category === "RENTAL";
+    const isRental = isRentalTravelCategory(tenant?.category);
 
     const whereClause: any = {
       userId: activeTenantId,
