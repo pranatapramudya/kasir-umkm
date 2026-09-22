@@ -31,7 +31,15 @@ export async function POST(req: Request) {
     }
 
     const tenantId = (sessionClaims?.metadata as any)?.tenantId;
-    const targetUserId = tenantId || userId;
+    let targetUserId = tenantId || userId;
+
+    const employeeInfo = await prisma.employee.findUnique({
+      where: { clerkUserId: userId },
+      select: { tenantId: true }
+    });
+    if (employeeInfo) {
+      targetUserId = employeeInfo.tenantId;
+    }
 
     const { products } = await req.json();
 
@@ -199,16 +207,55 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tidak ada data produk yang valid untuk disimpan (Pastikan kolom nama terisi).' }, { status: 400 });
     }
 
-    const result = await prisma.product.createMany({
-      data: productsToInsert,
-      skipDuplicates: true,
+    // Ambil produk yang sudah ada berdasarkan kodeBarang (termasuk yang isArchived: true)
+    const incomingKodes = productsToInsert.map(p => p.kodeBarang).filter(Boolean);
+    const existingProducts = await prisma.product.findMany({
+      where: {
+        userId: targetUserId,
+        kodeBarang: { in: incomingKodes }
+      },
+      select: { id: true, kodeBarang: true }
     });
+
+    const existingMap = new Map(existingProducts.map(e => [e.kodeBarang, e]));
+    const toUpdate: any[] = [];
+    const toCreate: any[] = [];
+
+    for (const p of productsToInsert) {
+      const existing = existingMap.get(p.kodeBarang);
+      if (existing) {
+        toUpdate.push({ id: existing.id, data: { ...p, isArchived: false } });
+      } else {
+        toCreate.push(p);
+      }
+    }
+
+    // Jalankan create & update
+    if (toCreate.length > 0) {
+      await prisma.product.createMany({
+        data: toCreate,
+        skipDuplicates: true,
+      });
+    }
+
+    if (toUpdate.length > 0) {
+      await prisma.$transaction(
+        toUpdate.map(item =>
+          prisma.product.update({
+            where: { id: item.id },
+            data: item.data,
+          })
+        )
+      );
+    }
+
+    const totalProcessed = toCreate.length + toUpdate.length;
 
     revalidatePath('/', 'layout');
     return NextResponse.json({
       success: true,
-      message: `${result.count} data berhasil ditambahkan ke katalog.`,
-      count: result.count,
+      message: `${totalProcessed} data berhasil diproses (${toCreate.length} baru, ${toUpdate.length} diperbarui).`,
+      count: totalProcessed,
       breakdown: {
         unitSewa: productsToInsert.filter(p => !p.isService && isRental).length,
         armada: productsToInsert.filter(p => p.category === 'Armada').length,

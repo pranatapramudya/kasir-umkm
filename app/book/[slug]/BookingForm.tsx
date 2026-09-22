@@ -214,7 +214,24 @@ export default function BookingForm({
 
   const isRental = isRentalTravelCategory(tenantCategory);
 
-  const [rentalCategoryType, setRentalCategoryType] = useState<"property" | "vehicle" | "equipment">("property");
+  // Deteksi tipe rental yang benar-benar ada di katalog produk tenant ini
+  const availableRentalTypes = useMemo(() => {
+    if (!isRental || !services || services.length === 0) return ["equipment", "vehicle", "property"] as ("property" | "vehicle" | "equipment")[];
+    const types = new Set<"property" | "vehicle" | "equipment">();
+    for (const s of services) {
+      types.add(detectRentalItemType(s.name, s.description));
+    }
+    return Array.from(types);
+  }, [services, isRental]);
+
+  const initialRentalType = useMemo(() => {
+    if (services.length > 0) {
+      return detectRentalItemType(services[0].name, services[0].description);
+    }
+    return "equipment";
+  }, [services]);
+
+  const [rentalCategoryType, setRentalCategoryType] = useState<"property" | "vehicle" | "equipment">(initialRentalType);
   const [rentalModeDuration, setRentalModeDuration] = useState<"hourly" | "daily">("hourly");
 
   // State khusus Transit Per Jam (Hourly Property)
@@ -262,12 +279,14 @@ export default function BookingForm({
     (s) => s.id.toString() === formData.productId
   );
 
-  // Auto-set category type when selectedService changes
+  // Auto-set category type when selectedService changes or fallback to available
   useEffect(() => {
     if (selectedService) {
       setRentalCategoryType(detectRentalItemType(selectedService.name, selectedService.description));
+    } else if (availableRentalTypes.length > 0 && !availableRentalTypes.includes(rentalCategoryType)) {
+      setRentalCategoryType(availableRentalTypes[0]);
     }
-  }, [selectedService]);
+  }, [selectedService, availableRentalTypes, rentalCategoryType]);
 
   // Calculated info for hourly transit
   const hourlyCheckoutInfo = useMemo(() => {
@@ -1055,54 +1074,62 @@ export default function BookingForm({
       {/* RENTAL FORM LOGIC */}
       {isRental ? (
         <div className="space-y-4">
-          {/* Selector Tipe Rental (Properti vs Kendaraan vs Peralatan) */}
-          <div className="bg-slate-100 p-1 rounded-2xl flex text-xs font-bold gap-1">
-            <button
-              type="button"
-              onClick={() => {
-                setRentalCategoryType("property");
-                setError(null);
-              }}
-              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "property"
-                ? "bg-white text-blue-600 shadow-sm border border-slate-200"
-                : "text-slate-500 hover:text-slate-800"
-                }`}
-            >
-              <span>🏨</span>
-              <span className="hidden sm:inline">Properti / Kos</span>
-              <span className="sm:hidden">Properti</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRentalCategoryType("vehicle");
-                setError(null);
-              }}
-              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "vehicle"
-                ? "bg-white text-blue-600 shadow-sm border border-slate-200"
-                : "text-slate-500 hover:text-slate-800"
-                }`}
-            >
-              <span>🚗</span>
-              <span className="hidden sm:inline">Kendaraan</span>
-              <span className="sm:hidden">Kendaraan</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRentalCategoryType("equipment");
-                setError(null);
-              }}
-              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "equipment"
-                ? "bg-white text-blue-600 shadow-sm border border-slate-200"
-                : "text-slate-500 hover:text-slate-800"
-                }`}
-            >
-              <span>📦</span>
-              <span className="hidden sm:inline">Alat / Barang</span>
-              <span className="sm:hidden">Alat</span>
-            </button>
-          </div>
+          {/* Selector Tipe Rental — hanya muncul jika tenant memiliki lebih dari 1 jenis sewa */}
+          {availableRentalTypes.length > 1 && (
+            <div className="bg-slate-100 p-1 rounded-2xl flex text-xs font-bold gap-1">
+              {availableRentalTypes.includes("property") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRentalCategoryType("property");
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "property"
+                    ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                    : "text-slate-500 hover:text-slate-800"
+                    }`}
+                >
+                  <span>🏨</span>
+                  <span className="hidden sm:inline">Properti / Kos</span>
+                  <span className="sm:hidden">Properti</span>
+                </button>
+              )}
+              {availableRentalTypes.includes("vehicle") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRentalCategoryType("vehicle");
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "vehicle"
+                    ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                    : "text-slate-500 hover:text-slate-800"
+                    }`}
+                >
+                  <span>🚗</span>
+                  <span className="hidden sm:inline">Kendaraan</span>
+                  <span className="sm:hidden">Kendaraan</span>
+                </button>
+              )}
+              {availableRentalTypes.includes("equipment") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRentalCategoryType("equipment");
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${rentalCategoryType === "equipment"
+                    ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                    : "text-slate-500 hover:text-slate-800"
+                    }`}
+                >
+                  <span>📦</span>
+                  <span className="hidden sm:inline">Alat / Barang</span>
+                  <span className="sm:hidden">Alat</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Banner Informasi Mode */}
           <div className="bg-blue-50 text-blue-800 border border-blue-200 p-3 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-2">
