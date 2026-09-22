@@ -194,7 +194,7 @@ export default function AdminProductsClientPage({
         if (product.isService || (product.category || '').toLowerCase().includes('layanan') || (product.category || '').toLowerCase().includes('tambahan') || (product.category || '').toLowerCase().includes('operator') || (product.category || '').toLowerCase().includes('supir')) {
           setRentalModalType('addon');
         } else {
-          const detected = detectRentalItemType(product.name, product.description);
+          const detected = detectRentalItemType(product.name, product.description, product.category);
           setRentalModalType(detected === "unknown" ? "equipment" : detected);
         }
       }
@@ -1037,12 +1037,12 @@ export default function AdminProductsClientPage({
                         name="category"
                         required
                         disabled={!!editingProduct} // Locked when editing
-                        value={
+                        value={editingProduct ? formData.category : (
                           rentalModalType === 'equipment' ? 'Peralatan' :
                           rentalModalType === 'vehicle' ? 'Armada' :
                           rentalModalType === 'property' ? 'Properti' :
                           'Layanan Tambahan'
-                        }
+                        )}
                         onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                         className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-semibold ${
                           editingProduct ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''
