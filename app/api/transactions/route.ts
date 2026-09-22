@@ -168,15 +168,19 @@ export async function POST(request: Request) {
                                 return hasRemaining ? 'partial' : 'completed';
                               })(),
                     driverName: body.driverName ? String(body.driverName).trim() : null,
-          licensePlate: body.licensePlate ? String(body.licensePlate).trim() : null,
-          pickupLocation: body.pickupLocation ? String(body.pickupLocation).trim() : null,
-          dropoffLocation: body.dropoffLocation ? String(body.dropoffLocation).trim() : null,
-          startDate: safeParseDate(body.startDate),
-          endDate: safeParseDate(body.endDate),
-          serviceDate: safeParseDate(body.serviceDate),
-          guarantee: body.guarantee ? String(body.guarantee).trim() : null,
-          downPayment: safeInt(body.downPayment, 0),
-          remainingBalance: safeInt(body.remainingBalance, 0),
+                              licensePlate: body.licensePlate ? String(body.licensePlate).trim() : null,
+                              pickupLocation: body.pickupLocation ? String(body.pickupLocation).trim() : null,
+                              dropoffLocation: body.dropoffLocation ? String(body.dropoffLocation).trim() : null,
+                              startDate: safeParseDate(body.startDate),
+                              endDate: safeParseDate(body.endDate),
+                              serviceDate: safeParseDate(body.serviceDate),
+                              guarantee: body.guarantee ? String(body.guarantee).trim() : null,
+                              returnTime: body.returnTime ? String(body.returnTime).trim() : null,
+                              deposit: safeInt(body.deposit, 0),
+                              conditionNotes: body.conditionNotes ? String(body.conditionNotes).trim() : null,
+                              pickupTime: body.pickupTime ? String(body.pickupTime).trim() : null,
+                              downPayment: safeInt(body.downPayment, 0),
+                              remainingBalance: safeInt(body.remainingBalance, 0),
           items: {
             create: body.items.map((item: any) => {
               const pId = Math.round(Number(item.id));

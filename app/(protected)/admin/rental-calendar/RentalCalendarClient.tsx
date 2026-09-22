@@ -29,6 +29,10 @@ interface Booking {
   driverName?: string | null;
   licensePlate?: string | null;
   guarantee?: string | null;
+  // Equipment/Alat fields
+  returnTime?: string | null;
+  deposit?: number | null;
+  conditionNotes?: string | null;
   source?: "ONLINE" | "POS";
 }
 
@@ -313,37 +317,55 @@ export default function RentalCalendarClient({ initialBookings, tenantId }: Prop
                 </div>
 
                 {/* Extra Details */}
-                {(b.pickupLocation || b.dropoffLocation || b.driverName || b.licensePlate || b.guarantee) && (
-                  <>
-                    <div className="border-t border-slate-200 border-dashed mt-1 mb-1" />
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      {b.dropoffLocation && (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Tujuan</span>
-                          <span className="text-xs text-slate-700 font-medium truncate">{b.dropoffLocation}</span>
-                        </div>
-                      )}
-                      {b.driverName && (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Operator / Catatan</span>
-                          <span className="text-xs text-slate-700 font-medium truncate">{b.driverName}</span>
-                        </div>
-                      )}
-                      {b.licensePlate && (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-slate-400 font-semibold uppercase">No. Seri / Kode</span>
-                          <span className="text-xs text-slate-700 font-medium truncate">{b.licensePlate}</span>
-                        </div>
-                      )}
-                      {b.guarantee && (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Jaminan</span>
-                          <span className="text-xs text-slate-700 font-medium truncate">{b.guarantee}</span>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
+                                {(b.pickupLocation || b.dropoffLocation || b.driverName || b.licensePlate || b.guarantee || b.returnTime || b.deposit || b.conditionNotes) && (
+                                  <>
+                                    <div className="border-t border-slate-200 border-dashed mt-1 mb-1" />
+                                    <div className="grid grid-cols-2 gap-2 mt-1">
+                                      {b.dropoffLocation && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Tujuan</span>
+                                          <span className="text-xs text-slate-700 font-medium truncate">{b.dropoffLocation}</span>
+                                        </div>
+                                      )}
+                                      {b.driverName && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Operator / Catatan</span>
+                                          <span className="text-xs text-slate-700 font-medium truncate">{b.driverName}</span>
+                                        </div>
+                                      )}
+                                      {b.licensePlate && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[10px] text-slate-400 font-semibold uppercase">No. Seri / Kode</span>
+                                          <span className="text-xs text-slate-700 font-medium truncate">{b.licensePlate}</span>
+                                        </div>
+                                      )}
+                                      {b.guarantee && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Jaminan</span>
+                                          <span className="text-xs text-slate-700 font-medium truncate">{b.guarantee}</span>
+                                        </div>
+                                      )}
+                                      {b.returnTime && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Jam Kembali</span>
+                                          <span className="text-xs text-slate-700 font-medium truncate">{b.returnTime}</span>
+                                        </div>
+                                      )}
+                                      {b.deposit && b.deposit > 0 && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Deposit</span>
+                                          <span className="text-xs text-slate-700 font-medium truncate">Rp {new Intl.NumberFormat("id-ID").format(b.deposit)}</span>
+                                        </div>
+                                      )}
+                                      {b.conditionNotes && (
+                                        <div className="flex flex-col gap-0.5">
+                                          <span className="text-[10px] text-slate-400 font-semibold uppercase">Catatan Kondisi</span>
+                                          <span className="text-xs text-slate-700 font-medium truncate">{b.conditionNotes}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
               </div>
               
               {/* Action Buttons */}

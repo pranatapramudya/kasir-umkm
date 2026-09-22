@@ -191,17 +191,26 @@ export default function BookingForm({
   }
 
 
-  function detectRentalItemType(name: string, description?: string | null): "property" | "vehicle" {
-    const combined = `${name || ""} ${description || ""}`.toLowerCase();
-    const vehicleKeywords = [
-      "mobil", "motor", "car", "bike", "bus", "travel", "avanza",
-      "innova", "hiace", "elf", "nmax", "pcx", "beat", "supra",
-      "scooter", "kendaraan", "driver", "supir", "pickup", "shuttle",
-      "charter", "armada", "sewa mobil", "sewa motor"
-    ];
-    const matchesVehicle = vehicleKeywords.some(kw => combined.includes(kw));
-    return matchesVehicle ? "vehicle" : "property";
-  }
+  function detectRentalItemType(name: string, description?: string | null): "property" | "vehicle" | "equipment" {
+      const combined = `${name || ""} ${description || ""}`.toLowerCase();
+      const vehicleKeywords = [
+        "mobil", "motor", "car", "bike", "bus", "travel", "avanza",
+        "innova", "hiace", "elf", "nmax", "pcx", "beat", "supra",
+        "scooter", "kendaraan", "driver", "supir", "pickup", "shuttle",
+        "charter", "armada", "sewa mobil", "sewa motor"
+      ];
+      const equipmentKeywords = [
+        "kamera", "drone", "sound", "lighting", "tender", "camping",
+        "playstation", "alat berat", "generator", "proyektor", "mic",
+        "speaker", "mixer", "amplifier", "gitar", "drum", "keyboard",
+        "kabel", "stand", "tripod", "softbox", "ring light", "mic wireless"
+      ];
+      const matchesVehicle = vehicleKeywords.some(kw => combined.includes(kw));
+      const matchesEquipment = equipmentKeywords.some(kw => combined.includes(kw));
+      if (matchesEquipment) return "equipment";
+      if (matchesVehicle) return "vehicle";
+      return "property";
+    }
 
   const isRental = isRentalTravelCategory(tenantCategory);
 

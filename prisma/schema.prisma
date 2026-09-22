@@ -58,6 +58,10 @@ model Transaction {
   licensePlate String?
   serviceDate  DateTime?
   guarantee    String?
+  returnTime   String?
+  deposit      Int               @default(0)
+  conditionNotes String?
+  pickupTime   String?
   downPayment  Int               @default(0)
   remainingBalance Int           @default(0)
   items        TransactionItem[]
@@ -189,6 +193,7 @@ model Booking {
   returnTime    String?
   deposit       Int           @default(0)
   conditionNotes String?
+  pickupTime    String?
   actualStartedAt DateTime?
   overtimeFee   Int           @default(0)
   downPayment   Int           @default(0)

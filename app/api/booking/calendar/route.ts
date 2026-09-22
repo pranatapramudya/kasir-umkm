@@ -62,9 +62,9 @@ export async function GET(req: Request) {
         status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
         pickupLocation: b.pickupLocation || undefined,
         dropoffLocation: b.dropoffLocation || undefined,
-        driverName: undefined,
-        licensePlate: undefined,
-        guarantee: undefined,
+        returnTime: b.returnTime || undefined,
+        deposit: b.deposit || undefined,
+        conditionNotes: b.conditionNotes || undefined,
         source: "ONLINE" as const
       };
     });
@@ -89,9 +89,9 @@ export async function GET(req: Request) {
         status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
         pickupLocation: tx.pickupLocation || undefined,
         dropoffLocation: tx.dropoffLocation || undefined,
-        driverName: tx.driverName || undefined,
-        licensePlate: tx.licensePlate || undefined,
-        guarantee: tx.guarantee || undefined,
+        returnTime: tx.returnTime || undefined,
+        deposit: tx.deposit || undefined,
+        conditionNotes: tx.conditionNotes || undefined,
         source: "POS" as const
       };
     });
