@@ -234,19 +234,23 @@ export default function BookingForm({
   });
 
   // State khusus Rental & Travel
-    const [rentalData, setRentalData] = useState({
-      startDate: todayISO,
-      pickupTime: "08:00",
-      endDate: todayISO,
-      pickupLocation: "",
-      dropoffProvince: "",
-      dropoffRegency: "",
-      dropoffDistrict: "",
-      dropoffLocation: "",
-      returnTime: "17:00",
-      deposit: 0,
-      conditionNotes: "",
-    });
+      // State khusus Rental & Travel
+          const [rentalData, setRentalData] = useState({
+            startDate: todayISO,
+            pickupTime: "08:00",
+            endDate: todayISO,
+            fulfillmentType: "pickup" as "pickup" | "delivery",
+            pickupLocation: "",
+            dropoffProvince: "",
+            dropoffRegency: "",
+            dropoffDistrict: "",
+            dropoffLocation: "",
+            returnTime: "17:00",
+            deposit: 0,
+            conditionNotes: "",
+            deliveryFee: 0,
+            setupNote: "",
+          });
 
   // State untuk data wilayah (Emsifa API)
   const [provincesData, setProvincesData] = useState<Region[]>([]);
@@ -586,11 +590,15 @@ export default function BookingForm({
                   }
                 }
                 if (rentalCategoryType === "equipment") {
-                  if (!rentalData.returnTime) {
-                    setError("Jam kembali wajib dipilih.");
-                    return;
-                  }
-                }
+                                  if (!rentalData.returnTime) {
+                                    setError("Jam kembali wajib dipilih.");
+                                    return;
+                                  }
+                                  if (rentalData.fulfillmentType === "delivery" && !rentalData.dropoffLocation.trim()) {
+                                    setError("Alamat tujuan pengiriman wajib diisi untuk mode antar.");
+                                    return;
+                                  }
+                                }
               }
     } else {
       if (!formData.bookingDate) {
@@ -632,34 +640,43 @@ export default function BookingForm({
               : rentalData.dropoffLocation;
             finalPickup = rentalData.pickupLocation.trim() || null;
           } else {
-            finalPickup = null;
-            finalDropoff = null;
-          }
+                      // equipment: handle pickup vs delivery
+                      if (rentalData.fulfillmentType === "pickup") {
+                        finalPickup = rentalData.pickupLocation || tenantName; // toko address
+                        finalDropoff = null;
+                      } else {
+                        finalPickup = rentalData.pickupLocation || tenantName;
+                        finalDropoff = rentalData.dropoffLocation.trim() || null;
+                      }
+                    }
         }
       } else {
         bookingDateTime = new Date(`${formData.bookingDate}T${formData.bookingTime}:00`);
       }
 
       const res = await fetch("/api/booking", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                slug,
-                customerName: formData.customerName.trim(),
-                customerPhone: formData.customerPhone.trim(),
-                bookingDate: bookingDateTime.toISOString(),
-                notes: formData.notes.trim() || null,
-                productId: formData.productId ? Number(formData.productId) : null,
-                startDate: startDateIso,
-                endDate: endDateIso,
-                pickupLocation: finalPickup,
-                dropoffLocation: finalDropoff,
-                // Equipment fields
-                returnTime: rentalCategoryType === "equipment" ? rentalData.returnTime : null,
-                deposit: rentalCategoryType === "equipment" ? rentalData.deposit : 0,
-                conditionNotes: rentalCategoryType === "equipment" ? rentalData.conditionNotes : null,
-              }),
-            });
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      slug,
+                      customerName: formData.customerName.trim(),
+                      customerPhone: formData.customerPhone.trim(),
+                      bookingDate: bookingDateTime.toISOString(),
+                      notes: formData.notes.trim() || null,
+                      productId: formData.productId ? Number(formData.productId) : null,
+                      startDate: startDateIso,
+                      endDate: endDateIso,
+                      pickupLocation: finalPickup,
+                      dropoffLocation: finalDropoff,
+                      // Equipment fields
+                      returnTime: rentalCategoryType === "equipment" ? rentalData.returnTime : null,
+                      deposit: rentalCategoryType === "equipment" ? rentalData.deposit : 0,
+                      conditionNotes: rentalCategoryType === "equipment" ? rentalData.conditionNotes : null,
+                      fulfillmentType: rentalCategoryType === "equipment" ? rentalData.fulfillmentType : null,
+                      deliveryFee: rentalCategoryType === "equipment" ? rentalData.deliveryFee : 0,
+                      setupNote: rentalCategoryType === "equipment" ? rentalData.setupNote : null,
+                    }),
+                  });
 
       const data = await res.json();
 
@@ -1319,47 +1336,148 @@ export default function BookingForm({
                                   </div>
 
                                   {/* Tampilkan durasi jika ada */}
-                                  {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
-                                    <p className="text-amber-600 text-xs font-medium">
-                                      Durasi sewa:{" "}
-                                      {Math.round(
-                                        (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
-                                          (1000 * 60 * 60 * 24)
-                                      ) + 1}{" "}
-                                      hari
-                                    </p>
-                                  )}
+                                                                    {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
+                                                                      <p className="text-amber-600 text-xs font-medium">
+                                                                        Durasi sewa:{" "}
+                                                                        {Math.round(
+                                                                          (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
+                                                                            (1000 * 60 * 60 * 24)
+                                                                        ) + 1}{" "}
+                                                                        hari
+                                                                      </p>
+                                                                    )}
 
-                                  {/* Lokasi Ambil / Pengiriman */}
-                                  <div className="space-y-1.5">
-                                    <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                      LOKASI AMBIL / PENGIRIMAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
-                                    </label>
-                                    <div className="flex gap-2">
-                                      <input
-                                        id="rental-pickup"
-                                        type="text"
-                                        value={rentalData.pickupLocation}
-                                        onChange={(e) => {
-                                          setRentalData((prev) => ({ ...prev, pickupLocation: e.target.value }));
-                                          setError(null);
-                                        }}
-                                        placeholder="contoh: Toko kami di Jl. Sudirman No. 10 / Antar ke hotel"
-                                        className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-                                      />
-                                      <button
-                                        id="gps-btn"
-                                        type="button"
-                                        onClick={handleGeolocation}
-                                        className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
-                                        title="Gunakan Lokasi Saat Ini"
-                                      >
-                                        📍 GPS
-                                      </button>
-                                    </div>
-                                  </div>
+                                                                    {/* Fulfilment Type Selector - KHUSUS EQUIPMENT */}
+                                                                    <div className="space-y-1.5">
+                                                                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                                        MODE PENGAMBILAN *
+                                                                      </label>
+                                                                      <div className="flex gap-3">
+                                                                        <button
+                                                                          type="button"
+                                                                          onClick={() => setRentalData(prev => ({ ...prev, fulfillmentType: "pickup" }))}
+                                                                          className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+                                                                            rentalData.fulfillmentType === "pickup"
+                                                                              ? "bg-amber-500 text-white border-amber-500 shadow-md"
+                                                                              : "bg-white text-slate-600 border-slate-200 hover:border-amber-300"
+                                                                          }`}
+                                                                        >
+                                                                          <div className="flex items-center justify-center gap-1.5">
+                                                                            <span>🏪</span>
+                                                                            <span>Ambil di Toko</span>
+                                                                          </div>
+                                                                          <p className="text-[10px] mt-0.5 opacity-80">Customer datang ambil & cek barang</p>
+                                                                        </button>
+                                                                        <button
+                                                                          type="button"
+                                                                          onClick={() => setRentalData(prev => ({ ...prev, fulfillmentType: "delivery" }))}
+                                                                          className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+                                                                            rentalData.fulfillmentType === "delivery"
+                                                                              ? "bg-blue-500 text-white border-blue-500 shadow-md"
+                                                                              : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+                                                                          }`}
+                                                                        >
+                                                                          <div className="flex items-center justify-center gap-1.5">
+                                                                            <span>🚚</span>
+                                                                            <span>Diantar ke Lokasi</span>
+                                                                          </div>
+                                                                          <p className="text-[10px] mt-0.5 opacity-80">Kami antar ke alamat event/hotel</p>
+                                                                        </button>
+                                                                      </div>
+                                                                    </div>
 
-                                  {/* Deposit / Jaminan */}
+                                                                    {/* Pickup Mode - Alamat Toko (readonly) */}
+                                                                    {rentalData.fulfillmentType === "pickup" && (
+                                                                      <div className="space-y-1.5 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                                                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                                          LOKASI PENGIRIMAN (ALAMAT TOKO)
+                                                                        </label>
+                                                                        <div className="bg-white border border-slate-200 rounded-lg p-3">
+                                                                          <p className="text-sm font-medium text-slate-700">{tenantName}</p>
+                                                                          <p className="text-xs text-slate-500 mt-0.5">Customer datang ke toko untuk ambil & cek kondisi alat</p>
+                                                                        </div>
+                                                                        <input
+                                                                          type="hidden"
+                                                                          name="pickupLocation"
+                                                                          value={tenantName}
+                                                                          onChange={(e) => setRentalData(prev => ({ ...prev, pickupLocation: e.target.value }))}
+                                                                        />
+                                                                      </div>
+                                                                    )}
+
+                                                                    {/* Delivery Mode - Input Lokasi Tujuan */}
+                                                                    {rentalData.fulfillmentType === "delivery" && (
+                                                                      <div className="space-y-3">
+                                                                        <div className="space-y-1.5">
+                                                                          <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                                            ALAMAT TUJUAN PENGIRIMAN *
+                                                                          </label>
+                                                                          <div className="flex gap-2">
+                                                                            <input
+                                                                              id="rental-dropoff"
+                                                                              type="text"
+                                                                              value={rentalData.dropoffLocation}
+                                                                              onChange={(e) => {
+                                                                                setRentalData((prev) => ({ ...prev, dropoffLocation: e.target.value }));
+                                                                                setError(null);
+                                                                              }}
+                                                                              placeholder="contoh: Hotel Aston Denpasar, Jl. Raya Kuta No. 123"
+                                                                              required
+                                                                              className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                                                            />
+                                                                            <button
+                                                                              id="gps-btn-delivery"
+                                                                              type="button"
+                                                                              onClick={handleGeolocation}
+                                                                              className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
+                                                                              title="Gunakan Lokasi Saat Ini"
+                                                                            >
+                                                                              📍 GPS
+                                                                            </button>
+                                                                          </div>
+                                                                        </div>
+
+                                                                        {/* Optional: Ongkir & Setup Note */}
+                                                                        <div className="grid grid-cols-2 gap-3">
+                                                                          <div className="space-y-1.5">
+                                                                            <label htmlFor="rental-deliveryFee" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                                              BIAYA ONGKIR (Opsional)
+                                                                            </label>
+                                                                            <input
+                                                                              id="rental-deliveryFee"
+                                                                              type="number"
+                                                                              min="0"
+                                                                              step="1000"
+                                                                              value={rentalData.deliveryFee || 0}
+                                                                              onChange={(e) => {
+                                                                                setRentalData((prev) => ({ ...prev, deliveryFee: Number(e.target.value) || 0 }));
+                                                                                setError(null);
+                                                                              }}
+                                                                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                                                              placeholder="contoh: 50000"
+                                                                            />
+                                                                          </div>
+                                                                          <div className="space-y-1.5">
+                                                                            <label htmlFor="rental-setupNote" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                                                              CATATAN SETUP (Opsional)
+                                                                            </label>
+                                                                            <input
+                                                                              id="rental-setupNote"
+                                                                              type="text"
+                                                                              value={rentalData.setupNote || ""}
+                                                                              onChange={(e) => {
+                                                                                setRentalData((prev) => ({ ...prev, setupNote: e.target.value }));
+                                                                                setError(null);
+                                                                              }}
+                                                                              placeholder="contoh: Butuh teknisi sound, setup pukul 08:00"
+                                                                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                                                            />
+                                                                          </div>
+                                                                        </div>
+                                                                      </div>
+                                                                    )}
+
+                                                                    {/* Deposit / Jaminan */}
                                   <div className="space-y-1.5">
                                     <label htmlFor="rental-deposit" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                       DEPOSIT / JAMINAN <span className="normal-case font-normal text-slate-500">(opsional, isi 0 jika tidak ada)</span>
