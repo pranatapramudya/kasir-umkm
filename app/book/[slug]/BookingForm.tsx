@@ -195,10 +195,12 @@ export default function BookingForm({
   const isRental = isRentalTravelCategory(tenantCategory);
 
   // Deteksi tipe rental yang benar-benar ada di katalog produk tenant ini
+    // Hanya hitung unit fisik (isService=false), jangan hitung layanan tambahan (isService=true)
     const availableRentalTypes = useMemo(() => {
       if (!isRental || !services || services.length === 0) return ["equipment", "vehicle", "property"] as ("property" | "vehicle" | "equipment")[];
       const types = new Set<"property" | "vehicle" | "equipment">();
       for (const s of services) {
+        if (s.isService) continue; // Skip layanan tambahan (supir, extra bed, dll)
         const detected = detectRentalItemType(s.name, s.description, s.category);
         if (detected !== "unknown") types.add(detected);
       }
@@ -206,8 +208,9 @@ export default function BookingForm({
     }, [services, isRental]);
 
     const initialRentalType = useMemo(() => {
-      if (services.length > 0) {
-        const detected = detectRentalItemType(services[0].name, services[0].description, services[0].category);
+      const physicalUnits = services.filter(s => !s.isService);
+      if (physicalUnits.length > 0) {
+        const detected = detectRentalItemType(physicalUnits[0].name, physicalUnits[0].description, physicalUnits[0].category);
         return detected !== "unknown" ? detected : "equipment";
       }
       return "equipment";
