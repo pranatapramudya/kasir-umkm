@@ -225,16 +225,19 @@ export default function BookingForm({
   });
 
   // State khusus Rental & Travel
-  const [rentalData, setRentalData] = useState({
-    startDate: todayISO,
-    pickupTime: "08:00",
-    endDate: todayISO,
-    pickupLocation: "",
-    dropoffProvince: "",
-    dropoffRegency: "",
-    dropoffDistrict: "",
-    dropoffLocation: "",
-  });
+    const [rentalData, setRentalData] = useState({
+      startDate: todayISO,
+      pickupTime: "08:00",
+      endDate: todayISO,
+      pickupLocation: "",
+      dropoffProvince: "",
+      dropoffRegency: "",
+      dropoffDistrict: "",
+      dropoffLocation: "",
+      returnTime: "17:00",
+      deposit: 0,
+      conditionNotes: "",
+    });
 
   // State untuk data wilayah (Emsifa API)
   const [provincesData, setProvincesData] = useState<Region[]>([]);
@@ -559,16 +562,22 @@ export default function BookingForm({
           return;
         }
         if (rentalData.endDate < rentalData.startDate) {
-          setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
-          return;
-        }
-        if (rentalCategoryType === "vehicle") {
-          if (!rentalData.dropoffProvince || !rentalData.dropoffRegency || !rentalData.dropoffDistrict) {
-            setError("Provinsi, Kota/Kabupaten, dan Kecamatan tujuan wajib dipilih.");
-            return;
-          }
-        }
-      }
+                  setError("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+                  return;
+                }
+                if (rentalCategoryType === "vehicle") {
+                  if (!rentalData.dropoffProvince || !rentalData.dropoffRegency || !rentalData.dropoffDistrict) {
+                    setError("Provinsi, Kota/Kabupaten, dan Kecamatan tujuan wajib dipilih.");
+                    return;
+                  }
+                }
+                if (rentalCategoryType === "equipment") {
+                  if (!rentalData.returnTime) {
+                    setError("Jam kembali wajib dipilih.");
+                    return;
+                  }
+                }
+              }
     } else {
       if (!formData.bookingDate) {
         setError("Tanggal kunjungan wajib dipilih.");
@@ -1230,85 +1239,150 @@ export default function BookingForm({
               )}
             </div>
           ) : rentalCategoryType === "equipment" ? (
-                      /* ===== BILA PERALATAN / ALAT ===== */
-                      <div className="space-y-4">
-                        <RentalDatePicker
-                          slug={slug}
-                          productId={formData.productId}
-                          startDate={rentalData.startDate}
-                          endDate={rentalData.endDate}
-                          onChange={(start, end) => {
-                            setRentalData((prev) => ({ ...prev, startDate: start, endDate: end }));
-                            setError(null);
-                          }}
-                          onClearError={() => setError(null)}
-                        />
+                                /* ===== BILA PERALATAN / ALAT ===== */
+                                <div className="space-y-4">
+                                  <RentalDatePicker
+                                    slug={slug}
+                                    productId={formData.productId}
+                                    startDate={rentalData.startDate}
+                                    endDate={rentalData.endDate}
+                                    onChange={(start, end) => {
+                                      setRentalData((prev) => ({ ...prev, startDate: start, endDate: end }));
+                                      setError(null);
+                                    }}
+                                    onClearError={() => setError(null)}
+                                  />
 
-                        {/* Jam Ambil / Mulai Sewa */}
-                        <div className="space-y-1.5">
-                          <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Jam Ambil / Mulai Sewa *
-                          </label>
-                          <select
-                            id="rental-pickupTime"
-                            value={rentalData.pickupTime}
-                            onChange={(e) => {
-                              setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
-                              setError(null);
-                            }}
-                            required
-                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                          >
-                            {rentalTimeSlots.map((time) => (
-                              <option key={time} value={time}>
-                                {time} WIB
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                                  {/* Jam Ambil & Jam Kembali */}
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                      <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                        Jam Ambil *
+                                      </label>
+                                      <select
+                                        id="rental-pickupTime"
+                                        value={rentalData.pickupTime}
+                                        onChange={(e) => {
+                                          setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                                          setError(null);
+                                        }}
+                                        required
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                                      >
+                                        {rentalTimeSlots.map((time) => (
+                                          <option key={time} value={time}>
+                                            {time} WIB
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
 
-                        {/* Tampilkan durasi jika ada */}
-                        {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
-                          <p className="text-amber-600 text-xs font-medium">
-                            Durasi sewa:{" "}
-                            {Math.round(
-                              (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
-                                (1000 * 60 * 60 * 24)
-                            ) + 1}{" "}
-                            hari
-                          </p>
-                        )}
+                                    <div className="space-y-1.5">
+                                      <label htmlFor="rental-returnTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                        Jam Kembali *
+                                      </label>
+                                      <select
+                                        id="rental-returnTime"
+                                        value={rentalData.returnTime || "17:00"}
+                                        onChange={(e) => {
+                                          setRentalData((prev) => ({ ...prev, returnTime: e.target.value }));
+                                          setError(null);
+                                        }}
+                                        required
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                                      >
+                                        {rentalTimeSlots.map((time) => (
+                                          <option key={time} value={time}>
+                                            {time} WIB
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </div>
 
-                        {/* Lokasi Penjemputan / Alamat */}
-                        <div className="space-y-1.5">
-                          <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            LOKASI AMBIL / ALAMAT <span className="normal-case font-normal text-slate-500">(opsional)</span>
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              id="rental-pickup"
-                              type="text"
-                              value={rentalData.pickupLocation}
-                              onChange={(e) => {
-                                setRentalData((prev) => ({ ...prev, pickupLocation: e.target.value }));
-                                setError(null);
-                              }}
-                              placeholder="contoh: Toko kami di Jl. Sudirman No. 10"
-                              className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-                            />
-                            <button
-                              id="gps-btn"
-                              type="button"
-                              onClick={handleGeolocation}
-                              className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
-                              title="Gunakan Lokasi Saat Ini"
-                            >
-                              📍 GPS
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
+                                  {/* Tampilkan durasi jika ada */}
+                                  {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
+                                    <p className="text-amber-600 text-xs font-medium">
+                                      Durasi sewa:{" "}
+                                      {Math.round(
+                                        (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
+                                          (1000 * 60 * 60 * 24)
+                                      ) + 1}{" "}
+                                      hari
+                                    </p>
+                                  )}
+
+                                  {/* Lokasi Ambil / Pengiriman */}
+                                  <div className="space-y-1.5">
+                                    <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                      LOKASI AMBIL / PENGIRIMAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                      <input
+                                        id="rental-pickup"
+                                        type="text"
+                                        value={rentalData.pickupLocation}
+                                        onChange={(e) => {
+                                          setRentalData((prev) => ({ ...prev, pickupLocation: e.target.value }));
+                                          setError(null);
+                                        }}
+                                        placeholder="contoh: Toko kami di Jl. Sudirman No. 10 / Antar ke hotel"
+                                        className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                                      />
+                                      <button
+                                        id="gps-btn"
+                                        type="button"
+                                        onClick={handleGeolocation}
+                                        className="px-4 py-3 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm flex-shrink-0 transition-colors tooltip"
+                                        title="Gunakan Lokasi Saat Ini"
+                                      >
+                                        📍 GPS
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Deposit / Jaminan */}
+                                  <div className="space-y-1.5">
+                                    <label htmlFor="rental-deposit" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                      DEPOSIT / JAMINAN <span className="normal-case font-normal text-slate-500">(opsional, isi 0 jika tidak ada)</span>
+                                    </label>
+                                    <input
+                                      id="rental-deposit"
+                                      type="number"
+                                      min="0"
+                                      step="1000"
+                                      value={rentalData.deposit || 0}
+                                      onChange={(e) => {
+                                        setRentalData((prev) => ({ ...prev, deposit: Number(e.target.value) || 0 }));
+                                        setError(null);
+                                      }}
+                                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                                      placeholder="contoh: 500000"
+                                    />
+                                    <p className="text-[10px] text-amber-600 mt-1">
+                                      Akan ditambahkan ke total tagihan & dikembalikan saat alat dikembalikan utuh.
+                                    </p>
+                                  </div>
+
+                                  {/* Catatan Kondisi / Request Khusus */}
+                                  <div className="space-y-1.5">
+                                    <label htmlFor="rental-condition" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                      CATATAN KONDISI / REQUEST KHUSUS <span className="normal-case font-normal text-slate-500">(opsional)</span>
+                                    </label>
+                                    <textarea
+                                      id="rental-condition"
+                                      rows={3}
+                                      value={rentalData.conditionNotes || ""}
+                                      onChange={(e) => {
+                                        setRentalData((prev) => ({ ...prev, conditionNotes: e.target.value }));
+                                        setError(null);
+                                      }}
+                                      placeholder="contoh: Lens filter sudah dipasang, bawa charger tambahan, butuh tas kamera..."
+                                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all resize-none"
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
                       /* ===== BILA KENDARAAN / TRAVEL ===== */
             <div className="space-y-4">
               <RentalDatePicker

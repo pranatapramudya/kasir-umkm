@@ -185,6 +185,10 @@ model Booking {
   endDate       DateTime?
   pickupLocation String?
   dropoffLocation String?
+  // === Equipment/Alat fields ===
+  returnTime    String?
+  deposit       Int           @default(0)
+  conditionNotes String?
   actualStartedAt DateTime?
   overtimeFee   Int           @default(0)
   downPayment   Int           @default(0)
