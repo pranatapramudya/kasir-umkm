@@ -62,9 +62,16 @@ export default async function BookingPage({ params }: PageProps) {
     );
   }
 
-  // Ambil layanan (produk dengan isService=true) milik tenant ini
+  // Ambil layanan/produk untuk booking form
+  // Rental: ambil semua produk non-archived (unit sewa isService=false, layanan tambahan isService=true)
+  // Jasa: ambil produk isService=true
+  const isRental = isRentalTravelCategory(tenant.category);
   const services = await prisma.product.findMany({
-    where: { userId: tenant.userId, isService: true, isArchived: false },
+    where: {
+      userId: tenant.userId,
+      isArchived: false,
+      ...(isRental ? {} : { isService: true }),
+    },
     orderBy: { name: "asc" },
     select: { id: true, name: true, hargaJual: true, description: true },
   });
