@@ -487,13 +487,18 @@ export default function BookingForm({
                 `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
                 `Berikut bukti transfernya...`;
             } else if (rentalCategoryType === "equipment") {
-              const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-              const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-              text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
-                `Nama Pemesan: *${formData.customerName}*\n` +
-                `Alat: *${tenantName}*${serviceText}\n` +
-                `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*.\n\n` +
-                `Berikut bukti transfernya...`;
+                          const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+                          const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+                          const pickupTime = rentalData.pickupTime || "08:00";
+                          const returnTime = rentalData.returnTime || "17:00";
+                          text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
+                            `Nama Pemesan: *${formData.customerName}*\n` +
+                            `Alat: *${tenantName}*${serviceText}\n` +
+                            `Tanggal Sewa: *${startLabel}* s/d *${endLabel}*\n` +
+                            `Jam Ambil: *${pickupTime} WIB*\n` +
+                            `Jam Kembali: *${returnTime} WIB*\n` +
+                            (rentalData.deposit > 0 ? `DP / Deposit: *Rp ${new Intl.NumberFormat("id-ID").format(rentalData.deposit)}*\n` : "") +
+                            `\nBerikut bukti transfernya...`;
             } else {
         const startLabel = new Date(rentalData.startDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
         const endLabel = new Date(rentalData.endDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -627,21 +632,25 @@ export default function BookingForm({
       }
 
       const res = await fetch("/api/booking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug,
-          customerName: formData.customerName.trim(),
-          customerPhone: formData.customerPhone.trim(),
-          bookingDate: bookingDateTime.toISOString(),
-          notes: formData.notes.trim() || null,
-          productId: formData.productId ? Number(formData.productId) : null,
-          startDate: startDateIso,
-          endDate: endDateIso,
-          pickupLocation: finalPickup,
-          dropoffLocation: finalDropoff,
-        }),
-      });
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                slug,
+                customerName: formData.customerName.trim(),
+                customerPhone: formData.customerPhone.trim(),
+                bookingDate: bookingDateTime.toISOString(),
+                notes: formData.notes.trim() || null,
+                productId: formData.productId ? Number(formData.productId) : null,
+                startDate: startDateIso,
+                endDate: endDateIso,
+                pickupLocation: finalPickup,
+                dropoffLocation: finalDropoff,
+                // Equipment fields
+                returnTime: rentalCategoryType === "equipment" ? rentalData.returnTime : null,
+                deposit: rentalCategoryType === "equipment" ? rentalData.deposit : 0,
+                conditionNotes: rentalCategoryType === "equipment" ? rentalData.conditionNotes : null,
+              }),
+            });
 
       const data = await res.json();
 
