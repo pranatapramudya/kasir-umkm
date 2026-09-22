@@ -1031,6 +1031,69 @@ export default function AdminProductsClientPage({
                         <option value="Jasa / Servis">🛠️ Jasa / Servis (Layanan)</option>
                         <option value="Produk / Barang">📦 Produk / Barang (Barang Fisik)</option>
                       </select>
+                    ) : isRental ? (
+                      // RENTAL: Locked category based on rentalModalType
+                      <select
+                        name="category"
+                        required
+                        disabled={!!editingProduct} // Locked when editing
+                        value={
+                          rentalModalType === 'equipment' ? 'Peralatan' :
+                          rentalModalType === 'vehicle' ? 'Armada' :
+                          rentalModalType === 'property' ? 'Properti' :
+                          'Layanan Tambahan'
+                        }
+                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                        className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-semibold ${
+                          editingProduct ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''
+                        }`}
+                      >
+                        {rentalModalType === 'equipment' && (
+                          <>
+                            <option value="Peralatan">📦 Peralatan / Alat / Barang</option>
+                            <option value="Kamera & Lensa">Kamera & Lensa</option>
+                            <option value="Outdoor & Camping">Outdoor & Camping</option>
+                            <option value="Sound System & Event">Sound System & Event</option>
+                            <option value="Console & Game">Console & Game</option>
+                            <option value="Perkakas & Alat Berat">Perkakas & Alat Berat</option>
+                            <option value="Pakaian & Kostum">Pakaian & Kostum</option>
+                            <option value="Lainnya">Lainnya</option>
+                          </>
+                        )}
+                        {rentalModalType === 'vehicle' && (
+                          <>
+                            <option value="Armada">🚗 Armada / Kendaraan</option>
+                            <option value="MPV">MPV</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Sedan">Sedan</option>
+                            <option value="Minibus">Minibus</option>
+                            <option value="Motor">Motor</option>
+                            <option value="Bus">Bus</option>
+                          </>
+                        )}
+                        {rentalModalType === 'property' && (
+                          <>
+                            <option value="Properti">🏨 Properti / Penginapan</option>
+                            <option value="Kamar Kost">Kamar Kost</option>
+                            <option value="Villa">Villa</option>
+                            <option value="Apartemen">Apartemen</option>
+                            <option value="Hotel">Hotel</option>
+                            <option value="Glamping">Glamping</option>
+                            <option value="Homestay">Homestay</option>
+                          </>
+                        )}
+                        {rentalModalType === 'addon' && (
+                          <>
+                            <option value="Layanan Tambahan">🛠️ Layanan Tambahan / Add-on</option>
+                            <option value="Operator/Kru">Operator/Kru</option>
+                            <option value="Supir/Bunker">Supir/Bunker</option>
+                            <option value="Extra Bed">Extra Bed</option>
+                            <option value="Sarapan/Makan">Sarapan/Makan</option>
+                            <option value="Laundry">Laundry</option>
+                            <option value="Antar Jemput">Antar Jemput</option>
+                          </>
+                        )}
+                      </select>
                     ) : (
                       <>
                         <input
@@ -1039,57 +1102,12 @@ export default function AdminProductsClientPage({
                           required
                           autoComplete="off"
                           list="category-options"
-                          placeholder={
-                            isRental
-                              ? (rentalModalType === 'equipment' ? "contoh: Kamera & Lensa, Outdoor, Sound System, Game..." : rentalModalType === 'vehicle' ? "contoh: MPV, SUV, Sedan, Minibus, Motor..." : rentalModalType === 'property' ? "contoh: Kamar Kost, Villa, Apartemen, Hotel..." : "contoh: Operator/Kru, Supir/Bunker, Extra Bed...")
-                              : "Kategori produk"
-                          }
+                          placeholder="Kategori produk"
                           value={formData.category}
                           onChange={handleChange}
                           className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                         />
                         <datalist id="category-options">
-                          {isRental && rentalModalType === 'equipment' && (
-                            <>
-                              <option value="Kamera & Lensa" />
-                              <option value="Outdoor & Camping" />
-                              <option value="Sound System & Event" />
-                              <option value="Console & Game" />
-                              <option value="Perkakas & Alat Berat" />
-                              <option value="Pakaian & Kostum" />
-                              <option value="Lainnya" />
-                            </>
-                          )}
-                          {isRental && rentalModalType === 'vehicle' && (
-                            <>
-                              <option value="MPV" />
-                              <option value="SUV" />
-                              <option value="Sedan" />
-                              <option value="Minibus" />
-                              <option value="Motor" />
-                              <option value="Bus" />
-                            </>
-                          )}
-                          {isRental && rentalModalType === 'property' && (
-                            <>
-                              <option value="Kamar Kost" />
-                              <option value="Villa" />
-                              <option value="Apartemen" />
-                              <option value="Hotel" />
-                              <option value="Glamping" />
-                              <option value="Homestay" />
-                            </>
-                          )}
-                          {isRental && rentalModalType === 'addon' && (
-                            <>
-                              <option value="Operator/Kru" />
-                              <option value="Supir/Bunker" />
-                              <option value="Extra Bed" />
-                              <option value="Sarapan/Makan" />
-                              <option value="Laundry" />
-                              <option value="Antar Jemput" />
-                            </>
-                          )}
                           {uniqueCategories.map(cat => (
                             <option key={cat} value={cat} />
                           ))}
