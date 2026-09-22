@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
-import { isServiceBusinessCategory } from '@/lib/business-category';
+import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
 import { cacheInvalidateByTag, CacheTags } from '@/lib/redis-cache';
 
 // [PUT] Memperbarui produk (Edit)
@@ -39,8 +39,11 @@ export async function PUT(
 
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
+    const isRental = isRentalTravelCategory(tenant?.category);
     const categoryLower = (category || "").toLowerCase().trim();
     const isJasaMurni = isService && (categoryLower === "jasa" || categoryLower === "jasa / servis" || categoryLower === "jasa/servis" || categoryLower === "layanan" || categoryLower === "");
+    const isRentalLayanan = isRental && (categoryLower.includes("layanan") || categoryLower.includes("tambahan") || categoryLower.includes("operator") || categoryLower.includes("supir") || body.isService === true);
+    const finalIsService = isJasaMurni || isRentalLayanan || Boolean(body.isService);
     const normalizedCategory = isService ? (isJasaMurni ? "Jasa / Servis" : "Produk / Barang") : (category || "");
 
     const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -56,15 +59,15 @@ export async function PUT(
         biayaModal: isJasaMurni ? modalValue : 0,
         hargaJual: parseInt(hargaJual, 10) || 0,
         category: normalizedCategory,
-        stock: isJasaMurni ? 999999 : (parseInt(stock, 10) || 0),
-        minStockThreshold: isJasaMurni ? 0 : (parseInt(minStockThreshold, 10) || 5),
+        stock: finalIsService ? 999999 : (parseInt(stock, 10) || 0),
+        minStockThreshold: finalIsService ? 0 : (parseInt(minStockThreshold, 10) || (isRental ? 1 : 5)),
         discount: parseInt(discount, 10) || 0,
         brand: brand || "",
         variant: variant || "",
         image: image || "",
         description: description || null,
-        isService: isJasaMurni,
-        employeeCommission: isService ? (parseInt(employeeCommission, 10) || 0) : 0,
+        isService: finalIsService,
+        employeeCommission: (isService || isRental) ? (parseInt(employeeCommission, 10) || 0) : 0,
       }
     });
 

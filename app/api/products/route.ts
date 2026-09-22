@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
-import { isServiceBusinessCategory } from '@/lib/business-category';
+import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
 import { cacheInvalidateByTag, CacheTags } from '@/lib/redis-cache';
 
 export const dynamic = 'force-dynamic';
@@ -138,11 +138,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Nama dan Harga Jual wajib diisi" }, { status: 400 });
     }
 
-    // 2.5 Cek Kategori Usaha untuk set isService
+    // 2.5 Cek Kategori Usaha untuk set isService & employeeCommission
     const tenant = await prisma.tenant.findUnique({ where: { userId } });
     const isService = isServiceBusinessCategory(tenant?.category);
+    const isRental = isRentalTravelCategory(tenant?.category);
     const categoryLower = (category || "").toLowerCase().trim();
     const isJasaMurni = isService && (categoryLower === "jasa" || categoryLower === "jasa / servis" || categoryLower === "jasa/servis" || categoryLower === "layanan" || categoryLower === "");
+    const isRentalLayanan = isRental && (categoryLower.includes("layanan") || categoryLower.includes("tambahan") || categoryLower.includes("operator") || categoryLower.includes("supir") || body.isService === true);
+    const finalIsService = isJasaMurni || isRentalLayanan || Boolean(body.isService);
     const normalizedCategory = isService ? (isJasaMurni ? "Jasa / Servis" : "Produk / Barang") : (category || "Umum");
 
     const finalKodeBarang = kodeBarang || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -154,19 +157,19 @@ export async function POST(request: Request) {
         userId,
         kodeBarang: finalKodeBarang,
         name,
-        hpp: modalValue, // Simpan HPP untuk Jasa & Barang
+        hpp: modalValue, // Simpan HPP untuk Jasa, Rental & Barang
         biayaModal: isJasaMurni ? modalValue : 0,
         hargaJual: Number(hargaJual) || 0,
         category: normalizedCategory,
-        stock: isJasaMurni ? 999999 : (Number(stock) || 0),
-        minStockThreshold: isJasaMurni ? 0 : (Number(minStockThreshold) || 5),
+        stock: finalIsService ? 999999 : (Number(stock) || 0),
+        minStockThreshold: finalIsService ? 0 : (Number(minStockThreshold) || (isRental ? 1 : 5)),
         discount: Number(discount) || 0,
         brand: brand || "",
         variant: variant || "",
         image: image || "",
         description: description || null,
-        isService: isJasaMurni,
-        employeeCommission: isService ? (Number(employeeCommission) || 0) : 0,
+        isService: finalIsService,
+        employeeCommission: (isService || isRental) ? (Number(employeeCommission) || 0) : 0,
       }
     });
 
