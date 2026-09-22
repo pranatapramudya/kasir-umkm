@@ -73,7 +73,7 @@ export default async function BookingPage({ params }: PageProps) {
       ...(isRental ? {} : { isService: true }),
     },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, hargaJual: true, description: true },
+    select: { id: true, name: true, category: true, hargaJual: true, description: true, isService: true },
   });
 
   return (

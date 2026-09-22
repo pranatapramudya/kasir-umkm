@@ -2,14 +2,16 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { RentalDatePicker } from "@/components/RentalDatePicker";
-import { isRentalTravelCategory } from "@/lib/business-category";
+import { isRentalTravelCategory, detectRentalItemType } from "@/lib/business-category";
 import html2canvas from "html2canvas-pro";
 
 interface Service {
   id: number;
   name: string;
+  category?: string | null;
   hargaJual: number;
   description?: string | null;
+  isService?: boolean;
 }
 
 interface BookingFormProps {
@@ -190,46 +192,26 @@ export default function BookingForm({
     );
   }
 
-
-  function detectRentalItemType(name: string, description?: string | null): "property" | "vehicle" | "equipment" {
-      const combined = `${name || ""} ${description || ""}`.toLowerCase();
-      const vehicleKeywords = [
-        "mobil", "motor", "car", "bike", "bus", "travel", "avanza",
-        "innova", "hiace", "elf", "nmax", "pcx", "beat", "supra",
-        "scooter", "kendaraan", "driver", "supir", "pickup", "shuttle",
-        "charter", "armada", "sewa mobil", "sewa motor"
-      ];
-      const equipmentKeywords = [
-        "kamera", "drone", "sound", "lighting", "tender", "camping",
-        "playstation", "alat berat", "generator", "proyektor", "mic",
-        "speaker", "mixer", "amplifier", "gitar", "drum", "keyboard",
-        "kabel", "stand", "tripod", "softbox", "ring light", "mic wireless"
-      ];
-      const matchesVehicle = vehicleKeywords.some(kw => combined.includes(kw));
-      const matchesEquipment = equipmentKeywords.some(kw => combined.includes(kw));
-      if (matchesEquipment) return "equipment";
-      if (matchesVehicle) return "vehicle";
-      return "property";
-    }
-
   const isRental = isRentalTravelCategory(tenantCategory);
 
   // Deteksi tipe rental yang benar-benar ada di katalog produk tenant ini
-  const availableRentalTypes = useMemo(() => {
-    if (!isRental || !services || services.length === 0) return ["equipment", "vehicle", "property"] as ("property" | "vehicle" | "equipment")[];
-    const types = new Set<"property" | "vehicle" | "equipment">();
-    for (const s of services) {
-      types.add(detectRentalItemType(s.name, s.description));
-    }
-    return Array.from(types);
-  }, [services, isRental]);
+    const availableRentalTypes = useMemo(() => {
+      if (!isRental || !services || services.length === 0) return ["equipment", "vehicle", "property"] as ("property" | "vehicle" | "equipment")[];
+      const types = new Set<"property" | "vehicle" | "equipment">();
+      for (const s of services) {
+        const detected = detectRentalItemType(s.name, s.description, s.category);
+        if (detected !== "unknown") types.add(detected);
+      }
+      return Array.from(types);
+    }, [services, isRental]);
 
-  const initialRentalType = useMemo(() => {
-    if (services.length > 0) {
-      return detectRentalItemType(services[0].name, services[0].description);
-    }
-    return "equipment";
-  }, [services]);
+    const initialRentalType = useMemo(() => {
+      if (services.length > 0) {
+        const detected = detectRentalItemType(services[0].name, services[0].description, services[0].category);
+        return detected !== "unknown" ? detected : "equipment";
+      }
+      return "equipment";
+    }, [services]);
 
   const [rentalCategoryType, setRentalCategoryType] = useState<"property" | "vehicle" | "equipment">(initialRentalType);
   const [rentalModeDuration, setRentalModeDuration] = useState<"hourly" | "daily">("hourly");
@@ -279,16 +261,17 @@ export default function BookingForm({
     (s) => s.id.toString() === formData.productId
   );
 
-  // Auto-set category type when selectedService changes or fallback to available
-  useEffect(() => {
-    if (selectedService) {
-      setRentalCategoryType(detectRentalItemType(selectedService.name, selectedService.description));
-    } else if (availableRentalTypes.length > 0 && !availableRentalTypes.includes(rentalCategoryType)) {
-      setRentalCategoryType(availableRentalTypes[0]);
-    }
-  }, [selectedService, availableRentalTypes, rentalCategoryType]);
+    // Auto-set category type when selectedService changes or fallback to available
+      useEffect(() => {
+        if (selectedService) {
+          const detected = detectRentalItemType(selectedService.name, selectedService.description, selectedService.category);
+          if (detected !== "unknown") setRentalCategoryType(detected);
+        } else if (availableRentalTypes.length > 0 && !availableRentalTypes.includes(rentalCategoryType)) {
+          setRentalCategoryType(availableRentalTypes[0]);
+        }
+      }, [selectedService, availableRentalTypes, rentalCategoryType]);
 
-  // Calculated info for hourly transit
+    // Calculated info for hourly transit
   const hourlyCheckoutInfo = useMemo(() => {
     if (!hourlyData.checkInDate || !hourlyData.checkInTime) {
       return { checkInLabel: "-", checkOutLabel: "-", startIso: "", endIso: "" };
@@ -1015,28 +998,42 @@ export default function BookingForm({
       </div>
 
       {/* Pilih Layanan / Unit */}
-      {services.length > 0 && (
-        <div className="space-y-1.5">
-          <label htmlFor="productId" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            {isRental ? "Pilih Unit / Kamar *" : "Pilih Layanan / Servis *"}
-          </label>
-          <select
-            id="productId"
-            name="productId"
-            value={formData.productId}
-            onChange={handleChange}
-            required
-            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none"
-          >
-            <option value="" className="bg-white text-slate-500">
-              {isRental ? "— Pilih Unit / Kamar —" : "— Pilih Layanan —"}
-            </option>
-            {services.map((s) => (
-              <option key={s.id} value={s.id} className="bg-white text-slate-900">
-                {s.name} — {isRental ? `Estimasi / Mulai dari ${formatRupiah(s.hargaJual)}` : formatRupiah(s.hargaJual)}
-              </option>
-            ))}
-          </select>
+            {services.length > 0 && (
+              <div className="space-y-1.5">
+                <label htmlFor="productId" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {isRental ? (
+                    <>
+                      {availableRentalTypes.length === 1 && availableRentalTypes[0] === "equipment" && "Pilih Alat / Perlengkapan *"}
+                      {availableRentalTypes.length === 1 && availableRentalTypes[0] === "vehicle" && "Pilih Kendaraan / Armada *"}
+                      {availableRentalTypes.length === 1 && availableRentalTypes[0] === "property" && "Pilih Unit / Kamar *"}
+                      {availableRentalTypes.length > 1 && "Pilih Unit / Layanan *"}
+                    </>
+                  ) : "Pilih Layanan / Servis *"}
+                </label>
+                <select
+                  id="productId"
+                  name="productId"
+                  value={formData.productId}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none"
+                >
+                  <option value="" className="bg-white text-slate-500">
+                    {isRental ? (
+                      <>
+                        {availableRentalTypes.length === 1 && availableRentalTypes[0] === "equipment" && "— Pilih Alat / Perlengkapan —"}
+                        {availableRentalTypes.length === 1 && availableRentalTypes[0] === "vehicle" && "— Pilih Kendaraan / Armada —"}
+                        {availableRentalTypes.length === 1 && availableRentalTypes[0] === "property" && "— Pilih Unit / Kamar —"}
+                        {availableRentalTypes.length > 1 && "— Pilih Unit / Layanan —"}
+                      </>
+                    ) : "— Pilih Layanan —"}
+                  </option>
+                  {services.map((s) => (
+                    <option key={s.id} value={s.id} className="bg-white text-slate-900">
+                      {s.name} — {isRental ? `Estimasi / Mulai dari ${formatRupiah(s.hargaJual)}` : formatRupiah(s.hargaJual)}
+                    </option>
+                  ))}
+                </select>
           {selectedService && (
             <div className="pl-1">
               <p className="text-blue-600 text-xs font-medium">
