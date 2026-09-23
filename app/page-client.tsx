@@ -63,6 +63,7 @@ type Product = {
   minStockThreshold?: number | null;
   employeeCommission?: number | null;
   isService?: boolean;
+  description?: string | null;
 };
 
 type CartItem = Product & { cartItemId: string; qty: number; note?: string; workerId?: string; serviceDuration?: number; };
@@ -314,8 +315,6 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   // State Rental & Travel
       const [isRentalFormModalOpen, setIsRentalFormModalOpen] = useState(false);
       const [rentalMode, setRentalMode] = useState<'property' | 'vehicle' | 'equipment'>('vehicle');
-      // Locked rental type based on tenant category (like booking link & admin CRUD)
-      const tenantRentalType = useMemo(() => getTenantRentalType(tenantCategory), [tenantCategory]);
       const [rentalInfo, setRentalInfo] = useState({
           driverName: '',
           licensePlate: '',
@@ -329,25 +328,6 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           conditionNotes: '',
           pickupTime: '08:00',
         });
-
-      // Auto-set rental mode from tenant category when modal opens
-      useEffect(() => {
-        if (isRentalFormModalOpen) {
-          if (tenantRentalType) {
-            setRentalMode(tenantRentalType);
-          } else if (cart.length > 0) {
-            const firstItemName = cart[0]?.name || "";
-            const type = detectRentalItemType(firstItemName);
-            if (type === "property") {
-              setRentalMode("property");
-            } else if (type === "vehicle") {
-              setRentalMode("vehicle");
-            } else if (type === "equipment") {
-              setRentalMode("equipment");
-            }
-          }
-        }
-      }, [isRentalFormModalOpen, cart, tenantRentalType]);
 
   // State Jasa
   const [serviceDate, setServiceDate] = useState("");
@@ -422,7 +402,31 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
     const products = filteredProducts;
 
-  const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+      // Detect available rental types from actual catalog (physical units only, like admin CRUD & booking link)
+      const availableRentalTypes = useMemo(() => {
+        if (!isRental) return [] as ("property" | "vehicle" | "equipment")[];
+        const types = new Set<"property" | "vehicle" | "equipment">();
+        rawProducts.forEach(p => {
+          if (p.isService) return; // only physical units
+          const type = detectRentalItemType(p.name, p.description, p.category);
+          if (type !== "unknown") types.add(type);
+        });
+        return Array.from(types);
+      }, [isRental, rawProducts]);
+        // Fallback to tenant category if catalog empty
+        const tenantRentalType = useMemo(() => getTenantRentalType(tenantCategory), [tenantCategory]);
+        const effectiveRentalTypes = availableRentalTypes.length > 0 ? availableRentalTypes : (tenantRentalType ? [tenantRentalType] : (["vehicle"] as const));
+        // Lock rentalMode to first available type
+        const lockedRentalType = effectiveRentalTypes[0] as "property" | "vehicle" | "equipment";
+
+      // Auto-set rental mode from catalog/tenant when modal opens
+      useEffect(() => {
+        if (isRentalFormModalOpen) {
+          setRentalMode(lockedRentalType);
+        }
+      }, [isRentalFormModalOpen, lockedRentalType]);
+
+    const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
     const categories = isPureJasa
       ? ["Semua", "Jasa / Servis", "Produk / Barang"]
       : ["Semua", ...uniqueCategories];
@@ -2386,42 +2390,42 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               </button>
             </div>
 
-            {/* Toggle Tabs Mode (Properti vs Kendaraan vs Alat) - Locked per tenant category like booking link & admin CRUD */}
-                                    <div className="flex border-b border-gray-200 bg-slate-50 p-2 gap-2">
-                                      {(["property", "vehicle", "equipment"] as const).map((type) => {
-                                        const isActive = rentalMode === type;
-                                        const isAvailable = !tenantRentalType || tenantRentalType === type;
-                                        return (
-                                          <button
-                                            key={type}
-                                            type="button"
-                                            onClick={() => isAvailable && setRentalMode(type)}
-                                            disabled={!isAvailable}
-                                            className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-                                              !isAvailable
-                                                ? "opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200"
-                                                : isActive
-                                                ? "bg-white shadow-sm border"
-                                                : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-                                            } ${isActive
-                                              ? type === 'property'
-                                                ? 'text-blue-700 border-blue-200'
-                                                : type === 'vehicle'
-                                                ? 'text-amber-700 border-amber-200'
-                                                : 'text-emerald-700 border-emerald-200'
-                                              : ''}`}
-                                            title={!isAvailable ? `Terkunci ke ${type === "property" ? "Properti/Kos" : type === "vehicle" ? "Kendaraan/Travel" : "Alat/Barang"}` : ""}
-                                          >
-                                            {type === "property" && <Bed className="w-4 h-4" />}
-                                            {type === "vehicle" && <Car className="w-4 h-4" />}
-                                            {type === "equipment" && <Package className="w-4 h-4" />}
-                                            {type === "property" && "Form Properti / Check-in"}
-                                            {type === "vehicle" && "Form Kendaraan / Surat Jalan"}
-                                            {type === "equipment" && "Form Alat / Barang"}
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
+            {/* Toggle Tabs Mode (Properti vs Kendaraan vs Alat) - Locked per tenant catalog like booking link & admin CRUD */}
+                                                <div className="flex border-b border-gray-200 bg-slate-50 p-2 gap-2">
+                                                  {(["property", "vehicle", "equipment"] as const).map((type) => {
+                                                    const isActive = rentalMode === type;
+                                                    const isAvailable = availableRentalTypes.includes(type) || (!availableRentalTypes.length && tenantRentalType === type);
+                                                    return (
+                                                      <button
+                                                        key={type}
+                                                        type="button"
+                                                        onClick={() => isAvailable && setRentalMode(type)}
+                                                        disabled={!isAvailable}
+                                                        className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                                                          !isAvailable
+                                                            ? "opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200"
+                                                            : isActive
+                                                            ? "bg-white shadow-sm border"
+                                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                                                        } ${isActive
+                                                          ? type === 'property'
+                                                            ? 'text-blue-700 border-blue-200'
+                                                            : type === 'vehicle'
+                                                            ? 'text-amber-700 border-amber-200'
+                                                            : 'text-emerald-700 border-emerald-200'
+                                                          : ''}`}
+                                                        title={!isAvailable ? `Tidak tersedia untuk ${availableRentalTypes[0] === "property" ? "Properti/Kos" : availableRentalTypes[0] === "vehicle" ? "Kendaraan/Travel" : "Alat/Barang"}` : ""}
+                                                      >
+                                                        {type === "property" && <Bed className="w-4 h-4" />}
+                                                        {type === "vehicle" && <Car className="w-4 h-4" />}
+                                                        {type === "equipment" && <Package className="w-4 h-4" />}
+                                                        {type === "property" && "Form Properti / Check-in"}
+                                                        {type === "vehicle" && "Form Kendaraan / Surat Jalan"}
+                                                        {type === "equipment" && "Form Alat / Barang"}
+                                                      </button>
+                                                    );
+                                                  })}
+                                                </div>
 
             <div className="p-6 overflow-y-auto max-h-[70vh]">
               {rentalMode === 'property' ? (
