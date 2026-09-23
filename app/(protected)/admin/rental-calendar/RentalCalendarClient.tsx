@@ -36,6 +36,7 @@ interface Booking {
 interface Props {
   initialBookings: Booking[];
   tenantId: string;
+  tenantCategory?: string;
 }
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
@@ -46,7 +47,7 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
   FINISHED: { label: "Selesai", bg: "bg-gray-100 text-gray-700" }
 };
 
-export default function RentalCalendarClient({ initialBookings, tenantId }: Props) {
+export default function RentalCalendarClient({ initialBookings, tenantId, tenantCategory }: Props) {
   const router = useRouter();
   
   // Realtime hook

@@ -124,5 +124,5 @@ export default async function RentalCalendarPage() {
     (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
 
-  return <RentalCalendarClient initialBookings={allBookings} tenantId={targetUserId} />;
-}
+  return <RentalCalendarClient initialBookings={allBookings} tenantId={targetUserId} tenantCategory={tenant.category} />;
+  }
