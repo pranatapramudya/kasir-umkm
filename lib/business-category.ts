@@ -110,3 +110,39 @@ export function detectRentalItemType(name?: string | null, description?: string 
   return "unknown";
 }
 
+export function getTenantRentalType(category?: string | null): "property" | "vehicle" | "equipment" | null {
+  const cat = (category || "").toLowerCase();
+  
+  if (
+    cat.includes("alat") ||
+    cat.includes("peralatan") ||
+    cat.includes("equipment")
+  ) {
+    return "equipment";
+  }
+  if (
+    cat.includes("kendaraan") ||
+    cat.includes("armada") ||
+    cat.includes("travel") ||
+    cat.includes("mobil") ||
+    cat.includes("motor")
+  ) {
+    return "vehicle";
+  }
+  if (
+    cat.includes("properti") ||
+    cat.includes("property") ||
+    cat.includes("kamar") ||
+    cat.includes("kost") ||
+    cat.includes("kos") ||
+    cat.includes("villa") ||
+    cat.includes("hotel") ||
+    cat.includes("glamping") ||
+    cat.includes("homestay") ||
+    cat.includes("apartemen")
+  ) {
+    return "property";
+  }
+  return null;
+}
+
