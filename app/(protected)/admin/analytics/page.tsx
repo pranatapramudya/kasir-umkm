@@ -281,8 +281,8 @@ export default function AnalyticsPage() {
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-800 leading-tight mb-1">Peringatan Stok Cerdas</h3>
-                <p className="text-xs text-slate-500 line-clamp-2">Sistem otomatis memprediksi kapan stok akan habis.</p>
+                <h3 className="font-bold text-slate-800 leading-tight mb-1">{terms.stockCardTitle}</h3>
+                <p className="text-xs text-slate-500 line-clamp-2">{terms.stockCardDesc}</p>
               </div>
             </div>
            
