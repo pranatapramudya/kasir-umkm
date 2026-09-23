@@ -57,7 +57,22 @@ export default function AdminProductsClientPage({
   const isRental = isRentalTravelCategory(kategoriUsaha);
   const isPureJasa = isPureServiceCategory(kategoriUsaha);
   const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const RENTAL_TYPE_LABELS = {
+      equipment: "Alat / Barang",
+      vehicle: "Kendaraan",
+      property: "Properti / Kos",
+      addon: "Layanan / Kru",
+    };
+
+    const RENTAL_TYPE_ICONS = {
+      equipment: "📦",
+      vehicle: "🚗",
+      property: "🏨",
+      addon: "🛠️",
+    };
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
@@ -135,9 +150,46 @@ export default function AdminProductsClientPage({
     return result;
   }, [rawProducts, selectedCategory, searchQuery]);
 
-  const products = filteredProducts;
+    const products = filteredProducts;
 
-  const [formData, setFormData] = useState({
+    // Detect available rental types from existing products (same logic as BookingForm)
+    const availableRentalTypes = useMemo(() => {
+      if (!isRental || !rawProducts || rawProducts.length === 0) return ["equipment", "vehicle", "property", "addon"] as ("equipment" | "vehicle" | "property" | "addon")[];
+      const types = new Set<"equipment" | "vehicle" | "property" | "addon">();
+      for (const p of rawProducts) {
+        if (p.isService) {
+          types.add("addon");
+        } else {
+          const detected = detectRentalItemType(p.name, p.description, p.category);
+          if (detected !== "unknown") types.add(detected);
+        }
+      }
+      return Array.from(types);
+    }, [rawProducts, isRental]);
+
+    // Determine locked rental type from tenant's business category (like booking link)
+    const lockedRentalTypeFromTenant = useMemo(() => {
+      if (!isRental) return null;
+      const cat = kategoriUsaha.toLowerCase();
+      if (cat.includes("peralatan")) return "equipment";
+      if (cat.includes("kendaraan")) return "vehicle";
+      if (cat.includes("properti") || cat.includes("travel")) return "property";
+      return null;
+    }, [isRental, kategoriUsaha]);
+
+    // Final available tabs: if tenant category locks to one type, only show that type
+    const finalAvailableRentalTabs = useMemo(() => {
+      if (!isRental) return [];
+      const tenantLocked = lockedRentalTypeFromTenant;
+      if (tenantLocked) return [tenantLocked];
+      // Fallback to catalog detection if tenant category is generic "rental"
+      if (availableRentalTypes.length > 0) return availableRentalTypes;
+      return ["equipment", "vehicle", "property", "addon"];
+    }, [isRental, lockedRentalTypeFromTenant, availableRentalTypes]);
+
+    const isSingleRentalType = finalAvailableRentalTabs.length === 1;
+
+    const [formData, setFormData] = useState({
     kodeBarang: '',
     name: '',
     category: '',
@@ -186,81 +238,110 @@ export default function AdminProductsClientPage({
   const [rentalModalType, setRentalModalType] = useState<"equipment" | "vehicle" | "property" | "addon">("equipment");
 
   const openModal = (product?: Product) => {
-    if (product) {
-      setEditingProduct(product);
-      const isJasaMurni = isPureJasa && (product.category?.toLowerCase().includes('jasa') || product.category?.toLowerCase().includes('servis'));
+      if (product) {
+        setEditingProduct(product);
+        const isJasaMurni =
+          isPureJasa &&
+          (product.category?.toLowerCase().includes("jasa") ||
+            product.category?.toLowerCase().includes("servis"));
 
-      if (isRental) {
-        if (product.isService || (product.category || '').toLowerCase().includes('layanan') || (product.category || '').toLowerCase().includes('tambahan') || (product.category || '').toLowerCase().includes('operator') || (product.category || '').toLowerCase().includes('supir')) {
-          setRentalModalType('addon');
-        } else {
-          const detected = detectRentalItemType(product.name, product.description, product.category);
-          setRentalModalType(detected === "unknown" ? "equipment" : detected);
+        if (isRental) {
+          if (
+            product.isService ||
+            (product.category || "").toLowerCase().includes("layanan") ||
+            (product.category || "").toLowerCase().includes("tambahan") ||
+            (product.category || "").toLowerCase().includes("operator") ||
+            (product.category || "").toLowerCase().includes("supir")
+          ) {
+            setRentalModalType("addon");
+          } else {
+            const detected = detectRentalItemType(
+                          product.name,
+                          product.description,
+                          product.category
+                        );
+                        const fallbackType = (finalAvailableRentalTabs[0] || "equipment") as "equipment" | "vehicle" | "property" | "addon";
+                        setRentalModalType(detected === "unknown" ? fallbackType : detected);
+          }
         }
+
+        setFormData({
+          kodeBarang: product.kodeBarang || "",
+          name: product.name,
+          category: product.category,
+          hpp: formatNumberInput(
+            isJasaMurni
+              ? (product.biayaModal || product.hpp || 0).toString()
+              : product.hpp.toString()
+          ),
+          hargaJual: formatNumberInput(product.hargaJual.toString()),
+          stock: isJasaMurni ? "" : product.stock.toString(),
+          discount: formatNumberInput(product.discount.toString()),
+          image: product.image,
+          brand: product.brand || "",
+          variant: product.variant || "",
+          minStockThreshold: isJasaMurni
+            ? ""
+            : product.minStockThreshold.toString(),
+          employeeCommission: formatNumberInput(
+            (product as any).employeeCommission?.toString() || "0"
+          ),
+          description: product.description || "",
+          biayaModal: formatNumberInput(
+            (product.biayaModal || product.hpp || 0).toString()
+          ),
+          rentalUnit: (product as any).rentalUnit || "day",
+          serialNumber: (product as any).serialNumber || "",
+          deposit: formatNumberInput((product as any).deposit?.toString() || "0"),
+          conditionNotes: (product as any).conditionNotes || "",
+          accessories: (product as any).accessories || "",
+          lateFee: formatNumberInput((product as any).lateFee?.toString() || "0"),
+          maintenanceSchedule: (product as any).maintenanceSchedule || "",
+        });
+      } else {
+              setEditingProduct(null);
+              // default rental type: first available type
+              const defaultType = (finalAvailableRentalTabs[0] || "equipment") as "equipment" | "vehicle" | "property" | "addon";
+              setRentalModalType(defaultType);
+
+        const defaultCategory = isPureJasa
+          ? "Jasa / Servis"
+          : isRental
+          ? defaultType === "equipment"
+            ? "Peralatan"
+            : defaultType === "vehicle"
+            ? "Armada"
+            : defaultType === "property"
+            ? "Properti"
+            : "Layanan Tambahan"
+          : "";
+
+        setFormData({
+          kodeBarang: "",
+          name: "",
+          category: defaultCategory,
+          hpp: "",
+          hargaJual: "",
+          stock: isRental && defaultType !== "addon" ? "1" : "",
+          discount: "0",
+          image: "",
+          brand: "",
+          variant: "",
+          minStockThreshold: isRental && defaultType !== "addon" ? "1" : "",
+          employeeCommission: "0",
+          description: "",
+          biayaModal: "",
+          rentalUnit: "day",
+          serialNumber: "",
+          deposit: "0",
+          conditionNotes: "",
+          accessories: "",
+          lateFee: "0",
+          maintenanceSchedule: "",
+        });
       }
-
-      setFormData({
-        kodeBarang: product.kodeBarang || '',
-        name: product.name,
-        category: product.category,
-        hpp: formatNumberInput(isJasaMurni ? (product.biayaModal || product.hpp || 0).toString() : product.hpp.toString()),
-        hargaJual: formatNumberInput(product.hargaJual.toString()),
-        stock: isJasaMurni ? '' : product.stock.toString(),
-        discount: formatNumberInput(product.discount.toString()),
-        image: product.image,
-        brand: product.brand || '',
-        variant: product.variant || '',
-        minStockThreshold: isJasaMurni ? '' : product.minStockThreshold.toString(),
-        employeeCommission: formatNumberInput((product as any).employeeCommission?.toString() || '0'),
-        description: product.description || '',
-        biayaModal: formatNumberInput((product.biayaModal || product.hpp || 0).toString()),
-        rentalUnit: (product as any).rentalUnit || 'day',
-        serialNumber: (product as any).serialNumber || '',
-        deposit: formatNumberInput((product as any).deposit?.toString() || '0'),
-        conditionNotes: (product as any).conditionNotes || '',
-        accessories: (product as any).accessories || '',
-        lateFee: formatNumberInput((product as any).lateFee?.toString() || '0'),
-        maintenanceSchedule: (product as any).maintenanceSchedule || ''
-      });
-    } else {
-      setEditingProduct(null);
-
-      let initialRentalType: "equipment" | "vehicle" | "property" | "addon" = "equipment";
-      if (isRental) {
-        if (selectedCategory === "Unit Sewa" || selectedCategory === "Armada") initialRentalType = "vehicle";
-        else if (selectedCategory === "Properti") initialRentalType = "property";
-        else if (selectedCategory === "Layanan & Add-on") initialRentalType = "addon";
-        else if (selectedCategory === "Peralatan" || selectedCategory === "Alat") initialRentalType = "equipment";
-        setRentalModalType(initialRentalType);
-      }
-
-      const defaultCategory = isPureJasa ? 'Jasa / Servis' : isRental ? (initialRentalType === 'equipment' ? 'Peralatan' : initialRentalType === 'vehicle' ? 'Armada' : initialRentalType === 'property' ? 'Properti' : 'Layanan Tambahan') : '';
-      setFormData({
-        kodeBarang: '',
-        name: '',
-        category: defaultCategory,
-        hpp: '',
-        hargaJual: '',
-        stock: isRental && initialRentalType !== 'addon' ? '1' : '',
-        discount: '0',
-        image: '',
-        brand: '',
-        variant: '',
-        minStockThreshold: isRental && initialRentalType !== 'addon' ? '1' : '',
-        employeeCommission: '0',
-        description: '',
-        biayaModal: '',
-        rentalUnit: 'day',
-        serialNumber: '',
-        deposit: '0',
-        conditionNotes: '',
-        accessories: '',
-        lateFee: '0',
-        maintenanceSchedule: ''
-      });
-    }
-    setIsModalOpen(true);
-  };
+      setIsModalOpen(true);
+    };
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -613,33 +694,63 @@ export default function AdminProductsClientPage({
           <p className="text-slate-500 text-sm mt-1">Kelola daftar {isPureJasa ? "layanan" : isFNB ? "menu" : isRental ? "unit & properti" : "produk"}, harga, dan {isPureJasa ? "ketersediaan" : isRental ? "ketersediaan" : "stok"} Anda.</p>
         </div>
         {(isLoading || (products && products.length > 0)) && (
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button
-              onClick={() => setIsImportModalOpen(true)}
-              className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
-              title="Import Data: Memasukkan banyak produk/layanan dari file Excel ke kasir (Input Massal)"
-            >
-              <Upload className="w-5 h-5 text-gray-500" />
-              <span>Import Data</span>
-            </button>
-            <button
-              onClick={handleExportCatalog}
-              disabled={isExporting}
-              className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0 disabled:opacity-50"
-              title="Export Data: Mengunduh & membackup daftar produk/layanan yang saat ini tersimpan di kasir ke file Excel"
-            >
-              {isExporting ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" /> : <FileDown className="w-5 h-5 text-gray-500" />}
-              <span>Export Data</span>
-            </button>
-            <button
-              onClick={() => openModal()}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
-            >
-              <Plus className="w-5 h-5" />
-              {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
-            </button>
-          </div>
-        )}
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <button
+                      onClick={() => setIsImportModalOpen(true)}
+                      className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
+                      title="Import Data: Memasukkan banyak produk/layanan dari file Excel ke kasir (Input Massal)"
+                    >
+                      <Upload className="w-5 h-5 text-gray-500" />
+                      <span>Import Data</span>
+                    </button>
+                    <button
+                      onClick={handleExportCatalog}
+                      disabled={isExporting}
+                      className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0 disabled:opacity-50"
+                      title="Export Data: Mengunduh & membackup daftar produk/layanan yang saat ini tersimpan di kasir ke file Excel"
+                    >
+                      {isExporting ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" /> : <FileDown className="w-5 h-5 text-gray-500" />}
+                      <span>Export Data</span>
+                    </button>
+                    {isRental && finalAvailableRentalTabs.length > 0 && (
+                                          <div className="flex gap-2" role="tablist" aria-label="Jenis unit rental">
+                                            {(["equipment", "vehicle", "property", "addon"] as const).map((type) => {
+                                              const isAvailable = finalAvailableRentalTabs.includes(type);
+                                              const isActive = rentalModalType === type;
+                                              const isLocked = isSingleRentalType && finalAvailableRentalTabs[0] !== type;
+                                              return (
+                                                <button
+                                                  key={type}
+                                                  role="tab"
+                                                  aria-selected={isActive}
+                                                  aria-disabled={!isAvailable || isLocked}
+                                                  onClick={() => isAvailable && !isLocked && (setRentalModalType(type), openModal())}
+                                                  className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                                                    !isAvailable || isLocked
+                                                      ? "opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200"
+                                                      : isActive
+                                                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm"
+                                                      : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                                                  }`}
+                                                  title={!isAvailable ? "Tidak ada data tipe ini" : isLocked ? `Terkunci ke ${RENTAL_TYPE_LABELS[finalAvailableRentalTabs[0] as keyof typeof RENTAL_TYPE_LABELS]}` : ""}
+                                                >
+                                                  {RENTAL_TYPE_ICONS[type as keyof typeof RENTAL_TYPE_ICONS]} {RENTAL_TYPE_LABELS[type as keyof typeof RENTAL_TYPE_LABELS]}
+                                                </button>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                    {(!isRental || finalAvailableRentalTabs.length === 0) && (
+                      <button
+                        onClick={() => openModal()}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
+                      >
+                        <Plus className="w-5 h-5" />
+                        {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
+                      </button>
+                    )}
+                  </div>
+                )}
       </div>
 
       {/* Search Bar & Kategori */}
@@ -876,91 +987,99 @@ export default function AdminProductsClientPage({
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Selector Jenis Item Khusus RENTAL */}
-                  {isRental && (
-                    <div className="sm:col-span-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-1">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Jenis Unit Sewa</label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRentalModalType('equipment');
-                            setFormData(prev => ({
-                              ...prev,
-                              category: prev.category === 'Armada' || prev.category === 'Properti' || prev.category === 'Layanan Tambahan' ? 'Peralatan' : prev.category || 'Peralatan',
-                              stock: prev.stock || '1',
-                              minStockThreshold: prev.minStockThreshold || '1',
-                            }));
-                          }}
-                          className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                            rentalModalType === 'equipment'
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                          }`}
-                        >
-                          📦 Alat / Barang
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRentalModalType('vehicle');
-                            setFormData(prev => ({
-                              ...prev,
-                              category: prev.category === 'Peralatan' || prev.category === 'Properti' || prev.category === 'Layanan Tambahan' ? 'Armada' : prev.category || 'Armada',
-                              stock: prev.stock || '1',
-                              minStockThreshold: prev.minStockThreshold || '1',
-                            }));
-                          }}
-                          className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                            rentalModalType === 'vehicle'
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                          }`}
-                        >
-                          🚗 Kendaraan
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRentalModalType('property');
-                            setFormData(prev => ({
-                              ...prev,
-                              category: prev.category === 'Peralatan' || prev.category === 'Armada' || prev.category === 'Layanan Tambahan' ? 'Properti' : prev.category || 'Properti',
-                              stock: prev.stock || '1',
-                              minStockThreshold: prev.minStockThreshold || '1',
-                            }));
-                          }}
-                          className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                            rentalModalType === 'property'
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                          }`}
-                        >
-                          🏨 Properti / Kos
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRentalModalType('addon');
-                            setFormData(prev => ({
-                              ...prev,
-                              category: 'Layanan Tambahan',
-                              stock: '999999',
-                              minStockThreshold: '0',
-                              hpp: '0',
-                            }));
-                          }}
-                          className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                            rentalModalType === 'addon'
-                              ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
-                              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                          }`}
-                        >
-                          🛠️ Layanan / Kru
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                                  {/* Selector Jenis Item Khusus RENTAL */}
+                                  {isRental && finalAvailableRentalTabs.length > 1 && (
+                                    <div className="sm:col-span-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-1">
+                                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Jenis Unit Sewa</label>
+                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {finalAvailableRentalTabs.includes("equipment") && (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setRentalModalType("equipment");
+                                              setFormData(prev => ({
+                                                ...prev,
+                                                category: prev.category === "Armada" || prev.category === "Properti" || prev.category === "Layanan Tambahan" ? "Peralatan" : prev.category || "Peralatan",
+                                                stock: prev.stock || "1",
+                                                minStockThreshold: prev.minStockThreshold || "1",
+                                              }));
+                                            }}
+                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
+                                              rentalModalType === "equipment"
+                                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                                            }`}
+                                          >
+                                            📦 Alat / Barang
+                                          </button>
+                                        )}
+                                        {finalAvailableRentalTabs.includes("vehicle") && (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setRentalModalType("vehicle");
+                                              setFormData(prev => ({
+                                                ...prev,
+                                                category: prev.category === "Peralatan" || prev.category === "Properti" || prev.category === "Layanan Tambahan" ? "Armada" : prev.category || "Armada",
+                                                stock: prev.stock || "1",
+                                                minStockThreshold: prev.minStockThreshold || "1",
+                                              }));
+                                            }}
+                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
+                                              rentalModalType === "vehicle"
+                                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                                            }`}
+                                          >
+                                            🚗 Kendaraan
+                                          </button>
+                                        )}
+                                        {finalAvailableRentalTabs.includes("property") && (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setRentalModalType("property");
+                                              setFormData(prev => ({
+                                                ...prev,
+                                                category: prev.category === "Peralatan" || prev.category === "Armada" || prev.category === "Layanan Tambahan" ? "Properti" : prev.category || "Properti",
+                                                stock: prev.stock || "1",
+                                                minStockThreshold: prev.minStockThreshold || "1",
+                                              }));
+                                            }}
+                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
+                                              rentalModalType === "property"
+                                                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                                            }`}
+                                          >
+                                            🏨 Properti / Kos
+                                          </button>
+                                        )}
+                                        {finalAvailableRentalTabs.includes("addon") && (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setRentalModalType("addon");
+                                              setFormData(prev => ({
+                                                ...prev,
+                                                category: "Layanan Tambahan",
+                                                stock: "999999",
+                                                minStockThreshold: "0",
+                                                hpp: "0",
+                                              }));
+                                            }}
+                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
+                                              rentalModalType === "addon"
+                                                ? "bg-amber-600 text-white border-amber-600 shadow-sm"
+                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                                            }`}
+                                          >
+                                            🛠️ Layanan / Kru
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
 
                   {/* Selector Jenis Item Khusus JASA */}
                   {isPureJasa && (
@@ -1017,84 +1136,89 @@ export default function AdminProductsClientPage({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">
-                      {isRental ? (rentalModalType === 'equipment' ? 'Kategori Alat' : rentalModalType === 'vehicle' ? 'Tipe Kendaraan' : rentalModalType === 'property' ? 'Tipe Properti' : 'Kategori Layanan') : 'Kategori'} <span className="text-red-500">*</span>
-                    </label>
-                    {isPureJasa ? (
-                      <select
-                        name="category"
-                        required
-                        value={formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category ? 'Jasa / Servis' : 'Produk / Barang'}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-semibold"
-                      >
-                        <option value="Jasa / Servis">🛠️ Jasa / Servis (Layanan)</option>
-                        <option value="Produk / Barang">📦 Produk / Barang (Barang Fisik)</option>
-                      </select>
-                    ) : isRental ? (
-                      // RENTAL: Locked category based on rentalModalType
-                      <select
-                        name="category"
-                        required
-                        disabled={!!editingProduct} // Locked when editing
-                        value={editingProduct ? formData.category : (
-                          rentalModalType === 'equipment' ? 'Peralatan' :
-                          rentalModalType === 'vehicle' ? 'Armada' :
-                          rentalModalType === 'property' ? 'Properti' :
-                          'Layanan Tambahan'
-                        )}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                        className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-semibold ${
-                          editingProduct ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''
-                        }`}
-                      >
-                        {rentalModalType === 'equipment' && (
-                          <>
-                            <option value="Peralatan">📦 Peralatan / Alat / Barang</option>
-                            <option value="Kamera & Lensa">Kamera & Lensa</option>
-                            <option value="Outdoor & Camping">Outdoor & Camping</option>
-                            <option value="Sound System & Event">Sound System & Event</option>
-                            <option value="Console & Game">Console & Game</option>
-                            <option value="Perkakas & Alat Berat">Perkakas & Alat Berat</option>
-                            <option value="Pakaian & Kostum">Pakaian & Kostum</option>
-                            <option value="Lainnya">Lainnya</option>
-                          </>
-                        )}
-                        {rentalModalType === 'vehicle' && (
-                          <>
-                            <option value="Armada">🚗 Armada / Kendaraan</option>
-                            <option value="MPV">MPV</option>
-                            <option value="SUV">SUV</option>
-                            <option value="Sedan">Sedan</option>
-                            <option value="Minibus">Minibus</option>
-                            <option value="Motor">Motor</option>
-                            <option value="Bus">Bus</option>
-                          </>
-                        )}
-                        {rentalModalType === 'property' && (
-                          <>
-                            <option value="Properti">🏨 Properti / Penginapan</option>
-                            <option value="Kamar Kost">Kamar Kost</option>
-                            <option value="Villa">Villa</option>
-                            <option value="Apartemen">Apartemen</option>
-                            <option value="Hotel">Hotel</option>
-                            <option value="Glamping">Glamping</option>
-                            <option value="Homestay">Homestay</option>
-                          </>
-                        )}
-                        {rentalModalType === 'addon' && (
-                          <>
-                            <option value="Layanan Tambahan">🛠️ Layanan Tambahan / Add-on</option>
-                            <option value="Operator/Kru">Operator/Kru</option>
-                            <option value="Supir/Bunker">Supir/Bunker</option>
-                            <option value="Extra Bed">Extra Bed</option>
-                            <option value="Sarapan/Makan">Sarapan/Makan</option>
-                            <option value="Laundry">Laundry</option>
-                            <option value="Antar Jemput">Antar Jemput</option>
-                          </>
-                        )}
-                      </select>
-                    ) : (
+                                      <label className="block text-sm font-bold text-slate-700 mb-1">
+                                        {isRental ? (rentalModalType === 'equipment' ? 'Kategori Alat' : rentalModalType === 'vehicle' ? 'Tipe Kendaraan' : rentalModalType === 'property' ? 'Tipe Properti' : 'Kategori Layanan') : 'Kategori'} <span className="text-red-500">*</span>
+                                      </label>
+                                      {isPureJasa ? (
+                                        <select
+                                          name="category"
+                                          required
+                                          value={formData.category.toLowerCase().includes('jasa') || formData.category.toLowerCase().includes('servis') || !formData.category ? 'Jasa / Servis' : 'Produk / Barang'}
+                                          onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                                          className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-semibold"
+                                        >
+                                          <option value="Jasa / Servis">🛠️ Jasa / Servis (Layanan)</option>
+                                          <option value="Produk / Barang">📦 Produk / Barang (Barang Fisik)</option>
+                                        </select>
+                                      ) : isRental ? (
+                                        // RENTAL: Category locked based on rentalModalType
+                                        // Disable if editing OR if only one rental type exists (auto-locked)
+                                        (() => {
+                                          const isCategoryLocked = !!editingProduct || isSingleRentalType;
+                                          const lockedCategory = rentalModalType === 'equipment' ? 'Peralatan' :
+                                                                rentalModalType === 'vehicle' ? 'Armada' :
+                                                                rentalModalType === 'property' ? 'Properti' :
+                                                                'Layanan Tambahan';
+                                          return (
+                                            <select
+                                              name="category"
+                                              required
+                                              disabled={isCategoryLocked}
+                                              value={editingProduct ? formData.category : lockedCategory}
+                                              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                                              className={`bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 font-semibold ${
+                                                isCategoryLocked ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''
+                                              }`}
+                                            >
+                                          {rentalModalType === 'equipment' && (
+                                            <>
+                                              <option value="Peralatan">📦 Peralatan / Alat / Barang</option>
+                                              <option value="Kamera & Lensa">Kamera & Lensa</option>
+                                              <option value="Outdoor & Camping">Outdoor & Camping</option>
+                                              <option value="Sound System & Event">Sound System & Event</option>
+                                              <option value="Console & Game">Console & Game</option>
+                                              <option value="Perkakas & Alat Berat">Perkakas & Alat Berat</option>
+                                              <option value="Pakaian & Kostum">Pakaian & Kostum</option>
+                                              <option value="Lainnya">Lainnya</option>
+                                            </>
+                                          )}
+                                          {rentalModalType === 'vehicle' && (
+                                            <>
+                                              <option value="Armada">🚗 Armada / Kendaraan</option>
+                                              <option value="MPV">MPV</option>
+                                              <option value="SUV">SUV</option>
+                                              <option value="Sedan">Sedan</option>
+                                              <option value="Minibus">Minibus</option>
+                                              <option value="Motor">Motor</option>
+                                              <option value="Bus">Bus</option>
+                                            </>
+                                          )}
+                                          {rentalModalType === 'property' && (
+                                            <>
+                                              <option value="Properti">🏨 Properti / Penginapan</option>
+                                              <option value="Kamar Kost">Kamar Kost</option>
+                                              <option value="Villa">Villa</option>
+                                              <option value="Apartemen">Apartemen</option>
+                                              <option value="Hotel">Hotel</option>
+                                              <option value="Glamping">Glamping</option>
+                                              <option value="Homestay">Homestay</option>
+                                            </>
+                                          )}
+                                          {rentalModalType === 'addon' && (
+                                            <>
+                                              <option value="Layanan Tambahan">🛠️ Layanan Tambahan / Add-on</option>
+                                              <option value="Operator/Kru">Operator/Kru</option>
+                                              <option value="Supir/Bunker">Supir/Bunker</option>
+                                              <option value="Extra Bed">Extra Bed</option>
+                                              <option value="Sarapan/Makan">Sarapan/Makan</option>
+                                              <option value="Laundry">Laundry</option>
+                                              <option value="Antar Jemput">Antar Jemput</option>
+                                            </>
+                                          )}
+                                        </select>
+                                          )
+                                        })()
+                                      ) : (
                       <>
                         <input
                           type="text"
