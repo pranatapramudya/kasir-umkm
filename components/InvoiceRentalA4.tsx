@@ -30,7 +30,7 @@ export default function InvoiceRentalA4({
   const isA5 = paperSize === 'A5';
   const containerWidth = isA5 ? '148mm' : '210mm';
 
-  // Deteksi Tipe Bisnis (Rental Properti, Rental Kendaraan, Jasa Servis)
+  // Deteksi Tipe Bisnis (Rental Properti, Rental Kendaraan, Rental Alat/Barang, Jasa Servis)
   const isJasa =
     tenantCategory === 'JASA' ||
     tenantCategory === 'Jasa / Servis' ||
@@ -39,22 +39,28 @@ export default function InvoiceRentalA4({
 
   const detectedType = detectRentalItemType(
     transaction.items?.[0]?.name,
+    transaction.items?.[0]?.description,
     tenantCategory
   );
   const isProperty =
     transaction.rentalMode === 'property' || (!isJasa && detectedType === 'property');
-  const isVehicle = !isJasa && !isProperty;
+  const isEquipment =
+    transaction.rentalMode === 'equipment' || (!isJasa && detectedType === 'equipment');
+  const isVehicle = !isJasa && !isProperty && !isEquipment;
 
   // Header Title
   const documentTitle = isProperty
     ? 'INVOICE SEWA PROPERTI & SURAT CHECK-IN'
-    : isJasa
-      ? 'INVOICE LAYANAN & SURAT PERINTAH KERJA'
-      : 'INVOICE SEWA / SURAT JALAN';
+    : isEquipment
+      ? 'INVOICE SEWA ALAT & TANDA TERIMA'
+      : isJasa
+        ? 'INVOICE LAYANAN & SURAT PERINTAH KERJA'
+        : 'INVOICE SEWA / SURAT JALAN';
 
   // Durasi / Qty Unit Label
   const getQtyLabel = (qty: number) => {
     if (isProperty) return `${qty} Malam`;
+    if (isEquipment) return `${qty} Hari`;
     if (isVehicle) return `${qty} Hari`;
     if (isJasa) return `${qty} Layanan`;
     return `${qty}x`;
@@ -122,9 +128,11 @@ export default function InvoiceRentalA4({
           <h3 className="font-bold text-slate-800 mb-2 uppercase text-[11px] tracking-wider border-b border-slate-200 pb-1.5">
             {isProperty
               ? 'Informasi Tamu / Penyewa'
-              : isJasa
-                ? 'Informasi Pelanggan'
-                : 'Informasi Penyewa'}
+              : isEquipment
+                ? 'Informasi Penyewa Alat'
+                : isJasa
+                  ? 'Informasi Pelanggan'
+                  : 'Informasi Penyewa'}
           </h3>
           <table className="w-full text-xs">
             <tbody>
@@ -134,19 +142,25 @@ export default function InvoiceRentalA4({
               </tr>
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
-                  {isProperty ? 'Kontak / Tamu' : isJasa ? 'Kontak / Catatan' : 'Operator / Supir'}
+                  {isProperty
+                    ? 'No. WhatsApp / HP'
+                    : isEquipment
+                      ? 'No. WhatsApp / HP'
+                      : isJasa
+                        ? 'Kontak / Catatan'
+                        : 'Operator / Supir'}
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.driverName || '-'}</td>
               </tr>
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
-                  {isProperty ? 'Deposit / Jaminan' : isJasa ? 'Jaminan / Ref' : 'Jaminan (KTP/SIM)'}
+                  {isProperty ? 'Deposit / Jaminan' : isEquipment ? 'Deposit / Jaminan' : isJasa ? 'Jaminan / Ref' : 'Jaminan (KTP/SIM)'}
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.guarantee || '-'}</td>
               </tr>
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
-                  {isProperty ? 'Catatan Khusus' : isJasa ? 'Tipe Pengerjaan' : 'Tujuan Perjalanan'}
+                  {isProperty ? 'Catatan Khusus' : isEquipment ? 'Kondisi / Catatan' : isJasa ? 'Tipe Pengerjaan' : 'Tujuan Perjalanan'}
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.destination || '-'}</td>
               </tr>
@@ -159,21 +173,23 @@ export default function InvoiceRentalA4({
           <h3 className="font-bold text-slate-800 mb-2 uppercase text-[11px] tracking-wider border-b border-slate-200 pb-1.5">
             {isProperty
               ? 'Detail Reservasi Kamar / Unit'
-              : isJasa
-                ? 'Detail Layanan / Pengerjaan'
-                : 'Detail Reservasi Armada'}
+              : isEquipment
+                ? 'Detail Peminjaman Alat'
+                : isJasa
+                  ? 'Detail Layanan / Pengerjaan'
+                  : 'Detail Reservasi Armada'}
           </h3>
           <table className="w-full text-xs">
             <tbody>
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
-                  {isProperty ? 'No. Kamar / Unit' : isJasa ? 'Kode / Objek Servis' : 'Plat / No. Seri'}
+                  {isProperty ? 'No. Kamar / Unit' : isEquipment ? 'Kode / Nama Alat' : isJasa ? 'Kode / Objek Servis' : 'Plat / No. Seri'}
                 </td>
                 <td className="py-1 font-bold text-blue-700 font-mono break-words">: {transaction.licensePlate || '-'}</td>
               </tr>
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
-                  {isProperty ? 'Check-in' : isJasa ? 'Jadwal Pengerjaan' : 'Mulai Sewa'}
+                  {isProperty ? 'Check-in' : isEquipment ? 'Tgl Ambil' : isJasa ? 'Jadwal Pengerjaan' : 'Mulai Sewa'}
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">
                   : {isJasa ? (transaction.serviceDate || transaction.date) : (transaction.startDate || '-')}
@@ -181,7 +197,7 @@ export default function InvoiceRentalA4({
               </tr>
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
-                  {isProperty ? 'Check-out' : isJasa ? 'Status' : 'Selesai Sewa'}
+                  {isProperty ? 'Check-out' : isEquipment ? 'Tgl Kembali' : isJasa ? 'Status' : 'Selesai Sewa'}
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">
                   : {isJasa ? 'LUNAS & SELESAI' : (transaction.endDate || '-')}
@@ -198,7 +214,7 @@ export default function InvoiceRentalA4({
           <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
             <tr>
               <th className="px-3.5 py-2">
-                {isProperty ? 'Nama Kamar / Unit / Layanan' : isJasa ? 'Deskripsi Layanan / Pekerjaan' : 'Nama Unit / Armada / Barang'}
+                {isProperty ? 'Nama Kamar / Unit / Layanan' : isEquipment ? 'Nama Alat / Barang / Unit' : isJasa ? 'Deskripsi Layanan / Pekerjaan' : 'Nama Unit / Armada / Barang'}
               </th>
               <th className="px-3.5 py-2 text-right w-28">Durasi / Qty</th>
               <th className="px-3.5 py-2 text-right w-28">Harga Satuan</th>
@@ -261,7 +277,13 @@ export default function InvoiceRentalA4({
       <div className="flex justify-between px-10 mt-4 pt-2.5 border-t border-slate-200 break-inside-avoid print:break-inside-avoid text-xs">
         <div className="text-center">
           <p className="text-slate-500 mb-9">
-            {isProperty ? 'Tamu / Penyewa' : isJasa ? 'Pelanggan / Penerima Layanan' : 'Penyewa / Operator'}
+            {isProperty
+              ? 'Tamu / Penyewa'
+              : isEquipment
+                ? 'Penyewa Alat'
+                : isJasa
+                  ? 'Pelanggan / Penerima Layanan'
+                  : 'Penyewa / Pengemudi'}
           </p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-0.5 uppercase">
             {transaction.customerName || '............................'}
@@ -269,7 +291,13 @@ export default function InvoiceRentalA4({
         </div>
         <div className="text-center">
           <p className="text-slate-500 mb-9">
-            {isProperty ? 'Resepsionis / Pengelola' : isJasa ? 'Teknisi / Admin Kasir' : 'Admin / Petugas Kasir'}
+            {isProperty
+              ? 'Resepsionis / Pengelola'
+              : isEquipment
+                ? 'Petugas / Admin Kasir'
+                : isJasa
+                  ? 'Teknisi / Admin Kasir'
+                  : 'Admin / Petugas Kasir'}
           </p>
           <p className="font-bold text-slate-800 border-b border-slate-800 inline-block px-4 pb-0.5 uppercase">
             {user?.fullName || user?.firstName || 'Admin Kasir'}
@@ -283,6 +311,11 @@ export default function InvoiceRentalA4({
           <>
             <p>Terima kasih telah menginap dan mempercayakan kenyamanan Anda bersama kami.</p>
             <p>Harap menjaga kebersihan dan fasilitas unit selama masa tinggal. Check-out tepat waktu sesuai jadwal.</p>
+          </>
+        ) : isEquipment ? (
+          <>
+            <p>Terima kasih telah mempercayakan kebutuhan sewa peralatan kepada kami.</p>
+            <p>Harap menjaga kondisi alat dan mengembalikan tepat waktu beserta seluruh kelengkapannya dalam kondisi baik.</p>
           </>
         ) : isJasa ? (
           <>

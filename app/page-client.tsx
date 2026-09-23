@@ -89,6 +89,7 @@ type Transaction = {
   cashierId?: string;
   discount?: number;
   // Rental & Travel fields
+  rentalMode?: 'property' | 'vehicle' | 'equipment';
   driverName?: string;
   licensePlate?: string;
   pickupLocation?: string;
@@ -798,11 +799,11 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       if (isCashInsufficient) return toast.error("Uang diterima kurang dari total belanja!");
       if (isPureJasa && cart.some(item => !item.workerId)) return toast.error("Pastikan semua layanan telah memilih Staf / Teknisi / Kapster!");
       // Validasi Rental
-      if (isRental && rentalMode === 'property' && !rentalInfo.driverName.trim()) return toast.error("Isi Nama Penyewa / Penanggung Jawab untuk transaksi sewa!");
+      if (isRental && rentalMode === 'property' && !rentalInfo.driverName.trim()) return toast.error("Isi No. WhatsApp / Kontak Tamu untuk transaksi sewa!");
       if (isRental && rentalMode === 'property' && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Kamar / Kode Unit untuk transaksi sewa!");
       if (isRental && rentalMode === 'vehicle' && !rentalInfo.driverName.trim()) return toast.error("Isi Operator / Driver / Supir untuk transaksi sewa!");
       if (isRental && rentalMode === 'vehicle' && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Seri / Kode Unit / Plat Nomor untuk transaksi sewa!");
-      if (isRental && rentalMode === 'equipment' && !rentalInfo.driverName.trim()) return toast.error("Isi Nama Penyewa / Penanggung Jawab untuk transaksi sewa alat!");
+      if (isRental && rentalMode === 'equipment' && !rentalInfo.driverName.trim()) return toast.error("Isi No. WhatsApp / Kontak Penyewa untuk transaksi sewa alat!");
       if (isRental && rentalMode === 'equipment' && !rentalInfo.licensePlate.trim()) return toast.error("Isi Kode Unit / Nama Alat untuk transaksi sewa alat!");
       if (isRental && rentalMode === 'equipment' && !rentalInfo.returnTime) return toast.error("Isi Jam Kembali untuk transaksi sewa alat!");
 
@@ -824,6 +825,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       ...(isPureJasa && { serviceDate: serviceDate || undefined }),
       // Sertakan data rental jika mode Rental
             ...(isRental && {
+              rentalMode,
               driverName: rentalInfo.driverName.trim() || undefined,
               licensePlate: rentalInfo.licensePlate.trim() || undefined,
               pickupLocation: rentalInfo.pickupLocation?.trim() || undefined,
@@ -937,8 +939,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     if (lastTransaction.dropoffLocation) text += `Titik Tujuan: ${lastTransaction.dropoffLocation}\n`;
     if (lastTransaction.startDate || lastTransaction.endDate)
       text += `Tgl Sewa  : ${lastTransaction.startDate ?? '?'} s/d ${lastTransaction.endDate ?? '?'}\n`;
-    if (lastTransaction.driverName) text += `Supir     : ${lastTransaction.driverName}\n`;
-    if (lastTransaction.licensePlate) text += `Plat Kend : ${lastTransaction.licensePlate}\n`;
+    if (lastTransaction.driverName) {
+      const driverLabel = lastTransaction.rentalMode === 'property' || lastTransaction.rentalMode === 'equipment' ? 'No. Kontak' : 'Supir     ';
+      text += `${driverLabel}: ${lastTransaction.driverName}\n`;
+    }
+    if (lastTransaction.licensePlate) {
+      const plateLabel = lastTransaction.rentalMode === 'property' ? 'No. Kamar ' : lastTransaction.rentalMode === 'equipment' ? 'Kode Unit ' : 'Plat Kend ';
+      text += `${plateLabel}: ${lastTransaction.licensePlate}\n`;
+    }
     if (lastTransaction.guarantee) text += `Jaminan   : ${lastTransaction.guarantee}\n`;
     text += `ID Transaksi: ${lastTransaction.id}\n`;
     text += `--------------------------------\n`;
@@ -2132,14 +2140,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <p>Kasir : {user?.fullName || user?.firstName || 'Admin'}</p>
                 <p>Pelanggan : {lastTransaction.customerName}</p>
                 {lastTransaction.tableId && <p>No. Meja : {getTableName(lastTransaction.tableId)}</p>}
-                {lastTransaction.licensePlate && <p>Unit / Plat : {lastTransaction.licensePlate}</p>}
+                {lastTransaction.licensePlate && (
+                  <p>{lastTransaction.rentalMode === 'property' ? 'No. Kamar' : lastTransaction.rentalMode === 'equipment' ? 'Kode Unit' : 'Unit / Plat'} : {lastTransaction.licensePlate}</p>
+                )}
                 {(lastTransaction.startDate || lastTransaction.endDate) && (
                   <p>Periode : {lastTransaction.startDate || '-'} s/d {lastTransaction.endDate || '-'}</p>
                 )}
                 {lastTransaction.serviceDate && (
                   <p>Jadwal : {new Date(lastTransaction.serviceDate).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</p>
                 )}
-                {lastTransaction.driverName && <p>Operator : {lastTransaction.driverName}</p>}
+                {lastTransaction.driverName && (
+                  <p>{lastTransaction.rentalMode === 'property' || lastTransaction.rentalMode === 'equipment' ? 'No. Kontak' : 'Operator'} : {lastTransaction.driverName}</p>
+                )}
                 {lastTransaction.guarantee && <p>Jaminan : {lastTransaction.guarantee}</p>}
                 {lastTransaction.destination && <p>Tujuan : {lastTransaction.destination}</p>}
                 <p>ID Transaksi : {lastTransaction.id}</p>
@@ -2433,10 +2445,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Nama Penyewa / Penanggung Jawab *</label>
+                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">No. WhatsApp / Kontak Tamu *</label>
                       <input
-                        type="text"
-                        placeholder="contoh: Budi Santoso"
+                        type="tel"
+                        placeholder="contoh: 081234567890"
                         value={rentalInfo.driverName}
                         onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
                         className="w-full p-3 bg-white border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
@@ -2494,10 +2506,10 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                 <div className="space-y-4">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Nama Penyewa / Penanggung Jawab *</label>
+                                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">No. WhatsApp / Kontak Penyewa *</label>
                                       <input
-                                        type="text"
-                                        placeholder="contoh: Budi Santoso"
+                                        type="tel"
+                                        placeholder="contoh: 081234567890"
                                         value={rentalInfo.driverName}
                                         onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
                                         className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
