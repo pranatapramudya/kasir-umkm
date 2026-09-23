@@ -84,9 +84,20 @@ export async function POST(request: Request) {
         select: { id: true },
       });
 
-      if (conflictRental) {
+      const conflictTx = !conflictRental ? await prisma.transaction.findFirst({
+        where: {
+          userId: tenant.userId,
+          status: { not: "CANCELLED" },
+          startDate: { lte: newEnd },
+          endDate: { gte: newStart },
+          ...(productId ? { items: { some: { productId: Number(productId) } } } : {})
+        },
+        select: { id: true }
+      }) : null;
+
+      if (conflictRental || conflictTx) {
         isConflict = true;
-        conflictMessage = "Unit / Armada sudah disewa pada waktu tersebut.";
+        conflictMessage = "Unit / Kamar / Armada sudah disewa pada waktu tersebut.";
       }
     } else {
       // Logic Jasa (Berbasis Slot Waktu)

@@ -378,12 +378,19 @@ export default function BookingForm({
     [slug, timeSlots, formData.productId]
   );
 
-  // Check slots on initial load and on date change
+  // For non-rental (Jasa) - check on bookingDate change
   useEffect(() => {
     if (!isRental) {
       checkSlots(formData.bookingDate);
     }
   }, [formData.bookingDate, formData.productId, checkSlots, isRental]);
+
+  // For Property Hourly (Transit) - check on checkInDate change
+  useEffect(() => {
+    if (isRental && rentalCategoryType === "property" && rentalModeDuration === "hourly") {
+      checkSlots(hourlyData.checkInDate);
+    }
+  }, [hourlyData.checkInDate, formData.productId, checkSlots, isRental, rentalCategoryType, rentalModeDuration]);
 
   const checkRentalRanges = useCallback(
     async (productId: string) => {
@@ -410,7 +417,7 @@ export default function BookingForm({
   }, [formData.productId, isRental, checkRentalRanges]);
 
   useEffect(() => {
-    if (isRental && rentalCategoryType === "vehicle" && rentalData.startDate && rentalData.endDate) {
+    if (isRental && rentalData.startDate && rentalData.endDate) {
       const start = new Date(rentalData.startDate);
       const end = new Date(rentalData.endDate);
       start.setHours(0, 0, 0, 0);
@@ -427,9 +434,9 @@ export default function BookingForm({
       }
 
       if (isOverlap) {
-        setError("Armada sudah disewa pada tanggal tersebut.");
+        setError(`${rentalCategoryType === "property" ? "Kamar / Unit" : rentalCategoryType === "vehicle" ? "Armada" : "Peralatan"} sudah disewa pada tanggal tersebut.`);
       } else {
-        setError(prev => prev === "Armada sudah disewa pada tanggal tersebut." ? null : prev);
+        setError(prev => (prev?.includes("sudah disewa") ? null : prev));
       }
     }
   }, [rentalData.startDate, rentalData.endDate, bookedRentalRanges, isRental, rentalCategoryType]);
@@ -1197,27 +1204,47 @@ export default function BookingForm({
                   </div>
 
                   {/* Jam Masuk (Check-in Time) */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="hourly-checkInTime" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Jam Masuk (Check-in) *
-                    </label>
-                    <select
-                      id="hourly-checkInTime"
-                      value={hourlyData.checkInTime}
-                      onChange={(e) => {
-                        setHourlyData(prev => ({ ...prev, checkInTime: e.target.value }));
-                        setError(null);
-                      }}
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                    >
-                      {rentalTimeSlots.map((slot) => (
-                        <option key={slot} value={slot}>
-                          {slot} WIB
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                                    <div className="space-y-1.5">
+                                      <label htmlFor="hourly-checkInTime" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                                        Jam Masuk (Check-in) *
+                                      </label>
+                                      <select
+                                        id="hourly-checkInTime"
+                                        value={hourlyData.checkInTime}
+                                        onChange={async (e) => {
+                                          setHourlyData(prev => ({ ...prev, checkInTime: e.target.value }));
+                                          setError(null);
+                                          // Check if this specific time slot is already booked
+                                          const dateToCheck = hourlyData.checkInDate;
+                                          if (dateToCheck) {
+                                            const res = await fetch(`/api/booking/check-slots?date=${encodeURIComponent(dateToCheck)}&slug=${encodeURIComponent(slug)}&productId=${encodeURIComponent(formData.productId)}`);
+                                            if (res.ok) {
+                                              const data = await res.json();
+                                              const booked = data.bookedSlots ?? [];
+                                              if (booked.includes(e.target.value)) {
+                                                setError(`Jam ${e.target.value} sudah dipesan pada tanggal tersebut. Pilih jam lain.`);
+                                              }
+                                            }
+                                          }
+                                        }}
+                                        required
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                                      >
+                                        {rentalTimeSlots.map((slot) => {
+                                          const isBooked = bookedSlots.includes(slot);
+                                          return (
+                                            <option
+                                              key={slot}
+                                              value={slot}
+                                              disabled={isBooked}
+                                              className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
+                                            >
+                                              {slot} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+                                            </option>
+                                          );
+                                        })}
+                                      </select>
+                                    </div>
 
                   {/* Durasi Jam Transit */}
                   <div className="space-y-1.5">
@@ -1277,26 +1304,34 @@ export default function BookingForm({
                     onClearError={() => setError(null)}
                   />
                   <div className="space-y-1.5">
-                    <label htmlFor="rental-pickupTime" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      Jam Check-in *
-                    </label>
-                    <select
-                      id="rental-pickupTime"
-                      value={rentalData.pickupTime}
-                      onChange={(e) => {
-                        setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
-                        setError(null);
-                      }}
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                    >
-                      {rentalTimeSlots.map((time) => (
-                        <option key={time} value={time}>
-                          {time} WIB
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                                      <label htmlFor="rental-pickupTime" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                        Jam Check-in *
+                                      </label>
+                                      <select
+                                        id="rental-pickupTime"
+                                        value={rentalData.pickupTime}
+                                        onChange={(e) => {
+                                          setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                                          setError(null);
+                                        }}
+                                        required
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
+                                      >
+                                        {rentalTimeSlots.map((time) => {
+                                          const isBooked = bookedSlots.includes(time);
+                                          return (
+                                            <option
+                                              key={time}
+                                              value={time}
+                                              disabled={isBooked}
+                                              className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
+                                            >
+                                              {time} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+                                            </option>
+                                          );
+                                        })}
+                                      </select>
+                                    </div>
                 </div>
               )}
             </div>
@@ -1331,11 +1366,19 @@ export default function BookingForm({
                                         required
                                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
                                       >
-                                        {rentalTimeSlots.map((time) => (
-                                          <option key={time} value={time}>
-                                            {time} WIB
-                                          </option>
-                                        ))}
+                                        {rentalTimeSlots.map((time) => {
+                                          const isBooked = bookedSlots.includes(time);
+                                          return (
+                                            <option
+                                              key={time}
+                                              value={time}
+                                              disabled={isBooked}
+                                              className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
+                                            >
+                                              {time} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+                                            </option>
+                                          );
+                                        })}
                                       </select>
                                     </div>
 
@@ -1575,11 +1618,19 @@ export default function BookingForm({
                   required
                   className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
                 >
-                  {rentalTimeSlots.map((time) => (
-                    <option key={time} value={time}>
-                      {time} WIB
-                    </option>
-                  ))}
+                  {rentalTimeSlots.map((time) => {
+                    const isBooked = bookedSlots.includes(time);
+                    return (
+                      <option
+                        key={time}
+                        value={time}
+                        disabled={isBooked}
+                        className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
+                      >
+                        {time} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

@@ -52,10 +52,36 @@ export async function GET(request: Request) {
       select: { startDate: true, endDate: true },
     });
 
-    const bookedRanges = bookings.map((b) => ({
-      startDate: b.startDate,
-      endDate: b.endDate,
-    }));
+    const txWhereClause: any = {
+      userId: tenant.userId,
+      status: { not: "CANCELLED" },
+      startDate: { not: null },
+      endDate: { gte: today },
+    };
+
+    if (productId) {
+      txWhereClause.items = {
+        some: {
+          productId: Number(productId),
+        },
+      };
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where: txWhereClause,
+      select: { startDate: true, endDate: true },
+    });
+
+    const bookedRanges = [
+      ...bookings.map((b) => ({
+        startDate: b.startDate,
+        endDate: b.endDate,
+      })),
+      ...transactions.map((tx) => ({
+        startDate: tx.startDate,
+        endDate: tx.endDate,
+      })),
+    ];
 
     return NextResponse.json({ bookedRanges });
   } catch (error) {
