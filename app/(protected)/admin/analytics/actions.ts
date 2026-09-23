@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { resolveBusinessCategory } from "@/lib/business-category";
 
 export async function getAnalyticsData(fromStr?: string, toStr?: string) {
   const { userId } = await auth();
@@ -76,7 +77,7 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
     // Tarik semua produk master untuk memastikan produk dengan 0 penjualan tetap masuk kalkulasi
     const allProducts = await prisma.product.findMany({
       where: { userId: targetUserId },
-      select: { id: true, name: true }
+      select: { id: true, name: true, description: true, category: true }
     });
 
     const statsMap = new Map<number, { name: string, qty: number }>();
@@ -124,15 +125,18 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
     });
 
     const tenant = await prisma.tenant.findUnique({
-      where: { userId: targetUserId }
+      where: { userId: targetUserId },
+      select: { name: true, category: true }
     });
+
+    const effectiveCategory = resolveBusinessCategory(tenant?.category, tenant?.name, allProducts);
 
     return {
       busyHours,
       topProducts,
       bottomProducts,
       lowStock,
-      category: tenant?.category || 'Retail',
+      category: effectiveCategory,
       cashierStats: cashierStats.map(stat => ({
         userId: stat.userId,
         total: stat._sum.total || 0

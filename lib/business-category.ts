@@ -9,7 +9,15 @@ const RENTAL_TRAVEL_CATEGORIES = [
   "Travel",
   "Properti",
   "Property",
-  "Rental Properti"
+  "Rental Properti",
+  "RENTAL_PROPERTI",
+  "RENTAL_KENDARAAN",
+  "RENTAL_ALAT",
+  "Rental Kendaraan",
+  "Rental Alat",
+  "Rental Peralatan",
+  "Rental & Kendaraan",
+  "Rental Barang"
 ];
 
 export function isServiceBusinessCategory(category?: string | null) {
@@ -17,7 +25,11 @@ export function isServiceBusinessCategory(category?: string | null) {
 }
 
 export function isRentalTravelCategory(category?: string | null) {
-  return RENTAL_TRAVEL_CATEGORIES.includes(category ?? "");
+  const cat = category ?? "";
+  return RENTAL_TRAVEL_CATEGORIES.includes(cat) || 
+    cat.toUpperCase().startsWith("RENTAL") || 
+    cat.toLowerCase().includes("properti") || 
+    cat.toLowerCase().includes("travel");
 }
 
 export function isPureServiceCategory(category?: string | null) {
@@ -110,13 +122,19 @@ export function detectRentalItemType(name?: string | null, description?: string 
   return "unknown";
 }
 
-export function getTenantRentalType(category?: string | null): "property" | "vehicle" | "equipment" | null {
+export function getTenantRentalType(
+  category?: string | null,
+  tenantName?: string | null,
+  products?: { name?: string | null; description?: string | null; category?: string | null }[] | null
+): "property" | "vehicle" | "equipment" | null {
   const cat = (category || "").toLowerCase();
   
+  // 1. Cek langsung dari string kategori
   if (
     cat.includes("alat") ||
     cat.includes("peralatan") ||
-    cat.includes("equipment")
+    cat.includes("equipment") ||
+    cat === "rental_alat"
   ) {
     return "equipment";
   }
@@ -125,7 +143,8 @@ export function getTenantRentalType(category?: string | null): "property" | "veh
     cat.includes("armada") ||
     cat.includes("travel") ||
     cat.includes("mobil") ||
-    cat.includes("motor")
+    cat.includes("motor") ||
+    cat === "rental_kendaraan"
   ) {
     return "vehicle";
   }
@@ -139,10 +158,65 @@ export function getTenantRentalType(category?: string | null): "property" | "veh
     cat.includes("hotel") ||
     cat.includes("glamping") ||
     cat.includes("homestay") ||
-    cat.includes("apartemen")
+    cat.includes("apartemen") ||
+    cat === "rental_properti"
   ) {
     return "property";
   }
+
+  // 2. Cek dari nama toko / usaha tenant
+  if (tenantName) {
+    const nameLower = tenantName.toLowerCase();
+    const propKeywords = ["villa", "vila", "kost", "kos", "homestay", "hotel", "resort", "penginapan", "apartemen", "apartment", "guesthouse", "guest house", "paviliun", "kamar", "glamping"];
+    if (propKeywords.some(kw => nameLower.includes(kw))) {
+      return "property";
+    }
+    const equipKeywords = ["kamera", "camera", "outdoor", "camping", "sound", "lighting", "alat", "equipment", "drone", "audio", "genset", "tenda"];
+    if (equipKeywords.some(kw => nameLower.includes(kw))) {
+      return "equipment";
+    }
+    const vehKeywords = ["mobil", "motor", "rent car", "rentcar", "rental mobil", "travel", "tour", "shuttle", "trans", "transport", "bus", "armada"];
+    if (vehKeywords.some(kw => nameLower.includes(kw))) {
+      return "vehicle";
+    }
+  }
+
+  // 3. Cek dari produk katalog yang ada
+  if (products && products.length > 0) {
+    let propCount = 0;
+    let equipCount = 0;
+    let vehCount = 0;
+    
+    for (const p of products) {
+      const detected = detectRentalItemType(p.name, p.description, p.category);
+      if (detected === "property") propCount++;
+      else if (detected === "equipment") equipCount++;
+      else if (detected === "vehicle") vehCount++;
+    }
+
+    if (propCount > equipCount && propCount > vehCount) return "property";
+    if (equipCount > propCount && equipCount > vehCount) return "equipment";
+    if (vehCount > propCount && vehCount > equipCount) return "vehicle";
+    if (propCount > 0) return "property";
+    if (equipCount > 0) return "equipment";
+    if (vehCount > 0) return "vehicle";
+  }
+
   return null;
+}
+
+export function resolveBusinessCategory(
+  category?: string | null,
+  tenantName?: string | null,
+  products?: { name?: string | null; description?: string | null; category?: string | null }[] | null
+): string {
+  const cat = category ?? "";
+  if (isRentalTravelCategory(cat)) {
+    const rentalType = getTenantRentalType(cat, tenantName, products);
+    if (rentalType === "property") return "Rental Properti";
+    if (rentalType === "equipment") return "Rental Peralatan";
+    if (rentalType === "vehicle") return "Rental Kendaraan";
+  }
+  return cat || "Retail";
 }
 

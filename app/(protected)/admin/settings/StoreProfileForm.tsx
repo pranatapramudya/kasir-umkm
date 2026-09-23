@@ -32,6 +32,9 @@ export default function StoreProfileForm({
   // Normalisasi label kategori untuk tampilan
   const getCategoryLabel = (cat: string) => {
     const upper = (cat || "").toUpperCase();
+    if (upper.includes("PROPERTI") || upper.includes("PROPERTY") || upper.includes("VILLA") || upper.includes("KOST")) return "Properti & Penginapan";
+    if (upper.includes("ALAT") || upper.includes("PERALATAN") || upper.includes("BARANG")) return "Rental Alat & Barang";
+    if (upper.includes("KENDARAAN") || upper.includes("MOBIL") || upper.includes("MOTOR")) return "Rental Kendaraan & Travel";
     if (upper.includes("FNB") || upper.includes("KULINER")) return "F&B / Kuliner";
     if (upper.includes("RETAIL") || upper.includes("RITEL")) return "Retail / Toko";
     if (upper.includes("RENTAL") || upper.includes("TRAVEL")) return "Rental & Travel";
@@ -41,6 +44,9 @@ export default function StoreProfileForm({
 
   const categoryColorClass = () => {
     const upper = (category || "").toUpperCase();
+    if (upper.includes("PROPERTI") || upper.includes("PROPERTY")) return "bg-purple-50 text-purple-700 border-purple-200";
+    if (upper.includes("ALAT") || upper.includes("PERALATAN")) return "bg-amber-50 text-amber-700 border-amber-200";
+    if (upper.includes("KENDARAAN")) return "bg-blue-50 text-blue-700 border-blue-200";
     if (upper.includes("FNB") || upper.includes("KULINER")) return "bg-amber-50 text-amber-700 border-amber-200";
     if (upper.includes("RETAIL") || upper.includes("RITEL")) return "bg-blue-50 text-blue-700 border-blue-200";
     if (upper.includes("RENTAL") || upper.includes("TRAVEL")) return "bg-indigo-50 text-indigo-700 border-indigo-200";

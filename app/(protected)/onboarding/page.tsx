@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { completeOnboarding, selectSubscriptionPackage } from "./actions";
-import { Store, Check, Coffee, ShoppingBag, Wrench, MoreHorizontal, CarFront } from "lucide-react";
+import { Store, Check, Coffee, ShoppingBag, Wrench, MoreHorizontal, CarFront, Building2, Package } from "lucide-react";
 import { useEffect, useState, Suspense } from "react";
 
 import PricingSection from '@/components/PricingSection';
@@ -128,13 +128,15 @@ export default function OnboardingPage() {
                   Kategori Usaha
                 </label>
                 <input type="hidden" name="category" value={selectedCategory} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
-                    { id: "FNB", label: "F&B / Kuliner", description: "Kafe, Resto, Warung Makan", icon: <Coffee className="w-5 h-5 mb-2" /> },
-                    { id: "RETAIL", label: "Retail", description: "Toko Kelontong, Butik, Minimarket", icon: <ShoppingBag className="w-5 h-5 mb-2" /> },
-                    { id: "JASA", label: "Jasa / Servis", description: "Bengkel, Barbershop, Laundry", icon: <Wrench className="w-5 h-5 mb-2" /> },
-                    { id: "RENTAL", label: "Rental & Travel", description: "Sewa Kendaraan, Penginapan, Tour", icon: <CarFront className="w-5 h-5 mb-2" /> },
-                    { id: "LAINNYA", label: "Lainnya", description: "Usaha & Layanan Lainnya", icon: <MoreHorizontal className="w-5 h-5 mb-2" /> },
+                    { id: "RENTAL_PROPERTI", label: "Properti & Penginapan", description: "Kost, Villa, Homestay, Hotel", icon: <Building2 className="w-5 h-5 mb-1.5" /> },
+                    { id: "RENTAL_KENDARAAN", label: "Rental Kendaraan & Travel", description: "Sewa Mobil, Motor, Shuttle", icon: <CarFront className="w-5 h-5 mb-1.5" /> },
+                    { id: "RENTAL_ALAT", label: "Rental Alat & Barang", description: "Kamera, Outdoor, Sound, Genset", icon: <Package className="w-5 h-5 mb-1.5" /> },
+                    { id: "FNB", label: "F&B / Kuliner", description: "Kafe, Resto, Warung Makan", icon: <Coffee className="w-5 h-5 mb-1.5" /> },
+                    { id: "RETAIL", label: "Retail & Toko", description: "Toko Kelontong, Butik, Minimarket", icon: <ShoppingBag className="w-5 h-5 mb-1.5" /> },
+                    { id: "JASA", label: "Jasa / Servis", description: "Bengkel, Barbershop, Laundry", icon: <Wrench className="w-5 h-5 mb-1.5" /> },
+                    { id: "LAINNYA", label: "Lainnya", description: "Usaha & Layanan Lainnya", icon: <MoreHorizontal className="w-5 h-5 mb-1.5" /> },
                   ].map((cat) => (
                     <div
                       key={cat.id}

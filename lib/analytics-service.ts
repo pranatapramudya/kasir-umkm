@@ -1,4 +1,5 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
+import { resolveBusinessCategory } from "@/lib/business-category";
 
 export async function getAnalyticsData(userId: string, filter: string, customDate?: string | null) {
   const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
@@ -81,16 +82,16 @@ export async function getAnalyticsData(userId: string, filter: string, customDat
       select: { createdAt: true, total: true },
     }),
 
-    // E. Products untuk mapping hpp & productId → hpp
+    // E. Products untuk mapping hpp & productId → hpp dan deteksi kategori
     prisma.product.findMany({
       where: { userId: activeTenantId },
-      select: { id: true, hpp: true },
+      select: { id: true, name: true, description: true, category: true, hpp: true },
     }),
 
-    // F. Tenant category
+    // F. Tenant category & name
     prisma.tenant.findUnique({
       where: { userId: activeTenantId },
-      select: { category: true },
+      select: { name: true, category: true },
     }),
   ]);
 
@@ -121,6 +122,8 @@ export async function getAnalyticsData(userId: string, filter: string, customDat
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([date, revenue]) => ({ date, revenue }));
 
+  const effectiveCategory = resolveBusinessCategory(tenant?.category, tenant?.name, products);
+
   // Return exactly the fields needed with strings, no raw Date objects
   return {
     totalRevenue,
@@ -129,7 +132,7 @@ export async function getAnalyticsData(userId: string, filter: string, customDat
     netProfit,
     totalTransactions,
     salesTrend,
-    category: tenant?.category || 'Retail',
+    category: effectiveCategory,
     tenantId: activeTenantId,
     period: {
       start: startDate.toISOString(),
