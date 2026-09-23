@@ -710,47 +710,17 @@ export default function AdminProductsClientPage({
                       title="Export Data: Mengunduh & membackup daftar produk/layanan yang saat ini tersimpan di kasir ke file Excel"
                     >
                       {isExporting ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" /> : <FileDown className="w-5 h-5 text-gray-500" />}
-                      <span>Export Data</span>
-                    </button>
-                    {isRental && finalAvailableRentalTabs.length > 0 && (
-                                          <div className="flex gap-2" role="tablist" aria-label="Jenis unit rental">
-                                            {(["equipment", "vehicle", "property", "addon"] as const).map((type) => {
-                                              const isAvailable = finalAvailableRentalTabs.includes(type);
-                                              const isActive = rentalModalType === type;
-                                              const isLocked = isSingleRentalType && finalAvailableRentalTabs[0] !== type;
-                                              return (
-                                                <button
-                                                  key={type}
-                                                  role="tab"
-                                                  aria-selected={isActive}
-                                                  aria-disabled={!isAvailable || isLocked}
-                                                  onClick={() => isAvailable && !isLocked && (setRentalModalType(type), openModal())}
-                                                  className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                                                    !isAvailable || isLocked
-                                                      ? "opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200"
-                                                      : isActive
-                                                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm"
-                                                      : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
-                                                  }`}
-                                                  title={!isAvailable ? "Tidak ada data tipe ini" : isLocked ? `Terkunci ke ${RENTAL_TYPE_LABELS[finalAvailableRentalTabs[0] as keyof typeof RENTAL_TYPE_LABELS]}` : ""}
-                                                >
-                                                  {RENTAL_TYPE_ICONS[type as keyof typeof RENTAL_TYPE_ICONS]} {RENTAL_TYPE_LABELS[type as keyof typeof RENTAL_TYPE_LABELS]}
-                                                </button>
-                                              );
-                                            })}
-                                          </div>
-                                        )}
-                    {(!isRental || finalAvailableRentalTabs.length === 0) && (
-                      <button
-                        onClick={() => openModal()}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
-                      >
-                        <Plus className="w-5 h-5" />
-                        {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
-                      </button>
-                    )}
-                  </div>
-                )}
+                                            <span>Export Data</span>
+                                          </button>
+                                          <button
+                                            onClick={() => openModal()}
+                                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
+                                          >
+                                            <Plus className="w-5 h-5" />
+                                            {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
+                                          </button>
+                                        </div>
+                                      )}
       </div>
 
       {/* Search Bar & Kategori */}
@@ -984,104 +954,41 @@ export default function AdminProductsClientPage({
                       className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 uppercase font-mono"
                     />
                   </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  {/* Selector Jenis Item Khusus RENTAL */}
-                                  {isRental && finalAvailableRentalTabs.length > 1 && (
-                                    <div className="sm:col-span-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-1">
-                                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Jenis Unit Sewa</label>
-                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                        {finalAvailableRentalTabs.includes("equipment") && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setRentalModalType("equipment");
-                                              setFormData(prev => ({
-                                                ...prev,
-                                                category: prev.category === "Armada" || prev.category === "Properti" || prev.category === "Layanan Tambahan" ? "Peralatan" : prev.category || "Peralatan",
-                                                stock: prev.stock || "1",
-                                                minStockThreshold: prev.minStockThreshold || "1",
-                                              }));
-                                            }}
-                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                                              rentalModalType === "equipment"
-                                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-                                            }`}
-                                          >
-                                            📦 Alat / Barang
-                                          </button>
-                                        )}
-                                        {finalAvailableRentalTabs.includes("vehicle") && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setRentalModalType("vehicle");
-                                              setFormData(prev => ({
-                                                ...prev,
-                                                category: prev.category === "Peralatan" || prev.category === "Properti" || prev.category === "Layanan Tambahan" ? "Armada" : prev.category || "Armada",
-                                                stock: prev.stock || "1",
-                                                minStockThreshold: prev.minStockThreshold || "1",
-                                              }));
-                                            }}
-                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                                              rentalModalType === "vehicle"
-                                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-                                            }`}
-                                          >
-                                            🚗 Kendaraan
-                                          </button>
-                                        )}
-                                        {finalAvailableRentalTabs.includes("property") && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setRentalModalType("property");
-                                              setFormData(prev => ({
-                                                ...prev,
-                                                category: prev.category === "Peralatan" || prev.category === "Armada" || prev.category === "Layanan Tambahan" ? "Properti" : prev.category || "Properti",
-                                                stock: prev.stock || "1",
-                                                minStockThreshold: prev.minStockThreshold || "1",
-                                              }));
-                                            }}
-                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                                              rentalModalType === "property"
-                                                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-                                            }`}
-                                          >
-                                            🏨 Properti / Kos
-                                          </button>
-                                        )}
-                                        {finalAvailableRentalTabs.includes("addon") && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setRentalModalType("addon");
-                                              setFormData(prev => ({
-                                                ...prev,
-                                                category: "Layanan Tambahan",
-                                                stock: "999999",
-                                                minStockThreshold: "0",
-                                                hpp: "0",
-                                              }));
-                                            }}
-                                            className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
-                                              rentalModalType === "addon"
-                                                ? "bg-amber-600 text-white border-amber-600 shadow-sm"
-                                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-                                            }`}
-                                          >
-                                            🛠️ Layanan / Kru
-                                          </button>
-                                        )}
-                                      </div>
-                                    </div>
                                   )}
 
-                  {/* Selector Jenis Item Khusus JASA */}
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Selector Jenis Item Khusus RENTAL - tampil di modal untuk tenant rental */}
+                                    {isRental && (
+                                      <div className="sm:col-span-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-1">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Jenis Unit Sewa</label>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                          {(["equipment", "vehicle", "property", "addon"] as const).map((type) => {
+                                            const isAvailable = finalAvailableRentalTabs.includes(type);
+                                            const isActive = rentalModalType === type;
+                                            return (
+                                              <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() => isAvailable && setRentalModalType(type)}
+                                                disabled={!isAvailable}
+                                                className={`py-2 px-2 rounded-lg text-xs font-bold border text-center transition-all flex items-center justify-center gap-1.5 ${
+                                                  !isAvailable
+                                                    ? "opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200"
+                                                    : isActive
+                                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                                                    : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                                                }`}
+                                                title={!isAvailable ? `Tidak tersedia untuk ${RENTAL_TYPE_LABELS[finalAvailableRentalTabs[0] as keyof typeof RENTAL_TYPE_LABELS]}` : ""}
+                                              >
+                                                {RENTAL_TYPE_ICONS[type as keyof typeof RENTAL_TYPE_ICONS]} {RENTAL_TYPE_LABELS[type as keyof typeof RENTAL_TYPE_LABELS]}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Selector Jenis Item Khusus JASA */}
                   {isPureJasa && (
                     <div className="sm:col-span-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-1">
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Jenis Item</label>
