@@ -253,121 +253,164 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   const selectedDateBookings = getBookingsForDate(selectedDate);
 
   return (
-      <div className="flex flex-col h-full bg-slate-50 min-h-screen pb-24">
-        {/* Header */}
-        <div className="bg-white p-4 border-b border-slate-200 shadow-sm flex flex-col gap-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 text-blue-600" />
-              Kalender Sewa
+    <div className="flex flex-col min-h-screen bg-slate-50 pb-20">
+      {/* Header */}
+      <div className="bg-white p-4 sm:p-6 border-b border-slate-200 shadow-xs flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <CalendarDays className="w-6 h-6 text-blue-600" />
+              Kalender Sewa & Reservasi
             </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Kelola jadwal booking, check-in, dan ketersediaan unit secara real-time.
+            </p>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-                    {([{ value: "ALL", label: "Semua" }, { value: "PENDING", label: "Terjadwal" }, { value: "IN_PROGRESS", label: "Aktif Digunakan" }, { value: "OVERDUE", label: "Terlambat" }, { value: "FINISHED", label: "Selesai" }] as const).map(f => (
-                      <button
-                        key={f.value}
-                        onClick={() => setFilter(f.value as "ALL" | BookingStatus)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filter === f.value ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-      </div>
-
-            {/* Calendar Area */}
-            <div className="bg-white p-4 mb-2 shadow-sm border-b border-slate-200 flex-1 min-h-0">
-              {/* Calendar Navigation */}
-              <div className="flex justify-between items-center mb-4 px-2">
-                <button onClick={prevMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-                  <ChevronLeft className="w-5 h-5 text-slate-600" />
-                </button>
-                <h2 className="font-bold text-slate-800 text-lg">
-                  {format(currentDate, "MMMM yyyy", { locale: idLocale })}
-                </h2>
-                <button onClick={nextMonth} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-                  <ChevronRight className="w-5 h-5 text-slate-600" />
-                </button>
-              </div>
-
-              {/* Inner Scroll Container */}
-              <div className="h-full overflow-y-auto border border-slate-200 rounded-xl bg-white shadow-inner relative">
-                {/* Days Header */}
-                <div className="grid grid-cols-7 gap-1 md:gap-2 sticky top-0 z-30 bg-white shadow-sm py-2 px-1 md:px-2 border-b border-slate-200">
-                  {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
-                    <div key={i} className="text-center text-xs font-bold text-slate-500 py-1">
-                      {d}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-1 md:gap-2 p-1 md:p-2">
-                {days.map((day, i) => {
-                  const isSelected = isSameDay(day, selectedDate);
-                  const isCurrentMonth = isSameMonth(day, monthStart);
-                  const isToday = isSameDay(day, new Date());
-                  const dayBookings = getBookingsForDate(day);
-
-                  return (
-                    <div
-                      key={i}
-                      onClick={() => onDateClick(day)}
-                      className={`flex flex-col border border-slate-100 rounded-xl p-1 md:p-2 min-h-[70px] md:min-h-[110px] cursor-pointer transition-all ${isSelected ? "bg-blue-50/50 border-blue-200" : "hover:bg-slate-50"
-                        }`}
-                    >
-                      {/* Date Number */}
-                      <div className="flex justify-end mb-1">
-                        <div className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full text-xs md:text-sm font-semibold transition-all ${isSelected
-                          ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                          : isToday
-                            ? "bg-blue-100 text-blue-700"
-                            : isCurrentMonth
-                              ? "text-slate-700"
-                              : "text-slate-300"
-                          }`}>
-                          {format(day, dateFormat)}
-                        </div>
-                      </div>
-
-                      {/* Event Badges */}
-                      <div className="flex flex-col gap-1 w-full overflow-hidden">
-                        {dayBookings.slice(0, 2).map((b, idx) => (
-                          <div key={idx} className={`truncate px-1.5 md:px-2 py-0.5 md:py-1 rounded-md text-[9px] md:text-xs font-medium w-full ${(STATUS_CONFIG[b.status] || STATUS_CONFIG.PENDING).bg}`}>
-                            {b.customerName || "Pelanggan Baru"}
-                          </div>
-                        ))}
-                        {dayBookings.length > 2 && (
-                          <div className="text-[9px] md:text-xs text-slate-400 font-medium px-1">
-                            +{dayBookings.length - 2} lainnya
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                </div>
-              </div>
-            </div>
-
-      {/* Agenda/List Area */}
-      <div className="flex-1 p-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-800 text-sm">
-            Agenda: {format(selectedDate, "EEEE, dd MMM yyyy", { locale: idLocale })}
-          </h3>
-          <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">
-            {selectedDateBookings.length} Jadwal
+          <span className="self-start sm:self-auto text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full font-bold">
+            {rentalNiche === "property" ? "🏢 Properti & Kamar" : rentalNiche === "vehicle" ? "🚗 Rental & Travel" : "📦 Rental Alat & Barang"}
           </span>
         </div>
 
-        {selectedDateBookings.length === 0 ? (
-          <div className="bg-white border border-slate-200 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center">
-            <CalendarDays className="w-10 h-10 text-slate-300 mb-2" />
-            <p className="text-slate-500 text-sm font-medium">Kosong</p>
-            <p className="text-slate-400 text-xs mt-1">Tidak ada jadwal sewa / reservasi untuk tanggal ini.</p>
+        {/* Filter Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+          {([
+            { value: "ALL", label: "Semua" },
+            { value: "COMPLETED", label: "Terjadwal" },
+            { value: "IN_PROGRESS", label: rentalNiche === "property" ? "Tamu Menginap" : rentalNiche === "vehicle" ? "Sedang Digunakan" : "Sedang Disewa" },
+            { value: "OVERDUE", label: rentalNiche === "property" ? "Lewat Check-out" : "Terlambat" },
+            { value: "FINISHED", label: "Selesai" }
+          ] as const).map(f => (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value as "ALL" | BookingStatus)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                filter === f.value ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Grid Content (2-Columns on lg+, Stacked on mobile) */}
+      <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start max-w-7xl mx-auto w-full">
+        {/* Left Column: Monthly Calendar */}
+        <div className="lg:col-span-7 xl:col-span-8 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+          {/* Calendar Navigation */}
+          <div className="flex justify-between items-center px-1">
+            <button
+              onClick={prevMonth}
+              className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-slate-700"
+              title="Bulan Sebelumnya"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h2 className="font-bold text-slate-800 text-base sm:text-lg capitalize">
+              {format(currentDate, "MMMM yyyy", { locale: idLocale })}
+            </h2>
+            <button
+              onClick={nextMonth}
+              className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-slate-700"
+              title="Bulan Berikutnya"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
-        ) : (
+
+          {/* Calendar Grid Container */}
+          <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+            {/* Days Header */}
+            <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center py-2.5">
+              {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d, i) => (
+                <div key={i} className="text-xs font-bold text-slate-600">
+                  {d}
+                </div>
+              ))}
+            </div>
+
+            {/* Days Cells */}
+            <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 bg-slate-50/20">
+              {days.map((day, i) => {
+                const isSelected = isSameDay(day, selectedDate);
+                const isCurrentMonth = isSameMonth(day, monthStart);
+                const isToday = isSameDay(day, new Date());
+                const dayBookings = getBookingsForDate(day);
+
+                return (
+                  <div
+                    key={i}
+                    onClick={() => onDateClick(day)}
+                    className={`flex flex-col p-1.5 sm:p-2 min-h-[75px] sm:min-h-[95px] cursor-pointer transition-all ${
+                      isSelected
+                        ? "bg-blue-50/90 ring-2 ring-blue-500 ring-inset z-10"
+                        : "bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    {/* Date Number */}
+                    <div className="flex justify-end mb-1">
+                      <div
+                        className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
+                          isSelected
+                            ? "bg-blue-600 text-white shadow-sm shadow-blue-500/40"
+                            : isToday
+                            ? "bg-blue-100 text-blue-700 font-extrabold"
+                            : isCurrentMonth
+                            ? "text-slate-700"
+                            : "text-slate-300"
+                        }`}
+                      >
+                        {format(day, dateFormat)}
+                      </div>
+                    </div>
+
+                    {/* Event Badges */}
+                    <div className="flex flex-col gap-1 w-full overflow-hidden">
+                      {dayBookings.slice(0, 2).map((b, idx) => {
+                        const badge = getStatusBadge(b.status, rentalNiche);
+                        return (
+                          <div
+                            key={idx}
+                            className={`truncate px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium w-full border border-current/15 ${badge.bg}`}
+                          >
+                            {b.customerName || "Pelanggan Baru"}
+                          </div>
+                        );
+                      })}
+                      {dayBookings.length > 2 && (
+                        <div className="text-[10px] text-slate-400 font-bold px-1">
+                          +{dayBookings.length - 2} lainnya
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Agenda / Selected Date Bookings */}
+        <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-3 lg:sticky lg:top-24">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Jadwal Tanggal</span>
+              <h3 className="font-bold text-slate-800 text-sm sm:text-base capitalize">
+                {format(selectedDate, "EEEE, dd MMM yyyy", { locale: idLocale })}
+              </h3>
+            </div>
+            <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-bold shrink-0">
+              {selectedDateBookings.length} Jadwal
+            </span>
+          </div>
+
+          {selectedDateBookings.length === 0 ? (
+            <div className="bg-white border border-slate-200 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-xs">
+              <CalendarDays className="w-10 h-10 text-slate-300 mb-2" />
+              <p className="text-slate-600 text-sm font-bold">Tidak Ada Jadwal</p>
+              <p className="text-slate-400 text-xs mt-1">Belum ada reservasi atau sewa untuk tanggal ini.</p>
+            </div>
+          ) : (
           selectedDateBookings.map((b) => {
             const badge = getStatusBadge(b.status, rentalNiche);
             const itemType = detectRentalItemType(b.itemName);
@@ -516,6 +559,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
             );
           })
         )}
+        </div>
       </div>
 
       {/* Modal Penyelesaian Sewa */}
