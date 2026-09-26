@@ -10,6 +10,16 @@ export function useSupabaseRealtime(tenantId: string | null | undefined) {
   useEffect(() => {
     if (!tenantId || !process.env.NEXT_PUBLIC_SUPABASE_URL) return;
 
+    const isCalendarKey = (key: any) =>
+      typeof key === "string"
+        ? key.startsWith("/api/booking/calendar")
+        : Array.isArray(key) && key[0] === "/api/booking/calendar";
+
+    const isPendingKey = (key: any) =>
+      typeof key === "string"
+        ? key.startsWith("/api/booking/pending-count")
+        : Array.isArray(key) && key[0] === "/api/booking/pending-count";
+
     // We subscribe to the 'public' schema, listening for INSERT and UPDATE on 'Booking' and 'Transaction'
     // Filtered by userId = tenantId
     const bookingChannel = supabase
@@ -24,9 +34,9 @@ export function useSupabaseRealtime(tenantId: string | null | undefined) {
         },
         (payload) => {
           console.log("Realtime Booking Update received:", payload);
-          mutate("/api/booking/calendar");
+          mutate(isCalendarKey);
           mutate("/api/booking/today");
-          mutate("/api/booking/pending-count");
+          mutate(isPendingKey);
           mutate("/api/booking/availability");
         }
       )
@@ -46,6 +56,7 @@ export function useSupabaseRealtime(tenantId: string | null | undefined) {
           console.log("Realtime Transaction Update received:", payload);
           mutate("/api/transactions");
           mutate("/api/booking/today");
+          mutate(isCalendarKey);
         }
       )
       .subscribe();

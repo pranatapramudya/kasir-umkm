@@ -65,6 +65,7 @@ export async function GET(req: Request) {
       return {
         id: b.id,
         customerName: b.customerName,
+        customerPhone: b.customerPhone || undefined,
         itemName: b.product?.name || "Tanpa Armada",
         startDate: safeStart,
         endDate: safeEnd,
@@ -97,6 +98,7 @@ export async function GET(req: Request) {
       return {
         id: tx.id,
         customerName: tx.customerName || "Pelanggan POS",
+        customerPhone: undefined,
         itemName: tx.items.map(i => productMap.get(i.productId) || `Produk ${i.productId}`).join(", ") || "Transaksi POS",
         startDate: start.toISOString(),
         endDate: end.toISOString(),

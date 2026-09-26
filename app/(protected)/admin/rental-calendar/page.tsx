@@ -28,7 +28,7 @@ export default async function RentalCalendarPage() {
 
   const tenant = await prisma.tenant.findUnique({
     where: { userId: targetUserId },
-    select: { name: true, category: true },
+    select: { name: true, category: true, slug: true },
   });
 
   if (!tenant) {
@@ -80,6 +80,7 @@ export default async function RentalCalendarPage() {
       return {
         id: b.id,
         customerName: b.customerName,
+        customerPhone: b.customerPhone || undefined,
         itemName: b.product?.name || "Tanpa Armada",
         startDate: start.toISOString(),
         endDate: end.toISOString(),
@@ -124,5 +125,5 @@ export default async function RentalCalendarPage() {
     (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
 
-  return <RentalCalendarClient initialBookings={allBookings} tenantId={targetUserId} tenantCategory={tenant.category} />;
+  return <RentalCalendarClient initialBookings={allBookings} tenantId={targetUserId} tenantCategory={tenant.category} tenantSlug={tenant.slug} />;
   }
