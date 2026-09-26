@@ -27,6 +27,7 @@
     "@types/react-big-calendar": "^1.16.3",
     "@types/web-push": "^3.6.4",
     "@types/ws": "^8.18.1",
+    "@upstash/redis": "^1.39.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.20.0",
