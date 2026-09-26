@@ -36,6 +36,50 @@ export function isPureServiceCategory(category?: string | null) {
   return isServiceBusinessCategory(category) && !isRentalTravelCategory(category);
 }
 
+export function getFnbSubType(category?: string | null): "cafe" | "resto" | "generic" {
+  const cat = (category || "").toLowerCase().trim();
+  if (
+    cat.includes("cafe") ||
+    cat.includes("kafe") ||
+    cat.includes("kopi") ||
+    cat.includes("coffee") ||
+    cat.includes("espresso") ||
+    cat.includes("bubble tea") ||
+    cat.includes("boba") ||
+    cat.includes("tea house") ||
+    cat.includes("teh") ||
+    cat.includes("juice bar")
+  ) return "cafe";
+  if (
+    cat.includes("resto") ||
+    cat.includes("restaurant") ||
+    cat.includes("warung") ||
+    cat.includes("rumah makan") ||
+    cat.includes("rumah makan") ||
+    cat.includes("kedai") ||
+    cat.includes("warteg") ||
+    cat.includes("nasi") ||
+    cat.includes("ayam") ||
+    cat.includes("sate") ||
+    cat.includes("bakso") ||
+    cat.includes("mie") ||
+    cat.includes("soto") ||
+    cat.includes("rawon") ||
+    cat.includes("gudeg") ||
+    cat.includes("padang") ||
+    cat.includes("seafood") ||
+    cat.includes("bbq") ||
+    cat.includes("steak") ||
+    cat.includes("western") ||
+    cat.includes("japanese") ||
+    cat.includes("korean") ||
+    cat.includes("chinese") ||
+    cat.includes("thai") ||
+    cat.includes("italian")
+  ) return "resto";
+  return "generic";
+}
+
 export function detectRentalItemType(name?: string | null, description?: string | null, category?: string | null): "property" | "vehicle" | "equipment" | "unknown" {
   const cat = (category || "").toLowerCase();
   

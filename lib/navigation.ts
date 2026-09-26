@@ -1,10 +1,15 @@
 import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck, Printer, Inbox, ChefHat } from "lucide-react";
-import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
+import { isRentalTravelCategory, isServiceBusinessCategory, getFnbSubType } from "@/lib/business-category";
+
+export type FnbSubType = "cafe" | "resto" | "generic";
 
 export function isFnBCategory(category: string): boolean {
   const normalized = category?.toLowerCase().trim();
   return normalized === "fnb" || normalized === "f&b" || normalized === "f&b / kuliner" || normalized === "resto" || normalized === "kuliner";
 }
+
+// Re-export from business-category as single source of truth
+export { getFnbSubType } from "@/lib/business-category";
 
 export function getNavigationMenu(kategoriUsaha: string, role: string | undefined) {
   const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);

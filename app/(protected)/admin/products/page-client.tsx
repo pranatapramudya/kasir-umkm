@@ -12,7 +12,7 @@ const CsvImportModal = nextDynamic(() => import('@/components/CsvImportModal'), 
   ssr: false,
 });
 import { Pagination } from '@/components/Pagination';
-import { isServiceBusinessCategory, isRentalTravelCategory, isPureServiceCategory, detectRentalItemType } from '@/lib/business-category';
+import { isServiceBusinessCategory, isRentalTravelCategory, isPureServiceCategory, detectRentalItemType, getFnbSubType } from '@/lib/business-category';
 import { resolveRentalNiche, RENTAL_NICHE_CONFIG } from '@/lib/rental-filter';
 import { humanizeError } from '@/lib/error-mapper';
 import { isFnBCategory } from '@/lib/navigation';
@@ -60,15 +60,39 @@ export default function AdminProductsClientPage({
       const isPureJasa = isPureServiceCategory(kategoriUsaha);
       const isFNB = isFnBCategory(kategoriUsaha);
 
-    // FNB filter config (static categories from template)
-        const fnbFilterOptions = useMemo(() => [
+      // FNB filter config (dynamic based on sub-type: cafe/resto/generic - matches Excel template validation)
+      const fnbFilterOptions = useMemo(() => {
+        const subType = getFnbSubType(kategoriUsaha);
+        if (subType === 'cafe') {
+          return [
+            { value: "ALL", label: "Semua" },
+            { value: "Kopi", label: "Kopi" },
+            { value: "Non-Kopi", label: "Non-Kopi" },
+            { value: "Makanan Ringan", label: "Makanan Ringan" },
+            { value: "Dessert", label: "Dessert" },
+            { value: "Paket Sarapan", label: "Paket Sarapan" },
+          ];
+        }
+        if (subType === 'resto') {
+          return [
+            { value: "ALL", label: "Semua" },
+            { value: "Appetizer", label: "Appetizer" },
+            { value: "Main Course", label: "Main Course" },
+            { value: "Dessert", label: "Dessert" },
+            { value: "Beverage", label: "Beverage" },
+            { value: "Paket Hemat", label: "Paket Hemat" },
+          ];
+        }
+        // generic fallback
+        return [
           { value: "ALL", label: "Semua" },
           { value: "Makanan", label: "Makanan" },
           { value: "Minuman", label: "Minuman" },
           { value: "Snack", label: "Snack" },
           { value: "Dessert", label: "Dessert" },
           { value: "Paket Hemat", label: "Paket Hemat" },
-        ], []);
+        ];
+      }, [kategoriUsaha]);
 
     // Niche detection for rental (auto-detects property/vehicle/equipment)
     const niche = useMemo(() => {
@@ -163,12 +187,19 @@ export default function AdminProductsClientPage({
                                                   result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                 }
                                             } else if (isFNB) {
-                                                                                            // FNB: filter by category (Makanan, Minuman, Snack, Dessert, Paket Hemat)
-                                                                                            if (["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"].includes(selectedFilterTab)) {
-                                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                                                            } else {
-                                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                                                            }
+                                                                            // FNB: filter by category (dynamic based on sub-type: cafe/resto/generic)
+                                                                            const subType = getFnbSubType(kategoriUsaha);
+                                                                            let fnbCategories = ["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"]; // generic fallback
+                                                                            if (subType === 'cafe') {
+                                                                              fnbCategories = ["Kopi", "Non-Kopi", "Makanan Ringan", "Dessert", "Paket Sarapan"];
+                                                                            } else if (subType === 'resto') {
+                                                                              fnbCategories = ["Appetizer", "Main Course", "Dessert", "Beverage", "Paket Hemat"];
+                                                                            }
+                                                                            if (fnbCategories.includes(selectedFilterTab)) {
+                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
+                                                                            } else {
+                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                                            }
                           } else {
                             result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                           }

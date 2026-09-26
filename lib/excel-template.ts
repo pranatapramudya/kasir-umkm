@@ -1,9 +1,11 @@
-import { isRentalTravelCategory, isServiceBusinessCategory, isPureServiceCategory, detectRentalItemType } from './business-category';
+import { isRentalTravelCategory, isServiceBusinessCategory, isPureServiceCategory, detectRentalItemType, getFnbSubType } from './business-category';
+import { type FnbSubType } from './navigation';
 
 export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
   const isRental = isRentalTravelCategory(kategoriUsaha);
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
-  const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
+  const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner' || kategoriUsaha === 'resto' || kategoriUsaha === 'kuliner';
+  const fnbSubType: FnbSubType = isFNB ? getFnbSubType(kategoriUsaha) : 'generic';
 
   const ExcelJS = (await import('exceljs')).default || (await import('exceljs'));
   const workbook = new ExcelJS.Workbook();
@@ -388,7 +390,35 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
     document.body.removeChild(a);
     return;
   } else if (isFNB) {
-    const ws = workbook.addWorksheet('Menu Makanan & Minuman');
+    // Cafe vs Resto different category templates
+    const cafeCategories = ['Kopi', 'Non-Kopi', 'Makanan Ringan', 'Dessert', 'Paket Sarapan'];
+    const restoCategories = ['Appetizer', 'Main Course', 'Dessert', 'Beverage', 'Paket Hemat'];
+    const genericCategories = ['Makanan', 'Minuman', 'Snack', 'Dessert', 'Paket Hemat'];
+    
+    const categories = fnbSubType === 'cafe' ? cafeCategories : fnbSubType === 'resto' ? restoCategories : genericCategories;
+    const sheetName = fnbSubType === 'cafe' ? 'Menu Cafe' : fnbSubType === 'resto' ? 'Menu Resto' : 'Menu Makanan & Minuman';
+    const fileName = fnbSubType === 'cafe' ? 'template_import_fnb_cafe.xlsx' : fnbSubType === 'resto' ? 'template_import_fnb_resto.xlsx' : 'template_import_fnb.xlsx';
+    
+    const sampleRows = fnbSubType === 'cafe' ? [
+      { kodeBarang: 'MNU001', name: 'Espresso', category: 'Kopi', hpp: 5000, hargaJual: 18000, stock: 100, minStockThreshold: 10, description: 'Kopi hitam klasik' },
+      { kodeBarang: 'MNU002', name: 'Cappuccino', category: 'Kopi', hpp: 7000, hargaJual: 22000, stock: 80, minStockThreshold: 10, description: 'Espresso + susu foam' },
+      { kodeBarang: 'MNU003', name: 'Matcha Latte', category: 'Non-Kopi', hpp: 8000, hargaJual: 25000, stock: 60, minStockThreshold: 10, description: 'Matcha premium + susu' },
+      { kodeBarang: 'MNU004', name: 'Croissant', category: 'Makanan Ringan', hpp: 15000, hargaJual: 35000, stock: 30, minStockThreshold: 5, description: 'Croissant mentega fresh' },
+      { kodeBarang: 'MNU005', name: 'Tiramisu', category: 'Dessert', hpp: 20000, hargaJual: 45000, stock: 20, minStockThreshold: 3, description: 'Dessert khas Italia' },
+      { kodeBarang: 'MNU006', name: 'Paket Sarapan Hemat', category: 'Paket Sarapan', hpp: 25000, hargaJual: 55000, stock: 50, minStockThreshold: 5, description: 'Roti + telur + kopi' },
+    ] : fnbSubType === 'resto' ? [
+      { kodeBarang: 'MNU001', name: 'Salad Caesar', category: 'Appetizer', hpp: 15000, hargaJual: 35000, stock: 50, minStockThreshold: 5, description: 'Salad segar dengan dressing caesar' },
+      { kodeBarang: 'MNU002', name: 'Nasi Goreng Spesial', category: 'Main Course', hpp: 12000, hargaJual: 25000, stock: 100, minStockThreshold: 10, description: 'Menu makanan utama' },
+      { kodeBarang: 'MNU003', name: 'Ayam Goreng Crispy', category: 'Main Course', hpp: 18000, hargaJual: 40000, stock: 80, minStockThreshold: 10, description: 'Ayam goreng renyah bumbu khusus' },
+      { kodeBarang: 'MNU004', name: 'Es Teh Manis', category: 'Beverage', hpp: 1500, hargaJual: 5000, stock: 200, minStockThreshold: 20, description: 'Minuman segar' },
+      { kodeBarang: 'MNU005', name: 'Pudding Coklat', category: 'Dessert', hpp: 8000, hargaJual: 20000, stock: 40, minStockThreshold: 5, description: 'Dessert manis lembut' },
+      { kodeBarang: 'MNU006', name: 'Paket Hemat Nasi + Ayam + Teh', category: 'Paket Hemat', hpp: 25000, hargaJual: 55000, stock: 60, minStockThreshold: 5, description: 'Paket hemat siang hari' },
+    ] : [
+      { kodeBarang: 'MNU001', name: 'Nasi Goreng Spesial', category: 'Makanan', hpp: 12000, hargaJual: 25000, stock: 50, minStockThreshold: 5, description: 'Menu makanan utama' },
+      { kodeBarang: 'MNU002', name: 'Es Teh Manis', category: 'Minuman', hpp: 1500, hargaJual: 5000, stock: 100, minStockThreshold: 10, description: 'Minuman segar' },
+    ];
+
+    const ws = workbook.addWorksheet(sheetName);
     ws.columns = [
       { header: 'Kode Menu (SKU)', key: 'kodeBarang', width: 18 },
       { header: 'Nama Menu', key: 'name', width: 36 },
@@ -404,30 +434,11 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       ws.getCell(`C${row}`).dataValidation = {
         type: 'list',
         allowBlank: true,
-        formulae: ['"Makanan,Minuman,Snack,Dessert,Paket Hemat"'],
+        formulae: [`"${categories.join(',')}"`],
       };
     }
 
-    ws.addRow({
-      kodeBarang: 'MNU001',
-      name: 'Nasi Goreng Spesial',
-      category: 'Makanan',
-      hpp: 12000,
-      hargaJual: 25000,
-      stock: 50,
-      minStockThreshold: 5,
-      description: 'Menu makanan utama'
-    });
-    ws.addRow({
-      kodeBarang: 'MNU002',
-      name: 'Es Teh Manis',
-      category: 'Minuman',
-      hpp: 1500,
-      hargaJual: 5000,
-      stock: 100,
-      minStockThreshold: 10,
-      description: 'Minuman segar'
-    });
+    sampleRows.forEach(row => ws.addRow(row));
 
     // Browser-compatible download
     const buffer = await workbook.xlsx.writeBuffer();
@@ -435,7 +446,7 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'template_import_fnb.xlsx';
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
