@@ -55,9 +55,18 @@ export default function AdminProductsClientPage({
   const { user } = useUser();
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
-  const isRental = isRentalTravelCategory(kategoriUsaha);
-  const isPureJasa = isPureServiceCategory(kategoriUsaha);
-  const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
+    const isRental = isRentalTravelCategory(kategoriUsaha);
+    const isPureJasa = isPureServiceCategory(kategoriUsaha);
+    const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
+
+    // FNB filter config (static categories from template)
+    const fnbFilterOptions = useMemo(() => [
+      { value: "ALL", label: "Semua" },
+      { value: "Makanan", label: "Makanan" },
+      { value: "Minuman", label: "Minuman" },
+      { value: "Snack", label: "Snack" },
+      { value: "Paket", label: "Paket" },
+    ], []);
 
     // Niche detection for rental (auto-detects property/vehicle/equipment)
     const niche = useMemo(() => {
@@ -98,7 +107,7 @@ export default function AdminProductsClientPage({
   const [isExporting, setIsExporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent((isRental && config) || isPureJasa ? "" : (selectedFilterTab === "ALL" ? "" : selectedFilterTab))}`;
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent((isRental && config) || isPureJasa || isFNB ? "" : (selectedFilterTab === "ALL" ? "" : selectedFilterTab))}`;
     const isInitialPage = currentPage === 1 && !searchQuery && selectedFilterTab === "ALL";
 
   const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(
@@ -143,17 +152,24 @@ export default function AdminProductsClientPage({
                     result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                   }
                 } else if (isPureJasa) {
-                                // Jasa/servis: filter by "Jasa / Servis" vs "Produk / Barang"
-                                if (selectedFilterTab === "Jasa / Servis") {
-                                  result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("jasa") || (p.category || "").toLowerCase().includes("servis"));
-                                } else if (selectedFilterTab === "Produk / Barang") {
-                                  result = result.filter(p => !p.isService && !(p.category || "").toLowerCase().includes("jasa") && !(p.category || "").toLowerCase().includes("servis"));
-                                } else {
-                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                }
-          } else {
-            result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-          }
+                                                // Jasa/servis: filter by "Jasa / Servis" vs "Produk / Barang"
+                                                if (selectedFilterTab === "Jasa / Servis") {
+                                                  result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("jasa") || (p.category || "").toLowerCase().includes("servis"));
+                                                } else if (selectedFilterTab === "Produk / Barang") {
+                                                  result = result.filter(p => !p.isService && !(p.category || "").toLowerCase().includes("jasa") && !(p.category || "").toLowerCase().includes("servis"));
+                                                } else {
+                                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                }
+                                            } else if (isFNB) {
+                                                // FNB: filter by category (Makanan, Minuman, Snack, Paket)
+                                                if (["Makanan", "Minuman", "Snack", "Paket"].includes(selectedFilterTab)) {
+                                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
+                                                } else {
+                                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                }
+                          } else {
+                            result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                          }
         }
       }
 
@@ -236,22 +252,24 @@ export default function AdminProductsClientPage({
   const uniqueCategories = Array.from(new Set(rawProducts.map(p => p.category).filter(Boolean)));
   
     // Build filter options: { value, label } for rental, string[] for others
-    const filterOptions = isPureJasa
-          ? [
-              { value: "ALL", label: "Semua" },
-              { value: "Jasa / Servis", label: "Jasa / Servis" },
-              { value: "Produk / Barang", label: "Produk / Barang" },
-            ]
-          : isRental && config
-        ? config.tabs  // [{ value: "ALL", label: "Semua" }, { value: "UNIT", label: "Unit Fisik (Kamar)" }, { value: "ADDON", label: "Layanan & Tambahan (Addon)" }]
-        : isRental
-          ? [
-              { value: "ALL", label: "Semua" },
-              { value: "Unit Sewa", label: "Unit Sewa" },
-              { value: "Layanan & Add-on", label: "Layanan & Add-on" },
-              ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on").map(c => ({ value: c, label: c }))
-            ]
-          : [{ value: "ALL", label: "Semua" }, ...uniqueCategories.map(c => ({ value: c, label: c }))];
+        const filterOptions = isPureJasa
+              ? [
+                  { value: "ALL", label: "Semua" },
+                  { value: "Jasa / Servis", label: "Jasa / Servis" },
+                  { value: "Produk / Barang", label: "Produk / Barang" },
+                ]
+              : isFNB
+              ? fnbFilterOptions
+              : isRental && config
+            ? config.tabs
+            : isRental
+              ? [
+                  { value: "ALL", label: "Semua" },
+                  { value: "Unit Sewa", label: "Unit Sewa" },
+                  { value: "Layanan & Add-on", label: "Layanan & Add-on" },
+                  ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on").map(c => ({ value: c, label: c }))
+                ]
+              : [{ value: "ALL", label: "Semua" }, ...uniqueCategories.map(c => ({ value: c, label: c }))];
 
 
   const formatNumberInput = (val: string) => {
