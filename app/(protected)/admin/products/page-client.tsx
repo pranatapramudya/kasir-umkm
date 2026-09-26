@@ -770,39 +770,35 @@ export default function AdminProductsClientPage({
                     title="Filter Kategori"
                   >
                     <Filter className={`w-4 h-4 ${selectedFilterTab === "ALL" ? "text-gray-500" : "text-blue-600"}`} />
-                    <span className={`text-sm max-w-[120px] truncate ${selectedFilterTab !== "ALL" && "font-semibold"}`}>
-                      {selectedFilterTab === "ALL" 
-                                      ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental && config ? "Semua Unit & Layanan" : "Semua Produk")
-                                      : selectedFilterTab}
-                    </span>
+                                        <span className={`text-sm max-w-[120px] truncate ${selectedFilterTab !== "ALL" && "font-semibold"}`}>
+                                          {(() => {
+                                            const opt = filterOptions.find(o => o.value === selectedFilterTab);
+                                            return opt ? opt.label : selectedFilterTab;
+                                          })()}
+                                        </span>
                   </button>
 
           {isCategoryMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-                                  <ul className="py-1 max-h-60 overflow-y-auto">
-                                    {filterOptions.map((opt) => (
-                                      <li key={opt.value}>
-                                        <button
-                                          onMouseDown={(e) => {
-                                            e.preventDefault();
-                                            setSelectedFilterTab(opt.value);
-                                            setIsCategoryMenuOpen(false);
-                                          }}
-                                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === opt.value ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                        >
-                                          <span className="truncate">
-                                            {isRental && opt.value === "ALL" ? "🌐 Semua Unit & Layanan"
-                                              : isRental && opt.value === "UNIT" ? "📦 Unit Fisik"
-                                              : isRental && opt.value === "ADDON" ? "🛠️ Layanan & Tambahan"
-                                              : opt.label}
-                                          </span>
-                                          {selectedFilterTab === opt.value && <Check className="w-4 h-4 shrink-0" />}
-                                        </button>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
+                                          <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                                            <ul className="py-1 max-h-60 overflow-y-auto">
+                                              {filterOptions.map((opt) => (
+                                                <li key={opt.value}>
+                                                  <button
+                                                    onMouseDown={(e) => {
+                                                      e.preventDefault();
+                                                      setSelectedFilterTab(opt.value);
+                                                      setIsCategoryMenuOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === opt.value ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                  >
+                                                    <span className="truncate">{opt.label}</span>
+                                                    {selectedFilterTab === opt.value && <Check className="w-4 h-4 shrink-0" />}
+                                                  </button>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </div>
+                                        )}
         </div>
       </div>
 
