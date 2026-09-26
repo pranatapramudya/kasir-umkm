@@ -518,17 +518,53 @@ export default function AdminProductsClientPage({
       }
 
       const res = await fetch('/api/products/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ products: productsList })
-      });
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ products: productsList })
+            });
 
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Gagal import massal");
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Gagal import massal");
 
-      toast.success(result.message || "Import berhasil");
-      mutate();
-      closeImportModal();
+            toast.success(result.message || "Import berhasil");
+
+            // Optimistic update: tambahkan produk import ke cache langsung (tanpa nunggu revalidate)
+                                    // Generate temporary IDs for new products (negative IDs to distinguish from server)
+                                    const tempProducts: Product[] = productsList.map((p, i) => ({
+                                      ...p,
+                                      id: -Date.now() - i, // temporary negative ID
+                                      // Ensure all required Product fields
+                                      kodeBarang: p.kodeBarang || `SKU-${Date.now()}-${i}`,
+                                      image: '',
+                                      discount: 0,
+                                      minStockThreshold: p.minStockThreshold ?? 5,
+                                      employeeCommission: p.employeeCommission ?? 0,
+                                      isService: p.isService || false,
+                                      status: 'active',
+                                      biayaModal: 0,
+                                    }));
+
+            mutate(
+              async (current) => {
+                // Revalidate from server after optimistic update
+                const res = await fetch(queryUrl);
+                return res.json();
+              },
+              {
+                optimisticData: (current) => {
+                  if (!current) return { products: tempProducts, totalPages: 1 };
+                  return {
+                    products: [...tempProducts, ...current.products],
+                    totalPages: current.totalPages,
+                  };
+                },
+                rollbackOnError: true,
+                revalidate: true,
+              }
+            ).catch((err: any) => {
+              toast.error(humanizeError(err));
+            });
+            closeImportModal();
     } catch (err: any) {
       toast.error(humanizeError(err));
     } finally {
