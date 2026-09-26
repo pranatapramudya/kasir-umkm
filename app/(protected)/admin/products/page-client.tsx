@@ -13,6 +13,7 @@ const CsvImportModal = nextDynamic(() => import('@/components/CsvImportModal'), 
 });
 import { Pagination } from '@/components/Pagination';
 import { isServiceBusinessCategory, isRentalTravelCategory, isPureServiceCategory, detectRentalItemType } from '@/lib/business-category';
+import { resolveRentalNiche, RENTAL_NICHE_CONFIG } from '@/lib/rental-filter';
 import { humanizeError } from '@/lib/error-mapper';
 
 export const dynamic = 'force-dynamic';
@@ -58,6 +59,14 @@ export default function AdminProductsClientPage({
   const isPureJasa = isPureServiceCategory(kategoriUsaha);
   const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
 
+    // Niche detection for rental (auto-detects property/vehicle/equipment)
+    const niche = useMemo(() => {
+        if (!isRental) return null;
+        return resolveRentalNiche(kategoriUsaha);
+      }, [isRental, kategoriUsaha]);
+
+    const config = niche ? RENTAL_NICHE_CONFIG[niche] : null;
+
     const RENTAL_TYPE_LABELS = {
       equipment: "Alat / Barang",
       vehicle: "Kendaraan",
@@ -82,15 +91,15 @@ export default function AdminProductsClientPage({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+    const [selectedFilterTab, setSelectedFilterTab] = useState("ALL");
+    const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
-  const isInitialPage = currentPage === 1 && !searchQuery && selectedCategory === "Semua";
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedFilterTab === "ALL" ? "" : selectedFilterTab)}`;
+    const isInitialPage = currentPage === 1 && !searchQuery && selectedFilterTab === "ALL";
 
   const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
@@ -108,47 +117,53 @@ export default function AdminProductsClientPage({
   const totalPages = data?.totalPages || 1;
 
   // Instant Client-side Filter untuk Respons 0ms (Kategori + Search)
-  const filteredProducts = useMemo(() => {
-    if (!rawProducts || rawProducts.length === 0) return [];
-    
-    let result = rawProducts;
+    const filteredProducts = useMemo(() => {
+      if (!rawProducts || rawProducts.length === 0) return [];
 
-    if (selectedCategory !== "Semua") {
-      const catLower = selectedCategory.toLowerCase().trim();
-      if (isRental) {
-        if (selectedCategory === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit") {
-          result = result.filter(p => !p.isService);
-        } else if (selectedCategory === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan")) {
-          result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+      let result = rawProducts;
+
+      // Category filter via niche config (rental) or legacy logic
+      if (selectedFilterTab !== "ALL" && config) {
+        const tab = config.tabs.find(t => t.value === selectedFilterTab);
+        if (tab?.filter) {
+          result = result.filter(tab.filter);
+        }
+      } else if (selectedFilterTab !== "ALL" && !config) {
+        const catLower = selectedFilterTab.toLowerCase().trim();
+        if (isRental) {
+          if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit") {
+            result = result.filter(p => !p.isService);
+          } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan")) {
+            result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+          } else {
+            result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+          }
+        } else if (catLower.includes("jasa") || catLower.includes("servis")) {
+          result = result.filter(p => {
+            const c = (p.category || "").toLowerCase().trim();
+            return c.includes("jasa") || c.includes("servis") || p.isService;
+          });
+        } else if (catLower.includes("produk") || catLower.includes("barang")) {
+          result = result.filter(p => {
+            const c = (p.category || "").toLowerCase().trim();
+            return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+          });
         } else {
           result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
         }
-      } else if (catLower.includes("jasa") || catLower.includes("servis")) {
-        result = result.filter(p => {
-          const c = (p.category || "").toLowerCase().trim();
-          return c.includes("jasa") || c.includes("servis") || p.isService;
-        });
-      } else if (catLower.includes("produk") || catLower.includes("barang")) {
-        result = result.filter(p => {
-          const c = (p.category || "").toLowerCase().trim();
-          return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
-        });
-      } else {
-        result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
       }
-    }
 
-    if (searchQuery && searchQuery.trim() !== "") {
-      const sLower = searchQuery.toLowerCase().trim();
-      result = result.filter(p =>
-        p.name.toLowerCase().includes(sLower) ||
-        (p.kodeBarang && p.kodeBarang.toLowerCase().includes(sLower)) ||
-        (p.description && p.description.toLowerCase().includes(sLower))
-      );
-    }
+      if (searchQuery && searchQuery.trim() !== "") {
+        const sLower = searchQuery.toLowerCase().trim();
+        result = result.filter(p =>
+          p.name.toLowerCase().includes(sLower) ||
+          (p.kodeBarang && p.kodeBarang.toLowerCase().includes(sLower)) ||
+          (p.description && p.description.toLowerCase().includes(sLower))
+        );
+      }
 
-    return result;
-  }, [rawProducts, selectedCategory, searchQuery]);
+      return result;
+    }, [rawProducts, selectedFilterTab, searchQuery, config, isRental]);
 
     const products = filteredProducts;
 
@@ -215,11 +230,13 @@ export default function AdminProductsClientPage({
   });
 
   const uniqueCategories = Array.from(new Set(rawProducts.map(p => p.category).filter(Boolean)));
-  const categories = isPureJasa
-    ? ["Semua", "Jasa / Servis", "Produk / Barang"]
-    : isRental
-      ? ["Semua", "Unit Sewa", "Layanan & Add-on", ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on")]
-      : ["Semua", ...uniqueCategories];
+    const categories = isPureJasa
+      ? ["Semua", "Jasa / Servis", "Produk / Barang"]
+      : isRental && config
+        ? config.tabs.map(t => t.label)  // ["Semua", "Unit Fisik (Kamar)", "Layanan & Tambahan (Addon)"]
+        : isRental
+          ? ["Semua", "Unit Sewa", "Layanan & Add-on", ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on")]
+          : ["Semua", ...uniqueCategories];
 
 
   const formatNumberInput = (val: string) => {
@@ -729,56 +746,56 @@ export default function AdminProductsClientPage({
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder={isPureJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? "Cari unit / plat / kamar..." : "Cari produk atau barcode..."}
+            placeholder={isPureJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental && config ? config.searchPlaceholder : "Cari produk atau barcode..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
           />
         </div>
         <div className="relative shrink-0">
-          <button
-            onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-            onBlur={() => setIsCategoryMenuOpen(false)}
-            className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedCategory === "Semua"
-              ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-              : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-              }`}
-            title="Filter Kategori"
-          >
-            <Filter className={`w-4 h-4 ${selectedCategory === "Semua" ? "text-gray-500" : "text-blue-600"}`} />
-            <span className={`text-sm max-w-[120px] truncate ${selectedCategory !== "Semua" && "font-semibold"}`}>
-              {selectedCategory === "Semua" 
-                ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Unit & Properti" : "Semua Produk")
-                : selectedCategory}
-            </span>
-          </button>
+                  <button
+                    onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
+                    onBlur={() => setIsCategoryMenuOpen(false)}
+                    className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedFilterTab === "ALL"
+                      ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                      : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                      }`}
+                    title="Filter Kategori"
+                  >
+                    <Filter className={`w-4 h-4 ${selectedFilterTab === "ALL" ? "text-gray-500" : "text-blue-600"}`} />
+                    <span className={`text-sm max-w-[120px] truncate ${selectedFilterTab !== "ALL" && "font-semibold"}`}>
+                      {selectedFilterTab === "ALL" 
+                                      ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental && config ? "Semua Unit & Layanan" : "Semua Produk")
+                                      : selectedFilterTab}
+                    </span>
+                  </button>
 
           {isCategoryMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-              <ul className="py-1 max-h-60 overflow-y-auto">
-                {categories.map(cat => (
-                  <li key={cat}>
-                    <button
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setSelectedCategory(cat);
-                        setIsCategoryMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedCategory === cat ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      <span className="truncate">
-                        {isRental && cat === "Semua" ? "🌐 Semua Unit & Layanan"
-                          : isRental && cat === "Unit Sewa" ? "📦 Unit Sewa (Fisik)"
-                          : isRental && cat === "Layanan & Add-on" ? "🛠️ Layanan & Add-on"
-                          : cat}
-                      </span>
-                      {selectedCategory === cat && <Check className="w-4 h-4 shrink-0" />}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                        <ul className="py-1 max-h-60 overflow-y-auto">
+                          {categories.map((cat: string) => (
+                            <li key={cat}>
+                              <button
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  setSelectedFilterTab(cat);
+                                  setIsCategoryMenuOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === cat ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                              >
+                                <span className="truncate">
+                                  {isRental && cat === "Semua" ? "🌐 Semua Unit & Layanan"
+                                    : isRental && cat === "Unit Sewa" ? "📦 Unit Sewa (Fisik)"
+                                    : isRental && cat === "Layanan & Add-on" ? "🛠️ Layanan & Add-on"
+                                    : cat}
+                                </span>
+                                {selectedFilterTab === cat && <Check className="w-4 h-4 shrink-0" />}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
         </div>
       </div>
 
