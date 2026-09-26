@@ -142,16 +142,15 @@ export default function AdminProductsClientPage({
                   } else {
                     result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                   }
-                } else if (catLower.includes("jasa") || catLower.includes("servis")) {
-                            result = result.filter(p => {
-                              const c = (p.category || "").toLowerCase().trim();
-                              return c.includes("jasa") || c.includes("servis") || p.isService;
-                            });
-                          } else if (catLower.includes("produk") || catLower.includes("barang")) {
-            result = result.filter(p => {
-              const c = (p.category || "").toLowerCase().trim();
-              return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
-            });
+                } else if (isPureJasa) {
+                                // Jasa/servis: filter by "Jasa / Servis" vs "Produk / Barang"
+                                if (selectedFilterTab === "Jasa / Servis") {
+                                  result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("jasa") || (p.category || "").toLowerCase().includes("servis"));
+                                } else if (selectedFilterTab === "Produk / Barang") {
+                                  result = result.filter(p => !p.isService && !(p.category || "").toLowerCase().includes("jasa") && !(p.category || "").toLowerCase().includes("servis"));
+                                } else {
+                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                }
           } else {
             result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
           }
@@ -238,7 +237,11 @@ export default function AdminProductsClientPage({
   
     // Build filter options: { value, label } for rental, string[] for others
     const filterOptions = isPureJasa
-          ? [{ value: "ALL", label: "Semua" }]
+          ? [
+              { value: "ALL", label: "Semua" },
+              { value: "Jasa / Servis", label: "Jasa / Servis" },
+              { value: "Produk / Barang", label: "Produk / Barang" },
+            ]
           : isRental && config
         ? config.tabs  // [{ value: "ALL", label: "Semua" }, { value: "UNIT", label: "Unit Fisik (Kamar)" }, { value: "ADDON", label: "Layanan & Tambahan (Addon)" }]
         : isRental
