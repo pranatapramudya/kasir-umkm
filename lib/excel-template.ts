@@ -434,15 +434,18 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
     ];
 
-    for (let row = 2; row <= 200; row++) {
+    // Add sample rows FIRST (will be rows 2-7)
+    sampleRows.forEach(row => ws.addRow(row));
+
+    // Then apply data validation to empty rows after samples (row 8 onwards)
+    const startRow = sampleRows.length + 2; // row 8
+    for (let row = startRow; row <= 200; row++) {
       ws.getCell(`C${row}`).dataValidation = {
         type: 'list',
         allowBlank: true,
         formulae: [`"${categories.join(',')}"`],
       };
     }
-
-    sampleRows.forEach(row => ws.addRow(row));
 
     // Browser-compatible download
     const buffer = await workbook.xlsx.writeBuffer();

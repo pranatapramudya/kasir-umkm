@@ -333,74 +333,26 @@ export async function GET(req: NextRequest) {
         { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
       ];
 
-      for (let row = 2; row <= 200; row++) {
+      // Add sample rows FIRST
+      const cafeSamples = [
+        { kodeBarang: 'MNU001', name: 'Espresso', category: 'Kopi', hpp: 5000, hargaJual: 18000, stock: 100, minStockThreshold: 10, description: 'Kopi hitam klasik' },
+        { kodeBarang: 'MNU002', name: 'Cappuccino', category: 'Kopi', hpp: 7000, hargaJual: 22000, stock: 80, minStockThreshold: 10, description: 'Espresso + susu foam' },
+        { kodeBarang: 'MNU003', name: 'Matcha Latte', category: 'Non-Kopi', hpp: 8000, hargaJual: 25000, stock: 60, minStockThreshold: 10, description: 'Matcha premium + susu' },
+        { kodeBarang: 'MNU004', name: 'Croissant', category: 'Makanan Ringan', hpp: 15000, hargaJual: 35000, stock: 30, minStockThreshold: 5, description: 'Croissant mentega fresh' },
+        { kodeBarang: 'MNU005', name: 'Tiramisu', category: 'Dessert', hpp: 20000, hargaJual: 45000, stock: 20, minStockThreshold: 3, description: 'Dessert khas Italia' },
+        { kodeBarang: 'MNU006', name: 'Paket Sarapan Hemat', category: 'Paket Sarapan', hpp: 25000, hargaJual: 55000, stock: 50, minStockThreshold: 5, description: 'Roti + telur + kopi' },
+      ];
+      cafeSamples.forEach(row => ws.addRow(row));
+
+      // Then apply data validation to empty rows after samples
+      const startRow = cafeSamples.length + 2; // row 8
+      for (let row = startRow; row <= 200; row++) {
         ws.getCell(`C${row}`).dataValidation = {
           type: 'list',
           allowBlank: true,
           formulae: ['"Kopi,Non-Kopi,Makanan Ringan,Dessert,Paket Sarapan"'],
         };
       }
-
-      ws.addRow({
-        kodeBarang: 'MNU001',
-        name: 'Espresso',
-        category: 'Kopi',
-        hpp: 5000,
-        hargaJual: 18000,
-        stock: 100,
-        minStockThreshold: 10,
-        description: 'Kopi hitam klasik'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU002',
-        name: 'Cappuccino',
-        category: 'Kopi',
-        hpp: 7000,
-        hargaJual: 22000,
-        stock: 80,
-        minStockThreshold: 10,
-        description: 'Espresso + susu foam'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU003',
-        name: 'Matcha Latte',
-        category: 'Non-Kopi',
-        hpp: 8000,
-        hargaJual: 25000,
-        stock: 60,
-        minStockThreshold: 10,
-        description: 'Matcha premium + susu'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU004',
-        name: 'Croissant',
-        category: 'Makanan Ringan',
-        hpp: 15000,
-        hargaJual: 35000,
-        stock: 30,
-        minStockThreshold: 5,
-        description: 'Croissant mentega fresh'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU005',
-        name: 'Tiramisu',
-        category: 'Dessert',
-        hpp: 20000,
-        hargaJual: 45000,
-        stock: 20,
-        minStockThreshold: 3,
-        description: 'Dessert khas Italia'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU006',
-        name: 'Paket Sarapan Hemat',
-        category: 'Paket Sarapan',
-        hpp: 25000,
-        hargaJual: 55000,
-        stock: 50,
-        minStockThreshold: 5,
-        description: 'Roti + telur + kopi'
-      });
 
       const buffer = await workbook.xlsx.writeBuffer();
       return new NextResponse(buffer, {
@@ -427,74 +379,26 @@ export async function GET(req: NextRequest) {
         { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
       ];
 
-      for (let row = 2; row <= 200; row++) {
+      // Add sample rows FIRST
+      const restoSamples = [
+        { kodeBarang: 'MNU001', name: 'Salad Caesar', category: 'Appetizer', hpp: 15000, hargaJual: 35000, stock: 50, minStockThreshold: 5, description: 'Salad segar dengan dressing caesar' },
+        { kodeBarang: 'MNU002', name: 'Nasi Goreng Spesial', category: 'Main Course', hpp: 12000, hargaJual: 25000, stock: 100, minStockThreshold: 10, description: 'Menu makanan utama' },
+        { kodeBarang: 'MNU003', name: 'Ayam Goreng Crispy', category: 'Main Course', hpp: 18000, hargaJual: 40000, stock: 80, minStockThreshold: 10, description: 'Ayam goreng renyah bumbu khusus' },
+        { kodeBarang: 'MNU004', name: 'Es Teh Manis', category: 'Beverage', hpp: 1500, hargaJual: 5000, stock: 200, minStockThreshold: 20, description: 'Minuman segar' },
+        { kodeBarang: 'MNU005', name: 'Pudding Coklat', category: 'Dessert', hpp: 8000, hargaJual: 20000, stock: 40, minStockThreshold: 5, description: 'Dessert manis lembut' },
+        { kodeBarang: 'MNU006', name: 'Paket Hemat Nasi + Ayam + Teh', category: 'Paket Hemat', hpp: 25000, hargaJual: 55000, stock: 60, minStockThreshold: 5, description: 'Paket hemat siang hari' },
+      ];
+      restoSamples.forEach(row => ws.addRow(row));
+
+      // Then apply data validation to empty rows after samples
+      const startRow = restoSamples.length + 2; // row 8
+      for (let row = startRow; row <= 200; row++) {
         ws.getCell(`C${row}`).dataValidation = {
           type: 'list',
           allowBlank: true,
           formulae: ['"Appetizer,Main Course,Dessert,Beverage,Paket Hemat"'],
         };
       }
-
-      ws.addRow({
-        kodeBarang: 'MNU001',
-        name: 'Salad Caesar',
-        category: 'Appetizer',
-        hpp: 15000,
-        hargaJual: 35000,
-        stock: 50,
-        minStockThreshold: 5,
-        description: 'Salad segar dengan dressing caesar'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU002',
-        name: 'Nasi Goreng Spesial',
-        category: 'Main Course',
-        hpp: 12000,
-        hargaJual: 25000,
-        stock: 100,
-        minStockThreshold: 10,
-        description: 'Menu makanan utama'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU003',
-        name: 'Ayam Goreng Crispy',
-        category: 'Main Course',
-        hpp: 18000,
-        hargaJual: 40000,
-        stock: 80,
-        minStockThreshold: 10,
-        description: 'Ayam goreng renyah bumbu khusus'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU004',
-        name: 'Es Teh Manis',
-        category: 'Beverage',
-        hpp: 1500,
-        hargaJual: 5000,
-        stock: 200,
-        minStockThreshold: 20,
-        description: 'Minuman segar'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU005',
-        name: 'Pudding Coklat',
-        category: 'Dessert',
-        hpp: 8000,
-        hargaJual: 20000,
-        stock: 40,
-        minStockThreshold: 5,
-        description: 'Dessert manis lembut'
-      });
-      ws.addRow({
-        kodeBarang: 'MNU006',
-        name: 'Paket Hemat Nasi + Ayam + Teh',
-        category: 'Paket Hemat',
-        hpp: 25000,
-        hargaJual: 55000,
-        stock: 60,
-        minStockThreshold: 5,
-        description: 'Paket hemat siang hari'
-      });
 
       const buffer = await workbook.xlsx.writeBuffer();
       return new NextResponse(buffer, {
@@ -520,74 +424,26 @@ export async function GET(req: NextRequest) {
       { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
     ];
 
-    for (let row = 2; row <= 200; row++) {
+    // Add sample rows FIRST
+    const genericSamples = [
+      { kodeBarang: 'MNU001', name: 'Nasi Goreng Spesial', category: 'Makanan', hpp: 12000, hargaJual: 25000, stock: 50, minStockThreshold: 5, description: 'Menu makanan utama' },
+      { kodeBarang: 'MNU002', name: 'Es Teh Manis', category: 'Minuman', hpp: 1500, hargaJual: 5000, stock: 100, minStockThreshold: 10, description: 'Minuman segar' },
+      { kodeBarang: 'MNU003', name: 'Kentang Goreng', category: 'Snack', hpp: 5000, hargaJual: 15000, stock: 80, minStockThreshold: 10, description: 'Snack goreng renyah' },
+      { kodeBarang: 'MNU004', name: 'Es Krim Vanilla', category: 'Dessert', hpp: 8000, hargaJual: 20000, stock: 40, minStockThreshold: 5, description: 'Dessert manis segar' },
+      { kodeBarang: 'MNU005', name: 'Mie Goreng Tek-tek', category: 'Makanan', hpp: 10000, hargaJual: 22000, stock: 60, minStockThreshold: 5, description: 'Menu mie khas pinggir jalan' },
+      { kodeBarang: 'MNU006', name: 'Paket Hemat Nasi + Ayam + Teh', category: 'Paket Hemat', hpp: 25000, hargaJual: 55000, stock: 50, minStockThreshold: 5, description: 'Paket hemat siang hari' },
+    ];
+    genericSamples.forEach(row => ws.addRow(row));
+
+    // Then apply data validation to empty rows after samples
+    const startRow = genericSamples.length + 2; // row 8
+    for (let row = startRow; row <= 200; row++) {
       ws.getCell(`C${row}`).dataValidation = {
         type: 'list',
         allowBlank: true,
         formulae: ['"Makanan,Minuman,Snack,Dessert,Paket Hemat"'],
       };
     }
-
-    ws.addRow({
-      kodeBarang: 'MNU001',
-      name: 'Nasi Goreng Spesial',
-      category: 'Makanan',
-      hpp: 12000,
-      hargaJual: 25000,
-      stock: 50,
-      minStockThreshold: 5,
-      description: 'Menu makanan utama'
-    });
-    ws.addRow({
-      kodeBarang: 'MNU002',
-      name: 'Es Teh Manis',
-      category: 'Minuman',
-      hpp: 1500,
-      hargaJual: 5000,
-      stock: 100,
-      minStockThreshold: 10,
-      description: 'Minuman segar'
-    });
-    ws.addRow({
-      kodeBarang: 'MNU003',
-      name: 'Kentang Goreng',
-      category: 'Snack',
-      hpp: 5000,
-      hargaJual: 15000,
-      stock: 80,
-      minStockThreshold: 10,
-      description: 'Snack goreng renyah'
-    });
-    ws.addRow({
-      kodeBarang: 'MNU004',
-      name: 'Es Krim Vanilla',
-      category: 'Dessert',
-      hpp: 8000,
-      hargaJual: 20000,
-      stock: 40,
-      minStockThreshold: 5,
-      description: 'Dessert manis segar'
-    });
-    ws.addRow({
-      kodeBarang: 'MNU005',
-      name: 'Mie Goreng Tek-tek',
-      category: 'Makanan',
-      hpp: 10000,
-      hargaJual: 22000,
-      stock: 60,
-      minStockThreshold: 5,
-      description: 'Menu mie khas pinggir jalan'
-    });
-    ws.addRow({
-      kodeBarang: 'MNU006',
-      name: 'Paket Hemat Nasi + Ayam + Teh',
-      category: 'Paket Hemat',
-      hpp: 25000,
-      hargaJual: 55000,
-      stock: 50,
-      minStockThreshold: 5,
-      description: 'Paket hemat siang hari'
-    });
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, {
@@ -615,13 +471,19 @@ export async function GET(req: NextRequest) {
       { header: 'Deskripsi / Catatan', key: 'description', width: 45 },
     ];
 
-    for (let row = 2; row <= 50; row++) {
+    // Add sample rows FIRST
+    const jasaSamples = [
+      ['', 'Potong Rambut Pria / Servis Ringan', 'Jasa / Servis', 5000, 45000, '', '', 10000, 'Layanan pangkas + styling (stok otomatis tak terbatas)'],
+      ['BRG001', 'Oli Mesin Matic 0.8L / Pomade Styling', 'Produk / Barang', 35000, 55000, 24, 5, 3000, 'Barang fisik dengan kontrol stok'],
+      ['BRG002', 'Kampas Rem Depan / Shampoo 500ml', 'Produk / Barang', 25000, 45000, 15, 3, 2000, 'Sparepart / produk konsumable'],
+    ];
+    jasaSamples.forEach(row => ws.addRow(row));
+
+    // Then apply data validation to empty rows after samples
+    const startRow = jasaSamples.length + 2; // row 5
+    for (let row = startRow; row <= 50; row++) {
       ws.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: false, formulae: ['"Jasa / Servis,Produk / Barang"'], showErrorMessage: true, errorTitle: 'Pilihan Kategori', error: 'Silakan pilih Jasa / Servis atau Produk / Barang dari dropdown.' };
     }
-
-    ws.addRow(['', 'Potong Rambut Pria / Servis Ringan', 'Jasa / Servis', 5000, 45000, '', '', 10000, 'Layanan pangkas + styling (stok otomatis tak terbatas)']);
-    ws.addRow(['BRG001', 'Oli Mesin Matic 0.8L / Pomade Styling', 'Produk / Barang', 35000, 55000, 24, 5, 3000, 'Barang fisik dengan kontrol stok']);
-    ws.addRow(['BRG002', 'Kampas Rem Depan / Shampoo 500ml', 'Produk / Barang', 25000, 45000, 15, 3, 2000, 'Sparepart / produk konsumable']);
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, {
