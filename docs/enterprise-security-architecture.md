@@ -19,10 +19,29 @@ Meskipun aplikasi menggunakan Prisma yang beroperasi menggunakan koneksi super-k
 ## 3. Anti-DDoS & Brute Force (Vercel Edge Middleware)
 Untuk menangkal serangan bot spam, *brute force* API, maupun hantaman DDoS yang dapat meningkatkan tagihan *server*, sistem ini menerapkan pertahanan di garis terdepan komputasi: Edge Network.
 
-- **In-Memory Rate Limiting**: Algoritma Token Bucket diimplementasikan secara natif tanpa Redis melalui `middleware.ts`.
-- **Aturan Pembatasan**: Semua *request* menuju rute `/api/*` dipantau per-*Isolate*. Jika sebuah alamat IP (yang dilacak dari *header* `x-forwarded-for` atau `x-real-ip`) melakukan *request* lebih dari **60 kali dalam 1 menit**, Middleware akan memutuskan koneksi di Edge dan mengembalikan status **HTTP 429 (Too Many Requests)** sebelum beban sempat mencapai komputasi utama (API/Serverless).
+- **Redis-Backed Rate Limiting (Persistent)**: Sliding window rate limit menggunakan Redis (`@upstash/redis`) via HTTP REST API — persistent antar deploy, skalabel untuk multi-instance. Fallback ke in-memory jika Redis tidak tersedia.
+- **Aturan Pembatasan**: Semua *request* menuju rute `/api/*` dipantau per-IP (dilacak dari *header* `x-forwarded-for` atau `x-real-ip`). Jika sebuah alamat IP melakukan *request* lebih dari **60 kali dalam 1 menit**, Middleware akan memutuskan koneksi di Edge dan mengembalikan status **HTTP 429 (Too Many Requests)** sebelum beban sempat mencapai komputasi utama.
+- **Edge-Native**: Berjalan di Vercel Edge Middleware / Next.js Middleware — latency minimal, tidak membebani serverless function.
 
-## 4. Session Management (Keamanan Berlapis di Klien)
+## 4. Security Headers & CORS (Browser-Level Hardening)
+Lapisan pertahanan di sisi klien (browser) untuk mencegah XSS, clickjacking, MIME sniffing, dan akses cross-origin tidak sah.
+
+- **Content Security Policy (CSP)**: Ketat — `default-src 'self'`, script/style/font/img/connect sources dibatasi ke domain terpercaya (Clerk, Google Fonts, Pusher, Sentry). `frame-ancestors 'none'` mencegah embedding.
+- **Security Headers Standar**:
+  - `X-Frame-Options: DENY` — anti-clickjacking
+  - `X-Content-Type-Options: nosniff` — anti-MIME sniffing
+  - `Referrer-Policy: strict-origin-when-cross-origin`
+  - `Permissions-Policy: camera=(), microphone=(), geolocation=()` — disable API sensitif
+- **CORS Policy**: Hanya domain `https://pjtechumkm.com` yang diizinkan akses `/api/*`. Preflight `OPTIONS` ditangani eksplisit.
+
+## 5. Log Sanitization (PII Protection)
+Mencegah kebocoran data sensitif (PII, secrets) ke log aplikasi.
+
+- **Wrapper `console.error`**: Semua error log otomatis di-sanitasi sebelum ditulis.
+- **Pattern yang di-masking**: `customerPhone`, `phone`, `whatsapp`, `noHp`, `noTelp`, `cardNumber`, `creditCard`, `webhookSecret`, `secret`, `apiKey`, `token`, `password`, `email`.
+- **Format masking**: `0812****1234` / `****` — cukup untuk debugging tanpa mengekspos data asli.
+
+## 6. Session Management (Keamanan Berlapis di Klien)
 Sistem manajemen sesi dirancang agar kokoh menghadapi *malware*, *phishing*, dan kecerobohan perangkat pengguna.
 
 - **HttpOnly Secure Cookies (Via Clerk)**: Token otentikasi JWT dikelola penuh oleh infrastruktur Clerk. Token ini bersifat absolut: `HttpOnly: true` (memblokir pencurian oleh JavaScript perusak) dan ditransmisikan hanya via HTTPS (`Secure`). Selain itu, pengaturan *SameSite: Lax/Strict* mengamankan aplikasi dari Cross-Site Request Forgery (CSRF).
@@ -30,4 +49,5 @@ Sistem manajemen sesi dirancang agar kokoh menghadapi *malware*, *phishing*, dan
 - **Custom Client-Side Inactivity Guard**: Untuk mem-bypass layanan Pro dari Clerk, aplikasi memasang komponen cerdik (`SessionTimeoutGuard`) di akar aplikasi (`app/layout.tsx`). Komponen memantau pergerakan fisik secara hemat memori (maks 1 rekaman per menit) ke `localStorage`. Jika perangkat kasir mati/tertinggal lebih dari 24 Jam, *background job* otomatis akan menghancurkan sesi (`signOut`) secara mandiri, melindunginya dari *unauthorized physical access*.
 
 ---
-*Dokumen ini merupakan referensi resmi untuk Audit Keamanan PJTECH KASIR UMKM. (Update: Agustus 2026).*
+
+*Dokumen ini merupakan referensi resmi untuk Audit Keamanan PJTECH KASIR UMKM. (Update: September 2026 — Redis rate limit, CSP, CORS, log sanitization added).*
