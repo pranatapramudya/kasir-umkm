@@ -397,31 +397,40 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                               }
                             }
                             // Fallback: handle legacy string values even when config exists (state persistence)
-                            if (result.length === rawProducts.length) { // no filter applied yet
-                              const catLower = selectedFilterTab.toLowerCase().trim();
-                              if (isRental) {
-                                if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
-                                  result = result.filter(p => !p.isService);
-                                } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan") || selectedFilterTab === "ADDON") {
-                                  result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
-                                } else {
-                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                }
-                              } else if (catLower.includes("jasa") || catLower.includes("servis")) {
-                                result = result.filter(p => {
-                                  const c = (p.category || "").toLowerCase().trim();
-                                  return c.includes("jasa") || c.includes("servis") || p.isService;
-                                });
-                              } else if (catLower.includes("produk") || catLower.includes("barang")) {
-                                result = result.filter(p => {
-                                  const c = (p.category || "").toLowerCase().trim();
-                                  return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
-                                });
-                              } else {
-                                result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                              }
-                            }
-                          }
+                                                        if (result.length === rawProducts.length) { // no filter applied yet
+                                                          const catLower = selectedFilterTab.toLowerCase().trim();
+                                                          if (isRental) {
+                                                            if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
+                                                              result = result.filter(p => !p.isService);
+                                                            } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan") || selectedFilterTab === "ADDON") {
+                                                              result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+                                                            } else {
+                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                            }
+                                                          } else if (isPureJasa) {
+                                                            // Jasa/servis: filter by "Jasa / Servis" vs "Produk / Barang"
+                                                            if (selectedFilterTab === "Jasa / Servis" || catLower === "jasa / servis" || catLower === "jasa" || catLower === "servis") {
+                                                              result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("jasa") || (p.category || "").toLowerCase().includes("servis"));
+                                                            } else if (selectedFilterTab === "Produk / Barang" || catLower === "produk / barang" || catLower.includes("produk") || catLower.includes("barang")) {
+                                                              result = result.filter(p => !p.isService && !(p.category || "").toLowerCase().includes("jasa") && !(p.category || "").toLowerCase().includes("servis"));
+                                                            } else {
+                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                            }
+                                                          } else if (catLower.includes("jasa") || catLower.includes("servis")) {
+                                                            result = result.filter(p => {
+                                                              const c = (p.category || "").toLowerCase().trim();
+                                                              return c.includes("jasa") || c.includes("servis") || p.isService;
+                                                            });
+                                                          } else if (catLower.includes("produk") || catLower.includes("barang")) {
+                                                            result = result.filter(p => {
+                                                              const c = (p.category || "").toLowerCase().trim();
+                                                              return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+                                                            });
+                                                          } else {
+                                                            result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                          }
+                                                        }
+                                                      }
 
                         // Filter pencarian (search)
                         if (search && search.trim() !== "") {
@@ -1746,12 +1755,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                                                                       <Filter className={`w-4 h-4 ${selectedFilterTab === "ALL" ? "text-gray-500" : "text-blue-600"}`} />
                                                                                                       <span className={`text-sm max-w-[120px] truncate ${selectedFilterTab !== "ALL" && "font-semibold"}`}>
                                                                                                         {isRental && filterTabs.length > 0
-                                                                                                          ? (selectedFilterTab === "ALL"
-                                                                                                              ? "Semua"
-                                                                                                              : filterTabs.find(t => t.value === selectedFilterTab)?.label)
-                                                                                                          : (selectedFilterTab === "ALL"
-                                                                                                              ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk")
-                                                                                                              : selectedFilterTab)}
+                                                                                                                                                                                                                  ? (selectedFilterTab === "ALL"
+                                                                                                                                                                                                                      ? "Semua"
+                                                                                                                                                                                                                      : filterTabs.find(t => t.value === selectedFilterTab)?.label)
+                                                                                                                                                                                                                  : (selectedFilterTab === "ALL"
+                                                                                                                                                                                                                      ? (isPureJasa ? "Jasa / Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk")
+                                                                                                                                                                                                                      : selectedFilterTab)}
                                                                                                       </span>
                                                                                                     </button>
 
@@ -1777,18 +1786,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                                                         ) : (
                                                                                           <>
                                                                                             <li>
-                                                                                              <button
-                                                                                                onMouseDown={(e) => {
-                                                                                                  e.preventDefault();
-                                                                                                  setSelectedFilterTab("Semua");
-                                                                                                  setIsCategoryMenuOpen(false);
-                                                                                                }}
-                                                                                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Semua" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                                                                              >
-                                                                                                {isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk"}
-                                                                                                {selectedFilterTab === "Semua" && <Check className="w-4 h-4" />}
-                                                                                              </button>
-                                                                                            </li>
+                                                                                                                                                                                          <button
+                                                                                                                                                                                            onMouseDown={(e) => {
+                                                                                                                                                                                              e.preventDefault();
+                                                                                                                                                                                              setSelectedFilterTab("Semua");
+                                                                                                                                                                                              setIsCategoryMenuOpen(false);
+                                                                                                                                                                                            }}
+                                                                                                                                                                                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Semua" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                                                                                                                          >
+                                                                                                                                                                                            {isPureJasa ? "Jasa / Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk"}
+                                                                                                                                                                                            {selectedFilterTab === "Semua" && <Check className="w-4 h-4" />}
+                                                                                                                                                                                          </button>
+                                                                                                                                                                                        </li>
                                                                                             {isPureJasa && (
                                                                                               <>
                                                                                                 <li>

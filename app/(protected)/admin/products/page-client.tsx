@@ -98,7 +98,7 @@ export default function AdminProductsClientPage({
   const [isExporting, setIsExporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(isRental && config ? "" : (selectedFilterTab === "ALL" ? "" : selectedFilterTab))}`;
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent((isRental && config) || isPureJasa ? "" : (selectedFilterTab === "ALL" ? "" : selectedFilterTab))}`;
     const isInitialPage = currentPage === 1 && !searchQuery && selectedFilterTab === "ALL";
 
   const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(
@@ -143,11 +143,20 @@ export default function AdminProductsClientPage({
               result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
             }
           } else if (catLower.includes("jasa") || catLower.includes("servis")) {
-            result = result.filter(p => {
-              const c = (p.category || "").toLowerCase().trim();
-              return c.includes("jasa") || c.includes("servis") || p.isService;
-            });
-          } else if (catLower.includes("produk") || catLower.includes("barang")) {
+                      result = result.filter(p => {
+                        const c = (p.category || "").toLowerCase().trim();
+                        return c.includes("jasa") || c.includes("servis") || p.isService;
+                      });
+                    } else if (isPureJasa) {
+                      // Jasa/servis: filter by "Jasa / Servis" vs "Produk / Barang"
+                      if (selectedFilterTab === "Jasa / Servis" || catLower === "jasa / servis" || catLower === "jasa" || catLower === "servis") {
+                        result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("jasa") || (p.category || "").toLowerCase().includes("servis"));
+                      } else if (selectedFilterTab === "Produk / Barang" || catLower === "produk / barang" || catLower.includes("produk") || catLower.includes("barang")) {
+                        result = result.filter(p => !p.isService && !(p.category || "").toLowerCase().includes("jasa") && !(p.category || "").toLowerCase().includes("servis"));
+                      } else {
+                        result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                      }
+                    } else if (catLower.includes("produk") || catLower.includes("barang")) {
             result = result.filter(p => {
               const c = (p.category || "").toLowerCase().trim();
               return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
