@@ -1,4 +1,4 @@
-import { detectRentalItemType, getTenantRentalType } from "@/lib/business-category";
+import { detectRentalItemType, getTenantRentalType, isRentalTravelCategory } from "@/lib/business-category";
 
 export type RentalNiche = "property" | "vehicle" | "equipment";
 
@@ -106,6 +106,8 @@ export const RENTAL_NICHE_CONFIG: Record<RentalNiche, RentalNicheConfig> = {
   },
 };
 
-export function resolveRentalNiche(category?: string | null, tenantName?: string | null, products?: any[]): RentalNiche {
+export function resolveRentalNiche(category?: string | null, tenantName?: string | null, products?: any[]): RentalNiche | null {
+  // Only resolve niche for ACTUAL rental businesses (exact category match)
+  if (!isRentalTravelCategory(category)) return null;
   return getTenantRentalType(category, tenantName, products) || "property";
 }

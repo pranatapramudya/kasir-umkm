@@ -221,9 +221,9 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('cash');
+    const [selectedFilterTab, setSelectedFilterTab] = useState("ALL");
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris'>('cash');
   const [tableId, setTableId] = useState("");
     const isFNB = isFnBCategory(tenantCategory || '');
         const isRental = isRentalTravelCategory(tenantCategory);
@@ -350,7 +350,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     return res.json();
   };
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(selectedCategory === "Semua" ? "" : selectedCategory)}`;
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(selectedFilterTab === "ALL" ? "" : selectedFilterTab)}`;
   const { data: swrResponse, error, mutate } = useSWR<{ products: Product[], totalPages: number }>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
@@ -364,35 +364,36 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   );
 
   const rawProducts = swrResponse?.products || [];
-      const totalPages = swrResponse?.totalPages || 1;
+        const totalPages = swrResponse?.totalPages || 1;
 
-      // Resolve rental niche from tenant category / catalog / tenant name
-      const niche = useMemo(() => resolveRentalNiche(tenantCategory, tenantName, rawProducts), [tenantCategory, tenantName, rawProducts]);
-      const config = RENTAL_NICHE_CONFIG[niche];
+        // Resolve rental niche from tenant category / catalog / tenant name
+        const niche = useMemo(() => resolveRentalNiche(tenantCategory, tenantName, rawProducts), [tenantCategory, tenantName, rawProducts]);
+        const config = niche ? RENTAL_NICHE_CONFIG[niche] : null;
 
-      // Filter tabs from niche config (always 3 tabs: Semua, Unit, Addon)
-      const filterTabs = useMemo(() => [
-        { value: "ALL", label: "Semua" },
-        { value: "UNIT", label: config.unitLabel },
-        { value: "ADDON", label: config.addonLabel },
-      ], [config]);
+        // Filter tabs from niche config (always 3 tabs: Semua, Unit, Addon) - only for rental
+        const filterTabs = useMemo(() => {
+          if (!isRental || !config) return [];
+          return [
+            { value: "ALL", label: "Semua" },
+            { value: "UNIT", label: config.unitLabel },
+            { value: "ADDON", label: config.addonLabel },
+          ];
+        }, [isRental, config]);
 
-      const [selectedFilterTab, setSelectedFilterTab] = useState("ALL");
+                // Instant Client-side Filter untuk Respons 0ms (Filter Tab + Pencarian)
+        const filteredProducts = useMemo(() => {
+          if (!rawProducts || rawProducts.length === 0) return [];
 
-      // Instant Client-side Filter untuk Respons 0ms (Filter Tab + Pencarian)
-      const filteredProducts = useMemo(() => {
-        if (!rawProducts || rawProducts.length === 0) return [];
+          let result = rawProducts;
 
-        let result = rawProducts;
-
-        // Filter by tab
-        if (selectedFilterTab !== "ALL") {
-          if (selectedFilterTab === "UNIT") {
-            result = result.filter(p => !p.isService);
-          } else if (selectedFilterTab === "ADDON") {
-            result = result.filter(p => p.isService);
+          // Filter by tab (only for rental)
+          if (isRental && selectedFilterTab !== "ALL" && config) {
+            if (selectedFilterTab === "UNIT") {
+              result = result.filter(p => !p.isService);
+            } else if (selectedFilterTab === "ADDON") {
+              result = result.filter(p => p.isService);
+            }
           }
-        }
 
         // Filter pencarian (search)
         if (search && search.trim() !== "") {
@@ -1287,7 +1288,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         <div className="font-bold flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-gray-700" />
                   <div className="flex items-center gap-2">
-                    <span>{isPureJasa ? 'Detail Layanan' : isRental ? config.documentTitle : 'Keranjang'}</span>
+                    <span>{isPureJasa ? 'Detail Layanan' : isRental && config ? config.documentTitle : 'Keranjang'}</span>
             {cart.length > 0 && (
               <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
                 {cart.reduce((acc, item) => acc + item.qty, 0)}
@@ -1698,52 +1699,121 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
-                                            placeholder={isPureJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental ? config.searchPlaceholder : "Cari produk atau barcode..."}
+                                            placeholder={isPureJasa ? "Cari layanan atau kode..." : isFNB ? "Cari menu atau SKU..." : isRental && config ? config.searchPlaceholder : "Cari produk atau barcode..."}
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
                                             className="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg text-sm focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                                           />
                                         </div>
                                         <div className="relative shrink-0">
-                                                            <button
-                                                              onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                                                              onBlur={() => setIsCategoryMenuOpen(false)}
-                                                              className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedFilterTab === "ALL"
-                                                                ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                                                                : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-                                                                }`}
-                                                              title="Filter Kategori"
-                                                            >
-                                                              <Filter className={`w-4 h-4 ${selectedFilterTab === "ALL" ? "text-gray-500" : "text-blue-600"}`} />
-                                                              <span className={`text-sm max-w-[120px] truncate ${selectedFilterTab !== "ALL" && "font-semibold"}`}>
-                                                                                                        {selectedFilterTab === "ALL"
-                                                                                                          ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : isRental ? "Semua" : "Semua Produk")
-                                                                                                          : filterTabs.find(t => t.value === selectedFilterTab)?.label}
+                                                                                                    <button
+                                                                                                      onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
+                                                                                                      onBlur={() => setIsCategoryMenuOpen(false)}
+                                                                                                      className={`px-3 py-2 border rounded-lg flex items-center justify-center gap-2 transition-colors relative shadow-sm ${selectedFilterTab === "ALL"
+                                                                                                        ? "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                                                                                                        : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                                                                                                        }`}
+                                                                                                      title="Filter Kategori"
+                                                                                                    >
+                                                                                                      <Filter className={`w-4 h-4 ${selectedFilterTab === "ALL" ? "text-gray-500" : "text-blue-600"}`} />
+                                                                                                      <span className={`text-sm max-w-[120px] truncate ${selectedFilterTab !== "ALL" && "font-semibold"}`}>
+                                                                                                        {isRental && filterTabs.length > 0
+                                                                                                          ? (selectedFilterTab === "ALL"
+                                                                                                              ? "Semua"
+                                                                                                              : filterTabs.find(t => t.value === selectedFilterTab)?.label)
+                                                                                                          : (selectedFilterTab === "ALL"
+                                                                                                              ? (isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk")
+                                                                                                              : selectedFilterTab)}
                                                                                                       </span>
-                                                            </button>
+                                                                                                    </button>
 
-                                          {isCategoryMenuOpen && (
-                                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-                                              <ul className="py-1 max-h-60 overflow-y-auto">
-                                                {filterTabs.map(cat => (
-                                                  <li key={cat.value}>
-                                                    <button
-                                                      onMouseDown={(e) => {
-                                                        e.preventDefault();
-                                                        setSelectedFilterTab(cat.value);
-                                                        setIsCategoryMenuOpen(false);
-                                                      }}
-                                                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === cat.value ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                                    >
-                                                      {cat.label}
-                                                      {selectedFilterTab === cat.value && <Check className="w-4 h-4" />}
-                                                    </button>
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            </div>
-                                          )}
-                                        </div>
+                                                                                  {isCategoryMenuOpen && (
+                                                                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                                                                                      <ul className="py-1 max-h-60 overflow-y-auto">
+                                                                                        {isRental && filterTabs.length > 0 ? (
+                                                                                          filterTabs.map(cat => (
+                                                                                            <li key={cat.value}>
+                                                                                              <button
+                                                                                                onMouseDown={(e) => {
+                                                                                                  e.preventDefault();
+                                                                                                  setSelectedFilterTab(cat.value);
+                                                                                                  setIsCategoryMenuOpen(false);
+                                                                                                }}
+                                                                                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === cat.value ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                              >
+                                                                                                {cat.label}
+                                                                                                {selectedFilterTab === cat.value && <Check className="w-4 h-4" />}
+                                                                                              </button>
+                                                                                            </li>
+                                                                                          ))
+                                                                                        ) : (
+                                                                                          <>
+                                                                                            <li>
+                                                                                              <button
+                                                                                                onMouseDown={(e) => {
+                                                                                                  e.preventDefault();
+                                                                                                  setSelectedFilterTab("Semua");
+                                                                                                  setIsCategoryMenuOpen(false);
+                                                                                                }}
+                                                                                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Semua" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                              >
+                                                                                                {isPureJasa ? "Jasa & Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk"}
+                                                                                                {selectedFilterTab === "Semua" && <Check className="w-4 h-4" />}
+                                                                                              </button>
+                                                                                            </li>
+                                                                                            {isPureJasa && (
+                                                                                              <>
+                                                                                                <li>
+                                                                                                  <button
+                                                                                                    onMouseDown={(e) => {
+                                                                                                      e.preventDefault();
+                                                                                                      setSelectedFilterTab("Jasa / Servis");
+                                                                                                      setIsCategoryMenuOpen(false);
+                                                                                                    }}
+                                                                                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Jasa / Servis" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                                  >
+                                                                                                    Jasa / Servis
+                                                                                                    {selectedFilterTab === "Jasa / Servis" && <Check className="w-4 h-4" />}
+                                                                                                  </button>
+                                                                                                </li>
+                                                                                                <li>
+                                                                                                  <button
+                                                                                                    onMouseDown={(e) => {
+                                                                                                      e.preventDefault();
+                                                                                                      setSelectedFilterTab("Produk / Barang");
+                                                                                                      setIsCategoryMenuOpen(false);
+                                                                                                    }}
+                                                                                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Produk / Barang" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                                  >
+                                                                                                    Produk / Barang
+                                                                                                    {selectedFilterTab === "Produk / Barang" && <Check className="w-4 h-4" />}
+                                                                                                  </button>
+                                                                                                </li>
+                                                                                              </>
+                                                                                            )}
+                                                                                            {isFNB && [
+                                                                                              "Makanan", "Minuman", "Snack", "Paket"
+                                                                                            ].map(cat => (
+                                                                                              <li key={cat}>
+                                                                                                <button
+                                                                                                  onMouseDown={(e) => {
+                                                                                                    e.preventDefault();
+                                                                                                    setSelectedFilterTab(cat);
+                                                                                                    setIsCategoryMenuOpen(false);
+                                                                                                  }}
+                                                                                                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === cat ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                                >
+                                                                                                  {cat}
+                                                                                                  {selectedFilterTab === cat && <Check className="w-4 h-4" />}
+                                                                                                </button>
+                                                                                              </li>
+                                                                                            ))}
+                                                                                          </>
+                                                                                        )}
+                                                                                      </ul>
+                                                                                    </div>
+                                                                                  )}
+                                                                                </div>
                 </div>
 
                 {/* Input Barcode / SKU Cepat (Khusus Retail & F&B) */}
