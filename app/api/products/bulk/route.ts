@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
-import { isServiceBusinessCategory, isRentalTravelCategory, detectRentalItemType } from '@/lib/business-category';
+import { isServiceBusinessCategory, isRentalTravelCategory, detectRentalItemType, getFnbSubType } from '@/lib/business-category';
+import { isFnBCategory } from '@/lib/navigation';
 
 const parseNumber = (val: any, fallback = 0): number => {
   if (typeof val === 'number') return isNaN(val) ? fallback : Math.round(val);
@@ -13,12 +14,19 @@ const parseNumber = (val: any, fallback = 0): number => {
 };
 
 // Helper: normalize category from sheet name
-const getCategoryFromSheet = (sheetName: string): string => {
+const getCategoryFromSheet = (sheetName: string, fnbSubType: string): string => {
   const name = sheetName.toLowerCase();
+  // Rental sheets
   if (name.includes('armada') || name.includes('kendaraan') || name.includes('travel') || name.includes('mobil') || name.includes('motor')) return 'Armada';
   if (name.includes('properti') || name.includes('kamar') || name.includes('villa') || name.includes('kost') || name.includes('hotel') || name.includes('penginapan')) return 'Properti';
   if (name.includes('alat') || name.includes('peralatan') || name.includes('equipment') || name.includes('kamera') || name.includes('sound') || name.includes('camping')) return 'Peralatan';
   if (name.includes('layanan') || name.includes('tambahan') || name.includes('supir') || name.includes('asuransi') || name.includes('extra') || name.includes('addon') || name.includes('driver') || name.includes('operator')) return 'Layanan Tambahan';
+  // FNB sheets
+  if (name.includes('menu cafe') || name.includes('cafe')) return 'FNB';
+  if (name.includes('menu resto') || name.includes('resto')) return 'FNB';
+  if (name.includes('menu makanan') || name.includes('makanan & minuman') || name.includes('fnb')) return 'FNB';
+  // Jasa sheet
+  if (name.includes('jasa') || name.includes('servis') || name.includes('layanan') || name.includes('katalog')) return 'Jasa';
   return 'Umum';
 };
 
@@ -49,8 +57,11 @@ export async function POST(req: Request) {
     }
 
     const tenant = await prisma.tenant.findUnique({ where: { userId: targetUserId } });
-    const isService = isServiceBusinessCategory(tenant?.category);
-    const isRental = isRentalTravelCategory(tenant?.category);
+    const tenantCategory = tenant?.category || '';
+    const isService = isServiceBusinessCategory(tenantCategory);
+    const isRental = isRentalTravelCategory(tenantCategory);
+    const isFNB = isFnBCategory(tenantCategory);
+    const fnbSubType = isFNB ? getFnbSubType(tenantCategory) : 'generic';
 
     // Prepare data for createMany with sheet-aware logic
     const productsToInsert = products.map((p: any, index: number) => {
@@ -80,7 +91,7 @@ export async function POST(req: Request) {
 
       const rawDesc = p.description ?? p['Deskripsi'] ?? p['Deskripsi Layanan'] ?? p['Fasilitas'] ?? p.deskripsi ?? p.fasilitas ?? p.keterangan ?? p['Catatan / Spesifikasi'] ?? p['Fasilitas / Catatan'] ?? p['Catatan / Fasilitas'] ?? p['Detail HPP (Listrik,Air,Internet,Kebersihan,Penyusutan)'] ?? '';
       const rawCategory = (p.category || p.kategori || p.Kategori || '').toString().trim();
-      const sheetCategory = getCategoryFromSheet(p._sheetName || '');
+      const sheetCategory = getCategoryFromSheet(p._sheetName || '', fnbSubType);
       
       // Determine final category: prefer sheet-based for rental, fallback to smart detection
       let finalCategory = rawCategory || sheetCategory || 'Umum';
@@ -93,6 +104,12 @@ export async function POST(req: Request) {
           if (rentalType === 'vehicle') finalCategory = 'Armada';
           else if (rentalType === 'property') finalCategory = 'Properti';
           else finalCategory = rawCategory || 'Armada';
+        }
+      } else if (isFNB) {
+        // FNB: use raw category from Excel directly (Kopi, Non-Kopi, Appetizer, Main Course, etc.)
+        // If sheet is FNB but rawCategory is empty, fall back to generic
+        if (sheetCategory === 'FNB' && rawCategory) {
+          finalCategory = rawCategory;
         }
       }
 
