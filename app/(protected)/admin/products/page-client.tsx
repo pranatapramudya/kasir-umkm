@@ -98,7 +98,7 @@ export default function AdminProductsClientPage({
   const [isExporting, setIsExporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(selectedFilterTab === "ALL" ? "" : selectedFilterTab)}`;
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(isRental && config ? "" : (selectedFilterTab === "ALL" ? "" : selectedFilterTab))}`;
     const isInitialPage = currentPage === 1 && !searchQuery && selectedFilterTab === "ALL";
 
   const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(

@@ -350,7 +350,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     return res.json();
   };
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(selectedFilterTab === "ALL" ? "" : selectedFilterTab)}`;
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(isRental ? "" : (selectedFilterTab === "ALL" ? "" : selectedFilterTab))}`;
   const { data: swrResponse, error, mutate } = useSWR<{ products: Product[], totalPages: number }>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
