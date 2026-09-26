@@ -416,6 +416,10 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
     ] : [
       { kodeBarang: 'MNU001', name: 'Nasi Goreng Spesial', category: 'Makanan', hpp: 12000, hargaJual: 25000, stock: 50, minStockThreshold: 5, description: 'Menu makanan utama' },
       { kodeBarang: 'MNU002', name: 'Es Teh Manis', category: 'Minuman', hpp: 1500, hargaJual: 5000, stock: 100, minStockThreshold: 10, description: 'Minuman segar' },
+      { kodeBarang: 'MNU003', name: 'Kentang Goreng', category: 'Snack', hpp: 5000, hargaJual: 15000, stock: 80, minStockThreshold: 10, description: 'Snack goreng renyah' },
+      { kodeBarang: 'MNU004', name: 'Es Krim Vanilla', category: 'Dessert', hpp: 8000, hargaJual: 20000, stock: 40, minStockThreshold: 5, description: 'Dessert manis segar' },
+      { kodeBarang: 'MNU005', name: 'Mie Goreng Tek-tek', category: 'Makanan', hpp: 10000, hargaJual: 22000, stock: 60, minStockThreshold: 5, description: 'Menu mie khas pinggir jalan' },
+      { kodeBarang: 'MNU006', name: 'Paket Hemat Nasi + Ayam + Teh', category: 'Paket Hemat', hpp: 25000, hargaJual: 55000, stock: 50, minStockThreshold: 5, description: 'Paket hemat siang hari' },
     ];
 
     const ws = workbook.addWorksheet(sheetName);
