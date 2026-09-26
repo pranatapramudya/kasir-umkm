@@ -50,17 +50,29 @@ export async function GET(req: Request) {
     const now = new Date();
 
     const bookings = rawBookings.map(b => {
-      let derivedStatus = b.status;
+      let derivedStatus: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE" = "COMPLETED";
       const start = b.startDate || b.bookingDate;
       const end = b.endDate || b.bookingDate;
 
-      if (derivedStatus === "IN_PROGRESS" && now > end) {
-        derivedStatus = "OVERDUE" as any;
-      }
-
-      // Handle potential null dates
       const safeStart = start ? start.toISOString() : new Date().toISOString();
       const safeEnd = end ? end.toISOString() : new Date().toISOString();
+
+      const startDateObj = start ? new Date(start) : now;
+      const endDateObj = end ? new Date(end) : now;
+
+      // Status otomatis berbasis waktu:
+      if (b.status === "FINISHED" || (b.status as any) === "CANCELLED") {
+        derivedStatus = "FINISHED";
+      } else if (now > endDateObj) {
+        // Lewat waktu sewa / check-out tapi belum di-finish oleh admin
+        derivedStatus = "OVERDUE";
+      } else if (now >= startDateObj && now <= endDateObj) {
+        // Sedang berlangsung (Tamu menginap / Armada sedang jalan / Alat sedang disewa)
+        derivedStatus = "IN_PROGRESS";
+      } else {
+        // Belum masuk jam sewa (Terjadwal / Siap Check-in)
+        derivedStatus = "COMPLETED";
+      }
 
       return {
         id: b.id,
@@ -69,7 +81,7 @@ export async function GET(req: Request) {
         itemName: b.product?.name || "Tanpa Armada",
         startDate: safeStart,
         endDate: safeEnd,
-        status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
+        status: derivedStatus,
         pickupLocation: b.pickupLocation || undefined,
         dropoffLocation: b.dropoffLocation || undefined,
         returnTime: b.returnTime || undefined,
@@ -80,7 +92,6 @@ export async function GET(req: Request) {
     });
 
     const txBookings = rawTransactions.map(tx => {
-      let derivedStatus = "FINISHED";
       const start = tx.startDate;
       const end = tx.endDate || tx.startDate;
 
@@ -89,10 +100,18 @@ export async function GET(req: Request) {
         return null;
       }
 
-      if (now > end) {
-        derivedStatus = "OVERDUE";
-      } else if (now >= start && now <= end) {
+      const startDateObj = new Date(start);
+      const endDateObj = new Date(end);
+
+      let derivedStatus: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE" = "FINISHED";
+
+      // Transaksi POS kasir:
+      if (now >= startDateObj && now <= endDateObj) {
         derivedStatus = "IN_PROGRESS";
+      } else if (tx.status !== "completed" && now > endDateObj) {
+        derivedStatus = "OVERDUE";
+      } else {
+        derivedStatus = "FINISHED";
       }
 
       return {
@@ -100,9 +119,9 @@ export async function GET(req: Request) {
         customerName: tx.customerName || "Pelanggan POS",
         customerPhone: undefined,
         itemName: tx.items.map(i => productMap.get(i.productId) || `Produk ${i.productId}`).join(", ") || "Transaksi POS",
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-        status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
+        startDate: startDateObj.toISOString(),
+        endDate: endDateObj.toISOString(),
+        status: derivedStatus,
         pickupLocation: tx.pickupLocation || undefined,
         dropoffLocation: tx.dropoffLocation || undefined,
         returnTime: tx.returnTime || undefined,

@@ -29,7 +29,7 @@ import {
   ExternalLink,
   Share2
 } from "lucide-react";
-import { startOrder, finishOrder, approveOrder } from "../orders/actions";
+import { startOrder, finishOrder, approveOrder, rejectOrder } from "../orders/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
@@ -63,11 +63,11 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
-  PENDING: { label: "Menunggu", bg: "bg-yellow-100 text-yellow-700" },
-  COMPLETED: { label: "Sedang Disewa", bg: "bg-blue-100 text-blue-700" },
-  IN_PROGRESS: { label: "Berjalan", bg: "bg-green-100 text-green-700" },
-  OVERDUE: { label: "Terlambat", bg: "bg-red-100 text-red-700" },
-  FINISHED: { label: "Selesai", bg: "bg-gray-100 text-gray-700" }
+  PENDING: { label: "Terjadwal", bg: "bg-blue-100 text-blue-800" },
+  COMPLETED: { label: "Terjadwal", bg: "bg-blue-100 text-blue-800" },
+  IN_PROGRESS: { label: "Aktif Digunakan", bg: "bg-emerald-100 text-emerald-800" },
+  OVERDUE: { label: "Terlambat", bg: "bg-rose-100 text-rose-800" },
+  FINISHED: { label: "Selesai", bg: "bg-slate-100 text-slate-700" }
 };
 
 export default function RentalCalendarClient({ initialBookings, tenantId, tenantCategory, tenantSlug }: Props) {
@@ -99,19 +99,18 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   const getStatusBadge = (status: BookingStatus, niche: "property" | "vehicle" | "equipment") => {
     switch (status) {
       case "PENDING":
-        return { label: "Menunggu Konfirmasi", bg: "bg-amber-100 text-amber-800 border-amber-200" };
       case "COMPLETED":
-        if (niche === "property") return { label: "Siap Check-in", bg: "bg-blue-100 text-blue-800 border-blue-200" };
-        if (niche === "vehicle") return { label: "Siap Berangkat", bg: "bg-blue-100 text-blue-800 border-blue-200" };
-        return { label: "Siap Diambil", bg: "bg-blue-100 text-blue-800 border-blue-200" };
+        if (niche === "property") return { label: "Terjadwal (Siap Check-in)", bg: "bg-blue-100 text-blue-800 border-blue-200" };
+        if (niche === "vehicle") return { label: "Terjadwal (Siap Berangkat)", bg: "bg-blue-100 text-blue-800 border-blue-200" };
+        return { label: "Terjadwal (Siap Diambil)", bg: "bg-blue-100 text-blue-800 border-blue-200" };
       case "IN_PROGRESS":
         if (niche === "property") return { label: "Tamu Menginap", bg: "bg-emerald-100 text-emerald-800 border-emerald-200" };
-        if (niche === "vehicle") return { label: "Sedang Jalan", bg: "bg-emerald-100 text-emerald-800 border-emerald-200" };
+        if (niche === "vehicle") return { label: "Sedang Digunakan", bg: "bg-emerald-100 text-emerald-800 border-emerald-200" };
         return { label: "Sedang Disewa", bg: "bg-emerald-100 text-emerald-800 border-emerald-200" };
       case "OVERDUE":
-        if (niche === "property") return { label: "Lewat Waktu Check-out", bg: "bg-rose-100 text-rose-800 border-rose-200" };
-        if (niche === "vehicle") return { label: "Terlambat Kembali", bg: "bg-rose-100 text-rose-800 border-rose-200" };
-        return { label: "Terlambat Pengembalian", bg: "bg-rose-100 text-rose-800 border-rose-200" };
+        if (niche === "property") return { label: "Lewat Waktu Check-out", bg: "bg-rose-100 text-rose-800 border-rose-200 animate-pulse" };
+        if (niche === "vehicle") return { label: "Terlambat Pengembalian", bg: "bg-rose-100 text-rose-800 border-rose-200 animate-pulse" };
+        return { label: "Terlambat Pengembalian", bg: "bg-rose-100 text-rose-800 border-rose-200 animate-pulse" };
       case "FINISHED":
         return { label: "Selesai", bg: "bg-slate-100 text-slate-700 border-slate-200" };
       default:
@@ -123,18 +122,18 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
     if (niche === "property") {
       return {
         start: "🔑 Check-in Tamu",
-        finish: "🛎️ Check-out Selesai",
+        finish: "🛎️ Check-out & Selesai",
         customerTitle: "Tamu / Pemesan",
         itemTitle: "Kamar / Unit",
         startLabel: "Waktu Check-in",
         endLabel: "Waktu Check-out",
-        finishModalTitle: "Check-out Kamar & Penyelesaian",
+        finishModalTitle: "Check-out Kamar & Selesai",
       };
     }
     if (niche === "vehicle") {
       return {
         start: "🚗 Serah Kunci / Jalan",
-        finish: "🏁 Terima Armada Kembali",
+        finish: "🏁 Terima Armada & Selesai",
         customerTitle: "Penyewa Armada",
         itemTitle: "Unit Kendaraan",
         startLabel: "Mulai Sewa / Ambil",
@@ -144,7 +143,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
     }
     return {
       start: "📦 Serah Alat ke Penyewa",
-      finish: "📥 Terima Pengembalian Alat",
+      finish: "📥 Terima Alat & Selesai",
       customerTitle: "Penyewa Alat",
       itemTitle: "Peralatan / Barang",
       startLabel: "Waktu Pengambilan",
@@ -183,28 +182,6 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
     );
   }
 
-  const handleApprove = async (id: string) => {
-    toast.loading("Memproses...", { id: "approve" });
-    const res = await approveOrder(id);
-    if (res.success) {
-      toast.success("Disetujui!", { id: "approve" });
-      router.refresh();
-    } else {
-      toast.error("Gagal menyetujui", { id: "approve" });
-    }
-  };
-
-  const handleStart = async (id: string) => {
-    toast.loading("Memproses...", { id: "start" });
-    const res = await startOrder(id);
-    if (res.success) {
-      toast.success("Sewa dimulai!", { id: "start" });
-      router.refresh();
-    } else {
-      toast.error("Gagal", { id: "start" });
-    }
-  };
-
   const handleFinishSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!finishingOrder) return;
@@ -212,16 +189,42 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
     const fee = parseInt(overtimeFee.replace(/\D/g, ""), 10) || 0;
     const res = await finishOrder(finishingOrder.id, fee);
     if (res.success) {
-      toast.success("Pesanan selesai!");
+      toast.success("Pesanan berhasil diselesaikan!");
       setFinishingOrder(null);
+      await mutate();
       router.refresh();
     } else {
-      toast.error("Gagal menyelesaikan");
+      toast.error("Gagal menyelesaikan pesanan");
     }
     setIsFinishing(false);
   };
 
-  const monthStart = startOfMonth(currentDate);
+  const handleCancelOrder = async (id: string, name: string) => {
+      if (!confirm(`Yakin ingin membatalkan reservasi oleh ${name}?`)) return;
+      toast.loading("Membatalkan...", { id: `cancel-${id}` });
+      const res = await rejectOrder(id);
+      if (res.success) {
+        toast.success("Reservasi dibatalkan", { id: `cancel-${id}` });
+        await mutate();
+        router.refresh();
+      } else {
+        toast.error("Gagal membatalkan reservasi", { id: `cancel-${id}` });
+      }
+    };
+
+    const handleApprove = async (id: string) => {
+      toast.loading("Memproses...", { id: "approve" });
+      const res = await approveOrder(id);
+      if (res.success) {
+        toast.success("Disetujui!", { id: "approve" });
+        await mutate();
+        router.refresh();
+      } else {
+        toast.error("Gagal menyetujui", { id: "approve" });
+      }
+    };
+
+    const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
@@ -518,25 +521,30 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                 </div>
                 
                 {/* Action Buttons */}
-                {b.source === "ONLINE" && b.status !== "FINISHED" && (
-                  <div className="flex gap-2 mt-1 pt-2 border-t border-slate-100">
-                    {b.status === "PENDING" && (
-                      <button onClick={() => handleApprove(b.id)} className="w-full px-3 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm">
-                        ✅ Setujui Pesanan
-                      </button>
-                    )}
-                    {b.status === "COMPLETED" && (
-                      <button onClick={() => handleStart(b.id)} className="w-full px-3 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5">
-                        {actionLabels.start}
-                      </button>
-                    )}
-                    {(b.status === "IN_PROGRESS" || b.status === "OVERDUE") && (
-                      <button onClick={() => { setFinishingOrder(b); setOvertimeFee("0"); }} className="w-full px-3 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5">
-                        {actionLabels.finish}
-                      </button>
-                    )}
-                  </div>
-                )}
+                                {b.source === "ONLINE" && b.status !== "FINISHED" && (
+                                  <div className="flex gap-2 mt-1 pt-2 border-t border-slate-100">
+                                    {b.status === "PENDING" && (
+                                      <>
+                                        <button onClick={() => handleApprove(b.id)} className="flex-1 px-3 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm">
+                                          ✅ Setujui Pesanan
+                                        </button>
+                                        <button onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")} className="flex-1 px-3 py-2 text-xs font-bold text-rose-700 bg-rose-100 hover:bg-rose-200 border border-rose-300 rounded-xl transition-colors shadow-sm">
+                                          ❌ Batalkan
+                                        </button>
+                                      </>
+                                    )}
+                                    {b.status === "COMPLETED" && (
+                                      <button onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")} className="w-full px-3 py-2 text-xs font-bold text-rose-700 bg-rose-100 hover:bg-rose-200 border border-rose-300 rounded-xl transition-colors shadow-sm">
+                                        ❌ Batalkan Reservasi
+                                      </button>
+                                    )}
+                                    {(b.status === "IN_PROGRESS" || b.status === "OVERDUE") && (
+                                      <button onClick={() => { setFinishingOrder(b); setOvertimeFee("0"); }} className="w-full px-3 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5">
+                                        {actionLabels.finish}
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
               </div>
             );
           })

@@ -68,13 +68,28 @@ export default async function RentalCalendarPage() {
   const now = new Date();
 
   const bookings = rawBookings.map(b => {
-      let derivedStatus = b.status;
+      let derivedStatus: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE" = "COMPLETED";
       const start = b.startDate || b.bookingDate;
       const end = b.endDate || b.bookingDate;
 
-      // Overdue logic only applies to IN_PROGRESS (ACTIVE) or COMPLETED (Waiting to start)
-      if (derivedStatus === "IN_PROGRESS" && now > end) {
-        derivedStatus = "OVERDUE" as any;
+      const safeStart = start ? start.toISOString() : new Date().toISOString();
+      const safeEnd = end ? end.toISOString() : new Date().toISOString();
+
+      const startDateObj = start ? new Date(start) : now;
+      const endDateObj = end ? new Date(end) : now;
+
+      // Status otomatis berbasis waktu:
+      if (b.status === "FINISHED" || (b.status as any) === "CANCELLED") {
+        derivedStatus = "FINISHED";
+      } else if (now > endDateObj) {
+        // Lewat batas waktu sewa / check-out tapi belum di-finish
+        derivedStatus = "OVERDUE";
+      } else if (now >= startDateObj && now <= endDateObj) {
+        // Sedang berlangsung (Tamu menginap / Armada sedang jalan / Alat sedang disewa)
+        derivedStatus = "IN_PROGRESS";
+      } else {
+        // Belum masuk jam sewa (Terjadwal / Siap Check-in)
+        derivedStatus = "COMPLETED";
       }
 
       return {
@@ -82,9 +97,9 @@ export default async function RentalCalendarPage() {
         customerName: b.customerName,
         customerPhone: b.customerPhone || undefined,
         itemName: b.product?.name || "Tanpa Armada",
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-        status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
+        startDate: safeStart,
+        endDate: safeEnd,
+        status: derivedStatus,
         pickupLocation: b.pickupLocation || undefined,
         dropoffLocation: b.dropoffLocation || undefined,
         returnTime: b.returnTime || undefined,
@@ -95,23 +110,32 @@ export default async function RentalCalendarPage() {
     });
 
   const txBookings = rawTransactions.map(tx => {
-      let derivedStatus = "FINISHED"; // Legacy POS transactions are typically considered completed
-      const start = tx.startDate!;
-      const end = tx.endDate || tx.startDate!;
+      const start = tx.startDate;
+      const end = tx.endDate || tx.startDate;
 
-      if (now > end) {
-        derivedStatus = "OVERDUE";
-      } else if (now >= start && now <= end) {
+      if (!start || !end) return null;
+
+      const startDateObj = new Date(start);
+      const endDateObj = new Date(end);
+
+      let derivedStatus: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE" = "FINISHED";
+
+      // Transaksi POS kasir:
+      if (now >= startDateObj && now <= endDateObj) {
         derivedStatus = "IN_PROGRESS";
+      } else if (tx.status !== "completed" && now > endDateObj) {
+        derivedStatus = "OVERDUE";
+      } else {
+        derivedStatus = "FINISHED";
       }
 
       return {
         id: tx.id,
         customerName: tx.customerName || "Pelanggan POS",
         itemName: tx.items.map(i => productMap.get(i.productId) || `Produk ${i.productId}`).join(", ") || "Transaksi POS",
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-        status: derivedStatus as "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE",
+        startDate: startDateObj.toISOString(),
+        endDate: endDateObj.toISOString(),
+        status: derivedStatus,
         pickupLocation: tx.pickupLocation || undefined,
         dropoffLocation: tx.dropoffLocation || undefined,
         returnTime: tx.returnTime || undefined,
@@ -119,7 +143,7 @@ export default async function RentalCalendarPage() {
         conditionNotes: tx.conditionNotes || undefined,
         source: "POS" as const
       };
-    });
+    }).filter((b): b is NonNullable<typeof b> => b !== null);
 
   const allBookings = [...bookings, ...txBookings].sort(
     (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
