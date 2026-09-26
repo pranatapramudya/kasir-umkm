@@ -123,40 +123,31 @@ export default function AdminProductsClientPage({
       let result = rawProducts;
 
       // Category filter via niche config (rental) or legacy logic
-      if (selectedFilterTab !== "ALL") {
-        if (config) {
-          // Try config tabs first (values: "UNIT", "ADDON")
-          const tab = config.tabs.find(t => t.value === selectedFilterTab);
-          if (tab?.filter) {
-            result = result.filter(tab.filter);
-          }
-        }
-        // Fallback: handle legacy string values even when config exists (state persistence)
-        if (result.length === rawProducts.length) { // no filter applied yet
-          const catLower = selectedFilterTab.toLowerCase().trim();
-          if (isRental) {
-            if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
-              result = result.filter(p => !p.isService);
-            } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan") || selectedFilterTab === "ADDON") {
-              result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
-            } else {
-              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-            }
-          } else if (catLower.includes("jasa") || catLower.includes("servis")) {
-                      result = result.filter(p => {
-                        const c = (p.category || "").toLowerCase().trim();
-                        return c.includes("jasa") || c.includes("servis") || p.isService;
-                      });
-                    } else if (isPureJasa) {
-                      // Jasa/servis: filter by "Jasa / Servis" vs "Produk / Barang"
-                      if (selectedFilterTab === "Jasa / Servis" || catLower === "jasa / servis" || catLower === "jasa" || catLower === "servis") {
-                        result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("jasa") || (p.category || "").toLowerCase().includes("servis"));
-                      } else if (selectedFilterTab === "Produk / Barang" || catLower === "produk / barang" || catLower.includes("produk") || catLower.includes("barang")) {
-                        result = result.filter(p => !p.isService && !(p.category || "").toLowerCase().includes("jasa") && !(p.category || "").toLowerCase().includes("servis"));
-                      } else {
-                        result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                      }
-                    } else if (catLower.includes("produk") || catLower.includes("barang")) {
+            if (selectedFilterTab !== "ALL") {
+              if (config) {
+                // Try config tabs first (values: "UNIT", "ADDON")
+                const tab = config.tabs.find(t => t.value === selectedFilterTab);
+                if (tab?.filter) {
+                  result = result.filter(tab.filter);
+                }
+              }
+              // Fallback: handle legacy string values even when config exists (state persistence)
+              if (result.length === rawProducts.length) { // no filter applied yet
+                const catLower = selectedFilterTab.toLowerCase().trim();
+                if (isRental) {
+                  if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
+                    result = result.filter(p => !p.isService);
+                  } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan") || selectedFilterTab === "ADDON") {
+                    result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+                  } else {
+                    result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                  }
+                } else if (catLower.includes("jasa") || catLower.includes("servis")) {
+                            result = result.filter(p => {
+                              const c = (p.category || "").toLowerCase().trim();
+                              return c.includes("jasa") || c.includes("servis") || p.isService;
+                            });
+                          } else if (catLower.includes("produk") || catLower.includes("barang")) {
             result = result.filter(p => {
               const c = (p.category || "").toLowerCase().trim();
               return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
@@ -247,8 +238,8 @@ export default function AdminProductsClientPage({
   
     // Build filter options: { value, label } for rental, string[] for others
     const filterOptions = isPureJasa
-      ? [{ value: "ALL", label: "Semua" }, { value: "Jasa / Servis", label: "Jasa / Servis" }, { value: "Produk / Barang", label: "Produk / Barang" }]
-      : isRental && config
+          ? [{ value: "ALL", label: "Semua" }]
+          : isRental && config
         ? config.tabs  // [{ value: "ALL", label: "Semua" }, { value: "UNIT", label: "Unit Fisik (Kamar)" }, { value: "ADDON", label: "Layanan & Tambahan (Addon)" }]
         : isRental
           ? [

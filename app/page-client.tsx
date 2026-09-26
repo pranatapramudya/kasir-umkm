@@ -1755,12 +1755,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                                                                       <Filter className={`w-4 h-4 ${selectedFilterTab === "ALL" ? "text-gray-500" : "text-blue-600"}`} />
                                                                                                       <span className={`text-sm max-w-[120px] truncate ${selectedFilterTab !== "ALL" && "font-semibold"}`}>
                                                                                                         {isRental && filterTabs.length > 0
-                                                                                                                                                                                                                  ? (selectedFilterTab === "ALL"
-                                                                                                                                                                                                                      ? "Semua"
-                                                                                                                                                                                                                      : filterTabs.find(t => t.value === selectedFilterTab)?.label)
-                                                                                                                                                                                                                  : (selectedFilterTab === "ALL"
-                                                                                                                                                                                                                      ? (isPureJasa ? "Jasa / Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk")
-                                                                                                                                                                                                                      : selectedFilterTab)}
+                                                                                                                                                                                                                                                                                                                          ? (selectedFilterTab === "ALL"
+                                                                                                                                                                                                                                                                                                                              ? "Semua"
+                                                                                                                                                                                                                                                                                                                              : filterTabs.find(t => t.value === selectedFilterTab)?.label)
+                                                                                                                                                                                                                                                                                                                          : (selectedFilterTab === "ALL"
+                                                                                                                                                                                                                                                                                                                              ? (isPureJasa ? "Semua" : isFNB ? "Makanan & Minuman" : "Semua Produk")
+                                                                                                                                                                                                                                                                                                                              : selectedFilterTab)}
                                                                                                       </span>
                                                                                                     </button>
 
@@ -1784,69 +1784,22 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                                                             </li>
                                                                                           ))
                                                                                         ) : (
-                                                                                          <>
-                                                                                            <li>
-                                                                                                                                                                                          <button
-                                                                                                                                                                                            onMouseDown={(e) => {
-                                                                                                                                                                                              e.preventDefault();
-                                                                                                                                                                                              setSelectedFilterTab("Semua");
-                                                                                                                                                                                              setIsCategoryMenuOpen(false);
-                                                                                                                                                                                            }}
-                                                                                                                                                                                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Semua" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                                                                                                                                                                          >
-                                                                                                                                                                                            {isPureJasa ? "Jasa / Produk" : isFNB ? "Makanan & Minuman" : "Semua Produk"}
-                                                                                                                                                                                            {selectedFilterTab === "Semua" && <Check className="w-4 h-4" />}
-                                                                                                                                                                                          </button>
-                                                                                                                                                                                        </li>
-                                                                                            {isPureJasa && (
-                                                                                              <>
-                                                                                                <li>
-                                                                                                  <button
-                                                                                                    onMouseDown={(e) => {
-                                                                                                      e.preventDefault();
-                                                                                                      setSelectedFilterTab("Jasa / Servis");
-                                                                                                      setIsCategoryMenuOpen(false);
-                                                                                                    }}
-                                                                                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Jasa / Servis" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                                                                                  >
-                                                                                                    Jasa / Servis
-                                                                                                    {selectedFilterTab === "Jasa / Servis" && <Check className="w-4 h-4" />}
-                                                                                                  </button>
-                                                                                                </li>
-                                                                                                <li>
-                                                                                                  <button
-                                                                                                    onMouseDown={(e) => {
-                                                                                                      e.preventDefault();
-                                                                                                      setSelectedFilterTab("Produk / Barang");
-                                                                                                      setIsCategoryMenuOpen(false);
-                                                                                                    }}
-                                                                                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Produk / Barang" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                                                                                  >
-                                                                                                    Produk / Barang
-                                                                                                    {selectedFilterTab === "Produk / Barang" && <Check className="w-4 h-4" />}
-                                                                                                  </button>
-                                                                                                </li>
-                                                                                              </>
-                                                                                            )}
-                                                                                            {isFNB && [
-                                                                                              "Makanan", "Minuman", "Snack", "Paket"
-                                                                                            ].map(cat => (
-                                                                                              <li key={cat}>
-                                                                                                <button
-                                                                                                  onMouseDown={(e) => {
-                                                                                                    e.preventDefault();
-                                                                                                    setSelectedFilterTab(cat);
-                                                                                                    setIsCategoryMenuOpen(false);
-                                                                                                  }}
-                                                                                                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === cat ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                                                                                >
-                                                                                                  {cat}
-                                                                                                  {selectedFilterTab === cat && <Check className="w-4 h-4" />}
-                                                                                                </button>
-                                                                                              </li>
-                                                                                            ))}
-                                                                                          </>
-                                                                                        )}
+                                                                                                                                                                                  <>
+                                                                                                                                                                                    <li>
+                                                                                                                                                                                                                                                                                  <button
+                                                                                                                                                                                                                                                                                    onMouseDown={(e) => {
+                                                                                                                                                                                                                                                                                      e.preventDefault();
+                                                                                                                                                                                                                                                                                      setSelectedFilterTab("Semua");
+                                                                                                                                                                                                                                                                                      setIsCategoryMenuOpen(false);
+                                                                                                                                                                                                                                                                                    }}
+                                                                                                                                                                                                                                                                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === "Semua" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                                                                                                                                                                                                                                                  >
+                                                                                                                                                                                                                                                                                    {isPureJasa ? "Semua" : isFNB ? "Makanan & Minuman" : "Semua Produk"}
+                                                                                                                                                                                                                                                                                    {selectedFilterTab === "Semua" && <Check className="w-4 h-4" />}
+                                                                                                                                                                                                                                                                                  </button>
+                                                                                                                                                                                                                                                                                </li>
+                                                                                                                                                                                  </>
+                                                                                                                                                                                )}
                                                                                       </ul>
                                                                                     </div>
                                                                                   )}
