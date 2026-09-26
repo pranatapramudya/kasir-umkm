@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isRentalTravelCategory, isServiceBusinessCategory } from '@/lib/business-category';
+import { isRentalTravelCategory, isServiceBusinessCategory, getFnbSubType } from '@/lib/business-category';
+import { isFnBCategory } from '@/lib/navigation';
 
 // Vercel function timeout: Hobby 10s, Pro 60s - set 30s for safety
 export const maxDuration = 30;
 
 export async function GET(req: NextRequest) {
   const kategoriUsaha = req.nextUrl.searchParams.get('category') || 'Jasa';
-  const subType = (req.nextUrl.searchParams.get('type') || '').toLowerCase(); // 'rental' | 'properti'
+  const subType = (req.nextUrl.searchParams.get('type') || '').toLowerCase(); // 'rental' | 'properti' | 'cafe' | 'resto' | 'generic'
   const isRental = isRentalTravelCategory(kategoriUsaha);
   const isJasa = isServiceBusinessCategory(kategoriUsaha) && !isRental;
-  const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
+  const isFNB = isFnBCategory(kategoriUsaha);
+  const fnbSubType = isFNB ? (subType || getFnbSubType(kategoriUsaha)) : 'generic';
 
   const ExcelJS = (await import('exceljs')).default;
   const workbook = new ExcelJS.Workbook();
@@ -312,35 +314,240 @@ export async function GET(req: NextRequest) {
   }
 
   // ==========================================
-  // 2. F&B / KULINER
+  // 2. F&B / KULINER - Dynamic by sub-type (cafe/resto/generic)
   // ==========================================
   if (isFNB) {
-    const wsMenu = workbook.addWorksheet('Menu Makanan & Minuman');
-    wsMenu.columns = [
-      { header: 'Kode Menu (SKU)', key: 'kodeMenu', width: 20 },
-      { header: 'Nama Menu', key: 'name', width: 36 },
-      { header: 'Kategori', key: 'category', width: 22 },
-      { header: 'HPP / Biaya Bahan (Rp)', key: 'hpp', width: 24 },
-      { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 20 },
-      { header: 'Tipe', key: 'tipe', width: 14 },
-      { header: 'Waktu Persiapan (menit)', key: 'prepTime', width: 22 },
-      { header: 'Printer Dapur', key: 'kitchenPrinter', width: 18 },
-      { header: 'Modifiers (opsional)', key: 'modifiers', width: 30 },
-      { header: 'Resep / Bahan Baku', key: 'recipe', width: 50 },
-      { header: 'Deskripsi', key: 'description', width: 40 },
-    ];
+    if (fnbSubType === 'cafe') {
+      // ------------------------------------------
+      // TEMPLATE KHUSUS: CAFE & COFFEE SHOP
+      // ------------------------------------------
+      const ws = workbook.addWorksheet('Menu Cafe');
+      ws.columns = [
+        { header: 'Kode Menu (SKU)', key: 'kodeBarang', width: 18 },
+        { header: 'Nama Menu', key: 'name', width: 36 },
+        { header: 'Kategori', key: 'category', width: 20 },
+        { header: 'HPP (Rp)', key: 'hpp', width: 18 },
+        { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 18 },
+        { header: 'Stok', key: 'stock', width: 14 },
+        { header: 'Batas Minimum Stok', key: 'minStockThreshold', width: 20 },
+        { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
+      ];
 
-    for (let row = 2; row <= 50; row++) {
-      wsMenu.getCell(`C${row}`).dataValidation = { type: 'list', allowBlank: false, formulae: ['"Makanan,Minuman,Appetizer,Dessert,Paket,Nasi,Beras,Sayur,Lauk,Snack"'], showErrorMessage: true, errorTitle: 'Kategori Tidak Valid', error: 'Pilih kategori dari dropdown.' };
-      wsMenu.getCell(`F${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Makanan,Minuman"'] };
-      wsMenu.getCell(`H${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Dapur,Bar,Khusus,Tidak Cetak"'] };
+      for (let row = 2; row <= 200; row++) {
+        ws.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Kopi,Non-Kopi,Makanan Ringan,Dessert,Paket Sarapan"'],
+        };
+      }
+
+      ws.addRow({
+        kodeBarang: 'MNU001',
+        name: 'Espresso',
+        category: 'Kopi',
+        hpp: 5000,
+        hargaJual: 18000,
+        stock: 100,
+        minStockThreshold: 10,
+        description: 'Kopi hitam klasik'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU002',
+        name: 'Cappuccino',
+        category: 'Kopi',
+        hpp: 7000,
+        hargaJual: 22000,
+        stock: 80,
+        minStockThreshold: 10,
+        description: 'Espresso + susu foam'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU003',
+        name: 'Matcha Latte',
+        category: 'Non-Kopi',
+        hpp: 8000,
+        hargaJual: 25000,
+        stock: 60,
+        minStockThreshold: 10,
+        description: 'Matcha premium + susu'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU004',
+        name: 'Croissant',
+        category: 'Makanan Ringan',
+        hpp: 15000,
+        hargaJual: 35000,
+        stock: 30,
+        minStockThreshold: 5,
+        description: 'Croissant mentega fresh'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU005',
+        name: 'Tiramisu',
+        category: 'Dessert',
+        hpp: 20000,
+        hargaJual: 45000,
+        stock: 20,
+        minStockThreshold: 3,
+        description: 'Dessert khas Italia'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU006',
+        name: 'Paket Sarapan Hemat',
+        category: 'Paket Sarapan',
+        hpp: 25000,
+        hargaJual: 55000,
+        stock: 50,
+        minStockThreshold: 5,
+        description: 'Roti + telur + kopi'
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="template_import_fnb_cafe.xlsx"',
+        },
+      });
     }
 
-    wsMenu.addRow(['MKN001', 'Nasi Goreng Spesial', 'Makanan', 15000, 25000, 'Makanan', 10, 'Dapur', 'Level pedas: Tidak pedas, Sedang, Pedas, Extra pedas; Telur: Tanpa, Dadar, Ceplok', 'Beras: 200g; Bawang merah: 3 siung; Bawang putih: 2 siung; Cabai: 5 buah; Kecap manis: 2 sdm; Telur: 1 butir; Minyak goreng: 2 sdm', 'Nasi goreng komplit dengan telur dan kerupuk']);
-    wsMenu.addRow(['MKN002', 'Ayam Geprek Sambal Matah', 'Makanan', 18000, 30000, 'Makanan', 15, 'Dapur', 'Level pedas: Tidak pedas, Sedang, Pedas, Extra pedas; Nasi: Putih, Merah', 'Ayam fillet: 150g; Tepung crispy: 50g; Bawang merah: 5 siung; Cabai rawit: 10 buah; Sereh: 1 batang; Jeruk limau: 1 buah; Minyak panas: 3 sdm', 'Ayam crispy digeprek dengan sambal matah khas Bali']);
-    wsMenu.addRow(['MNM001', 'Es Teh Manis', 'Minuman', 2000, 5000, 'Minuman', 2, 'Bar', 'Gula: Normal, Kurang, Tambah; Es: Normal, Sedikit, Banyak', 'Teh celup: 1 sachet; Gula pasir: 2 sdm; Air panas: 200ml; Es batu: secukupnya', 'Teh manis segar dengan es batu']);
-    wsMenu.addRow(['MNM002', 'Es Jeruk Peras', 'Minuman', 5000, 10000, 'Minuman', 3, 'Bar', 'Gula: Normal, Kurang, Tambah; Es: Normal, Sedikit, Banyak', 'Jeruk nipis: 2 buah; Gula pasir: 2 sdm; Air putih: 200ml; Es batu: secukupnya', 'Jeruk peras segar tanpa pengawet']);
-    wsMenu.addRow(['MKN003', 'Mie Ayam Bakso', 'Makanan', 12000, 22000, 'Makanan', 8, 'Dapur', 'Bakso: Tambah, Kurang; Pangsit: Goreng, Rebus; Level pedas: Tidak, Sedang, Pedas', 'Mie telur: 150g; Ayam suwir: 50g; Bakso sapi: 3 butir; Pangsit: 3 buah; Sawi: 50g; Kuah kaldu: 300ml; Bawang goreng: 1 sdm', 'Mie ayam komplit dengan bakso dan pangsit']);
+    if (fnbSubType === 'resto') {
+      // ------------------------------------------
+      // TEMPLATE KHUSUS: RESTORAN & WARUNG MAKAN
+      // ------------------------------------------
+      const ws = workbook.addWorksheet('Menu Resto');
+      ws.columns = [
+        { header: 'Kode Menu (SKU)', key: 'kodeBarang', width: 18 },
+        { header: 'Nama Menu', key: 'name', width: 36 },
+        { header: 'Kategori', key: 'category', width: 20 },
+        { header: 'HPP (Rp)', key: 'hpp', width: 18 },
+        { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 18 },
+        { header: 'Stok', key: 'stock', width: 14 },
+        { header: 'Batas Minimum Stok', key: 'minStockThreshold', width: 20 },
+        { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
+      ];
+
+      for (let row = 2; row <= 200; row++) {
+        ws.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Appetizer,Main Course,Dessert,Beverage,Paket Hemat"'],
+        };
+      }
+
+      ws.addRow({
+        kodeBarang: 'MNU001',
+        name: 'Salad Caesar',
+        category: 'Appetizer',
+        hpp: 15000,
+        hargaJual: 35000,
+        stock: 50,
+        minStockThreshold: 5,
+        description: 'Salad segar dengan dressing caesar'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU002',
+        name: 'Nasi Goreng Spesial',
+        category: 'Main Course',
+        hpp: 12000,
+        hargaJual: 25000,
+        stock: 100,
+        minStockThreshold: 10,
+        description: 'Menu makanan utama'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU003',
+        name: 'Ayam Goreng Crispy',
+        category: 'Main Course',
+        hpp: 18000,
+        hargaJual: 40000,
+        stock: 80,
+        minStockThreshold: 10,
+        description: 'Ayam goreng renyah bumbu khusus'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU004',
+        name: 'Es Teh Manis',
+        category: 'Beverage',
+        hpp: 1500,
+        hargaJual: 5000,
+        stock: 200,
+        minStockThreshold: 20,
+        description: 'Minuman segar'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU005',
+        name: 'Pudding Coklat',
+        category: 'Dessert',
+        hpp: 8000,
+        hargaJual: 20000,
+        stock: 40,
+        minStockThreshold: 5,
+        description: 'Dessert manis lembut'
+      });
+      ws.addRow({
+        kodeBarang: 'MNU006',
+        name: 'Paket Hemat Nasi + Ayam + Teh',
+        category: 'Paket Hemat',
+        hpp: 25000,
+        hargaJual: 55000,
+        stock: 60,
+        minStockThreshold: 5,
+        description: 'Paket hemat siang hari'
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      return new NextResponse(buffer, {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="template_import_fnb_resto.xlsx"',
+        },
+      });
+    }
+
+    // ------------------------------------------
+    // TEMPLATE GENERIC (fallback)
+    // ------------------------------------------
+    const ws = workbook.addWorksheet('Menu Makanan & Minuman');
+    ws.columns = [
+      { header: 'Kode Menu (SKU)', key: 'kodeBarang', width: 18 },
+      { header: 'Nama Menu', key: 'name', width: 36 },
+      { header: 'Kategori', key: 'category', width: 20 },
+      { header: 'HPP (Rp)', key: 'hpp', width: 18 },
+      { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 18 },
+      { header: 'Stok', key: 'stock', width: 14 },
+      { header: 'Batas Minimum Stok', key: 'minStockThreshold', width: 20 },
+      { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
+    ];
+
+    for (let row = 2; row <= 200; row++) {
+      ws.getCell(`C${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"Makanan,Minuman,Snack,Dessert,Paket Hemat"'],
+      };
+    }
+
+    ws.addRow({
+      kodeBarang: 'MNU001',
+      name: 'Nasi Goreng Spesial',
+      category: 'Makanan',
+      hpp: 12000,
+      hargaJual: 25000,
+      stock: 50,
+      minStockThreshold: 5,
+      description: 'Menu makanan utama'
+    });
+    ws.addRow({
+      kodeBarang: 'MNU002',
+      name: 'Es Teh Manis',
+      category: 'Minuman',
+      hpp: 1500,
+      hargaJual: 5000,
+      stock: 100,
+      minStockThreshold: 10,
+      description: 'Minuman segar'
+    });
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, {

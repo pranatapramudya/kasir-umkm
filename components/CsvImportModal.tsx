@@ -1,8 +1,9 @@
 "use client";
 
 import React from 'react';
-import { X, FileDown, Loader2, Upload, Car, Building2, Package } from 'lucide-react';
-import { isServiceBusinessCategory, isRentalTravelCategory } from '@/lib/business-category';
+import { X, FileDown, Loader2, Upload, Car, Building2, Package, Coffee, Utensils } from 'lucide-react';
+import { isServiceBusinessCategory, isRentalTravelCategory, getFnbSubType } from '@/lib/business-category';
+import { isFnBCategory } from '@/lib/navigation';
 
 type CsvImportModalProps = {
   isOpen: boolean;
@@ -25,9 +26,10 @@ export default function CsvImportModal({
 }: CsvImportModalProps) {
   if (!isOpen) return null;
 
-  const isRental = isRentalTravelCategory(kategoriUsaha);
-  const isJasa = isServiceBusinessCategory(kategoriUsaha) && !isRental;
-  const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
+  const isRental = isRentalTravelCategory(kategoriUsaha || '');
+  const isJasa = isServiceBusinessCategory(kategoriUsaha || '') && !isRental;
+  const isFNB = isFnBCategory(kategoriUsaha || '');
+  const fnbSubType = isFNB ? getFnbSubType(kategoriUsaha || '') : 'generic';
 
   const handleDownloadTemplate = (type?: string) => {
     try {
@@ -124,70 +126,125 @@ export default function CsvImportModal({
               )}
 
               <li>Simpan file di komputer Anda (.xlsx), kemudian unggah pada form di bawah.</li>
+
+              {/* TOMBOL DOWNLOAD TEMPLATE */}
+                        {(() => {
+                          if (isRental) {
+                            return (
+                              <div className="pt-2 space-y-2.5">
+                                <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+                                  Pilih Format Template Sesuai Niche Usaha Anda:
+                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadTemplate('rental')}
+                                    className="flex flex-col items-start p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
+                                  >
+                                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                                      <Car className="w-4 h-4 text-blue-200 group-hover:scale-110 transition-transform shrink-0" />
+                                      Rental Kendaraan
+                                    </div>
+                                    <span className="text-[11px] text-blue-100 mt-1 leading-tight line-clamp-2">
+                                      Mobil, Motor, Bus, Minibus, Travel & Supir
+                                    </span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadTemplate('properti')}
+                                    className="flex flex-col items-start p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
+                                  >
+                                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                                      <Building2 className="w-4 h-4 text-indigo-200 group-hover:scale-110 transition-transform shrink-0" />
+                                      Properti & Kamar
+                                    </div>
+                                    <span className="text-[11px] text-indigo-100 mt-1 leading-tight line-clamp-2">
+                                      Kamar Kost, Villa, Apartemen, Hotel & Glamping
+                                    </span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadTemplate('alat')}
+                                    className="flex flex-col items-start p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
+                                  >
+                                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                                      <Package className="w-4 h-4 text-emerald-200 group-hover:scale-110 transition-transform shrink-0" />
+                                      Peralatan & Alat
+                                    </div>
+                                    <span className="text-[11px] text-emerald-100 mt-1 leading-tight line-clamp-2">
+                                      Kamera, Camping, Sound System, PS5, Alat Berat
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          }
+                          if (isFNB) {
+                            return (
+                              <div className="pt-2 space-y-2.5">
+                                <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+                                  Pilih Format Template Sesuai Jenis F&B Usaha Anda:
+                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadTemplate('cafe')}
+                                    className="flex flex-col items-start p-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
+                                  >
+                                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                                      <Coffee className="w-4 h-4 text-amber-200 group-hover:scale-110 transition-transform shrink-0" />
+                                      Cafe & Coffee Shop
+                                    </div>
+                                    <span className="text-[11px] text-amber-100 mt-1 leading-tight line-clamp-2">
+                                      Kopi, Non-Kopi, Makanan Ringan, Dessert, Paket Sarapan
+                                    </span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadTemplate('resto')}
+                                    className="flex flex-col items-start p-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
+                                  >
+                                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                                      <Utensils className="w-4 h-4 text-orange-200 group-hover:scale-110 transition-transform shrink-0" />
+                                      Restoran & Warung Makan
+                                    </div>
+                                    <span className="text-[11px] text-orange-100 mt-1 leading-tight line-clamp-2">
+                                      Appetizer, Main Course, Dessert, Beverage, Paket Hemat
+                                    </span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadTemplate('generic')}
+                                    className="flex flex-col items-start p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
+                                  >
+                                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                                      <FileDown className="w-4 h-4 text-blue-200 group-hover:scale-110 transition-transform shrink-0" />
+                                      F&B Umum (Generic)
+                                    </div>
+                                    <span className="text-[11px] text-blue-100 mt-1 leading-tight line-clamp-2">
+                                      Makanan, Minuman, Snack, Dessert, Paket Hemat
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadTemplate()}
+                              className="mt-2 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
+                            >
+                              <FileDown className="w-4 h-4" /> Download Format Template Excel (.xlsx)
+                            </button>
+                          );
+                        })()}
             </ol>
-
-            {/* TOMBOL DOWNLOAD TEMPLATE */}
-            {isRental ? (
-              <div className="pt-2 space-y-2.5">
-                <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">
-                  Pilih Format Template Sesuai Niche Usaha Anda:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadTemplate('rental')}
-                    className="flex flex-col items-start p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
-                  >
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <Car className="w-4 h-4 text-blue-200 group-hover:scale-110 transition-transform shrink-0" />
-                      Rental Kendaraan
-                    </div>
-                    <span className="text-[11px] text-blue-100 mt-1 leading-tight line-clamp-2">
-                      Mobil, Motor, Bus, Minibus, Travel & Supir
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadTemplate('properti')}
-                    className="flex flex-col items-start p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
-                  >
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <Building2 className="w-4 h-4 text-indigo-200 group-hover:scale-110 transition-transform shrink-0" />
-                      Properti & Kamar
-                    </div>
-                    <span className="text-[11px] text-indigo-100 mt-1 leading-tight line-clamp-2">
-                      Kamar Kost, Villa, Apartemen, Hotel & Glamping
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadTemplate('alat')}
-                    className="flex flex-col items-start p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-sm active:scale-[0.98] text-left group"
-                  >
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <Package className="w-4 h-4 text-emerald-200 group-hover:scale-110 transition-transform shrink-0" />
-                      Peralatan & Alat
-                    </div>
-                    <span className="text-[11px] text-emerald-100 mt-1 leading-tight line-clamp-2">
-                      Kamera, Camping, Sound System, PS5, Alat Berat
-                    </span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => handleDownloadTemplate()}
-                className="mt-2 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
-              >
-                <FileDown className="w-4 h-4" /> Download Format Template Excel (.xlsx)
-              </button>
-            )}
           </div>
-
-          {/* Form Upload */}
           <form onSubmit={handleImportSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1.5">
