@@ -123,33 +123,38 @@ export default function AdminProductsClientPage({
       let result = rawProducts;
 
       // Category filter via niche config (rental) or legacy logic
-      if (selectedFilterTab !== "ALL" && config) {
-        const tab = config.tabs.find(t => t.value === selectedFilterTab);
-        if (tab?.filter) {
-          result = result.filter(tab.filter);
+      if (selectedFilterTab !== "ALL") {
+        if (config) {
+          // Try config tabs first (values: "UNIT", "ADDON")
+          const tab = config.tabs.find(t => t.value === selectedFilterTab);
+          if (tab?.filter) {
+            result = result.filter(tab.filter);
+          }
         }
-      } else if (selectedFilterTab !== "ALL" && !config) {
-        const catLower = selectedFilterTab.toLowerCase().trim();
-        if (isRental) {
-          if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit") {
-            result = result.filter(p => !p.isService);
-          } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan")) {
-            result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+        // Fallback: handle legacy string values even when config exists (state persistence)
+        if (result.length === rawProducts.length) { // no filter applied yet
+          const catLower = selectedFilterTab.toLowerCase().trim();
+          if (isRental) {
+            if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
+              result = result.filter(p => !p.isService);
+            } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan") || selectedFilterTab === "ADDON") {
+              result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+            } else {
+              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+            }
+          } else if (catLower.includes("jasa") || catLower.includes("servis")) {
+            result = result.filter(p => {
+              const c = (p.category || "").toLowerCase().trim();
+              return c.includes("jasa") || c.includes("servis") || p.isService;
+            });
+          } else if (catLower.includes("produk") || catLower.includes("barang")) {
+            result = result.filter(p => {
+              const c = (p.category || "").toLowerCase().trim();
+              return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+            });
           } else {
             result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
           }
-        } else if (catLower.includes("jasa") || catLower.includes("servis")) {
-          result = result.filter(p => {
-            const c = (p.category || "").toLowerCase().trim();
-            return c.includes("jasa") || c.includes("servis") || p.isService;
-          });
-        } else if (catLower.includes("produk") || catLower.includes("barang")) {
-          result = result.filter(p => {
-            const c = (p.category || "").toLowerCase().trim();
-            return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
-          });
-        } else {
-          result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
         }
       }
 

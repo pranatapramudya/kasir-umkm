@@ -381,31 +381,59 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         }, [isRental, config]);
 
                 // Instant Client-side Filter untuk Respons 0ms (Filter Tab + Pencarian)
-        const filteredProducts = useMemo(() => {
-          if (!rawProducts || rawProducts.length === 0) return [];
+                        const filteredProducts = useMemo(() => {
+                          if (!rawProducts || rawProducts.length === 0) return [];
 
-          let result = rawProducts;
+                          let result = rawProducts;
 
-          // Filter by tab (only for rental)
-          if (isRental && selectedFilterTab !== "ALL" && config) {
-            if (selectedFilterTab === "UNIT") {
-              result = result.filter(p => !p.isService);
-            } else if (selectedFilterTab === "ADDON") {
-              result = result.filter(p => p.isService);
-            }
-          }
+                          // Filter by tab (only for rental)
+                          if (selectedFilterTab !== "ALL") {
+                            if (isRental && config) {
+                              // Try config tabs first (values: "UNIT", "ADDON")
+                              if (selectedFilterTab === "UNIT") {
+                                result = result.filter(p => !p.isService);
+                              } else if (selectedFilterTab === "ADDON") {
+                                result = result.filter(p => p.isService);
+                              }
+                            }
+                            // Fallback: handle legacy string values even when config exists (state persistence)
+                            if (result.length === rawProducts.length) { // no filter applied yet
+                              const catLower = selectedFilterTab.toLowerCase().trim();
+                              if (isRental) {
+                                if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
+                                  result = result.filter(p => !p.isService);
+                                } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan") || selectedFilterTab === "ADDON") {
+                                  result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
+                                } else {
+                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                }
+                              } else if (catLower.includes("jasa") || catLower.includes("servis")) {
+                                result = result.filter(p => {
+                                  const c = (p.category || "").toLowerCase().trim();
+                                  return c.includes("jasa") || c.includes("servis") || p.isService;
+                                });
+                              } else if (catLower.includes("produk") || catLower.includes("barang")) {
+                                result = result.filter(p => {
+                                  const c = (p.category || "").toLowerCase().trim();
+                                  return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
+                                });
+                              } else {
+                                result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                              }
+                            }
+                          }
 
-        // Filter pencarian (search)
-        if (search && search.trim() !== "") {
-          const searchLower = search.toLowerCase().trim();
-          result = result.filter(p =>
-            p.name.toLowerCase().includes(searchLower) ||
-            (p.kodeBarang && p.kodeBarang.toLowerCase().includes(searchLower))
-          );
-        }
+                        // Filter pencarian (search)
+                        if (search && search.trim() !== "") {
+                          const searchLower = search.toLowerCase().trim();
+                          result = result.filter(p =>
+                            p.name.toLowerCase().includes(searchLower) ||
+                            (p.kodeBarang && p.kodeBarang.toLowerCase().includes(searchLower))
+                          );
+                        }
 
-        return result;
-      }, [rawProducts, selectedFilterTab, search]);
+                        return result;
+                      }, [rawProducts, selectedFilterTab, search, config, isRental]);
 
       const products = filteredProducts;
 
