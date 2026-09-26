@@ -390,17 +390,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                           ];
                         }, [isPureJasa]);
 
-                        // Filter tabs for FNB (static categories from template)
-                        const fnbFilterTabs = useMemo(() => {
-                          if (!isFNB) return [];
-                          return [
-                            { value: "ALL", label: "Semua" },
-                            { value: "Makanan", label: "Makanan" },
-                            { value: "Minuman", label: "Minuman" },
-                            { value: "Snack", label: "Snack" },
-                            { value: "Paket", label: "Paket" },
-                          ];
-                        }, [isFNB]);
+                        // Filter tabs for FNB (static categories from template - matches Excel template validation)
+                                const fnbFilterTabs = useMemo(() => {
+                                  if (!isFNB) return [];
+                                  return [
+                                    { value: "ALL", label: "Semua" },
+                                    { value: "Makanan", label: "Makanan" },
+                                    { value: "Minuman", label: "Minuman" },
+                                    { value: "Snack", label: "Snack" },
+                                    { value: "Dessert", label: "Dessert" },
+                                    { value: "Paket Hemat", label: "Paket Hemat" },
+                                  ];
+                                }, [isFNB]);
 
                 // Instant Client-side Filter untuk Respons 0ms (Filter Tab + Pencarian)
                         const filteredProducts = useMemo(() => {
@@ -439,12 +440,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                                                                                         result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                                                                                       }
                                                                                                                     } else if (isFNB) {
-                                                                                                                      // FNB: filter by category (Makanan, Minuman, Snack, Paket)
-                                                                                                                      if (["Makanan", "Minuman", "Snack", "Paket"].includes(selectedFilterTab)) {
-                                                                                                                        result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                                                                                      } else {
-                                                                                                                        result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                                                                                      }
+                                                                                                                                                                                // FNB: filter by category (Makanan, Minuman, Snack, Dessert, Paket Hemat)
+                                                                                                                                                                                if (["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"].includes(selectedFilterTab)) {
+                                                                                                                                                                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
+                                                                                                                                                                                } else {
+                                                                                                                                                                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                                                                                                                                                }
                                                                                                                     } else if (catLower.includes("jasa") || catLower.includes("servis")) {
                                                             result = result.filter(p => {
                                                               const c = (p.category || "").toLowerCase().trim();

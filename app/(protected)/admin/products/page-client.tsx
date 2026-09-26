@@ -15,6 +15,7 @@ import { Pagination } from '@/components/Pagination';
 import { isServiceBusinessCategory, isRentalTravelCategory, isPureServiceCategory, detectRentalItemType } from '@/lib/business-category';
 import { resolveRentalNiche, RENTAL_NICHE_CONFIG } from '@/lib/rental-filter';
 import { humanizeError } from '@/lib/error-mapper';
+import { isFnBCategory } from '@/lib/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,18 +56,19 @@ export default function AdminProductsClientPage({
   const { user } = useUser();
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
   const isJasa = isServiceBusinessCategory(kategoriUsaha);
-    const isRental = isRentalTravelCategory(kategoriUsaha);
-    const isPureJasa = isPureServiceCategory(kategoriUsaha);
-    const isFNB = kategoriUsaha === 'FNB' || kategoriUsaha === 'F&B' || kategoriUsaha === 'F&B / Kuliner';
+      const isRental = isRentalTravelCategory(kategoriUsaha);
+      const isPureJasa = isPureServiceCategory(kategoriUsaha);
+      const isFNB = isFnBCategory(kategoriUsaha);
 
     // FNB filter config (static categories from template)
-    const fnbFilterOptions = useMemo(() => [
-      { value: "ALL", label: "Semua" },
-      { value: "Makanan", label: "Makanan" },
-      { value: "Minuman", label: "Minuman" },
-      { value: "Snack", label: "Snack" },
-      { value: "Paket", label: "Paket" },
-    ], []);
+        const fnbFilterOptions = useMemo(() => [
+          { value: "ALL", label: "Semua" },
+          { value: "Makanan", label: "Makanan" },
+          { value: "Minuman", label: "Minuman" },
+          { value: "Snack", label: "Snack" },
+          { value: "Dessert", label: "Dessert" },
+          { value: "Paket Hemat", label: "Paket Hemat" },
+        ], []);
 
     // Niche detection for rental (auto-detects property/vehicle/equipment)
     const niche = useMemo(() => {
@@ -161,12 +163,12 @@ export default function AdminProductsClientPage({
                                                   result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                 }
                                             } else if (isFNB) {
-                                                // FNB: filter by category (Makanan, Minuman, Snack, Paket)
-                                                if (["Makanan", "Minuman", "Snack", "Paket"].includes(selectedFilterTab)) {
-                                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                } else {
-                                                  result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                }
+                                                                                            // FNB: filter by category (Makanan, Minuman, Snack, Dessert, Paket Hemat)
+                                                                                            if (["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"].includes(selectedFilterTab)) {
+                                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
+                                                                                            } else {
+                                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                                                            }
                           } else {
                             result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                           }
