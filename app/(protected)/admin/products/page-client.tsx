@@ -230,13 +230,20 @@ export default function AdminProductsClientPage({
   });
 
   const uniqueCategories = Array.from(new Set(rawProducts.map(p => p.category).filter(Boolean)));
-    const categories = isPureJasa
-      ? ["Semua", "Jasa / Servis", "Produk / Barang"]
+  
+    // Build filter options: { value, label } for rental, string[] for others
+    const filterOptions = isPureJasa
+      ? [{ value: "ALL", label: "Semua" }, { value: "Jasa / Servis", label: "Jasa / Servis" }, { value: "Produk / Barang", label: "Produk / Barang" }]
       : isRental && config
-        ? config.tabs.map(t => t.label)  // ["Semua", "Unit Fisik (Kamar)", "Layanan & Tambahan (Addon)"]
+        ? config.tabs  // [{ value: "ALL", label: "Semua" }, { value: "UNIT", label: "Unit Fisik (Kamar)" }, { value: "ADDON", label: "Layanan & Tambahan (Addon)" }]
         : isRental
-          ? ["Semua", "Unit Sewa", "Layanan & Add-on", ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on")]
-          : ["Semua", ...uniqueCategories];
+          ? [
+              { value: "ALL", label: "Semua" },
+              { value: "Unit Sewa", label: "Unit Sewa" },
+              { value: "Layanan & Add-on", label: "Layanan & Add-on" },
+              ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on").map(c => ({ value: c, label: c }))
+            ]
+          : [{ value: "ALL", label: "Semua" }, ...uniqueCategories.map(c => ({ value: c, label: c }))];
 
 
   const formatNumberInput = (val: string) => {
@@ -771,31 +778,31 @@ export default function AdminProductsClientPage({
                   </button>
 
           {isCategoryMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-                        <ul className="py-1 max-h-60 overflow-y-auto">
-                          {categories.map((cat: string) => (
-                            <li key={cat}>
-                              <button
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  setSelectedFilterTab(cat);
-                                  setIsCategoryMenuOpen(false);
-                                }}
-                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === cat ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                              >
-                                <span className="truncate">
-                                  {isRental && cat === "Semua" ? "🌐 Semua Unit & Layanan"
-                                    : isRental && cat === "Unit Sewa" ? "📦 Unit Sewa (Fisik)"
-                                    : isRental && cat === "Layanan & Add-on" ? "🛠️ Layanan & Add-on"
-                                    : cat}
-                                </span>
-                                {selectedFilterTab === cat && <Check className="w-4 h-4 shrink-0" />}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                                  <ul className="py-1 max-h-60 overflow-y-auto">
+                                    {filterOptions.map((opt) => (
+                                      <li key={opt.value}>
+                                        <button
+                                          onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            setSelectedFilterTab(opt.value);
+                                            setIsCategoryMenuOpen(false);
+                                          }}
+                                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${selectedFilterTab === opt.value ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                        >
+                                          <span className="truncate">
+                                            {isRental && opt.value === "ALL" ? "🌐 Semua Unit & Layanan"
+                                              : isRental && opt.value === "UNIT" ? "📦 Unit Fisik"
+                                              : isRental && opt.value === "ADDON" ? "🛠️ Layanan & Tambahan"
+                                              : opt.label}
+                                          </span>
+                                          {selectedFilterTab === opt.value && <Check className="w-4 h-4 shrink-0" />}
+                                        </button>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
         </div>
       </div>
 

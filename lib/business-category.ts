@@ -1,4 +1,4 @@
-const SERVICE_BUSINESS_CATEGORIES = ["JASA", "Jasa / Servis", "Jasa/Servis"];
+const SERVICE_BUSINESS_CATEGORIES = ["JASA", "Jasa / Servis", "Jasa/Servis", "Jasa Properti", "Jasa Sewa", "Jasa Rental"];
 const RENTAL_TRAVEL_CATEGORIES = [
   "RENTAL", 
   "Rental & Travel", 
@@ -26,10 +26,10 @@ export function isServiceBusinessCategory(category?: string | null) {
 
 export function isRentalTravelCategory(category?: string | null) {
   const cat = category ?? "";
+  // Exact match only - no loose substring matching to avoid false positives
+  // (e.g., "Jasa Properti" = property services/brokerage, NOT rental)
   return RENTAL_TRAVEL_CATEGORIES.includes(cat) || 
-    cat.toUpperCase().startsWith("RENTAL") || 
-    cat.toLowerCase().includes("properti") || 
-    cat.toLowerCase().includes("travel");
+    cat.toUpperCase().startsWith("RENTAL");
 }
 
 export function isPureServiceCategory(category?: string | null) {
