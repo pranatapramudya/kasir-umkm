@@ -37,6 +37,7 @@ export default function LandingPageClient() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
+  const [isTncOpen, setIsTncOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('pjtech_landing_theme') as 'light' | 'dark' | null;
@@ -891,93 +892,306 @@ export default function LandingPageClient() {
         </div>
       </section>
 
-      {/* 9. TRANSPARENT PRICING SECTION */}
-      <section id="pricing" className={`py-20 border-t transition-colors ${
-        isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'
+      {/* 9. TRANSPARENT PRICING SECTION - 4 EXACT TIERS */}
+      <section id="pricing" className={`py-20 md:py-28 border-t transition-colors ${
+        isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-black text-blue-600 uppercase tracking-widest">Harga Transparan</span>
-            <h2 className={`text-3xl sm:text-5xl font-black tracking-tight mt-2 mb-4 ${
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <span className="text-xs font-black text-blue-600 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase tracking-wider">
+              Pilihan Paket Langganan
+            </span>
+            <h2 className={`text-3xl sm:text-5xl font-black tracking-tight mt-4 mb-3 ${
               isDark ? 'text-white' : 'text-slate-950'
             }`}>
-              Satu Harga untuk Semua Fitur
+              Transparan, Fleksibel, Tanpa Biaya Tersembunyi
             </h2>
-            <p className={`text-base sm:text-lg font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              Tanpa biaya per transaksi, tanpa biaya instalasi, tanpa biaya add-on tersembunyi.
+            <p className={`text-sm sm:text-base font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              Tingkatkan ke Pro untuk melihat laporan keuntungan harian, melacak tren penjualan, dan fitur analitik premium lainnya.
             </p>
           </div>
 
-          <div className={`max-w-lg mx-auto rounded-3xl p-8 sm:p-10 shadow-2xl relative border-2 ${
-            isDark ? 'bg-slate-900 border-blue-500' : 'bg-white border-blue-600 shadow-blue-100'
-          }`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
-              Paket Juara UMKM (Paling Hemat)
-            </div>
+            {/* 1. Mulai Usaha (Free Trial) */}
+            <div className={`rounded-3xl p-6 flex flex-col justify-between border transition-all ${
+              isDark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+            }`}>
+              <div>
+                <div className="mb-5">
+                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Mulai Usaha</h3>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Pengguna baru yang ragu dan ingin mencoba.
+                  </p>
+                </div>
+                
+                <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <div className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Rp 0</div>
+                  <div className={`text-xs font-semibold mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Gratis 14 Hari Pertama</div>
+                </div>
 
-            <div className={`text-center pb-6 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-              <h3 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Langganan 1 Tahun</h3>
-              <p className={`text-xs mt-1 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Akses penuh ke semua modul bisnis</p>
-              <div className="mt-4">
-                <span className={`text-4xl sm:text-5xl font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Rp 990.000</span>
-                <span className="text-slate-500 text-sm font-medium"> / tahun</span>
+                <div className="space-y-3 mb-8 text-xs font-medium">
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Akses Kasir Penuh (POS)</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Manajemen Produk Dasar</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Dasbor Analitik (Terbatas)</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-emerald-600 font-extrabold mt-1">Setara Rp 82.500 / bulan (~Rp 2.700 / hari)</p>
-            </div>
 
-            <div className={`py-6 space-y-3.5 text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>4 Vertikal Aktif</strong> (Retail, F&B, Jasa, Rental)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>Unlimited Transaksi & Produk</strong></span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>Kitchen Display System (KDS)</strong> Dapur & Bar</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>Tracking Servis Jasa & Notifikasi WA</strong></span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>Kalender Booking Rental & Invoice A4</strong></span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>Multi-Kasir & Multi-Perangkat</strong></span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>Laporan Pajak PPN & Ekspor Akuntansi CSV</strong></span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-emerald-500 shrink-0 stroke-[3]" />
-                <span><strong>Update Fitur Gratis Selamanya</strong></span>
-              </div>
-            </div>
-
-            <div className="pt-2">
               <Link
                 href="/sign-up?redirect_url=/onboarding"
-                className="w-full block text-center py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-600/30 active:scale-95 transition-all"
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
+                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                }`}
               >
-                Mulai Trial Gratis 14 Hari
+                Coba Gratis 14 Hari
               </Link>
-              <p className={`text-[11px] text-center mt-3 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Coba dulu gratis 14 hari tanpa kartu kredit. Aktifkan lisensi kapan saja.
-              </p>
+            </div>
+
+            {/* 2. Pro 1 Bulan */}
+            <div className={`rounded-3xl p-6 flex flex-col justify-between border transition-all ${
+              isDark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+            }`}>
+              <div>
+                <div className="mb-5">
+                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Pro 1 Bulan</h3>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Untuk mencoba fitur lengkap kasir pintar.
+                  </p>
+                </div>
+
+                <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <div className={`text-3xl font-black flex items-baseline gap-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Rp 129k <span className="text-xs font-normal text-slate-500">/ bulan</span>
+                  </div>
+                  <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">Total: Rp 129.000 / 1 bulan</div>
+                  <div className="text-[11px] text-slate-400 italic mt-0.5">(Hanya Software)</div>
+                  <button 
+                    onClick={() => setIsTncOpen(true)} 
+                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline mt-1.5 block"
+                  >
+                    Lihat Syarat & Ketentuan
+                  </button>
+                </div>
+
+                <div className="space-y-3 mb-8 text-xs font-medium">
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Akses Penuh POS, Jasa & Rental</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Manajemen Stok & Komisi</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Laporan Keuangan Dasar</span>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="https://pranajayatech.myr.id/pl/kasir-umkm-pro-1-bulan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
+                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                }`}
+              >
+                Pilih 1 Bulan
+              </a>
+            </div>
+
+            {/* 3. Pro 6 Bulan */}
+            <div className={`rounded-3xl p-6 flex flex-col justify-between border transition-all ${
+              isDark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+            }`}>
+              <div>
+                <div className="mb-5">
+                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Pro 6 Bulan</h3>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    UMKM yang butuh fleksibilitas cashflow.
+                  </p>
+                </div>
+
+                <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <div className={`text-3xl font-black flex items-baseline gap-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Rp 99k <span className="text-xs font-normal text-slate-500">/ bulan</span>
+                  </div>
+                  <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">Total: Rp 594.000 / 6 bulan</div>
+                  <div className="text-[11px] text-slate-400 italic mt-0.5">(Hanya Software)</div>
+                  <button 
+                    onClick={() => setIsTncOpen(true)} 
+                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline mt-1.5 block"
+                  >
+                    Lihat Syarat & Ketentuan
+                  </button>
+                </div>
+
+                <div className="space-y-3 mb-8 text-xs font-medium">
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Akses Penuh POS, Jasa & Rental</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Laporan Pendapatan & Laba Bersih</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Ekspor Data Laporan (Excel/CSV)</span>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="https://pranajayatech.myr.id/pl/kasir-umkm-pro-6-bulan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all ${
+                  isDark 
+                    ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
+                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                }`}
+              >
+                Pilih 6 Bulan
+              </a>
+            </div>
+
+            {/* 4. Pro 1 Tahun (HERO CARD) */}
+            <div className={`rounded-3xl p-6 flex flex-col justify-between relative border-2 ring-2 ring-orange-500 ring-offset-2 transition-all ${
+              isDark 
+                ? 'bg-slate-900 border-orange-500 ring-offset-slate-950 shadow-[0_8px_30px_rgb(249,115,22,0.2)]' 
+                : 'bg-white border-orange-500 ring-offset-white shadow-[0_8px_30px_rgb(249,115,22,0.15)]'
+            }`}>
+              <div className="absolute -top-3.5 right-6 bg-orange-500 text-white text-[10px] font-black px-3.5 py-1 rounded-full shadow-md tracking-wider uppercase">
+                PALING HEMAT!
+              </div>
+
+              <div>
+                <div className="mb-5 mt-1">
+                  <h3 className={`text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Pro 1 Tahun</h3>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Pemilik bisnis serius yang mencari nilai terbaik.
+                  </p>
+                </div>
+
+                <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <div className={`text-3xl font-black flex items-baseline gap-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Rp 82.5k <span className="text-xs font-bold text-slate-500">/ bulan</span>
+                  </div>
+                  <div className="text-xs font-black text-orange-600 dark:text-orange-400 mt-1">Total: Rp 990.000 / 12 bulan</div>
+                  <div className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 inline-block px-2 py-0.5 rounded-md mt-1.5">
+                    Hemat Rp 558.000 per tahun!
+                  </div>
+                  <button 
+                    onClick={() => setIsTncOpen(true)} 
+                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline mt-2 block"
+                  >
+                    Lihat Syarat & Ketentuan
+                  </button>
+                </div>
+
+                <div className="space-y-3 mb-8 text-xs font-medium">
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Semua fitur tanpa batasan</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>
+                      <strong>Analitik Mendalam:</strong> Lacak tren penjualan.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>
+                      <strong>Database Pelanggan:</strong> Rekam preferensi pelanggan.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>
+                      <strong>Akses Prioritas:</strong> Customer Service khusus.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="https://pranajayatech.myr.id/pl/kasir-umkm-pro-1-tahun"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 text-xs sm:text-sm rounded-xl font-black text-center text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all block"
+              >
+                Pilih Paket Paling Hemat
+              </a>
             </div>
 
           </div>
 
         </div>
       </section>
+
+      {/* T&C MODAL */}
+      {isTncOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={`rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative p-6 sm:p-8 border ${
+            isDark ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+          }`}>
+            <div className="flex justify-between items-start border-b pb-4 mb-5">
+              <h3 className={`text-lg sm:text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Syarat & Ketentuan Layanan (T&C)
+              </h3>
+              <button
+                onClick={() => setIsTncOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 dark:bg-slate-800 rounded-full transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="text-xs sm:text-sm space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div>
+                <p className={`font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>1. Lisensi Perangkat Lunak (Software)</p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Paket langganan ini hanya mencakup hak guna lisensi perangkat lunak PJTECH Kasir UMKM selama periode aktif yang dipilih.
+                </p>
+              </div>
+
+              <div>
+                <p className={`font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>2. Pembebasan Tanggung Jawab Perangkat Keras (Hardware)</p>
+                <div className="bg-orange-50 dark:bg-orange-950/40 p-3.5 rounded-xl border border-orange-200 dark:border-orange-800 text-orange-900 dark:text-orange-300 space-y-2">
+                  <p className="font-bold">PJTECH KASIR UMKM hanya menyediakan layanan perangkat lunak (Software).</p>
+                  <p className="text-xs leading-relaxed">
+                    Seluruh perangkat keras (Hardware) yang dibeli melalui tautan rekomendasi pihak ketiga (Affiliate/Rekomendasi) adalah tanggung jawab penuh dari penjual/toko/marketplace terkait. Kami tidak menerima klaim garansi, retur, atau dukungan teknis atas kerusakan perangkat keras fisik.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsTncOpen(false)}
+              className="w-full mt-6 py-3 bg-slate-950 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold rounded-xl text-sm transition-colors"
+            >
+              Saya Mengerti dan Setuju
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 10. FAQ ACCORDION SECTION */}
       <section id="faq" className={`py-20 md:py-28 border-t transition-colors ${
