@@ -482,17 +482,17 @@ export default function LandingPageClient() {
               Coba Gratis 14 Hari <ArrowRight className="w-5 h-5" />
             </Link>
             
-            {/* High-Contrast "Bandingkan vs Moka" Button */}
-            <Link 
-              href="/comparison" 
-              className={`w-full sm:w-auto px-8 py-4 font-black text-lg rounded-2xl border-2  flex items-center justify-center gap-2 shadow-md ${
-                isDark 
-                  ? 'bg-slate-800 text-white border-slate-600 hover:bg-slate-700 hover:border-slate-500' 
-                  : 'bg-white text-slate-900 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
-              }`}
-            >
-              Bandingkan vs Moka
-            </Link>
+            {/* High-Contrast "Lihat Perbandingan" Button */}
+                        <Link 
+                          href="/comparison" 
+                          className={`w-full sm:w-auto px-8 py-4 font-black text-lg rounded-2xl border-2  flex items-center justify-center gap-2 shadow-md ${
+                            isDark
+                              ? 'bg-slate-800 text-white border-slate-600 hover:bg-slate-700 hover:border-slate-500'
+                              : 'bg-white text-slate-900 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
+                          }`}
+                        >
+                          Lihat Perbandingan Lengkap
+                        </Link>
           </div>
 
           {/* Micro Trust Points */}
@@ -887,7 +887,7 @@ export default function LandingPageClient() {
                     href="/comparison" 
                     className="inline-flex items-center gap-2 text-sm font-black text-blue-600 dark:text-blue-400 hover:underline"
                   >
-                    Bandingkan Fitur Lengkap vs Moka, Pawoon, iReap & Qashier →
+                    Lihat Perbandingan Lengkap vs Moka, Pawoon, iReap & Qashier →
                   </Link>
                 </div>
               </div>
