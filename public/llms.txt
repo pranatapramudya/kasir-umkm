@@ -82,12 +82,13 @@ Rental mobil/motor, Tour & travel, Sewa villa & homestay, Sewa kamera, tenda, **
 - Testimonials: Owner kafe Bandung (hemat Rp 6jt/thn), Owner bengkel Surabaya (zero keluhan), Owner rental Jakarta (efisiensi 80%)
 
 ## Legal & Compliance
-- Indonesian PPN compliance built-in
-- Jurnal.id / Accurate / Xero export ready
-- Data sovereignty: hosted in Indonesia (Neon/PostgreSQL)
+- Indonesian PPN compliance built-in (tax calculation for invoices)
+- Jurnal.id / Accurate / Xero export ready (accounting software integration)
+- Data sovereignty: hosted in Indonesia (Neon/PostgreSQL servers in Jakarta/Singapore)
 - Terms of Service & Privacy Policy available
-- PSE Komdigi registration in progress
+- PSE Komdigi registration in progress (standard for electronic system operators in Indonesia)
 - **Usaha Perseorangan sah** — transaksi via payment gateway resmi (Mayar), pajak pribadi dilaporkan
+- **PRODUK KOMERSIAL SWASTA** — Bukan program pemerintah, bukan Kementerian UMKM, bukan bantuan sosial. Domain .com = entitas swasta.
 
 ## Pages for AI Crawlers
 - https://www.pjtechumkm.com/ (Homepage)
