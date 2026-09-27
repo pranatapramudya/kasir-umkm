@@ -843,47 +843,69 @@ export default function LandingPageClient() {
       <section className="py-20 md:py-28 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className={`border rounded-3xl p-8 sm:p-12 transition-colors ${
+          <div className={`border rounded-3xl p-6 sm:p-10 lg:p-12 transition-colors ${
             isDark 
-              ? 'bg-slate-900 border-blue-500/30' 
-              : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-blue-200'
+              ? 'bg-slate-900/90 border-slate-800' 
+              : 'bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 border-slate-200 shadow-sm'
           }`}>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               
-              <div className="lg:col-span-8 space-y-4">
-                <span className="text-xs font-black text-blue-700 bg-blue-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                  Kenapa Pindah ke PJTECH?
+              {/* Left Column (7 cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                <span className="text-xs font-black text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full uppercase tracking-wider">
+                  Kenapa Beralih ke PJTECH?
                 </span>
-                <h2 className={`text-3xl sm:text-4xl font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                <h2 className={`text-2xl sm:text-4xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>
                   Hemat hingga 70% Biaya POS per Tahun
                 </h2>
-                <p className={`text-sm sm:text-base leading-relaxed max-w-2xl font-medium ${
-                  isDark ? 'text-slate-300' : 'text-slate-700'
+                <p className={`text-sm sm:text-base leading-relaxed font-medium ${
+                  isDark ? 'text-slate-300' : 'text-slate-600'
                 }`}>
-                  Kompetitor seperti Moka POS dan Pawoon mengenakan biaya Rp 1.800.000 - Rp 2.400.000+ per tahun dan membatasi jenis usaha hanya pada F&B atau Retail saja. Di PJTECH, Anda mendapatkan 4 vertikal all-in hanya <strong>Rp 990.000 / tahun</strong>.
+                  Aplikasi kasir lain seperti Moka POS dan Pawoon mengenakan biaya Rp 1.800.000 hingga Rp 2.400.000+ per tahun serta membebankan biaya tambahan untuk modul KDS dan multi-meja. Di PJTECH, Anda mendapatkan seluruh 4 vertikal bisnis all-in.
                 </p>
                 <div className="pt-2">
                   <Link 
                     href="/comparison" 
-                    className="inline-flex items-center gap-2 text-sm font-black text-blue-600 hover:text-blue-700 underline"
+                    className="inline-flex items-center gap-2 text-sm font-black text-blue-600 dark:text-blue-400 hover:underline"
                   >
-                    Lihat tabel perbandingan lengkap vs Moka, Pawoon, iReap & Qashier →
+                    Bandingkan Fitur Lengkap vs Moka, Pawoon, iReap & Qashier →
                   </Link>
                 </div>
               </div>
 
-              <div className={`p-6 rounded-2xl border text-center space-y-3 ${
-                isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-300 shadow-md'
-              }`}>
-                <p className={`text-xs font-bold uppercase ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Harga PJTECH All-In</p>
-                <h3 className={`text-4xl font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Rp 990.000<span className="text-sm font-medium text-slate-500"> / thn</span></h3>
-                <p className="text-xs text-emerald-600 font-extrabold">Hanya Rp 2.700 per hari</p>
-                <Link
-                  href="/sign-up?redirect_url=/onboarding"
-                  className="w-full block py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all"
-                >
-                  Mulai Coba 14 Hari
-                </Link>
+              {/* Right Column (5 cols) - Clean Comparison Breakdown */}
+              <div className="lg:col-span-5 w-full">
+                <div className={`rounded-2xl p-5 border text-xs sm:text-sm space-y-3 ${
+                  isDark ? 'bg-slate-950 border-slate-800 text-slate-200' : 'bg-white border-slate-200 shadow-md text-slate-800'
+                }`}>
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800 font-bold text-xs uppercase tracking-wider text-slate-400">
+                    <span>Fitur / Layanan</span>
+                    <span className="text-blue-600 dark:text-blue-400">PJTECH vs Kompetitor</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center py-1">
+                    <span className="font-semibold">4 Vertikal Bisnis</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">All-In (Included)</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800">
+                    <span className="font-semibold">Kitchen Display (KDS)</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Gratis (No Addon)</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800">
+                    <span className="font-semibold">Tracking Servis & WA</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Included</span>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-2.5 border-t-2 border-slate-200 dark:border-slate-700">
+                    <span className="font-black text-sm">Biaya Tahunan</span>
+                    <div className="text-right">
+                      <span className="font-black text-base text-blue-600 dark:text-blue-400">Rp 990.000</span>
+                      <span className="text-[11px] text-slate-400 line-through ml-1.5">Rp 2.400.000</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
