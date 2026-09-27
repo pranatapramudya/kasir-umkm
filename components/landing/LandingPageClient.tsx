@@ -56,68 +56,68 @@ export default function LandingPageClient() {
 
   const verticals = {
     retail: {
-      title: "Retail & Toko",
-      tagline: "Toko Kelontong, Minimarket, Fashion & Butik, Toko Bangunan",
-      description: "Kelola ribuan stok produk dan multi-varian secara instan. Dukungan scan barcode super cepat dan laporan restock otomatis.",
+      title: "Retail & Grosir",
+      tagline: "Toko Kelontong, Minimarket, Fashion & Butik, Toko Bangunan & Material, ATK/Elektronik",
+      description: "Kelola ribuan stok SKU dan multi-varian secara akurat. Transaksi cepat dalam hitungan detik dengan scan barcode kilat dan sistem peringatan stok minim otomatis.",
       icon: Store,
       badgeColor: isDark ? "bg-blue-950/80 text-blue-300 border-blue-800" : "bg-blue-50 text-blue-700 border-blue-200",
       accentColor: "from-blue-600 to-indigo-600",
       features: [
-        { title: "Multi-Varian Produk", desc: "Kelola varian ukuran, warna, atau rasa dalam satu master SKU tanpa membingungkan kasir." },
-        { title: "Barcode Scanner Cepat", desc: "Kompatibel barcode scanner USB/Bluetooth & scan langsung dari kamera HP kasir." },
-        { title: "Stok Minim & Auto Restock", desc: "Peringatan otomatis saat stok barang menipis agar tidak pernah kehabisan barang jualan." },
-        { title: "Cetak Label Harga & Struk", desc: "Langsung cetak label barcode rak dan struk belanja pelanggan via printer thermal Bluetooth." }
+        { title: "Multi-Varian SKU Rapi", desc: "Kelola varian ukuran (S/M/L/XL), warna, atau spesifikasi dalam satu master produk tanpa kasir bingung." },
+        { title: "Scan Barcode Super Kilat", desc: "Dukungan scanner USB, barcode Bluetooth, hingga scan instan lewat kamera HP/tablet kasir." },
+        { title: "Peringatan Stok & Auto-Restock", desc: "Notifikasi otomatis saat stok barang mencapai batas minimum agar Anda tidak pernah kehabisan barang dagangan." },
+        { title: "Cetak Label Rak & Struk Thermal", desc: "Cetak label harga barcode untuk etalase dan struk belanja pelanggan via printer thermal Bluetooth 58/80mm." }
       ],
       link: "/solusi/retail",
-      metrics: { label: "Kecepatan Checkout", value: "3 Detik", sub: "per transaksi kasir" }
+      metrics: { label: "Kecepatan Kasir", value: "3 Detik", sub: "rata-rata per transaksi checkout" }
     },
     fnb: {
-      title: "F&B & Kuliner",
-      tagline: "Restoran, Kafe, Coffee Shop, Bakery, Warung Makan",
-      description: "Pesanan masuk langsung ke dapur via Kitchen Display System (KDS). Dilengkapi split bill, open bill meja, dan modifier rasa.",
+      title: "F&B & Kuliner (3 Template)",
+      tagline: "Kafe & Coffee Shop, Restoran & Rumah Makan, Warung Makan & Fast Food, Bakery",
+      description: "Pesanan kilat, monitor dapur rapi, dan HPP resep bahan baku terkendali. Lengkap dengan 3 template Excel siap pakai untuk alur operasional kuliner Anda.",
       icon: Utensils,
       badgeColor: isDark ? "bg-orange-950/80 text-orange-300 border-orange-800" : "bg-orange-50 text-orange-700 border-orange-200",
       accentColor: "from-orange-500 to-amber-600",
       features: [
-        { title: "Kitchen Display System (KDS)", desc: "Layar monitor dapur interaktif tanpa biaya tambahan. Dapur masak lebih cepat dan anti salah pesanan." },
-        { title: "Split Bill & Open Bill", desc: "Pelanggan mau bayar pisah meja atau open bill dulu sebelum pulang? Semua ditangani sekali klik." },
-        { title: "Modifier & Catatan Menu", desc: "Level pedas, less sugar, extra shot espresso, atau tanpa bawang tercatat rapi di struk dapur." },
-        { title: "Routing Cetak Dapur vs Bar", desc: "Pesanan minuman otomatis tercetak di printer Bar, pesanan makanan otomatis tercetak di printer Dapur." }
+        { title: "3 Template Excel Kuliner Siap Pakai", desc: "Pilih format Kafe (Kopi/Bar), Resto (Meja & Split Bill), atau Warung Makan (Fast Food Pay-First). Sekali upload langsung jualan." },
+        { title: "Kitchen Display System (KDS) Gratis", desc: "Layar monitor dapur interaktif tanpa biaya lisensi tambahan. Dapur memasak lebih cepat dan anti salah pesanan." },
+        { title: "Manajemen Meja, Open & Split Bill", desc: "Visualisasi denah meja, pesanan open bill, hingga pisah tagihan (split bill) per pelanggan dengan satu klik." },
+        { title: "Resep HPP & Routing Dapur vs Bar", desc: "Stok bahan baku (susu, sirup, beras, daging) otomatis terpotong per porsi dan pesanan minuman otomatis dipisah ke Bar." }
       ],
       link: "/solusi/fnb",
-      metrics: { label: "Efisiensi Dapur", value: "+45%", sub: "waktu saji lebih cepat" }
+      metrics: { label: "Efisiensi Saji", value: "+45%", sub: "pesanan sampai ke meja lebih cepat" }
     },
     jasa: {
       title: "Jasa & Servis",
-      tagline: "Bengkel Motor/Mobil, Laundry, Salon & Barbershop, Servis Elektronik",
-      description: "Bukan sekadar transaksi kasir. Lacak status pengerjaan servis secara real-time dan kirim notifikasi WhatsApp otomatis ke pelanggan.",
+      tagline: "Bengkel Motor & Mobil, Laundry Kiloan/Satuan, Salon & Barbershop, Servis HP & Elektronik",
+      description: "Bukan sekadar kasir biasa. Pantau antrean pengerjaan servis secara real-time dan kirim notifikasi update status otomatis via WhatsApp ke pelanggan.",
       icon: Wrench,
       badgeColor: isDark ? "bg-emerald-950/80 text-emerald-300 border-emerald-800" : "bg-emerald-50 text-emerald-700 border-emerald-200",
       accentColor: "from-emerald-600 to-teal-600",
       features: [
-        { title: "Tracking Progres Servis Live", desc: "Pantau antrean dari status Menunggu, Sedang Dikerjakan teknisi, hingga Siap Diambil." },
-        { title: "Notifikasi WhatsApp Otomatis", desc: "Pelanggan otomatis menerima WhatsApp saat servis atau cucian mereka selesai tanpa perlu ditelepon." },
-        { title: "Invoice Gabungan Jasa + Part", desc: "Satu invoice rapi menggabungkan ongkos jasa mekanik dan harga suku cadang / sparepart." },
-        { title: "Rekap Komisi Teknisi / Pegawai", desc: "Hitung otomatis persentase bagi hasil atau komisi per pengerjaan jasa mekanik/terapis." }
+        { title: "Live Servis & Queue Tracking", desc: "Pantau antrean dari status Menunggu, Sedang Dikerjakan teknisi/terapis, hingga Siap Diambil." },
+        { title: "Notifikasi WhatsApp Otomatis", desc: "Pelanggan otomatis menerima pesan WhatsApp begitu servis atau cucian selesai tanpa perlu Anda telepon manual." },
+        { title: "Invoice Gabungan Jasa + Sparepart", desc: "Satu nota rapi menggabungkan ongkos pengerjaan jasa mekanik dan harga suku cadang/part pengganti." },
+        { title: "Rekap Komisi & Bagi Hasil Staf", desc: "Hitung otomatis persentase komisi bagi hasil per pekerjaan teknisi, mekanik, atau staf perorangan." }
       ],
       link: "/solusi/jasa",
-      metrics: { label: "Kepuasan Pelanggan", value: "99%", sub: "dengan update WA otomatis" }
+      metrics: { label: "Kepuasan Pelanggan", value: "99%", sub: "dengan transparansi notifikasi WA" }
     },
     rental: {
-      title: "Rental & Properti",
-      tagline: "Rental Mobil/Motor, Sewa Villa/Homestay, Sewa Kamera & Alat Berat",
-      description: "Manajemen sewa berbasis waktu dengan kalender ketersediaan interaktif, perhitungan deposit, dan denda keterlambatan otomatis.",
+      title: "Rental, Travel & Properti",
+      tagline: "Rental Mobil/Motor, Tour & Travel, Sewa Villa & Homestay, Sewa Kamera, Tenda & Alat Berat",
+      description: "Manajemen sewa unit berbasis waktu dengan kalender ketersediaan interaktif anti-bentrok, sistem deposit jaminan, dan denda keterlambatan otomatis.",
       icon: Car,
       badgeColor: isDark ? "bg-purple-950/80 text-purple-300 border-purple-800" : "bg-purple-50 text-purple-700 border-purple-200",
       accentColor: "from-purple-600 to-indigo-600",
       features: [
-        { title: "Kalender Ketersediaan Unit", desc: "Lihat ketersediaan mobil, kamar, atau unit alat secara visual agar tidak pernah terjadi double booking." },
-        { title: "Kalkulasi Durasi Jam / Hari", desc: "Pilih durasi sewa harian, mingguan, atau 12 jam dengan perhitungan tarif fleksibel." },
-        { title: "Sistem Deposit & Denda Telat", desc: "Catat uang jaminan/deposit dan kalkulasi denda otomatis jika unit dikembalikan melewati batas waktu." },
-        { title: "Invoice & Surat Perjanjian A4", desc: "Cetak invoice formal A4 lengkap dengan identitas penyewa, nomor plat, dan syarat perjanjian sewa." }
+        { title: "Kalender Ketersediaan Unit Visual", desc: "Pantau jadwal armada mobil, kamar villa, atau sewa kamera/alat secara visual agar bebas dari bentrok jadwal (double booking)." },
+        { title: "Tarif Fleksibel Jam / Hari / Mingguan", desc: "Kalkulasi tarif otomatis berdasarkan durasi sewa 12 jam, harian, mingguan, hingga sewa bulanan." },
+        { title: "Catat Uang Deposit & Denda Telat", desc: "Kelola uang jaminan/deposit penyewa dan sistem hitung denda otomatis jika unit dikembalikan melewati tenggat waktu." },
+        { title: "Invoice & Surat Perjanjian Sewa A4", desc: "Cetak surat perjanjian sewa formal dan invoice A4 berlogo bisnis Anda lengkap dengan data identitas penyewa." }
       ],
       link: "/solusi/rental",
-      metrics: { label: "Optimalisasi Armada", value: "100%", sub: "bebas bentrok jadwal" }
+      metrics: { label: "Utilisasi Unit", value: "100%", sub: "bebas jadwal bentrok & transparan" }
     }
   };
 
@@ -139,6 +139,10 @@ export default function LandingPageClient() {
     {
       q: "Bagaimana jika koneksi internet di toko saya tiba-tiba mati?",
       a: "PJTECH dilengkapi arsitektur Offline-First. Kasir tetap bisa melakukan transaksi penjualan saat offline. Data transaksi tersimpan aman di perangkat kasir dan akan otomatis tersinkronisasi ke server pusat saat internet tersambung kembali."
+    },
+    {
+      q: "Apakah data produk & menu bisa diimport via Excel?",
+      a: "Bisa! Kami menyediakan template Excel standar untuk masing-masing 4 vertikal: Retail (SKU & varian), F&B (3 template: Kafe, Resto, Warung Makan), Jasa (layanan & sparepart), Rental (unit & tarif). Cukup isi template, upload sekali, dan sistem langsung siap jualan tanpa input manual satu per satu."
     },
     {
       q: "Berapa biaya langganan dan apakah ada biaya tersembunyi?",
@@ -447,7 +451,7 @@ export default function LandingPageClient() {
           }`}>
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs sm:text-sm font-bold">
-              SaaS Kasir Multi-Vertikal #1 Indonesia • <strong className="text-blue-600 dark:text-blue-400">4 Model Bisnis dalam 1 Akun</strong>
+              SaaS Kasir Multi-Vertikal #1 Indonesia • <strong className="text-blue-600 dark:text-blue-400">4 Model Bisnis + 3 Template F&B + Import Excel 1 Klik</strong>
             </span>
           </div>
 
@@ -455,7 +459,7 @@ export default function LandingPageClient() {
           <h1 className={`text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight max-w-5xl mx-auto leading-[1.1] mb-6 ${
             isDark ? 'text-white' : 'text-slate-950'
           }`}>
-            Satu Aplikasi Kasir Pintar untuk <br className="hidden sm:inline" />
+            Satu Aplikasi Kasir untuk <br className="hidden sm:inline" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
               Semua Jenis Bisnis UMKM.
             </span>
@@ -465,7 +469,8 @@ export default function LandingPageClient() {
           <p className={`text-base sm:text-xl max-w-3xl mx-auto mb-10 leading-relaxed font-medium ${
             isDark ? 'text-slate-300' : 'text-slate-600'
           }`}>
-            Kelola operasional <strong>Retail</strong>, <strong>Restoran & Kafe (F&B)</strong>, <strong>Bengkel & Laundry (Jasa)</strong>, hingga <strong>Rental Mobil & Properti</strong> dalam satu platform. Lengkap dengan Kitchen Display, tracking WA, stok otomatis, dan laporan pajak.
+            Kelola operasional <strong>Toko & Retail</strong>, <strong>Kafe & Restoran (F&B)</strong>, <strong>Bengkel & Laundry (Jasa)</strong>, hingga <strong>Rental Mobil & Villa (Travel/Properti)</strong> dalam satu platform.
+            Lengkap dengan 3 Template Excel F&B, Kitchen Display (KDS), Tracking Servis WA, Stok Multi-Varian, Kalender Rental Anti-Bentrok, dan Laporan Pajak PPN otomatis.
           </p>
 
           {/* Dual High-Contrast CTA Buttons */}
@@ -498,6 +503,7 @@ export default function LandingPageClient() {
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 stroke-[3]" /> Setup 5 Menit Langsung Jualan</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 stroke-[3]" /> Kompatibel Semua Printer Bluetooth</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 stroke-[3]" /> Offline-First (Anti Internet Mati)</span>
+            <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 stroke-[3]" /> Import Produk via Excel 1 Klik</span>
           </div>
 
           {/* 4. HERO DASHBOARD BENTO PREVIEW */}
@@ -794,7 +800,7 @@ export default function LandingPageClient() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             
             {/* Feature 1 */}
             <div className={`p-8 rounded-3xl border  space-y-4 ${
@@ -822,7 +828,20 @@ export default function LandingPageClient() {
               </p>
             </div>
 
-            {/* Feature 3 */}
+            {/* Feature 3: Excel Template Import */}
+            <div className={`p-8 rounded-3xl border  space-y-4 ${
+              isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
+            }`}>
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                <FileSpreadsheet className="w-6 h-6" />
+              </div>
+              <h3 className={`text-xl font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Import Produk & Menu via Excel</h3>
+              <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                Migrasi data dalam hitungan menit. Unduh template Excel kami (Retail, F&B 3 template, Jasa, Rental), isi data produk/menu Anda, upload sekali — sistem langsung siap jualan tanpa input manual satu per satu.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
             <div className={`p-8 rounded-3xl border  space-y-4 ${
               isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
             }`}>
@@ -896,6 +915,11 @@ export default function LandingPageClient() {
                   <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800">
                     <span className="font-semibold">Tracking Servis & WA</span>
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">Included</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800">
+                    <span className="font-semibold">Import Produk via Excel</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Template Siap Pakai</span>
                   </div>
 
                   <div className="flex justify-between items-center pt-2.5 border-t-2 border-slate-200 dark:border-slate-700">
