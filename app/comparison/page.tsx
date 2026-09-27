@@ -92,7 +92,7 @@ const comparisonRows = [
  { category: 'Harga & Model', feature: 'Biaya Tersembunyi', pjtech: '❌ Tidak Ada', moka: 'KDS + Ojol + Printer', pawoon: 'Module tambahan', ireap: 'Module tambahan', qashier: 'Hardware wajib', winner: 'pjtech', highlight: 'Transparan 100%' },
 
  { category: 'Vertikal Bisnis', feature: 'Retail (Toko/Fashion)', pjtech: '✅ Lengkap + Varian', moka: '✅ Lengkap', pawoon: '✅ Lengkap', ireap: '✅ Kuat Inventory', qashier: '✅ Basic', winner: 'pjtech' },
- { category: 'Vertikal Bisnis', feature: 'F&B (Restoran/Kafe)', pjtech: '✅ Lengkap + KDS + Ojol', moka: '✅ Kuat (asalnya F&B)', pawoon: '✅ Lengkap', ireap: '⚠️ Basic', qashier: '✅ Basic', winner: 'pjtech', highlight: 'Satu-satunya all-native' },
+ { category: 'Vertikal Bisnis', feature: 'F&B (Restoran/Kafe)', pjtech: '✅ Lengkap + KDS', moka: '✅ Kuat (asalnya F&B)', pawoon: '✅ Lengkap', ireap: '⚠️ Basic', qashier: '✅ Basic', winner: 'pjtech', highlight: 'KDS included gratis' },
  { category: 'Vertikal Bisnis', feature: 'Jasa/Servis (Bengkel/Laundry)', pjtech: '✅ Native (Booking, Tracking, WA)', moka: '❌ Tidak Ada', pawoon: '⚠️ Workaround', ireap: '❌ Tidak Ada', qashier: '❌ Tidak Ada', winner: 'pjtech', highlight: 'Unik di pasar' },
  { category: 'Vertikal Bisnis', feature: 'Rental/Travel/Properti', pjtech: '✅ Native (Kalender, Deposit, Prorata)', moka: '❌ Tidak Ada', pawoon: '❌ Tidak Ada', ireap: '❌ Tidak Ada', qashier: '❌ Tidak Ada', winner: 'pjtech', highlight: 'Unik di pasar' },
 
@@ -279,13 +279,13 @@ export default function ComparisonPage() {
  <p className="text-slate-600 max-w-2xl mx-auto">Semua harga basis tahunan all-in. Klik card untuk detail.</p>
  </div>
 
- <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
  {competitors.map((c, i) => (
  <article 
  key={c.id} 
- className={`relative group bg-white p-6 rounded-2xl border-2 transition-all duration-200 ${
+ className={`relative group bg-white p-4 sm:p-6 rounded-2xl border-2 transition-all duration-200 ${
  c.id === 'pjtech' 
- ? 'border-blue-500 shadow-xl ring-2 ring-blue-500/20 scale-105 z-10' 
+ ? 'border-blue-500 shadow-xl ring-2 ring-blue-500/20 scale-105 z-10 lg:scale-105' 
  : 'border-slate-100 hover:border-slate-300 hover:shadow-lg'
  }`}
  >
@@ -299,35 +299,35 @@ export default function ComparisonPage() {
  </div>
 
  {/* Logo Area */}
- <div className="text-center mb-5">
- <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
+ <div className="text-center mb-4 sm:mb-5">
+ <div className={`w-12 sm:w-16 h-12 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-2xl flex items-center justify-center ${
  c.id === 'pjtech' ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25' : 'bg-slate-100'
  }`}>
- <span className={`text-2xl font-black ${c.id === 'pjtech' ? 'text-white' : 'text-slate-600'}`}>
+ <span className={`text-xl sm:text-2xl font-black ${c.id === 'pjtech' ? 'text-white' : 'text-slate-600'}`}>
  {c.name.charAt(0)}
  </span>
  </div>
- <h3 className="text-xl font-black text-slate-900 mb-1">{c.name}</h3>
- <p className="text-sm text-slate-500">{c.tagline}</p>
+ <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-1">{c.name}</h3>
+ <p className="text-xs sm:text-sm text-slate-500">{c.tagline}</p>
  </div>
 
  {/* Price */}
- <div className="text-center mb-5 pb-5 border-b border-slate-100">
- <span className="text-3xl sm:text-4xl font-black text-slate-900">Rp {c.price.toLocaleString('id-ID')}</span>
- <span className="text-slate-500 ml-1">{c.period}</span>
+ <div className="text-center mb-4 sm:mb-5 pb-4 sm:pb-5 border-b border-slate-100">
+ <span className="text-2xl sm:text-3xl font-black text-slate-900">Rp {c.price.toLocaleString('id-ID')}</span>
+ <span className="text-xs sm:text-slate-500 ml-1">{c.period}</span>
  {c.id === 'pjtech' && (
- <p className="mt-2 text-xs text-emerald-600 font-medium">= Rp 82.500/bulan</p>
+ <p className="mt-1 text-[10px] sm:text-xs text-emerald-600 font-medium">= Rp 82.500/bulan</p>
  )}
  </div>
 
  {/* Highlights */}
- <ul className="space-y-3 mb-6">
+ <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
  {c.highlights.map((h, idx) => (
- <li key={idx} className="flex items-start gap-3 text-sm text-slate-600">
- <span className={`flex-shrink-0 w-5 h-5 rounded-lg flex items-center justify-center mt-0.5 ${
+ <li key={idx} className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600">
+ <span className={`flex-shrink-0 w-4 sm:w-5 h-4 sm:h-5 rounded-lg flex items-center justify-center mt-0.5 ${
  c.id === 'pjtech' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'
  }`}>
- {c.id === 'pjtech' ? <CheckCircle className="w-3.5 h-3.5" /> : <span className="w-2 h-2 rounded-full bg-current" />}
+ {c.id === 'pjtech' ? <CheckCircle className="w-3 h-3.5 sm:w-3.5 h-3.5" /> : <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-current" />}
  </span>
  <span className="leading-relaxed">{h}</span>
  </li>
@@ -336,11 +336,11 @@ export default function ComparisonPage() {
 
  {/* CTA */}
  {c.id === 'pjtech' ? (
- <Link href="/sign-up?redirect_url=/onboarding" className="block w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl text-center hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25">
+ <Link href="/sign-up?redirect_url=/onboarding" className="block w-full py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl text-center hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 text-sm sm:text-base">
  Mulai Gratis 14 Hari
  </Link>
  ) : (
- <button className="block w-full py-3 bg-slate-100 border border-slate-200 text-slate-600 font-medium rounded-xl text-center hover:bg-slate-200 transition-all disabled:opacity-50" disabled>
+ <button className="block w-full py-2.5 sm:py-3 bg-slate-100 border border-slate-200 text-slate-600 font-medium rounded-xl text-center hover:bg-slate-200 transition-all disabled:opacity-50 text-sm sm:text-base" disabled>
  Lihat Detail di Bawah
  </button>
  )}
@@ -376,8 +376,8 @@ export default function ComparisonPage() {
  <table className="w-full min-w-[900px] text-sm" role="table">
  <thead>
  <tr className="bg-slate-50 border-b border-slate-200">
- <th className="text-left py-4 px-4 font-bold text-slate-900 sticky left-0 z-20 bg-slate-50 w-[280px] min-w-[280px]">Fitur</th>
- <th className="text-center py-4 px-4 font-bold text-blue-600 sticky left-[280px] z-20 bg-blue-50 w-[160px] min-w-[160px] border-l border-slate-200">
+ <th className="text-left py-4 px-4 font-bold text-slate-900 sticky left-0 z-20 bg-slate-50 w-[260px] min-w-[260px]">Fitur</th>
+ <th className="text-center py-4 px-4 font-bold text-blue-600 sticky left-[260px] z-20 bg-blue-50 w-[140px] min-w-[140px] border-l border-slate-200">
  <div className="flex items-center justify-center gap-1.5">
  <span className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
  <span className="text-white font-black text-sm">PJ</span>
@@ -385,16 +385,16 @@ export default function ComparisonPage() {
  <span className="hidden sm:inline font-medium">PJTECH</span>
  </div>
  </th>
- <th className="text-center py-4 px-4 font-bold text-orange-600 bg-slate-50 w-[150px] min-w-[150px]">Moka</th>
- <th className="text-center py-4 px-4 font-bold text-purple-600 bg-slate-50 w-[150px] min-w-[150px]">Pawoon</th>
- <th className="text-center py-4 px-4 font-bold text-green-600 bg-slate-50 w-[150px] min-w-[150px]">iReap</th>
- <th className="text-center py-4 px-4 font-bold text-red-600 bg-slate-50 w-[150px] min-w-[150px]">Qashier</th>
+ <th className="text-center py-4 px-4 font-bold text-orange-600 bg-slate-50 w-[130px] min-w-[130px]">Moka</th>
+ <th className="text-center py-4 px-4 font-bold text-purple-600 bg-slate-50 w-[130px] min-w-[130px]">Pawoon</th>
+ <th className="text-center py-4 px-4 font-bold text-green-600 bg-slate-50 w-[130px] min-w-[130px]">iReap</th>
+ <th className="text-center py-4 px-4 font-bold text-red-600 bg-slate-50 w-[130px] min-w-[130px]">Qashier</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
  {comparisonRows.filter(r => r.category === cat).map((row, i) => (
  <tr key={`${cat}-${i}`} className={`hover:bg-slate-50 transition-colors ${row.winner === 'pjtech' ? 'bg-blue-50/50' : ''}`}>
- <td className="py-4 px-4 font-medium text-slate-900 sticky left-0 z-10 bg-white border-r border-slate-200 w-[280px] min-w-[280px]">
+ <td className="py-4 px-4 font-medium text-slate-900 sticky left-0 z-10 bg-white border-r border-slate-200 w-[260px] min-w-[260px]">
  <div className="flex items-center gap-2">
  {row.winner === 'pjtech' && (
  <span className="flex-shrink-0 w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -404,16 +404,16 @@ export default function ComparisonPage() {
  <span>{row.feature}</span>
  </div>
  </td>
- <td className="py-4 px-4 text-center font-medium text-blue-700 bg-blue-50/50 border-l border-slate-200 w-[160px] min-w-[160px] sticky left-[280px] z-10 bg-white">
+ <td className="py-4 px-4 text-center font-medium text-blue-700 bg-blue-50/50 border-l border-slate-200 w-[140px] min-w-[140px] sticky left-[260px] z-10 bg-white">
  <div className="flex flex-col items-center gap-1">
  <CheckIcon status={row.pjtech} isWinner={row.winner === 'pjtech'} />
  {row.highlight && <HighlightTag>{row.highlight}</HighlightTag>}
  </div>
  </td>
- <td className="py-4 px-4 text-center text-slate-600 w-[150px] min-w-[150px]"><CheckIcon status={row.moka} /></td>
- <td className="py-4 px-4 text-center text-slate-600 w-[150px] min-w-[150px]"><CheckIcon status={row.pawoon} /></td>
- <td className="py-4 px-4 text-center text-slate-600 w-[150px] min-w-[150px]"><CheckIcon status={row.ireap} /></td>
- <td className="py-4 px-4 text-center text-slate-600 w-[150px] min-w-[150px]"><CheckIcon status={row.qashier} /></td>
+ <td className="py-4 px-4 text-center text-slate-600 w-[130px] min-w-[130px]"><CheckIcon status={row.moka} /></td>
+ <td className="py-4 px-4 text-center text-slate-600 w-[130px] min-w-[130px]"><CheckIcon status={row.pawoon} /></td>
+ <td className="py-4 px-4 text-center text-slate-600 w-[130px] min-w-[130px]"><CheckIcon status={row.ireap} /></td>
+ <td className="py-4 px-4 text-center text-slate-600 w-[130px] min-w-[130px]"><CheckIcon status={row.qashier} /></td>
  </tr>
  ))}
  </tbody>
@@ -428,7 +428,7 @@ export default function ComparisonPage() {
  {row.winner === 'pjtech' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
  {row.feature}
  </p>
- <div className="grid grid-cols-2 gap-2 text-xs">
+ <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
  <div className="bg-blue-50 p-2 rounded-lg text-center">
  <p className="font-bold text-blue-600 mb-1">PJTECH</p>
  <CheckIcon status={row.pjtech} isWinner={row.winner === 'pjtech'} />
@@ -438,6 +438,7 @@ export default function ComparisonPage() {
  <div className="p-2 rounded-lg text-center bg-slate-50"><p className="font-medium text-purple-600 mb-1">Pawoon</p><CheckIcon status={row.pawoon} /></div>
  <div className="p-2 rounded-lg text-center bg-slate-50"><p className="font-medium text-green-600 mb-1">iReap</p><CheckIcon status={row.ireap} /></div>
  <div className="p-2 rounded-lg text-center bg-slate-50"><p className="font-medium text-red-600 mb-1">Qashier</p><CheckIcon status={row.qashier} /></div>
+ <div className="col-span-2 md:col-span-3 hidden"></div>
  </div>
  </div>
  ))}
@@ -495,7 +496,7 @@ export default function ComparisonPage() {
  icon: Users, 
  iconBg: 'bg-indigo-100 text-indigo-600',
  title: 'Dibangun untuk UMKM Indonesia', 
- desc: 'Bukan adaptasi dari luar. Paham PPN Indonesia, Jurnal.id, Accurate, Xero, GoFood, GrabFood, WA Cloud API resmi.',
+ desc: 'Bukan adaptasi dari luar. Paham PPN Indonesia, Jurnal.id, Accurate, Xero, WA Cloud API resmi. Integrasi ojol roadmap Q1 2027.',
  metric: 'Lokal 100%'
  },
  { 
