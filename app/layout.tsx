@@ -82,7 +82,7 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "PJTECH",
-  "alternateName": "PJTech Kasir UMKM",
+  "alternateName": ["PJTech Kasir UMKM", "Pranajaya Tech"],
   "url": "https://www.pjtechumkm.com",
   "logo": "https://www.pjtechumkm.com/icon-512x512.png",
   "description": "Penyedia SaaS POS terkemuka untuk UMKM Indonesia dengan 4 vertikal: Retail, F&B, Jasa/Servis, Rental/Travel/Properti.",
@@ -100,10 +100,9 @@ const organizationSchema = {
     "hoursAvailable": "Mo-Fr 09:00-18:00 WIB"
   },
   "sameAs": [
-    "https://www.linkedin.com/company/pjtech-umkm",
-    "https://twitter.com/pjtechumkm",
-    "https://www.youtube.com/@pjtechumkm",
-    "https://www.instagram.com/pjtechumkm"
+    "https://www.instagram.com/pranajayatech",
+    "https://www.tiktok.com/@pranajayatech",
+    "https://www.youtube.com/@pranajayatech"
   ]
 };
 
