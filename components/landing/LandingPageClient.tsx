@@ -151,7 +151,7 @@ export default function LandingPageClient() {
   ];
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 font-sans antialiased overflow-x-hidden ${
+    <div className={`min-h-screen font-sans antialiased overflow-x-hidden ${
       isDark ? 'bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white' : 'bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white'
     }`}>
       
@@ -176,7 +176,7 @@ export default function LandingPageClient() {
       </div>
 
       {/* 2. STICKY NAVBAR */}
-      <header className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors ${
+      <header className={`sticky top-0 z-50 backdrop-blur-md border-b  ${
         isDark 
           ? 'bg-slate-900/90 border-slate-800' 
           : 'bg-white/95 border-slate-200/80 shadow-sm'
@@ -202,15 +202,15 @@ export default function LandingPageClient() {
           <nav className="hidden md:flex items-center gap-7 text-sm font-bold">
             {/* Dropdown Solusi Bisnis */}
             <div className="relative group py-2">
-              <span className={`flex items-center gap-1 cursor-pointer transition-colors ${
+              <span className={`flex items-center gap-1 cursor-pointer  ${
                 isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
               }`}>
                 Solusi Bisnis <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform" />
               </span>
-              <div className={`absolute top-full left-0 w-72 rounded-2xl p-2.5 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border ${
+              <div className={`absolute top-full left-0 w-72 rounded-2xl p-2.5 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible  duration-200 border ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
               }`}>
-                <Link href="/solusi/retail" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+                <Link href="/solusi/retail" className={`flex items-center gap-3 p-3 rounded-xl  ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-blue-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-blue-100 text-blue-700 rounded-lg"><Store className="w-4 h-4" /></div>
@@ -219,7 +219,7 @@ export default function LandingPageClient() {
                     <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Barcode & Multi-Varian</p>
                   </div>
                 </Link>
-                <Link href="/solusi/fnb" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+                <Link href="/solusi/fnb" className={`flex items-center gap-3 p-3 rounded-xl  ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-orange-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-orange-100 text-orange-700 rounded-lg"><Utensils className="w-4 h-4" /></div>
@@ -228,7 +228,7 @@ export default function LandingPageClient() {
                     <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>KDS & Meja Split Bill</p>
                   </div>
                 </Link>
-                <Link href="/solusi/jasa" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+                <Link href="/solusi/jasa" className={`flex items-center gap-3 p-3 rounded-xl  ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-emerald-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Wrench className="w-4 h-4" /></div>
@@ -237,7 +237,7 @@ export default function LandingPageClient() {
                     <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Antrean & Tracking WA</p>
                   </div>
                 </Link>
-                <Link href="/solusi/rental" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+                <Link href="/solusi/rental" className={`flex items-center gap-3 p-3 rounded-xl  ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-purple-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-purple-100 text-purple-700 rounded-lg"><Car className="w-4 h-4" /></div>
@@ -249,22 +249,22 @@ export default function LandingPageClient() {
               </div>
             </div>
 
-            <Link href="/comparison" className={`transition-colors ${
+            <Link href="/comparison" className={` ${
               isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
             }`}>
               Perbandingan POS
             </Link>
-            <Link href="/blog" className={`transition-colors ${
+            <Link href="/blog" className={` ${
               isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
             }`}>
               Blog & Tips
             </Link>
-            <a href="#pricing" className={`transition-colors ${
+            <a href="#pricing" className={` ${
               isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
             }`}>
               Harga
             </a>
-            <a href="#faq" className={`transition-colors ${
+            <a href="#faq" className={` ${
               isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
             }`}>
               FAQ
@@ -277,7 +277,7 @@ export default function LandingPageClient() {
             {/* Theme Toggle Button (Light / Dark) */}
             <button
               onClick={toggleTheme}
-              className={`p-2.5 rounded-xl border transition-all ${
+              className={`p-2.5 rounded-xl border  ${
                 isDark 
                   ? 'bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700' 
                   : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
@@ -293,7 +293,7 @@ export default function LandingPageClient() {
               <button
                 onClick={() => setLoginDropdownOpen(!loginDropdownOpen)}
                 onBlur={() => setTimeout(() => setLoginDropdownOpen(false), 250)}
-                className={`text-sm font-bold px-4 py-2.5 rounded-xl border transition-all flex items-center gap-1.5 ${
+                className={`text-sm font-bold px-4 py-2.5 rounded-xl border  flex items-center gap-1.5 ${
                   isDark 
                     ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700' 
                     : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100 shadow-sm'
@@ -309,7 +309,7 @@ export default function LandingPageClient() {
                 }`}>
                   <Link
                     href="/sign-in?redirect_url=/auth-callback"
-                    className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${
+                    className={`flex items-start gap-3 p-3 rounded-xl  ${
                       isDark ? 'hover:bg-slate-800' : 'hover:bg-blue-50'
                     }`}
                   >
@@ -322,7 +322,7 @@ export default function LandingPageClient() {
 
                   <Link
                     href="/sign-in?redirect_url=/auth-callback"
-                    className={`flex items-start gap-3 p-3 rounded-xl transition-colors border-t ${
+                    className={`flex items-start gap-3 p-3 rounded-xl  border-t ${
                       isDark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-100 hover:bg-emerald-50'
                     }`}
                   >
@@ -335,7 +335,7 @@ export default function LandingPageClient() {
 
                   <Link
                     href="/superadmin"
-                    className={`flex items-start gap-3 p-3 rounded-xl transition-colors border-t ${
+                    className={`flex items-start gap-3 p-3 rounded-xl  border-t ${
                       isDark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-100 hover:bg-purple-50'
                     }`}
                   >
@@ -352,7 +352,7 @@ export default function LandingPageClient() {
             {/* Primary CTA */}
             <Link 
               href="/sign-up?redirect_url=/onboarding" 
-              className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/30 active:scale-95 transition-all flex items-center gap-2"
+              className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/30 active:scale-95  flex items-center gap-2"
             >
               Coba Gratis 14 Hari <ArrowRight className="w-4 h-4" />
             </Link>
@@ -472,7 +472,7 @@ export default function LandingPageClient() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-12">
             <Link 
               href="/sign-up?redirect_url=/onboarding" 
-              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3"
+              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-0.5 active:scale-95  flex items-center justify-center gap-3"
             >
               Coba Gratis 14 Hari <ArrowRight className="w-5 h-5" />
             </Link>
@@ -480,7 +480,7 @@ export default function LandingPageClient() {
             {/* High-Contrast "Bandingkan vs Moka" Button */}
             <Link 
               href="/comparison" 
-              className={`w-full sm:w-auto px-8 py-4 font-black text-lg rounded-2xl border-2 transition-all flex items-center justify-center gap-2 shadow-md ${
+              className={`w-full sm:w-auto px-8 py-4 font-black text-lg rounded-2xl border-2  flex items-center justify-center gap-2 shadow-md ${
                 isDark 
                   ? 'bg-slate-800 text-white border-slate-600 hover:bg-slate-700 hover:border-slate-500' 
                   : 'bg-white text-slate-900 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
@@ -501,17 +501,17 @@ export default function LandingPageClient() {
           </div>
 
           {/* 4. HERO DASHBOARD BENTO PREVIEW */}
-          <div className={`mt-14 relative max-w-5xl mx-auto rounded-[2.5rem] p-3 sm:p-4 border shadow-2xl transition-colors ${
+          <div className={`mt-14 relative max-w-5xl mx-auto rounded-[2.5rem] p-3 sm:p-4 border shadow-2xl  ${
             isDark 
               ? 'bg-slate-900/60 border-slate-800' 
               : 'bg-slate-200/80 border-slate-300 shadow-slate-300/50'
           }`}>
-            <div className={`rounded-[2rem] p-4 sm:p-8 border grid grid-cols-1 md:grid-cols-12 gap-4 text-left transition-colors ${
+            <div className={`rounded-[2rem] p-4 sm:p-8 border grid grid-cols-1 md:grid-cols-12 gap-4 text-left  ${
               isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
             }`}>
               
               {/* Preview Card 1: Omzet & Profit */}
-              <div className={`md:col-span-7 rounded-2xl p-6 border flex flex-col justify-between relative overflow-hidden transition-colors ${
+              <div className={`md:col-span-7 rounded-2xl p-6 border flex flex-col justify-between relative overflow-hidden  ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'
               }`}>
                 <div className="flex justify-between items-start mb-4">
@@ -548,7 +548,7 @@ export default function LandingPageClient() {
               {/* Preview Card 2: Multi-Vertikal Live Feeds */}
               <div className="md:col-span-5 flex flex-col gap-3">
                 {/* F&B KDS Ticket */}
-                <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+                <div className={`rounded-2xl p-4 border flex items-center justify-between  ${
                   isDark ? 'bg-slate-900 border-orange-500/30' : 'bg-orange-50/70 border-orange-200'
                 }`}>
                   <div className="flex items-center gap-3">
@@ -562,7 +562,7 @@ export default function LandingPageClient() {
                 </div>
 
                 {/* Jasa Tracking WA */}
-                <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+                <div className={`rounded-2xl p-4 border flex items-center justify-between  ${
                   isDark ? 'bg-slate-900 border-emerald-500/30' : 'bg-emerald-50/70 border-emerald-200'
                 }`}>
                   <div className="flex items-center gap-3">
@@ -578,7 +578,7 @@ export default function LandingPageClient() {
                 </div>
 
                 {/* Rental Booking Calendar */}
-                <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+                <div className={`rounded-2xl p-4 border flex items-center justify-between  ${
                   isDark ? 'bg-slate-900 border-purple-500/30' : 'bg-purple-50/70 border-purple-200'
                 }`}>
                   <div className="flex items-center gap-3">
@@ -599,7 +599,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* 5. HARDWARE & TRUST STRIP */}
-      <section className={`py-8 border-y transition-colors ${
+      <section className={`py-8 border-y  ${
         isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -671,7 +671,7 @@ export default function LandingPageClient() {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm sm:text-base transition-all border ${
+                  className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm sm:text-base  border ${
                     isActive
                       ? `bg-gradient-to-r ${item.accentColor} text-white shadow-lg shadow-blue-500/20 scale-105 border-transparent`
                       : isDark
@@ -687,7 +687,7 @@ export default function LandingPageClient() {
           </div>
 
           {/* Active Vertical Details Card */}
-          <div className={`rounded-3xl p-6 sm:p-10 border shadow-2xl transition-colors ${
+          <div className={`rounded-3xl p-6 sm:p-10 border shadow-2xl  ${
             isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200'
           }`}>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -710,7 +710,7 @@ export default function LandingPageClient() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   {currentVertical.features.map((feat, idx) => (
-                    <div key={idx} className={`p-4 rounded-2xl border transition-colors ${
+                    <div key={idx} className={`p-4 rounded-2xl border  ${
                       isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'
                     }`}>
                       <div className="flex items-start gap-3">
@@ -727,13 +727,13 @@ export default function LandingPageClient() {
                 <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
                   <Link
                     href={currentVertical.link}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-md transition-all"
+                    className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-md "
                   >
                     Pelajari Solusi {currentVertical.title} <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link
                     href="/sign-up?redirect_url=/onboarding"
-                    className={`w-full sm:w-auto px-6 py-3.5 font-bold rounded-xl flex items-center justify-center text-sm border transition-all ${
+                    className={`w-full sm:w-auto px-6 py-3.5 font-bold rounded-xl flex items-center justify-center text-sm border  ${
                       isDark 
                         ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' 
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
@@ -778,7 +778,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* 7. ENTERPRISE ARCHITECTURE FOR UMKM */}
-      <section className={`py-20 border-t transition-colors ${
+      <section className={`py-20 border-t  ${
         isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -797,7 +797,7 @@ export default function LandingPageClient() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* Feature 1 */}
-            <div className={`p-8 rounded-3xl border transition-all space-y-4 ${
+            <div className={`p-8 rounded-3xl border  space-y-4 ${
               isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
             }`}>
               <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
@@ -810,7 +810,7 @@ export default function LandingPageClient() {
             </div>
 
             {/* Feature 2 */}
-            <div className={`p-8 rounded-3xl border transition-all space-y-4 ${
+            <div className={`p-8 rounded-3xl border  space-y-4 ${
               isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
             }`}>
               <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
@@ -823,7 +823,7 @@ export default function LandingPageClient() {
             </div>
 
             {/* Feature 3 */}
-            <div className={`p-8 rounded-3xl border transition-all space-y-4 ${
+            <div className={`p-8 rounded-3xl border  space-y-4 ${
               isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
             }`}>
               <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
@@ -843,7 +843,7 @@ export default function LandingPageClient() {
       <section className="py-20 md:py-28 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className={`border rounded-3xl p-6 sm:p-10 lg:p-12 transition-colors ${
+          <div className={`border rounded-3xl p-6 sm:p-10 lg:p-12  ${
             isDark 
               ? 'bg-slate-900/90 border-slate-800' 
               : 'bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 border-slate-200 shadow-sm'
@@ -915,7 +915,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* 9. TRANSPARENT PRICING SECTION - 4 EXACT TIERS */}
-      <section id="pricing" className={`py-20 md:py-28 border-t transition-colors ${
+      <section id="pricing" className={`py-20 md:py-28 border-t  ${
         isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -937,7 +937,7 @@ export default function LandingPageClient() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             
             {/* 1. Mulai Usaha (Free Trial) */}
-            <div className={`rounded-3xl p-6 flex flex-col justify-between border transition-all ${
+            <div className={`rounded-3xl p-6 flex flex-col justify-between border  ${
               isDark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
             }`}>
               <div>
@@ -971,7 +971,7 @@ export default function LandingPageClient() {
 
               <Link
                 href="/sign-up?redirect_url=/onboarding"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all ${
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center  ${
                   isDark 
                     ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
                     : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
@@ -982,7 +982,7 @@ export default function LandingPageClient() {
             </div>
 
             {/* 2. Pro 1 Bulan */}
-            <div className={`rounded-3xl p-6 flex flex-col justify-between border transition-all ${
+            <div className={`rounded-3xl p-6 flex flex-col justify-between border  ${
               isDark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
             }`}>
               <div>
@@ -1025,7 +1025,7 @@ export default function LandingPageClient() {
 
               <Link
                 href="/sign-up?redirect_url=/onboarding"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all block ${
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center  block ${
                   isDark 
                     ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
                     : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
@@ -1036,7 +1036,7 @@ export default function LandingPageClient() {
             </div>
 
             {/* 3. Pro 6 Bulan */}
-            <div className={`rounded-3xl p-6 flex flex-col justify-between border transition-all ${
+            <div className={`rounded-3xl p-6 flex flex-col justify-between border  ${
               isDark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
             }`}>
               <div>
@@ -1079,7 +1079,7 @@ export default function LandingPageClient() {
 
               <Link
                 href="/sign-up?redirect_url=/onboarding"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all block ${
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center  block ${
                   isDark 
                     ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
                     : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
@@ -1090,7 +1090,7 @@ export default function LandingPageClient() {
             </div>
 
             {/* 4. Pro 1 Tahun (HERO CARD) */}
-            <div className={`rounded-3xl p-6 flex flex-col justify-between relative border-2 ring-2 ring-orange-500 ring-offset-2 transition-all ${
+            <div className={`rounded-3xl p-6 flex flex-col justify-between relative border-2 ring-2 ring-orange-500 ring-offset-2  ${
               isDark 
                 ? 'bg-slate-900 border-orange-500 ring-offset-slate-950 shadow-[0_8px_30px_rgb(249,115,22,0.2)]' 
                 : 'bg-white border-orange-500 ring-offset-white shadow-[0_8px_30px_rgb(249,115,22,0.15)]'
@@ -1151,7 +1151,7 @@ export default function LandingPageClient() {
 
               <Link
                 href="/sign-up?redirect_url=/onboarding"
-                className="w-full py-3.5 text-xs sm:text-sm rounded-xl font-black text-center text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all block"
+                className="w-full py-3.5 text-xs sm:text-sm rounded-xl font-black text-center text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30  block"
               >
                 Pilih Paket Paling Hemat
               </Link>
@@ -1174,7 +1174,7 @@ export default function LandingPageClient() {
               </h3>
               <button
                 onClick={() => setIsTncOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 dark:bg-slate-800 rounded-full transition-colors shrink-0"
+                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 dark:bg-slate-800 rounded-full  shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1201,7 +1201,7 @@ export default function LandingPageClient() {
 
             <button
               onClick={() => setIsTncOpen(false)}
-              className="w-full mt-6 py-3 bg-slate-950 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold rounded-xl text-sm transition-colors"
+              className="w-full mt-6 py-3 bg-slate-950 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700 font-bold rounded-xl text-sm "
             >
               Saya Mengerti dan Setuju
             </button>
@@ -1210,7 +1210,7 @@ export default function LandingPageClient() {
       )}
 
       {/* 10. FAQ ACCORDION SECTION */}
-      <section id="faq" className={`py-20 md:py-28 border-t transition-colors ${
+      <section id="faq" className={`py-20 md:py-28 border-t  ${
         isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'
       }`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1232,13 +1232,13 @@ export default function LandingPageClient() {
               return (
                 <div 
                   key={idx} 
-                  className={`border rounded-2xl overflow-hidden transition-colors ${
+                  className={`border rounded-2xl overflow-hidden  ${
                     isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
                   }`}
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className={`w-full p-5 sm:p-6 text-left flex justify-between items-center gap-4 transition-colors ${
+                    className={`w-full p-5 sm:p-6 text-left flex justify-between items-center gap-4  ${
                       isDark ? 'hover:bg-slate-900' : 'hover:bg-slate-50'
                     }`}
                   >
@@ -1272,13 +1272,13 @@ export default function LandingPageClient() {
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/sign-up?redirect_url=/onboarding"
-              className="w-full sm:w-auto px-8 py-4 bg-white text-slate-950 hover:bg-slate-100 font-black text-lg rounded-2xl shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-slate-950 hover:bg-slate-100 font-black text-lg rounded-2xl shadow-2xl active:scale-95  flex items-center justify-center gap-2"
             >
               Mulai Trial Gratis 14 Hari <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               href="/sign-in?redirect_url=/auth-callback"
-              className="w-full sm:w-auto px-8 py-4 bg-blue-950/50 hover:bg-blue-950/70 text-white font-black text-lg rounded-2xl border border-white/30 transition-all"
+              className="w-full sm:w-auto px-8 py-4 bg-blue-950/50 hover:bg-blue-950/70 text-white font-black text-lg rounded-2xl border border-white/30 "
             >
               Masuk ke Akun
             </Link>
@@ -1287,7 +1287,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* 12. FOOTER */}
-      <footer className={`border-t py-16 text-sm transition-colors ${
+      <footer className={`border-t py-16 text-sm  ${
         isDark ? 'bg-slate-950 border-slate-800 text-slate-400' : 'bg-slate-900 border-slate-800 text-slate-300'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-5 gap-10">
@@ -1312,10 +1312,10 @@ export default function LandingPageClient() {
           <div className="space-y-3">
             <p className="font-black text-white text-xs uppercase tracking-wider">Solusi Vertikal</p>
             <ul className="space-y-2 text-xs sm:text-sm font-semibold">
-              <li><Link href="/solusi/retail" className="hover:text-white transition-colors">POS Retail & Toko</Link></li>
-              <li><Link href="/solusi/fnb" className="hover:text-white transition-colors">POS Resto & Kafe (F&B)</Link></li>
-              <li><Link href="/solusi/jasa" className="hover:text-white transition-colors">POS Bengkel & Jasa</Link></li>
-              <li><Link href="/solusi/rental" className="hover:text-white transition-colors">POS Rental & Properti</Link></li>
+              <li><Link href="/solusi/retail" className="hover:text-white ">POS Retail & Toko</Link></li>
+              <li><Link href="/solusi/fnb" className="hover:text-white ">POS Resto & Kafe (F&B)</Link></li>
+              <li><Link href="/solusi/jasa" className="hover:text-white ">POS Bengkel & Jasa</Link></li>
+              <li><Link href="/solusi/rental" className="hover:text-white ">POS Rental & Properti</Link></li>
             </ul>
           </div>
 
@@ -1323,11 +1323,11 @@ export default function LandingPageClient() {
           <div className="space-y-3">
             <p className="font-black text-white text-xs uppercase tracking-wider">Akses Portal</p>
             <ul className="space-y-2 text-xs sm:text-sm font-semibold">
-              <li><Link href="/sign-in?redirect_url=/auth-callback" className="hover:text-white transition-colors">Masuk (Owner)</Link></li>
-              <li><Link href="/sign-in?redirect_url=/auth-callback" className="hover:text-emerald-400 transition-colors">Login Karyawan / Kasir</Link></li>
-              <li><Link href="/comparison" className="hover:text-white transition-colors">Perbandingan POS</Link></li>
-              <li><Link href="/blog" className="hover:text-white transition-colors">Blog & Tips Bisnis</Link></li>
-              <li><Link href="/superadmin" className="hover:text-purple-400 transition-colors">Superadmin</Link></li>
+              <li><Link href="/sign-in?redirect_url=/auth-callback" className="hover:text-white ">Masuk (Owner)</Link></li>
+              <li><Link href="/sign-in?redirect_url=/auth-callback" className="hover:text-emerald-400 ">Login Karyawan / Kasir</Link></li>
+              <li><Link href="/comparison" className="hover:text-white ">Perbandingan POS</Link></li>
+              <li><Link href="/blog" className="hover:text-white ">Blog & Tips Bisnis</Link></li>
+              <li><Link href="/superadmin" className="hover:text-purple-400 ">Superadmin</Link></li>
             </ul>
           </div>
 
@@ -1336,17 +1336,17 @@ export default function LandingPageClient() {
             <p className="font-black text-white text-xs uppercase tracking-wider">Media Sosial Resmi</p>
             <ul className="space-y-2 text-xs sm:text-sm font-semibold">
               <li>
-                <a href="https://www.tiktok.com/@pranajayatech" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <a href="https://www.tiktok.com/@pranajayatech" target="_blank" rel="noopener noreferrer" className="hover:text-white ">
                   TikTok: @pranajayatech
                 </a>
               </li>
               <li>
-                <a href="https://www.instagram.com/pranajayatech" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <a href="https://www.instagram.com/pranajayatech" target="_blank" rel="noopener noreferrer" className="hover:text-white ">
                   Instagram: @pranajayatech
                 </a>
               </li>
               <li>
-                <a href="https://www.youtube.com/@pranajayatech" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <a href="https://www.youtube.com/@pranajayatech" target="_blank" rel="noopener noreferrer" className="hover:text-white ">
                   YouTube: @pranajayatech
                 </a>
               </li>
