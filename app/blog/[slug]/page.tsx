@@ -447,6 +447,238 @@ Masing-masing **kalender terpisah** tapi **satu dashboard Owner**.
 [Coba Gratis 14 Hari →](/sign-up?redirect_url=/onboarding)
 
 *Butuh setup kalender armada 20 unit? Tim kami bantu import data & konfigurasi gratis selama trial.`
+  },
+  'import-produk-excel-template-vertikal': {
+    title: 'Import Produk via Excel: Template Siap Pakai per Vertikal',
+    excerpt: 'Tidak perlu input manual satu-satu. PJTECH sediakan template Excel standar untuk Retail, F&B (3 template), Jasa, dan Rental. Upload sekali, langsung jualan.',
+    category: 'Tips',
+    readTime: '5 menit',
+    date: '2026-08-20',
+    tags: ['Import Excel', 'Template Produk', 'Setup Cepat', 'Migrasi Data'],
+    featured: false,
+    content: `# Import Produk via Excel: Template Siap Pakai per Vertikal
+
+Setup POS paling makan waktu di **input data produk**. Kalau 100+ SKU input manual satu-satu → 2-3 hari kerja. PJTECH sediakan **template Excel standar per vertikal** — isi, upload, langsung jualan.
+
+## Kenapa Template Excel?
+
+| Cara Input | Waktu 100 SKU | Resiko Error | Cocok Untuk |
+|------------|---------------|--------------|-------------|
+| **Manual satu-satu** | 2-3 hari | Tinggi (typo, dobel, lupa varian) | < 20 SKU |
+| **Template Excel** | **15-30 menit** | Rendah (validasi otomatis) | **Semua skala** |
+| **Migrasi dari POS lama** | 30-60 menit | Sedang (butuh mapping kolom) | Pindah sistem |
+
+## Template Tersedia per Vertikal
+
+### 1. Retail — \`template-retail.xlsx\`
+Kolom wajib:
+- \`nama_produk\`, \`kategori\`, \`harga_jual\`, \`stok_awal\`
+Kolom opsional:
+- \`sku\`, \`barcode\`, \`varian_ukuran\`, \`varian_warna\`, \`harga_beli\`, \`stok_minimum\`, \`ppn_include\` (true/false), \`diskon_persen\`, \`deskripsi\`
+
+**Contoh varian:** 1 produk "Kaos Polos" → 4 varian: S-Merah, S-Biru, M-Merah, M-Biru (setiap varian SKU & stok beda)
+
+### 2. F&B — 3 Template Terpisah
+
+| Template | File | Cocok Untuk |
+|----------|------|-------------|
+| **Kafe & Coffee Shop** | \`template-fnb-kafe.xlsx\` | Minuman (kopi, non-kopi), makanan ringan, modifier level manis/es/toppings |
+| **Restoran & Rumah Makan** | \`template-fnb-resto.xlsx\` | Nasi, lauk, sayur, minuman, paket combo, modifier pedas/telur/nasi |
+| **Warung Makan & Fast Food** | \`template-fnb-warung.xlsx\` | Menu cepat saji, paket nasi, level pedas, tambahan kerupuk/es teh |
+
+Kolom khusus F&B:
+- \`resep_bahan_baku\` (format JSON: \`[{"bahan":"Beras","qty":150,"satuan":"gr"},{"bahan":"Telur","qty":2,"satuan":"butir"}]\`)
+- \`tipe_printer\` (kasir/dapur/bar)
+- \`modifier_grup\` (level pedas, topping, porsi)
+
+### 3. Jasa/Servis — \`template-jasa.xlsx\`
+Kolom:
+- \`nama_layanan\`, \`kategori\`, \`harga_jasa\`, \`durasi_estimasi_menit\`
+- \`komisi_persen\` / \`komisi_flat\`, \`sparepart_terkait\` (opsional)
+- Contoh: "Service AC Split 1PK" | AC | 150.000 | 60 | 20% | Freon, Kabel
+
+### 4. Rental — \`template-rental.xlsx\`
+Kolom:
+- \`nama_unit\`, \`tipe\` (mobil/villa/kamera/alat), \`harga_per_jam\`, \`harga_per_hari\`, \`harga_per_minggu\`, \`harga_per_bulan\`
+- \`deposit_flat\`, \`deposit_persen\`, \`denda_per_jam\`, \`denda_per_hari\`, \`grace_period_menit\`
+- \`deskripsi_kondisi\`, \`foto_url\` (opsional)
+
+## Cara Import (3 Langkah)
+
+1. **Download template** dari dashboard → Menu Produk → Import Excel
+2. **Isi data** di Excel (bisa pakai Google Sheets / LibreOffice / Excel)
+3. **Upload file** → Sistem validasi otomatis → Preview hasil → Konfirmasi
+
+**Validasi otomatis cek:**
+- ❌ SKU/Barcode duplikat
+- ❌ Harga minus / nol
+- ❌ Stok negatif
+- ❌ Kolom wajib kosong
+- ❌ Format resep bahan baku salah (F&B)
+
+## Migrasi dari POS Lain (Moka, Pawoon, iReap, Qashier)
+
+1. **Export dari sistem lama** → biasanya CSV/Excel
+2. **Mapping kolom** ke template PJTECH (kami sediain mapping guide)
+3. **Bersihkan data** (hapus produk tidak aktif, standarkan nama kategori)
+4. **Import ke PJTECH** → review preview → simpan
+
+**Tim kami bantu remote** selama trial kalau data kompleks (> 500 SKU / multi-cabang).
+
+## Tips Supaya Import Lancar
+
+| Tips | Kenapa Penting |
+|------|----------------|
+| **Isi minimal kolom wajib** | Sistem butuh nama, harga, stok minimum |
+| **Gunakan SKU unik** | Biar update stok & laporan akurat |
+| **Standarkan nama kategori** | "Minuman" bukan "Minuman " (spasi) / "minuman" |
+| **Test 5 produk dulu** | Cek varian, harga, stok benar sebelum import semua |
+| **Backup file Excel asli** | Kalau salah, bisa import ulang cepat |
+
+## Setelah Import: Siap Jualan Langsung
+
+- ✅ Produk muncul di kasir dengan kategori rapi
+- ✅ Varian (Retail/F&B) sudah terstruktur
+- ✅ Stok real-time dari hari 1
+- ✅ Resep bahan baku (F&B) → HPP otomatis
+- ✅ Komisi teknisi (Jasa) sudah ter-setup
+- ✅ Harga rental per jam/hari/bulan sudah aktif
+
+---
+
+### Coba Import Sekarang
+[Gratis 14 Hari + Template Excel →](/sign-up?redirect_url=/onboarding)
+
+*Download template langsung dari dashboard setelah daftar. Tim kami bantu review file Excel Anda sebelum import.`
+  },
+  'offline-mode-pwa-umkm-indonesia': {
+    title: 'Mode Offline PWA: Transaksi Tetap Jalan Saat Internet Mati',
+    excerpt: 'PJTECH pakai IndexedDB untuk offline-first. Kasir tetap bisa transaksi, data tersimpan lokal, auto-sync begitu internet nyala. Cocok area sinyal lemah.',
+    category: 'Teknis',
+    readTime: '4 menit',
+    date: '2026-08-15',
+    tags: ['Offline Mode', 'PWA', 'IndexedDB', 'Sinkronisasi Data'],
+    featured: false,
+    content: `# Mode Offline PWA: Transaksi Tetap Jalan Saat Internet Mati
+
+Realita di Indonesia: **internet nggak selalu stabil**. Listrik padam, putus kabel, sinyal lemah di daerah, atau ISP maintenance. POS tradisional (online-only) → toko **harus tutup** kalau internet putus.
+
+PJTECH beda: **Offline-First PWA** pakai **IndexedDB** (database di browser).
+
+## Cara Kerja Offline-First PJTECH
+
+\`\`\`
+┌─────────────────────────────────────────────────────────────┐
+│                    NORMAL (ONLINE)                          │
+│  Kasir → Transaksi → Server (PostgreSQL) → Sync Real-time  │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    OFFLINE (INTERNET PUTUS)                 │
+│  Kasir → Transaksi → IndexedDB (Browser/Lokal) → Queue     │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    RECONNECT (INTERNET NYALA)               │
+│  Queue → Auto Push ke Server → Sync Conflict Resolution    │
+└─────────────────────────────────────────────────────────────┘
+\`\`\`
+
+## Apa Saja Yang Bisa Dilakukan Offline?
+
+| Fitur | Status Offline | Catatan |
+|-------|----------------|---------|
+| **Transaksi Penjualan** | ✅ **Full** | Scan barcode, hitung total, cetak struk |
+| **Pembayaran Tunai/QRIS** | ✅ **Full** | QRIS offline pakai static QR (bayar nanti sync) |
+| **Input Produk Baru** | ✅ **Full** | Masuk queue, sync ke server nanti |
+| **Update Stok** | ✅ **Full** | Stok lokal kurangi, server update nanti |
+| **Laporan Harian** | ✅ **Full** | Generate dari data lokal |
+| **KDS (Dapur)** | ✅ **Full** | Order offline → tampil di KDS lokal |
+| **Booking Rental/Jasa** | ✅ **Full** | Masuk antrian lokal |
+| **Sinkronisasi Multi-Cabang** | ⏳ **Queue** | Sync begitu online, merge conflict auto |
+
+## Teknologi: IndexedDB (Bukan localStorage)
+
+| Aspek | localStorage | **IndexedDB (PJTECH)** |
+|-------|--------------|------------------------|
+| Kapasitas | ~5 MB | **Ratusan MB** (bisa ribuan transaksi) |
+| Query | Key-value only | **Index, Cursor, Transaction** |
+| Offline Complex | Sulit | **Native support** |
+| Browser Support | Semua | Modern browsers (Chrome, Safari, Firefox, Edge) |
+
+## Sinkronisasi Otomatis & Conflict Resolution
+
+1. **Detect online** → Service Worker trigger sync
+2. **Push queue** → Transaksi dikirim batch ke server
+3. **Conflict check** → Server bandingkan timestamp & user
+4. **Auto-merge** → Strategi: *Last write wins* + *Server authoritative untuk stok*
+5. **Clear queue** → Data lokal dihapus setelah sukses
+6. **Notifikasi** → "Sinkronisasi selesai: 23 transaksi, 0 conflict"
+
+## Conflict Resolution: Stok Produk (Critical)
+
+**Skenario:** Cabang A & B offline keduanya. Cabang A jual 5 unit, Cabang B jual 3 unit. Stok server = 100.
+
+| Langkah | Aksi |
+|---------|------|
+| 1. Cabang A online → push 5 terjual → Server stok = 95 |
+| 2. Cabang B online → push 3 terjual → Server cek: stok 95 ≥ 3 → OK → Server stok = 92 |
+| 3. **Kalau stok tidak cukup** → Server reject → Cabang B notif: "Stok tidak cukup untuk sync 3 unit (tersisa 2). Hubungi admin." |
+
+**Hasil:** Nggak ada overselling. Stok selalu akurat.
+
+## PWA = Installable Seperti App Native
+
+- **Install di HP** → "Add to Home Screen" → icon seperti app
+- **Fullscreen** → Nggak ada address bar, feel seperti app native
+- **Push Notification** → Notifikasi stok minim, order baru, sinkronisasi selesai
+- **Background Sync** → Sync otomatis di background kalau HP unlock & online
+
+## Test Offline Sendiri (5 Menit)
+
+1. Buka POS di HP/Tablet
+2. **Matikan WiFi + Data Seluler** (Mode Pesawat)
+3. Lakukan transaksi: scan produk → bayar tunai → cetak struk Bluetooth
+4. Cek laporan harian → data lengkap
+5. **Nyalakan internet** → tunggu 5 detik → notifikasi "Sinkronisasi selesai"
+6. Cek dashboard Owner (Laptop) → transaksi sudah masuk
+
+## Cocok Untuk:
+
+| Lokasi / Situasi | Kenapa Butuh Offline |
+|------------------|---------------------|
+| **Toko di mal/basement** | Sinyal lemah / tidak stabil |
+| **Warung pinggir jalan** | Pakai hotspot HP, sering putus |
+| **Restoran area luar kota** | ISP cuma 1, sering maintenance |
+| **Event/bazaar temporary** | Nggak ada WiFi permanen |
+| **Area rawan listrik padam** | UPS kasir bisa, tapi router mati |
+| **Backup line** | Internet utama putus → auto pakai hotspot |
+
+## Batasan (Jujur)
+
+| Fitur | Offline | Butuh Online |
+|-------|---------|--------------|
+| **Login pertama kali** | ❌ | ✅ (butuh auth ke server) |
+| **Sinkronisasi multi-cabang** | ⏳ Queue | ✅ |
+| **Integrasi GoFood/GrabFood** | ❌ | ✅ (API partner butuh internet) |
+| **WA Notifikasi** | ⏳ Queue | ✅ (kirim via Meta API) |
+| **Backup ke Cloud** | ⏳ Queue | ✅ |
+| **Update Aplikasi** | ❌ | ✅ (Service Worker update) |
+
+**Solusi:** Login dulu saat online → setelah itu bisa offline seharian penuh.
+
+## Kesimpulan: Offline Bukan Fitur Tambahan — Wajib
+
+Di Indonesia, **offline-first = business continuity**. POS yang online-only = risiko toko tutup tiap kali internet gangguan.
+
+**PJTECH: Offline-first dari hari 1, tanpa biaya tambah, tanpa setup rumit.**
+
+---
+
+### Coba Offline Mode Sendiri
+[Gratis 14 Hari →](/sign-up?redirect_url=/onboarding)
+
+*Test langsung: matikan internet → transaksi → nyalakan → lihat auto-sync. Tim kami bantu demo remote.`
   }
 };
 
