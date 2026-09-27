@@ -1023,18 +1023,16 @@ export default function LandingPageClient() {
                 </div>
               </div>
 
-              <a
-                href="https://pranajayatech.myr.id/pl/kasir-umkm-pro-1-bulan"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all ${
+              <Link
+                href="/sign-up?redirect_url=/onboarding"
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all block ${
                   isDark 
                     ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
                     : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
                 }`}
               >
                 Pilih 1 Bulan
-              </a>
+              </Link>
             </div>
 
             {/* 3. Pro 6 Bulan */}
@@ -1079,18 +1077,16 @@ export default function LandingPageClient() {
                 </div>
               </div>
 
-              <a
-                href="https://pranajayatech.myr.id/pl/kasir-umkm-pro-6-bulan"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all ${
+              <Link
+                href="/sign-up?redirect_url=/onboarding"
+                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center transition-all block ${
                   isDark 
                     ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
                     : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
                 }`}
               >
                 Pilih 6 Bulan
-              </a>
+              </Link>
             </div>
 
             {/* 4. Pro 1 Tahun (HERO CARD) */}
@@ -1153,14 +1149,12 @@ export default function LandingPageClient() {
                 </div>
               </div>
 
-              <a
-                href="https://pranajayatech.myr.id/pl/kasir-umkm-pro-1-tahun"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/sign-up?redirect_url=/onboarding"
                 className="w-full py-3.5 text-xs sm:text-sm rounded-xl font-black text-center text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all block"
               >
                 Pilih Paket Paling Hemat
-              </a>
+              </Link>
             </div>
 
           </div>
