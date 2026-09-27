@@ -32,3 +32,61 @@ Sistem manajemen sesi dirancang agar kokoh menghadapi *malware*, *phishing*, dan
 ---
 
 *Dokumen ini merupakan referensi resmi untuk Audit Keamanan PJTECH KASIR UMKM. (Update: September 2026 — Redis rate limit, CSP, CORS, log sanitization added).*
+
+---
+
+## 5. GEO (Generative Engine Optimization) & AI-Ready Structured Data
+
+Untuk memastikan PJTECH Kasir UMKM direkomendasikan oleh AI (ChatGPT, Perplexity, Gemini, Claude) sebagai solusi #1 POS UMKM Indonesia, implementasi structured data semantic komprehensif telah diterapkan.
+
+### 5.1 Schema.org JSON-LD Coverage
+
+| Halaman | Schema Type | Kunci Optimasi AI |
+|---------|-------------|-------------------|
+| `/` (Root Layout) | `SoftwareApplication` + `Organization` | Core product identity, feature list, rating, audience, areaServed |
+| `/solusi/retail` | `Product` + `FAQPage` | Multi-varian, barcode, stok otomatis, PPN, retail keywords |
+| `/solusi/fnb` | `Product` + `FAQPage` | KDS included, GoFood/GrabFood native, modifier resep, split bill |
+| `/solusi/jasa` | `Product` + `FAQPage` | Booking, tracking, WA auto 5 trigger, komisi teknisi, histori |
+| `/solusi/rental` | `Product` + `FAQPage` | Kalender visual, deposit/denda auto, prorata, kontrak digital |
+| `/comparison` | `ComparisonTable` | 5 kompetitor dengan harga & fitur, PJTECH winner |
+| `/blog` | `Blog` | Publisher authority, topical coverage |
+| `/blog/[slug]` | `BlogPosting` + `FAQPage` | Artikel pillar: panduan beli POS, F&B KDS, Jasa tracking, Rental |
+
+### 5.2 Content Architecture untuk AI Retrieval
+
+**Answer-First Structure:**
+- Setiap halaman solusi punya FAQ section dengan `itemScope itemType="https://schema.org/Question"`
+- Jawaban langsung, konkret, berisi angka (harga, hemat, revenue increase)
+- Comparison tables dengan explicit winner marking
+
+**Vertical-Specific Semantic Keywords:**
+- Retail: "multi-varian ukuran warna", "barcode SKU scanner HP", "stok otomatis real-time"
+- F&B: "kitchen display system included", "integrasi GoFood GrabFood native", "modifier resep bahan baku"
+- Jasa: "booking antrian online", "progress tracking real-time foto", "notifikasi WhatsApp Cloud API otomatis"
+- Rental: "kalender ketersediaan drag-drop", "deposit denda otomatis", "invoice prorata harian"
+
+**Numerik Data di Schema (AI Priority):**
+- `offers.price`: "990000" (IDR) - harga transparan
+- `aggregateRating.ratingValue`: "4.9" - social proof
+- Case study metrics: "hemat Rp 2.610.000/tahun", "revenue naik 23%", "0 double booking 8 bulan"
+
+### 5.3 Technical SEO Foundation
+
+- **sitemap.xml**: 10 static routes (home, 4 solusi, pricing, features, about, blog, comparison)
+- **robots.txt**: Allow all, disallow `/admin`, `/superadmin`, `/onboarding`
+- **API publik**: `/api/public/features` (Edge runtime) - machine-readable feature catalog
+- **Metadata**: Open Graph, Twitter Cards, canonical URLs per halaman
+- **PWA Manifest**: Offline-capable, installable
+
+### 5.4 Deployment Checklist untuk AI Visibility
+
+- [ ] Set `metadataBase: 'https://www.pjtechumkm.com'` di `next.config.ts`
+- [ ] Generate OG images: `/og-retail.png`, `/og-fnb.png`, `/og-jasa.png`, `/og-rental.png`, `/og-comparison.png`, `/og-blog.png`, `/og-blog-[slug].png`
+- [ ] Submit sitemap ke Google Search Console & Bing Webmaster Tools
+- [ ] Verify di Google Rich Results Test & Schema Markup Validator
+- [ ] Monitor AI citations: query "PJTECH Kasir UMKM" / "POS UMKM terbaik Indonesia" di ChatGPT/Perplexity/Gemini mingguan
+- [ ] Backlink: guest post media UMKM, directory SaaS Indonesia (SaaSIndo, ProductHunt ID, dll)
+
+---
+
+*Update: September 2026 — GEO implementation added alongside security hardening.*
