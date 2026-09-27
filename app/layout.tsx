@@ -40,13 +40,13 @@ const softwareApplicationSchema = {
     }
   },
   "featureList": [
-    "POS Retail: multi-varian (ukuran, warna), barcode/SKU, stok otomatis, diskon item/struk, PPN, cetak struk & label harga",
-    "POS F&B: manajemen meja, split bill, open bill, kitchen display/printer, modifier (level pedas, topping), integrasi GoFood/GrabFood",
-    "POS Jasa/Servis: booking antrian, estimasi biaya, progress tracking, notifikasi WA, invoice jasa + sparepart, histori servis per pelanggan",
-    "POS Rental/Travel/Properti: kalender ketersediaan, booking berbasis waktu, deposit, denda keterlambatan, multi-unit (mobil/kamar/villa), invoice prorata",
-    "Multi-tenant SaaS: satu basis kode, isolasi data total per toko, role SUPERADMIN/OWNER/CASHIER",
-    "Laporan: penjualan harian/bulanan, stok minim, HPP & laba, pajak PPN, ekspor CSV/Jurnal untuk akuntan"
-  ],
+      "POS Retail: multi-varian (ukuran, warna), barcode/SKU, stok otomatis, diskon item/struk, PPN, cetak struk & label harga",
+      "POS F&B: manajemen meja, split bill, open bill, kitchen display/printer, modifier (level pedas, topping)",
+      "POS Jasa/Servis: booking antrian, estimasi biaya, progress tracking, notifikasi WA, invoice jasa + sparepart, histori servis per pelanggan",
+      "POS Rental/Travel/Properti: kalender ketersediaan, booking berbasis waktu, deposit, denda keterlambatan, multi-unit (mobil/kamar/villa), invoice prorata",
+      "Multi-tenant SaaS: satu basis kode, isolasi data total per toko, role SUPERADMIN/OWNER/CASHIER",
+      "Laporan: penjualan harian/bulanan, stok minim, HPP & laba, pajak PPN, ekspor CSV/Jurnal untuk akuntan"
+    ],
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "4.9",

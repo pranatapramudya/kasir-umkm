@@ -27,12 +27,12 @@ const posts = [
   },
   {
     slug: 'pos-fnb-kds-ojol-terbaik',
-    title: 'POS F&B Terbaik: KDS Included + Integrasi GoFood/GrabFood Native',
-    excerpt: 'Kenapa restoran & kafe pindah ke PJTECH: KDS gratis di HP, order ojol masuk otomatis ke dapur, split bill fleksibel. Hemat signifikan vs kompetitor.',
+    title: 'POS F&B Terbaik: KDS Included + Order Ojol Manual Input',
+    excerpt: 'Kenapa restoran & kafe pindah ke PJTECH: KDS gratis di HP, split bill fleksibel, modifier resep. Hemat signifikan vs kompetitor. Integrasi ojol roadmap Q1 2027.',
     category: 'F&B',
     readTime: '6 menit',
     date: '2026-09-10',
-    tags: ['POS F&B', 'KDS', 'GoFood', 'GrabFood', 'Restoran'],
+    tags: ['POS F&B', 'KDS', 'Restoran', 'Manual Ojol'],
     featured: true,
   },
   {

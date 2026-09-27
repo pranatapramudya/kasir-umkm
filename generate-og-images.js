@@ -20,7 +20,7 @@ const pages = [
     filename: 'og-fnb.png',
     title: 'POS F&B UMKM',
     subtitle: 'Restoran, Kafe, Warung Makan',
-    features: ['KDS Included', 'GoFood/GrabFood', 'Split Bill', 'Modifier Resep'],
+    features: ['KDS Included', 'Split Bill', 'Modifier Resep', 'Roadmap Ojol Q1 2027'],
     color: '#ea580c',
     accent: '#f97316'
   },
@@ -66,9 +66,9 @@ const pages = [
   },
   {
     filename: 'og-blog-pos-fnb-kds-ojol-terbaik.png',
-    title: 'POS F&B: KDS + Ojol Native',
+    title: 'POS F&B: KDS + Order Ojol Manual',
     subtitle: 'Hemat Rp 6jt+/bln vs Kompetitor',
-    features: ['KDS Gratis', 'GoFood/GrabFood', 'Split Bill Fleksibel', 'Modifier Stok'],
+    features: ['KDS Gratis', 'Split Bill Fleksibel', 'Modifier Stok', 'Roadmap Ojol Q1 2027'],
     color: '#ea580c',
     accent: '#f97316'
   },

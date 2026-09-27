@@ -1,12 +1,12 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Utensils, Table, ChefHat, Zap, Smartphone, Printer, CheckCircle, ArrowRight, Wifi, CreditCard } from 'lucide-react';
+import { Utensils, Table, ChefHat, Zap, Printer, CheckCircle, ArrowRight, Wifi, CreditCard, RotateCcw } from 'lucide-react';
 
 const fnbSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "PJTech POS F&B",
-  "description": "Aplikasi kasir F&B untuk restoran, kafe, warung makan. Meja, split bill, kitchen display, modifier, integrasi ojol.",
+  "description": "Aplikasi kasir F&B untuk restoran, kafe, warung makan. Meja, split bill, kitchen display, modifier. Order ojol manual input.",
   "brand": { "@type": "Brand", "name": "PJTECH" },
   "offers": { "@type": "Offer", "price": "990000", "priceCurrency": "IDR", "availability": "https://schema.org/InStock" },
   "category": "Business Software",
@@ -15,11 +15,11 @@ const fnbSchema = {
 
 export const metadata: Metadata = {
   title: 'POS F&B UMKM - Restoran, Kafe, Warung Makan | PJTECH',
-  description: 'Aplikasi kasir F&B terbaik: manajemen meja, split bill, open bill, kitchen display, modifier, integrasi GoFood/GrabFood. Mulai Rp 990rb/tahun.',
-  keywords: ['POS restoran', 'kasir kafe', 'aplikasi kasir warung makan', 'kitchen display system', 'split bill', 'integrasi gofood grabfood'],
+  description: 'Aplikasi kasir F&B terbaik: manajemen meja, split bill, open bill, kitchen display, modifier. Mulai Rp 990rb/tahun.',
+  keywords: ['POS restoran', 'kasir kafe', 'aplikasi kasir warung makan', 'kitchen display system', 'split bill'],
   openGraph: {
     title: 'POS F&B UMKM - Solusi Kasir Restoran, Kafe, Warung Makan',
-    description: 'Manajemen meja, split bill, kitchen display, modifier, integrasi ojol. Mulai Rp 990rb/tahun.',
+    description: 'Manajemen meja, split bill, kitchen display, modifier. Mulai Rp 990rb/tahun.',
     type: 'website',
     url: 'https://www.pjtechumkm.com/solusi/fnb',
     images: ['/og-fnb.png'],
@@ -34,8 +34,8 @@ const features = [
   { icon: ChefHat, title: 'Kitchen Display System (KDS)', desc: 'Layar dapur real-time, filter per station (masak/minum), status: pending/cooking/ready, bump via touch/HP' },
   { icon: Utensils, title: 'Modifier & Resep', desc: 'Level pedas, tanpa bawang, extra topping, nasi/kurang. Resep bahan baku → auto kurangi stok bahan' },
   { icon: Zap, title: 'Split Bill & Open Bill', desc: 'Split by item/rata/nominal, open bill (bayar nanti), void item dengan alasan, transfer meja' },
-  { icon: Smartphone, title: 'Integrasi GoFood & GrabFood', desc: 'Order ojol masuk otomatis ke POS & KDS, status sync ke partner, laporan terpisah' },
   { icon: Printer, title: 'Multi-Printer Otomatis', desc: 'Struk kasir (58/80mm), tiket dapur per station, label takeaway, nota pembayaran' },
+  { icon: RotateCcw, title: 'Roadmap: Integrasi Ojol', desc: 'Integrasi GoFood/GrabFood direncanakan Q1 2027. Saat ini order ojol manual input.' },
 ];
 
 const comparison = [
@@ -43,7 +43,7 @@ const comparison = [
   { fitur: 'Manajemen Meja', pjtech: '✅ Visual Drag-Drop', kompetitor: '⚠️ List biasa' },
   { fitur: 'Kitchen Display', pjtech: '✅ Included (HP/Tablet)', kompetitor: '❌ Bayar tambah Rp 500rb+/bln' },
   { fitur: 'Modifier Resep', pjtech: '✅ Unlimited + Stok Bahan', kompetitor: '⚠️ Hanya catatan' },
-  { fitur: 'Integrasi Ojol', pjtech: '✅ GoFood + GrabFood', kompetitor: '❌ Butuh middleware mahal' },
+  { fitur: 'Integrasi Ojol', pjtech: '🔜 Roadmap Q1 2027', kompetitor: '❌ Butuh middleware mahal' },
   { fitur: 'Split Bill', pjtech: '✅ Fleksibel (item/rata/nominal)', kompetitor: '⚠️ Hanya rata' },
 ];
 
@@ -61,7 +61,7 @@ export default function FnbPage() {
               POS F&B <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">Yang Bikin Dapur Tenang</span>
             </h1>
             <p className="text-lg sm:text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              Dari warung makan sampai restoran 50 meja — kelola meja, dapur, modifier, dan ojol dalam satu aplikasi. Dapur nggak lagi ribet, kasir nggak lagi stres.
+              Dari warung makan sampai restoran 50 meja — kelola meja, dapur, modifier dalam satu aplikasi. Dapur nggak lagi ribet, kasir nggak lagi stres.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <Link href="/sign-up?redirect_url=/onboarding" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl shadow-lg hover:from-orange-600 hover:to-red-600 transition-all flex items-center justify-center gap-2">
@@ -74,7 +74,7 @@ export default function FnbPage() {
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
               <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-500" /> Gratis 14 hari</span>
               <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-500" /> Setup KDS 10 menit</span>
-              <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-500" /> Support ojol ready</span>
+              <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-500" /> Order ojol manual input</span>
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function FnbPage() {
           <dl className="space-y-6" itemScope itemType="https://schema.org/FAQPage">
             {[
               { q: 'KDS (Kitchen Display) butuh hardware apa?', a: 'Bisa pakai TV/monitor biasa + HP Android lama / tablet murah (Rp 1-2 jt). Nggak perlu beli KDS hardware mahal. Bisa juga print ke printer dapur thermal.' },
-              { q: 'Bisa integrasi GoFood dan GrabFood sekaligus?', a: 'Bisa. Order masuk otomatis ke POS & KDS dengan label "GoFood"/"GrabFood". Status "Dimasak"/"Siap Antar" sync ke partner. Laporan penjualan ojol terpisah.' },
+              { q: 'Bisa integrasi GoFood dan GrabFood sekaligus?', a: 'Belum. Integrasi GoFood/GrabFood direncanakan Q1 2027. Saat ini order ojol di-input manual ke POS.' },
               { q: 'Modifier (level pedas, topping) support stok bahan baku?', a: 'Ya. Bisa buat resep: 1 Nasi Goreng = 150gr beras + 2 butir telur + 50gr ayam. Saat jual, stok bahan baku otomatis berkurang. Alert stok bahan minimum.' },
               { q: 'Split bill bisa bayar beda metode?', a: 'Bisa. Meja 4 orang: 2 orang bayar QRIS, 1 tunai, 1 transfer. Split by item (masing-masing bayar pesanannya) atau split rata/nominal custom.' },
               { q: 'Support QR Order (scan meja → order HP pelanggan)?', a: 'Ya. Generate QR code per meja. Pelanggan scan → order dari HP → masuk ke KDS & POS. Kasir cuma konfirmasi & kasir. Kurangi beban waiter.' },
@@ -154,7 +154,7 @@ export default function FnbPage() {
       <section className="py-20 bg-gradient-to-r from-orange-500 to-red-600">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Siap Bikin Dapur & Kasir Tenang?</h2>
-          <p className="text-orange-100 mb-8 text-lg">Join 300+ F&B yang sudah pindah ke PJTECH. KDS included, integrasi ojol native, gratis 14 hari.</p>
+          <p className="text-orange-100 mb-8 text-lg">Join 300+ F&B yang sudah pindah ke PJTECH. KDS included, order ojol manual input, gratis 14 hari.</p>
           <Link href="/sign-up?redirect_url=/onboarding" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition-all shadow-lg">
             Mulai Gratis Sekarang <ArrowRight className="w-5 h-5" />
           </Link>

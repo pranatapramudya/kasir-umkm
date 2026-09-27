@@ -32,8 +32,8 @@ const verticals = [
     iconBg: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
     title: 'F&B',
     subtitle: 'Restoran, Kafe, Warung Makan',
-    description: 'Manajemen meja, KDS (dapur), modifier menu, split bill, integrasi GoFood/GrabFood resmi, resep & bahan baku (HPP).',
-    highlights: ['KDS gratis di HP/Tablet (tanpa batas device)', 'Integrasi GoFood/GrabFood API Resmi', 'Manajemen meja visual + QR Order', 'Modifier (level pedas, topping, dll)', 'Resep & bahan baku (auto HPP)', 'Split bill, open bill, void item'],
+    description: 'Manajemen meja, KDS (dapur), modifier menu, split bill, resep & bahan baku (HPP). Integrasi ojol roadmap Q1 2027.',
+    highlights: ['KDS gratis di HP/Tablet (tanpa batas device)', 'Manajemen meja visual + QR Order', 'Modifier (level pedas, topping, dll)', 'Resep & bahan baku (auto HPP)', 'Split bill, open bill, void item', 'Integrasi ojol: Roadmap Q1 2027'],
     cta: 'Lihat Detail F&B',
   },
   {
@@ -159,7 +159,7 @@ export default function SolusiPage() {
             {[
               { icon: BarChart, iconBg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', title: 'Database & Schema Khusus', desc: 'Setiap vertikal punya schema Prisma sendiri: varian produk (retail), resep bahan baku (F&B), tracking pekerjaan (jasa), kalender booking (rental). Tidak ada kolom kosong/terbuang.' },
               { icon: Users, iconBg: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', title: 'UX untuk Operator Nyata', desc: 'Kasir toko butuh scan cepat. Kasir restoran butuh split bill. Teknisi bengkel butuh update status. UI disesuaikan per role — bukan satu dashboard untuk semua.' },
-              { icon: Shield, iconBg: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400', title: 'Kompliance & Integrasi Lokal', desc: 'PPN Indonesia, Jurnal.id, GoFood/GrabFood API resmi, WA Cloud API Meta. Semua native per vertikal — tidak perlu middleware mahal & rapuh.' },
+              { icon: Shield, iconBg: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400', title: 'Kompliance & Integrasi Lokal', desc: 'PPN Indonesia, Jurnal.id, WA Cloud API Meta. Semua native per vertikal — tidak perlu middleware mahal & rapuh. Integrasi ojol roadmap Q1 2027.' },
             ].map((item, i) => (
               <article key={i} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${item.iconBg}`}>

@@ -37,7 +37,7 @@ export async function GET() {
           'Kitchen Display System (KDS) included - HP/Tablet',
           'Modifier unlimited (pedas, topping, nasi) + resep bahan baku',
           'Split bill fleksibel (item/rata/nominal) + open bill',
-          'Integrasi GoFood & GrabFood native (auto sync)',
+          'Integrasi GoFood & GrabFood: Roadmap Q1 2027 (manual input)',
           'Multi-printer: struk kasir, tiket dapur per station, label takeaway',
           'Laporan per kategori: makanan/minuman/ojol'
         ],
@@ -86,7 +86,6 @@ export async function GET() {
     ],
     integrations: [
       'Midtrans / Xendit (Payment Gateway)',
-      'GoFood / GrabFood (Ojol)',
       'WhatsApp Cloud API (Meta Official)',
       'Google Maps (Lokasi toko/booking)',
       'Jurnal.id / Accurate / Mekari / Xero (Accounting)'

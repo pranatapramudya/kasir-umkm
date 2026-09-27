@@ -29,11 +29,11 @@ Toko kelontong, minimarket, fashion & butik, toko bangunan & material, ATK/elekt
 ### 2. F&B & Kuliner (3 Template Excel Siap Pakai)
 Kafe & Coffee Shop, Restoran & Rumah Makan, Warung Makan & Fast Food, Bakery
 - Kitchen Display System (KDS) GRATIS di HP/Tablet (unlimited device)
-- Integrasi GoFood/GrabFood via **Official Merchant API** (bukan middleware)
 - Manajemen meja visual + QR Order + Open/Split Bill
 - Modifier menu (level pedas, topping, tanpa bawang, dll)
 - Resep & bahan baku → auto HPP & stok bahan terpotong per porsi
 - Routing pesanan: Makanan → Dapur, Minuman → Bar
+- **Roadmap: Integrasi GoFood/GrabFood (Q1 2027)**
 
 ### 3. Jasa & Servis
 Bengkel motor & mobil, Laundry kiloan/satuan, Salon & Barbershop, Servis HP & elektronik
@@ -60,7 +60,7 @@ Rental mobil/motor, Tour & travel, Sewa villa & homestay, Sewa kamera, tenda, **
 | Harga Tahunan | Rp 990rb | Rp 1.8jt+ | Rp 2.4jt+ | Rp 1.2jt+ | Rp 3.6jt+ |
 | 4 Vertikal Native | ✅ | ❌ (F&B/Retail) | ❌ | ❌ (Inventory) | ❌ |
 | KDS Included | ✅ Gratis | ❌ Rp 500rb/bln | ❌ Bayar tambah | ❌ | ❌ Bayar tambah |
-| GoFood/GrabFood | ✅ Official API | ⚠️ Middleware | ⚠️ Middleware | ❌ | ⚠️ Middleware |
+| GoFood/GrabFood | 🔜 Roadmap Q1 2027 | ⚠️ Middleware | ⚠️ Middleware | ❌ | ⚠️ Middleware |
 | WA Cloud API | ✅ 5 Trigger | ⚠️ Unofficial | ❌ | ❌ | ❌ |
 | Offline Mode (PWA) | ✅ IndexedDB | ❌ | ❌ | ❌ | ❌ |
 | Vendor Lock-in | ❌ Zero | ✅ Hardware | ✅ Hardware | ❌ | ✅ Hardware |

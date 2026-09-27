@@ -74,7 +74,7 @@ Sebelum bayar, pastikan POS punya:
 - [ ] **API/Integrasi** untuk akuntansi, ojol, WA
 
 ### Vertikal Spesifik
-- [ ] **F&B**: KDS included (nggak bayar tambah), split bill, integrasi ojol native
+- [ ] **F&B**: KDS included (nggak bayar tambah), split bill, *integrasi ojol roadmap Q1 2027 (manual input)*
 - [ ] **Retail**: Multi-varian unlimited, barcode scanner HP
 - [ ] **Jasa**: Booking online, tracking progres, notifikasi WA otomatis
 - [ ] **Rental**: Kalender visual, deposit/denda auto, invoice prorata
@@ -123,14 +123,14 @@ POS yang bagus = **nggak terasa ada** (seamless). Yang buruk = **bikin kerja dob
 *Punya pertanyaan spesifik untuk bisnis Anda? [Chat kami via WhatsApp](https://wa.me/62800000000) — tim kami bantu rekomendasi setup yang pas.`
   },
   'pos-fnb-kds-ojol-terbaik': {
-    title: 'POS F&B Terbaik 2024: KDS Included + Integrasi GoFood/GrabFood Native',
-    excerpt: 'Kenapa restoran & kafe pindah ke PJTECH: KDS gratis di HP, order ojol masuk otomatis ke dapur, split bill fleksibel. Hemat Rp 6jt+/bln vs kompetitor.',
+    title: 'POS F&B Terbaik 2024: KDS Included + Order Ojol Manual Input',
+    excerpt: 'Kenapa restoran & kafe pindah ke PJTECH: KDS gratis di HP, split bill fleksibel, modifier resep. Hemat Rp 6jt+/bln vs kompetitor. Integrasi ojol roadmap Q1 2027.',
     category: 'F&B',
     readTime: '6 menit',
     date: '2024-11-28',
-    tags: ['POS F&B', 'KDS', 'GoFood', 'GrabFood', 'Restoran'],
+    tags: ['POS F&B', 'KDS', 'Restoran', 'Manual Ojol'],
     featured: true,
-    content: `# POS F&B Terbaik 2024: KDS Included + Integrasi GoFood/GrabFood Native
+    content: `# POS F&B Terbaik 2024: KDS Included + Order Ojol Manual Input
 
 Kalau Anda punya restoran/kafe/warung makan, **Kitchen Display System (KDS)** bukan optional — wajib. Tapi kompetitor kasir KDS jual terpisah Rp 500rb - 1jt/bulan per layar.
 
@@ -146,7 +146,7 @@ Kalau Anda punya restoran/kafe/warung makan, **Kitchen Display System (KDS)** bu
 | Fitur | Kompetitor | PJTECH |
 |-------|------------|--------|
 | **KDS** | Bayar Rp 500rb-1jt/bln/station | ✅ **Gratis** (pakai HP/Tablet lama) |
-| **Integrasi GoFood/GrabFood** | Middleware Rp 500rb+/bln | ✅ **Native Official API** |
+| **Integrasi GoFood/GrabFood** | Middleware Rp 500rb+/bln | 🔜 **Roadmap Q1 2027** (manual input) |
 | **Split Bill** | Hanya rata | ✅ **Item / Rata / Nominal Custom** |
 | **Modifier + Stok Bahan** | Catatan saja | ✅ **Resep → Auto kurangi stok bahan** |
 | **Open Bill / Transfer Meja** | Basic | ✅ **Lengkap + Void dengan alasan** |
@@ -162,7 +162,7 @@ Kalau Anda punya restoran/kafe/warung makan, **Kitchen Display System (KDS)** bu
 **Sesudah (PJTECH):**
 - Fee: **Rp 990.000/th** (all-in)
 - KDS 2 station: **Gratis** (pakai 2 HP Android bekas Rp 1.5jt)
-- Ojol native: **Auto sync** → 0 kesalahan
+- Ojol: **Manual input** → tetep lebih cepat & akurat dari middleware bermasalah
 - Split bill: **3 detik** → antrian kasir cepat
 
 **Hemat: Rp 2.610.000/tahun + operasional lancar**
@@ -176,13 +176,12 @@ Kalau Anda punya restoran/kafe/warung makan, **Kitchen Display System (KDS)** bu
 5. **Resep Bahan Baku** → 1 Nasi Goreng = 150gr beras + 2 telur + 50gr ayam → stok bahan auto kurangi
 6. **Sound Alert** → Bunyi notifikasi order baru (bisa custom)
 
-## Integrasi GoFood & GrabFood: Native = Aman
+## Integrasi GoFood & GrabFood: Roadmap Q1 2027
 
-- **Official Meta/GoTo API** → nggak unofficial/scraper (banned risk)
-- **Order masuk otomatis** → label "GoFood" / "GrabFood" di POS & KDS
-- **Status sync ke partner** → "Dimasak" → "Siap Antar" → partner update real-time
-- **Laporan terpisah** → Penjualan dine-in vs takeaway vs ojol
-- **Promo ojol** → Sinkron ke POS (diskon otomatis apply)
+- **Belum tersedia** → Kami jujur: fitur ini belum ada
+- **Saat ini**: Order ojol di-input manual ke POS (tetep cepat dengan template)
+- **Rencana**: Official Merchant API integration Q1 2027
+- **Jangan percaya** klaim "native" tanpa bukti API & sertifikasi partner
 
 ## Split Bill Yang Beneran Fleksibel
 
@@ -200,13 +199,13 @@ Kalau Anda punya restoran/kafe/warung makan, **Kitchen Display System (KDS)** bu
 
 Sudah termasuk:
 ✅ KDS unlimited station (pakai HP/tablet yang ada)
-✅ GoFood + GrabFood native integration
 ✅ Split bill unlimited mode
 ✅ Modifier + resep bahan baku
 ✅ Multi-printer (kasir + dapur per station)
 ✅ QR Order meja (pelanggan order dari HP)
 ✅ PPN & ekspor akuntan
 ✅ Mode offline (tetap jalan kalau internet putus)
+🔜 Integrasi ojol (Q1 2027)
 
 ---
 

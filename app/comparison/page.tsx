@@ -97,7 +97,7 @@ const comparisonRows = [
  { category: 'Vertikal Bisnis', feature: 'Rental/Travel/Properti', pjtech: '✅ Native (Kalender, Deposit, Prorata)', moka: '❌ Tidak Ada', pawoon: '❌ Tidak Ada', ireap: '❌ Tidak Ada', qashier: '❌ Tidak Ada', winner: 'pjtech', highlight: 'Unik di pasar' },
 
  { category: 'Fitur Kunci', feature: 'Kitchen Display (KDS)', pjtech: '✅ Included (HP/Tablet)', moka: '❌ Bayar Rp 500rb+/bln', pawoon: '❌ Bayar Tambah', ireap: '❌ Tidak Ada', qashier: '❌ Bayar Tambah', winner: 'pjtech', highlight: 'Hemat Rp 6jt+/thn' },
- { category: 'Fitur Kunci', feature: 'Integrasi GoFood/GrabFood', pjtech: '✅ Native (Official API)', moka: '⚠️ Via Middleware', pawoon: '⚠️ Via Middleware', ireap: '❌ Tidak Ada', qashier: '⚠️ Via Middleware', winner: 'pjtech', highlight: 'Resmi & stabil' },
+ { category: 'Fitur Kunci', feature: 'Integrasi GoFood/GrabFood', pjtech: '🔜 Roadmap Q1 2027', moka: '⚠️ Via Middleware', pawoon: '⚠️ Via Middleware', ireap: '❌ Tidak Ada', qashier: '⚠️ Via Middleware', winner: 'moka', highlight: 'Belum tersedia' },
  { category: 'Fitur Kunci', feature: 'WhatsApp Notifikasi', pjtech: '✅ Official Cloud API (5 trigger)', moka: '⚠️ Unofficial/Manual', pawoon: '❌ Tidak Ada', ireap: '❌ Tidak Ada', qashier: '❌ Tidak Ada', winner: 'pjtech', highlight: 'Anti-ban, resmi Meta' },
  { category: 'Fitur Kunci', feature: 'Multi-Cabang', pjtech: '✅ SaaS Native (Stok Pusat/Cabang)', moka: '⚠️ Butuh Setup Khusus', pawoon: '✅ Ada', ireap: '✅ Ada', qashier: '✅ Ada', winner: 'pjtech', highlight: 'Plug & play' },
  { category: 'Fitur Kunci', feature: 'PPN & Ekspor Akuntan', pjtech: '✅ Built-in (Jurnal/Accurate/Xero)', moka: '✅ Ada', pawoon: '✅ Ada', ireap: '✅ Ada', qashier: '✅ Ada', winner: 'tie' },
@@ -589,7 +589,7 @@ export default function ComparisonPage() {
  { q: 'Printer thermal apa saja yang didukung?', a: 'Semua printer Bluetooth 58mm & 80mm (ESC/POS). Auto-detect tanpa driver. Bisa pakai printer murah Rp 300an ribu — tidak wajib beli hardware resmi kami.' },
  { q: 'Bagaimana cara migrasi dari Moka/Pawoon/iReap?', a: 'Sediakan template Excel standar. Export data produk/pelanggan dari sistem lama → import ke PJTECH via menu Import Excel. Proses < 10 menit. Tim kami bantu remote jika perlu.' },
  { q: 'Apakah KDS benar-benar gratis tanpa batas device?', a: 'Ya. Buka browser di HP/tablet Android/iOS → masuk mode KDS. Tidak perlu beli hardware khusus, tidak ada batas jumlah device, tidak ada fee bulanan tambahan.' },
- { q: 'Integrasi GoFood/GrabFood pakai API resmi?', a: 'Ya. PJTECH menggunakan Official Merchant API dari GoFood & GrabFood. Bukan middleware/third-party. Artinya: stabil, real-time, dan aman dari blokir akun merchant.' },
+ { q: 'Integrasi GoFood/GrabFood pakai API resmi?', a: 'Belum. Integrasi GoFood/GrabFood direncanakan Q1 2027. Saat ini order ojol di-input manual ke POS. Kami jujur: fitur ini belum ada, jangan percaya klaim "native" tanpa bukti API.' },
  ].map((faq, i) => (
  <div key={i} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
  <dt className="px-6 py-4 font-medium text-slate-900 bg-slate-50 border-b border-slate-200 flex items-center gap-3">
