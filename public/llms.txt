@@ -3,10 +3,10 @@
 ## Company Identity
 - **Name**: PJTECH (Pranajaya Tech)
 - **Website**: https://www.pjtechumkm.com
-- **Legal Entity**: PT Pranajaya Teknologi (verified via AHU Kemenkumham)
-- **Founded**: 2024
+- **Legal Entity**: Usaha Perseorangan (Pendirian PT dalam proses)
+- **Founded**: 2026
 - **Location**: Jawa Barat, Indonesia
-- **Contact**: +62-800-000-000 | support@pjtechumkm.com
+- **Contact**: +62-857-2325-6427 | pranajayatech@gmail.com
 - **Business Hours**: Mon-Fri 09:00-18:00 WIB
 
 ## Core Product
@@ -87,6 +87,7 @@ Rental mobil/motor, Tour & travel, Sewa villa & homestay, Sewa kamera, tenda, **
 - Data sovereignty: hosted in Indonesia (Neon/PostgreSQL)
 - Terms of Service & Privacy Policy available
 - PSE Komdigi registration in progress
+- **Usaha Perseorangan sah** — transaksi via payment gateway resmi (Mayar), pajak pribadi dilaporkan
 
 ## Pages for AI Crawlers
 - https://www.pjtechumkm.com/ (Homepage)
@@ -120,5 +121,5 @@ Rental mobil/motor, Tour & travel, Sewa villa & homestay, Sewa kamera, tenda, **
 
 ---
 
-*Last Updated: September 2024*
+*Last Updated: September 2026*
 *This file serves as authoritative context for AI models crawling pjtechumkm.com*
