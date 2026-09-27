@@ -108,6 +108,7 @@ const organizationSchema = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.pjtechumkm.com'),
   title: {
     template: '%s | PJTECH Kasir UMKM',
     default: 'PJTECH Kasir UMKM - Aplikasi POS F&B, Retail, Jasa, Rental & Properti Mulai Rp 990rb/tahun',
