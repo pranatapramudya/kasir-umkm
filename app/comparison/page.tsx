@@ -202,10 +202,10 @@ export default function ComparisonPage() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight text-slate-950 dark:text-white mb-6 leading-[1.05]">
-              Bandingkan <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">PJTECH</span> vs Kompetitor Besar
+              Perbandingan <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">POS UMKM Indonesia 2024</span>
             </h1>
             <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
-              Harga transparan. Fitur lengkap 4 vertikal. Tanpa biaya tersembunyi. Lihat mengapa 1000+ UMKM beralih ke PJTECH.
+              Harga transparan. Fitur lengkap 4 vertikal. Tanpa biaya tersembunyi. Data dari website resmi & review terverifikasi.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
