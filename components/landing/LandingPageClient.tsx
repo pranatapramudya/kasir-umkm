@@ -104,17 +104,17 @@ export default function LandingPageClient() {
       metrics: { label: "Kepuasan Pelanggan", value: "99%", sub: "dengan transparansi notifikasi WA" }
     },
     rental: {
-      title: "Rental, Travel & Properti",
-      tagline: "Rental Mobil/Motor, Tour & Travel, Sewa Villa & Homestay, Sewa Kamera, Tenda & Alat Berat",
-      description: "Manajemen sewa unit berbasis waktu dengan kalender ketersediaan interaktif anti-bentrok, sistem deposit jaminan, dan denda keterlambatan otomatis.",
+      title: "Rental, Travel, Properti & Alat Barang",
+      tagline: "Rental Mobil/Motor, Tour & Travel, Sewa Villa & Homestay, Sewa Kamera, Tenda, Alat Berat & Peralatan Bangunan",
+      description: "Manajemen sewa unit berbasis waktu dengan kalender ketersediaan interaktif anti-bentrok, sistem deposit jaminan, dan denda keterlambatan otomatis. Cocok untuk rental kendaraan, properti sewaan, hingga sewa alat & barang berat konstruksi.",
       icon: Car,
       badgeColor: isDark ? "bg-purple-950/80 text-purple-300 border-purple-800" : "bg-purple-50 text-purple-700 border-purple-200",
       accentColor: "from-purple-600 to-indigo-600",
       features: [
-        { title: "Kalender Ketersediaan Unit Visual", desc: "Pantau jadwal armada mobil, kamar villa, atau sewa kamera/alat secara visual agar bebas dari bentrok jadwal (double booking)." },
-        { title: "Tarif Fleksibel Jam / Hari / Mingguan", desc: "Kalkulasi tarif otomatis berdasarkan durasi sewa 12 jam, harian, mingguan, hingga sewa bulanan." },
-        { title: "Catat Uang Deposit & Denda Telat", desc: "Kelola uang jaminan/deposit penyewa dan sistem hitung denda otomatis jika unit dikembalikan melewati tenggat waktu." },
-        { title: "Invoice & Surat Perjanjian Sewa A4", desc: "Cetak surat perjanjian sewa formal dan invoice A4 berlogo bisnis Anda lengkap dengan data identitas penyewa." }
+        { title: "Kalender Ketersediaan Unit Visual", desc: "Pantau jadwal armada mobil, kamar villa, atau sewa kamera/alat & barang berat secara visual agar bebas dari bentrok jadwal (double booking)." },
+        { title: "Tarif Fleksibel Jam / Hari / Mingguan", desc: "Kalkulasi tarif otomatis berdasarkan durasi sewa 12 jam, harian, mingguan, hingga sewa bulanan untuk kendaraan maupun alat barang." },
+        { title: "Catat Uang Deposit & Denda Telat", desc: "Kelola uang jaminan/deposit penyewa dan sistem hitung denda otomatis jika unit/alat barang dikembalikan melewati tenggat waktu." },
+        { title: "Invoice & Surat Perjanjian Sewa A4", desc: "Cetak surat perjanjian sewa formal dan invoice A4 berlogo bisnis Anda lengkap dengan data identitas penyewa & detail unit/alat." }
       ],
       link: "/solusi/rental",
       metrics: { label: "Utilisasi Unit", value: "100%", sub: "bebas jadwal bentrok & transparan" }
@@ -246,8 +246,8 @@ export default function LandingPageClient() {
                 }`}>
                   <div className="p-2 bg-purple-100 text-purple-700 rounded-lg"><Car className="w-4 h-4" /></div>
                   <div>
-                    <p className="font-bold text-sm">Rental & Properti</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Kalender & Deposit</p>
+                    <p className="font-bold text-sm">Rental, Properti & Alat</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Mobil, Villa & Alat Barang</p>
                   </div>
                 </Link>
               </div>
@@ -398,7 +398,7 @@ export default function LandingPageClient() {
               <Link href="/solusi/retail" className="block px-3 py-2 rounded-lg font-bold">🛒 Retail & Toko</Link>
               <Link href="/solusi/fnb" className="block px-3 py-2 rounded-lg font-bold">🍳 F&B & Kuliner</Link>
               <Link href="/solusi/jasa" className="block px-3 py-2 rounded-lg font-bold">🔧 Jasa & Servis</Link>
-              <Link href="/solusi/rental" className="block px-3 py-2 rounded-lg font-bold">🚗 Rental & Properti</Link>
+              <Link href="/solusi/rental" className="block px-3 py-2 rounded-lg font-bold">🚗 Rental, Properti & Alat</Link>
             </div>
             <div className={`border-t pt-3 space-y-2 font-bold ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
               <Link href="/comparison" className="block px-3 py-2 rounded-lg">Perbandingan POS</Link>
@@ -469,7 +469,7 @@ export default function LandingPageClient() {
           <p className={`text-base sm:text-xl max-w-3xl mx-auto mb-10 leading-relaxed font-medium ${
             isDark ? 'text-slate-300' : 'text-slate-600'
           }`}>
-            Kelola operasional <strong>Toko & Retail</strong>, <strong>Kafe & Restoran (F&B)</strong>, <strong>Bengkel & Laundry (Jasa)</strong>, hingga <strong>Rental Mobil & Villa (Travel/Properti)</strong> dalam satu platform.
+            Kelola operasional <strong>Toko & Retail</strong>, <strong>Kafe & Restoran (F&B)</strong>, <strong>Bengkel & Laundry (Jasa)</strong>, hingga <strong>Rental Mobil, Villa & Alat Barang (Travel/Properti/Alat Berat)</strong> dalam satu platform.
             Lengkap dengan 3 Template Excel F&B, Kitchen Display (KDS), Tracking Servis WA, Stok Multi-Varian, Kalender Rental Anti-Bentrok, dan Laporan Pajak PPN otomatis.
           </p>
 
@@ -1339,7 +1339,7 @@ export default function LandingPageClient() {
               <li><Link href="/solusi/retail" className="hover:text-white ">POS Retail & Toko</Link></li>
               <li><Link href="/solusi/fnb" className="hover:text-white ">POS Resto & Kafe (F&B)</Link></li>
               <li><Link href="/solusi/jasa" className="hover:text-white ">POS Bengkel & Jasa</Link></li>
-              <li><Link href="/solusi/rental" className="hover:text-white ">POS Rental & Properti</Link></li>
+              <li><Link href="/solusi/rental" className="hover:text-white ">POS Rental, Properti & Alat</Link></li>
             </ul>
           </div>
 
