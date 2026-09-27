@@ -43,7 +43,7 @@ function renderMarkdown(content: string): React.ReactNode {
     if (listItems.length > 0) {
       const ListComponent = listType === 'ul' ? 'ul' : 'ol';
       elements.push(
-        <ListComponent key={`list-${elements.length}`} className="ml-4 my-2 space-y-1">
+        <ListComponent key={`list-${elements.length}`} className="ml-4 my-2 space-y-1 text-slate-900">
           {listItems.map((item, i) => (
             <li key={i} className="ml-4">{item}</li>
           ))}
@@ -92,7 +92,7 @@ function renderMarkdown(content: string): React.ReactNode {
       flushList();
       elements.push(
         <div key={i} className="overflow-x-auto my-4">
-          <table className="min-w-full border border-slate-200">
+          <table className="min-w-full border border-slate-200 text-slate-900">
             <tbody>
               <tr className="bg-slate-100">
                 {line.split('|').slice(1, -1).map((cell, ci) => (
@@ -132,7 +132,7 @@ function renderMarkdown(content: string): React.ReactNode {
     }
     if (line.startsWith('> ')) {
       flushList();
-      elements.push(<blockquote key={i} className="border-l-4 border-blue-500 pl-4 italic text-slate-600 my-4">{line.slice(2)}</blockquote>);
+      elements.push(<blockquote key={i} className="border-l-4 border-blue-500 pl-4 italic text-slate-800 my-4">{line.slice(2)}</blockquote>);
       continue;
     }
     if (line.startsWith('---')) {
@@ -155,14 +155,14 @@ function renderMarkdown(content: string): React.ReactNode {
     const processedLine = line
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code className="bg-slate-100 px-1 rounded text-sm font-mono">$1</code>');
-    elements.push(<p key={i} className="text-slate-700 leading-relaxed my-2" dangerouslySetInnerHTML={{ __html: processedLine }} />);
+      .replace(/`(.*?)`/g, '<code className="bg-slate-100 text-slate-900 px-1 rounded text-sm font-mono">$1</code>');
+    elements.push(<p key={i} className="text-slate-900 leading-relaxed my-2" dangerouslySetInnerHTML={{ __html: processedLine }} />);
   }
 
   flushCodeBlock();
   flushList();
 
-  return <div className="prose prose-slate max-w-none">{elements}</div>;
+  return <div className="max-w-none">{elements}</div>;
 }
 
 export default function BlogPostClient({ post, slug }: BlogPostClientProps) {
