@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
   // Ini men-silence error "webpack config but no turbopack config" saat `next dev`.
   // Production build menggunakan webpack (via --webpack flag di script "build").
   turbopack: {},
+  metadataBase: new URL('https://www.pjtechumkm.com'),
   images: {
     remotePatterns: [
       {
