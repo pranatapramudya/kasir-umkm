@@ -508,7 +508,7 @@ export default function AdminProductsClientPage({
           variant: row.variant || row['Kelengkapan Unit'] || row['Kelengkapan'] || row['Varian'] || '',
           hpp: row.hpp ?? row['HPP / Biaya Perawatan per Sewa (Rp)'] ?? row['HPP / Biaya Operasional per Hari (Rp)'] ?? row['HPP / Biaya Operasional (Rp)'] ?? row['Biaya Operasional/Hari (Rp)'] ?? row['Biaya Operasional (B.Ops)'] ?? row['Biaya Operasional'] ?? row['HPP'] ?? row['Harga Modal'] ?? row['Harga Modal (HPP)'] ?? row['HPP (Modal)'] ?? row['HPP / Modal Beli (Rp)'] ?? row['HPP / Biaya Modal (Rp)'] ?? row['Modal'] ?? row.bOps ?? row.biayaOperasional ?? row['Biaya Modal / Bahan (Rp)'] ?? row['Biaya Modal'] ?? 0,
           hargaJual: row.hargaJual ?? row['Harga Sewa/Hari (Rp)'] ?? row['Harga Sewa/Bulan (Rp)'] ?? row['Harga Sewa/Jam (Rp)'] ?? row['Harga Sewa (Rp)'] ?? row['Tarif (Rp)'] ?? row['Tarif Layanan (Rp)'] ?? row['Harga Jual / Tarif (Rp)'] ?? row['Harga Jual (Rp)'] ?? row['Harga Jual'] ?? row['Tarif Layanan'] ?? row['Tarif'] ?? row.harga ?? row.tarif ?? 0,
-          stock: row.stock ?? row['Stok'] ?? row['Qty (Stok)'] ?? row['Qty'] ?? row['Quantity'] ?? row.stok ?? row.qty ?? 0,
+          stock: row.stock ?? row['Stok'] ?? row['Stok Awal'] ?? row['Qty (Stok)'] ?? row['Qty'] ?? row['Quantity'] ?? row.stok ?? row.qty ?? 0,
           minStockThreshold: row.minStockThreshold ?? row['Min Stok'] ?? row['Batas Minimum Stok'] ?? 5,
           satuan: row.satuan || row['Satuan'] || '',
           employeeCommission: row.employeeCommission ?? row['Komisi Operator / Kru (Rp)'] ?? row['Komisi Driver (Rp)'] ?? row['Komisi Staf (Rp)'] ?? row['Komisi Staf'] ?? row['Komisi Driver'] ?? row.komisi ?? row.komisiKaryawan ?? row['Komisi'] ?? 0,
