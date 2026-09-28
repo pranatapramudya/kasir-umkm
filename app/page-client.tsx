@@ -425,23 +425,22 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                   ];
                                 }, [isFNB, tenantCategory]);
 
-                                                // Filter tabs for Retail (matches Excel template: Pakaian, Celana, etc.)
+                                                // Filter tabs for Retail (dynamically derived from store's products)
                                                 const retailFilterTabs = useMemo(() => {
                                                   if (isFNB || isRental || isPureJasa) return [];
+                                                  const uniqueCats = Array.from(
+                                                    new Set(rawProducts.map(p => (p.category || "").trim()).filter(Boolean))
+                                                  );
+                                                  if (uniqueCats.length > 0) {
+                                                    return [
+                                                      { value: "ALL", label: "Semua" },
+                                                      ...uniqueCats.map(c => ({ value: c, label: c }))
+                                                    ];
+                                                  }
                                                   return [
                                                     { value: "ALL", label: "Semua" },
-                                                    { value: "Pakaian", label: "Pakaian" },
-                                                    { value: "Celana", label: "Celana" },
-                                                    { value: "Aksesoris", label: "Aksesoris" },
-                                                    { value: "Sepatu", label: "Sepatu" },
-                                                    { value: "Tas", label: "Tas" },
-                                                    { value: "Elektronik", label: "Elektronik" },
-                                                    { value: "ATK", label: "ATK" },
-                                                    { value: "Kosmetik", label: "Kosmetik" },
-                                                    { value: "Makanan & Minuman", label: "Makanan & Minuman" },
-                                                    { value: "Lainnya", label: "Lainnya" },
                                                   ];
-                                                }, [isFNB, isRental, isPureJasa]);
+                                                }, [isFNB, isRental, isPureJasa, rawProducts]);
 
                                                 // Instant Client-side Filter untuk Respons 0ms (Filter Tab + Pencarian)
                         const filteredProducts = useMemo(() => {
@@ -504,13 +503,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                                                                                         return c.includes("produk") || c.includes("barang") || c.includes("sparepart") || (!c.includes("jasa") && !c.includes("servis") && !p.isService);
                                                                                                                       });
                                                                                                                     } else {
-                                                                                                                      // Retail: filter by category (matches Excel template categories)
-                                                                                                                      const retailCategories = ["Pakaian", "Celana", "Aksesoris", "Sepatu", "Tas", "Elektronik", "ATK", "Kosmetik", "Makanan & Minuman", "Lainnya"];
-                                                                                                                      if (retailCategories.includes(selectedFilterTab)) {
-                                                                                                                        result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                                                                                      } else {
-                                                                                                                        result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                                                                                      }
+                                                                                                                      // Retail / Umum: filter by category
+                                                                                                                      result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                                                                                     }
                                                         }
                                                       }

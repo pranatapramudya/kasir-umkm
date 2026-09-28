@@ -512,8 +512,10 @@ export async function GET(req: NextRequest) {
     { header: 'PPN %', key: 'ppn', width: 10 },
     { header: 'Deskripsi', key: 'description', width: 40 },
   ];
-  wsRetail.addRow(['BRG001', 'Indomie Goreng', 'Makanan', 2500, 3500, 100, 10, 'Pcs', '8992757123456', 0, 11, 'Mie instan rasa ayam bawang']);
-  wsRetail.addRow(['BRG002', 'Aqua 600ml', 'Minuman', 2000, 3000, 200, 20, 'Botol', '8992757123457', 0, 11, 'Air mineral ukuran 600ml']);
+  wsRetail.addRow(['BRG001', 'Indomie Goreng Original', 'Makanan', 2500, 3500, 100, 10, 'Pcs', '8992757123456', 0, 0, 'Mie instan goreng rasa ayam bawang']);
+  wsRetail.addRow(['BRG002', 'Aqua Botol 600ml', 'Minuman', 2000, 3500, 120, 24, 'Botol', '8992757123457', 0, 0, 'Air mineral kemasan botol']);
+  wsRetail.addRow(['BRG003', 'Kemeja Polos Putih Katun', 'Pakaian', 50000, 85000, 20, 3, 'Pcs', '', 0, 0, 'Bahan katun premium stretch']);
+  wsRetail.addRow(['BRG004', 'Sabun Cair Mandi 450ml', 'Kebutuhan Harian', 18000, 24000, 30, 5, 'Pouch', '', 0, 0, 'Sabun mandi antibakteri refill']);
 
   const buffer = await workbook.xlsx.writeBuffer();
   return new NextResponse(buffer, {

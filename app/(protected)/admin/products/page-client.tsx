@@ -94,22 +94,7 @@ export default function AdminProductsClientPage({
         ];
       }, [kategoriUsaha]);
 
-      // Retail filter config (matches Excel template: Pakaian, Celana, etc.)
-      const retailFilterOptions = useMemo(() => [
-        { value: "ALL", label: "Semua" },
-        { value: "Pakaian", label: "Pakaian" },
-        { value: "Celana", label: "Celana" },
-        { value: "Aksesoris", label: "Aksesoris" },
-        { value: "Sepatu", label: "Sepatu" },
-        { value: "Tas", label: "Tas" },
-        { value: "Elektronik", label: "Elektronik" },
-        { value: "ATK", label: "ATK" },
-        { value: "Kosmetik", label: "Kosmetik" },
-        { value: "Makanan & Minuman", label: "Makanan & Minuman" },
-        { value: "Lainnya", label: "Lainnya" },
-      ], []);
-
-    // Niche detection for rental (auto-detects property/vehicle/equipment)
+          // Niche detection for rental (auto-detects property/vehicle/equipment)
     const niche = useMemo(() => {
         if (!isRental) return null;
         return resolveRentalNiche(kategoriUsaha);
@@ -216,14 +201,9 @@ export default function AdminProductsClientPage({
                                                                                                                           result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                                                                                         }
                                                                                                                       } else {
-                                                                                                                        // Retail: filter by category (matches Excel template categories)
-                                                                                                                        const retailCategories = ["Pakaian", "Celana", "Aksesoris", "Sepatu", "Tas", "Elektronik", "ATK", "Kosmetik", "Makanan & Minuman", "Lainnya"];
-                                                                                                                        if (retailCategories.includes(selectedFilterTab)) {
-                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                                                                                        } else {
-                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                                                                                        }
-                                                                                                                      }
+                                                                                                                                                                                                                                              // Retail / Umum: filter by category
+                                                                                                                                                                                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                                                                                                                                                                                                            }
         }
       }
 
@@ -323,7 +303,10 @@ export default function AdminProductsClientPage({
                     { value: "Layanan & Add-on", label: "Layanan & Add-on" },
                     ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on").map(c => ({ value: c, label: c }))
                   ]
-                : retailFilterOptions;
+                : [
+                  { value: "ALL", label: "Semua" },
+                  ...uniqueCategories.map(c => ({ value: c, label: c }))
+                ];
 
 
   const formatNumberInput = (val: string) => {

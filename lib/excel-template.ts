@@ -460,38 +460,78 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
     document.body.removeChild(a);
     return;
   } else {
-    // Default Retail
-    const ws = workbook.addWorksheet('Katalog Produk');
+    // Default Retail (Universal: Toko Kelontong, Fashion, Kosmetik, Elektronik, dll)
+    const ws = workbook.addWorksheet('Katalog Produk Retail');
     ws.columns = [
-      { header: 'Kode Barang (SKU)', key: 'kodeBarang', width: 18 },
+      { header: 'Kode Barang (SKU)', key: 'kodeBarang', width: 20 },
       { header: 'Nama Produk', key: 'name', width: 36 },
-      { header: 'Kategori', key: 'category', width: 20 },
-      { header: 'HPP (Rp)', key: 'hpp', width: 18 },
-      { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 18 },
-      { header: 'Stok', key: 'stock', width: 14 },
-      { header: 'Batas Minimum Stok', key: 'minStockThreshold', width: 20 },
-      { header: 'Deskripsi / Catatan', key: 'description', width: 40 },
+      { header: 'Kategori', key: 'category', width: 22 },
+      { header: 'HPP / Modal (Rp)', key: 'hpp', width: 20 },
+      { header: 'Harga Jual (Rp)', key: 'hargaJual', width: 20 },
+      { header: 'Stok Awal', key: 'stock', width: 14 },
+      { header: 'Min Stok', key: 'minStockThreshold', width: 14 },
+      { header: 'Satuan', key: 'satuan', width: 14 },
+      { header: 'Barcode', key: 'barcode', width: 20 },
+      { header: 'Diskon %', key: 'discount', width: 12 },
+      { header: 'PPN %', key: 'ppn', width: 10 },
+      { header: 'Deskripsi', key: 'description', width: 40 },
     ];
 
     ws.addRow({
       kodeBarang: 'BRG001',
-      name: 'Kemeja Polos Putih',
+      name: 'Indomie Goreng Original',
+      category: 'Makanan',
+      hpp: 2500,
+      hargaJual: 3500,
+      stock: 100,
+      minStockThreshold: 10,
+      satuan: 'Pcs',
+      barcode: '8992757123456',
+      discount: 0,
+      ppn: 0,
+      description: 'Mie instan goreng rasa ayam bawang'
+    });
+    ws.addRow({
+      kodeBarang: 'BRG002',
+      name: 'Aqua Botol 600ml',
+      category: 'Minuman',
+      hpp: 2000,
+      hargaJual: 3500,
+      stock: 120,
+      minStockThreshold: 24,
+      satuan: 'Botol',
+      barcode: '8992757123457',
+      discount: 0,
+      ppn: 0,
+      description: 'Air mineral kemasan botol'
+    });
+    ws.addRow({
+      kodeBarang: 'BRG003',
+      name: 'Kemeja Polos Putih Katun',
       category: 'Pakaian',
       hpp: 50000,
       hargaJual: 85000,
       stock: 20,
       minStockThreshold: 3,
-      description: 'Bahan katun premium'
+      satuan: 'Pcs',
+      barcode: '',
+      discount: 0,
+      ppn: 0,
+      description: 'Bahan katun premium stretch'
     });
     ws.addRow({
-      kodeBarang: 'BRG002',
-      name: 'Celana Chino Slimfit',
-      category: 'Celana',
-      hpp: 75000,
-      hargaJual: 125000,
-      stock: 15,
-      minStockThreshold: 2,
-      description: 'Warna krem, stretch'
+      kodeBarang: 'BRG004',
+      name: 'Sabun Cair Mandi 450ml',
+      category: 'Kebutuhan Harian',
+      hpp: 18000,
+      hargaJual: 24000,
+      stock: 30,
+      minStockThreshold: 5,
+      satuan: 'Pouch',
+      barcode: '',
+      discount: 0,
+      ppn: 0,
+      description: 'Sabun mandi antibakteri refill'
     });
 
     // Browser-compatible download
