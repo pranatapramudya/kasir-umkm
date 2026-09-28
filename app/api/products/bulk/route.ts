@@ -137,7 +137,7 @@ export async function POST(req: Request) {
       const rawHargaJual = p.hargaJual ?? p['Harga Jual'] ?? p['Harga Jual (Rp)'] ?? p['Tarif Layanan (Rp)'] ?? p['Tarif'] ?? p.harga ?? p.tarif ?? p.price ?? p['Harga Sewa/Hari (Rp)'] ?? p['Harga Sewa (Rp)'] ?? 0;
 
       // Stock: rental units = 1 per unit, layanan = unlimited, jasa = unlimited
-      const rawStock = p.stock ?? p['Stok'] ?? p.stok ?? p['Qty (Stok)'] ?? p['Qty'] ?? p['Quantity'] ?? p.qty ?? p.quantity ?? (isRentalItem ? 1 : 0);
+      const rawStock = p.stock ?? p['Stok'] ?? p['Stok Awal'] ?? p.stok ?? p['Qty (Stok)'] ?? p['Qty'] ?? p['Quantity'] ?? p.qty ?? p.quantity ?? (isRentalItem ? 1 : 0);
       const rawMinStock = p.minStockThreshold ?? p['Min Stok'] ?? p['Batas Minimum Stok'] ?? p.minStock ?? p.batasMinStok ?? (isRentalItem ? 1 : 5);
       const rawCommission = p.employeeCommission ?? p.komisi ?? p.komisiKaryawan ?? p['Komisi'] ?? p['Komisi Staf (Rp)'] ?? p['Komisi Staf'] ?? p.commission ?? p.komisiStaf ?? 0;
 
