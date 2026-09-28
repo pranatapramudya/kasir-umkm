@@ -94,6 +94,21 @@ export default function AdminProductsClientPage({
         ];
       }, [kategoriUsaha]);
 
+      // Retail filter config (matches Excel template: Pakaian, Celana, etc.)
+      const retailFilterOptions = useMemo(() => [
+        { value: "ALL", label: "Semua" },
+        { value: "Pakaian", label: "Pakaian" },
+        { value: "Celana", label: "Celana" },
+        { value: "Aksesoris", label: "Aksesoris" },
+        { value: "Sepatu", label: "Sepatu" },
+        { value: "Tas", label: "Tas" },
+        { value: "Elektronik", label: "Elektronik" },
+        { value: "ATK", label: "ATK" },
+        { value: "Kosmetik", label: "Kosmetik" },
+        { value: "Makanan & Minuman", label: "Makanan & Minuman" },
+        { value: "Lainnya", label: "Lainnya" },
+      ], []);
+
     // Niche detection for rental (auto-detects property/vehicle/equipment)
     const niche = useMemo(() => {
         if (!isRental) return null;
@@ -133,7 +148,7 @@ export default function AdminProductsClientPage({
   const [isExporting, setIsExporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent((isRental && config) || isPureJasa || isFNB ? "" : (selectedFilterTab === "ALL" ? "" : selectedFilterTab))}`;
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=`;
     const isInitialPage = currentPage === 1 && !searchQuery && selectedFilterTab === "ALL";
 
   const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(
@@ -187,22 +202,28 @@ export default function AdminProductsClientPage({
                                                   result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                 }
                                             } else if (isFNB) {
-                                                                            // FNB: filter by category (dynamic based on sub-type: cafe/resto/generic)
-                                                                            const subType = getFnbSubType(kategoriUsaha);
-                                                                            let fnbCategories = ["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"]; // generic fallback
-                                                                            if (subType === 'cafe') {
-                                                                              fnbCategories = ["Kopi", "Non-Kopi", "Makanan Ringan", "Dessert", "Paket Sarapan"];
-                                                                            } else if (subType === 'resto') {
-                                                                              fnbCategories = ["Appetizer", "Main Course", "Dessert", "Beverage", "Paket Hemat"];
-                                                                            }
-                                                                            if (fnbCategories.includes(selectedFilterTab)) {
-                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                                            } else {
-                                                                              result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                                            }
-                          } else {
-                            result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                          }
+                                                                                                                        // FNB: filter by category (dynamic based on sub-type: cafe/resto/generic)
+                                                                                                                        const subType = getFnbSubType(kategoriUsaha);
+                                                                                                                        let fnbCategories = ["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"]; // generic fallback
+                                                                                                                        if (subType === 'cafe') {
+                                                                                                                          fnbCategories = ["Kopi", "Non-Kopi", "Makanan Ringan", "Dessert", "Paket Sarapan"];
+                                                                                                                        } else if (subType === 'resto') {
+                                                                                                                          fnbCategories = ["Appetizer", "Main Course", "Dessert", "Beverage", "Paket Hemat"];
+                                                                                                                        }
+                                                                                                                        if (fnbCategories.includes(selectedFilterTab)) {
+                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
+                                                                                                                        } else {
+                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                                                                                        }
+                                                                                                                      } else {
+                                                                                                                        // Retail: filter by category (matches Excel template categories)
+                                                                                                                        const retailCategories = ["Pakaian", "Celana", "Aksesoris", "Sepatu", "Tas", "Elektronik", "ATK", "Kosmetik", "Makanan & Minuman", "Lainnya"];
+                                                                                                                        if (retailCategories.includes(selectedFilterTab)) {
+                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
+                                                                                                                        } else {
+                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                                                                                                                        }
+                                                                                                                      }
         }
       }
 
@@ -283,26 +304,26 @@ export default function AdminProductsClientPage({
   });
 
   const uniqueCategories = Array.from(new Set(rawProducts.map(p => p.category).filter(Boolean)));
-  
-    // Build filter options: { value, label } for rental, string[] for others
-        const filterOptions = isPureJasa
-              ? [
-                  { value: "ALL", label: "Semua" },
-                  { value: "Jasa / Servis", label: "Jasa / Servis" },
-                  { value: "Produk / Barang", label: "Produk / Barang" },
-                ]
-              : isFNB
-              ? fnbFilterOptions
-              : isRental && config
-            ? config.tabs
-            : isRental
-              ? [
-                  { value: "ALL", label: "Semua" },
-                  { value: "Unit Sewa", label: "Unit Sewa" },
-                  { value: "Layanan & Add-on", label: "Layanan & Add-on" },
-                  ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on").map(c => ({ value: c, label: c }))
-                ]
-              : [{ value: "ALL", label: "Semua" }, ...uniqueCategories.map(c => ({ value: c, label: c }))];
+
+      // Build filter options: { value, label } for rental, string[] for others
+          const filterOptions = isPureJasa
+                ? [
+                    { value: "ALL", label: "Semua" },
+                    { value: "Jasa / Servis", label: "Jasa / Servis" },
+                    { value: "Produk / Barang", label: "Produk / Barang" },
+                  ]
+                : isFNB
+                ? fnbFilterOptions
+                : isRental && config
+              ? config.tabs
+              : isRental
+                ? [
+                    { value: "ALL", label: "Semua" },
+                    { value: "Unit Sewa", label: "Unit Sewa" },
+                    { value: "Layanan & Add-on", label: "Layanan & Add-on" },
+                    ...uniqueCategories.filter(c => c && c !== "Unit Sewa" && c !== "Layanan & Add-on").map(c => ({ value: c, label: c }))
+                  ]
+                : retailFilterOptions;
 
 
   const formatNumberInput = (val: string) => {
