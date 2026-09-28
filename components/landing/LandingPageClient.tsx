@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import {
   Store,
   Utensils,
@@ -69,7 +70,9 @@ export default function LandingPageClient() {
         { title: "Cetak Label Rak & Struk Thermal", desc: "Cetak label harga barcode untuk etalase dan struk belanja pelanggan via printer thermal Bluetooth 58/80mm." }
       ],
       link: "/solusi/retail",
-      metrics: { label: "Kecepatan Kasir", value: "3 Detik", sub: "rata-rata per transaksi checkout" }
+      metrics: { label: "Kecepatan Kasir", value: "3 Detik", sub: "rata-rata per transaksi checkout" },
+      screenshot: "/images/showcase/retail-pos-preview.png",
+      screenshotMobile: "/images/showcase/retail-pos-mobile.png"
     },
     fnb: {
       title: "F&B & Kuliner (3 Template)",
@@ -155,31 +158,11 @@ export default function LandingPageClient() {
   ];
 
   return (
-    <div className={`min-h-screen font-sans antialiased overflow-x-hidden ${
-      isDark ? 'bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white' : 'bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white'
-    }`}>
-      
-      {/* 1. TOP ANNOUNCEMENT BAR */}
-      <div className={`text-xs sm:text-sm py-2.5 px-4 text-center font-semibold flex items-center justify-center gap-2 border-b ${
-        isDark 
-          ? 'bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 text-white border-slate-800' 
-          : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white border-blue-700'
+      <div className={`min-h-screen font-sans antialiased overflow-x-hidden ${
+        isDark ? 'bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white' : 'bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white'
       }`}>
-        <span className="bg-white/20 px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider">
-          PROMO
-        </span>
-        <span>
-          <strong>Promo Spesial UMKM:</strong> Coba Gratis 14 Hari Semua Fitur Enterprise 4 Vertikal!
-        </span>
-        <Link 
-          href="/sign-up?redirect_url=/onboarding"
-          className="underline hover:text-blue-100 font-black ml-1 hidden sm:inline"
-        >
-          Daftar Sekarang →
-        </Link>
-      </div>
 
-      {/* 2. STICKY NAVBAR */}
+        {/* 1. STICKY NAVBAR */}
       <header className={`sticky top-0 z-50 backdrop-blur-md border-b  ${
         isDark 
           ? 'bg-slate-900/90 border-slate-800' 
@@ -196,7 +179,7 @@ export default function LandingPageClient() {
               <span className={`text-xl font-black tracking-tight flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-950'}`}>
                 PJTECH <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-extrabold shadow-sm">KASIR UMKM</span>
               </span>
-              <span className={`text-[10px] tracking-wider font-bold uppercase ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <span className={`text-[10px] tracking-wider font-bold uppercase ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 Cloud POS Multi-Vertikal
               </span>
             </div>
@@ -220,7 +203,7 @@ export default function LandingPageClient() {
                   <div className="p-2 bg-blue-100 text-blue-700 rounded-lg"><Store className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">Retail & Toko</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Barcode & Multi-Varian</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Barcode & Multi-Varian</p>
                   </div>
                 </Link>
                 <Link href="/solusi/fnb" className={`flex items-center gap-3 p-3 rounded-xl  ${
@@ -229,7 +212,7 @@ export default function LandingPageClient() {
                   <div className="p-2 bg-orange-100 text-orange-700 rounded-lg"><Utensils className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">F&B & Kuliner</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>KDS & Meja Split Bill</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>KDS & Meja Split Bill</p>
                   </div>
                 </Link>
                 <Link href="/solusi/jasa" className={`flex items-center gap-3 p-3 rounded-xl  ${
@@ -238,7 +221,7 @@ export default function LandingPageClient() {
                   <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Wrench className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">Jasa & Servis</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Antrean & Tracking WA</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Antrean & Tracking WA</p>
                   </div>
                 </Link>
                 <Link href="/solusi/rental" className={`flex items-center gap-3 p-3 rounded-xl  ${
@@ -247,7 +230,7 @@ export default function LandingPageClient() {
                   <div className="p-2 bg-purple-100 text-purple-700 rounded-lg"><Car className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">Rental, Properti & Alat</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Mobil, Villa & Alat Barang</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Mobil, Villa & Alat Barang</p>
                   </div>
                 </Link>
               </div>
@@ -278,33 +261,41 @@ export default function LandingPageClient() {
           {/* Right Header Actions */}
           <div className="hidden md:flex items-center gap-3">
             
-            {/* Theme Toggle Button (Light / Dark) */}
+            {/* Theme Toggle Button (Modern Segmented / Pill Switcher) */}
             <button
               onClick={toggleTheme}
-              className={`p-2.5 rounded-xl border  ${
-                isDark 
-                  ? 'bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700' 
-                  : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-              }`}
-              title={isDark ? "Ganti ke Mode Putih (Default)" : "Ganti ke Mode Gelap"}
               aria-label="Toggle Tema"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 shadow-sm ${
+                isDark 
+                  ? 'bg-slate-900 border-slate-700 text-amber-400 hover:border-slate-600 hover:bg-slate-800' 
+                  : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+              }`}
             >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {isDark ? (
+                <>
+                  <Sun className="w-4 h-4 text-amber-400" />
+                  <span>Terang</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4 text-indigo-500" />
+                  <span>Gelap</span>
+                </>
+              )}
             </button>
 
             {/* Login Dropdown (Owner vs Karyawan) */}
             <div className="relative">
               <button
                 onClick={() => setLoginDropdownOpen(!loginDropdownOpen)}
-                onBlur={() => setTimeout(() => setLoginDropdownOpen(false), 250)}
-                className={`text-sm font-bold px-4 py-2.5 rounded-xl border  flex items-center gap-1.5 ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 shadow-sm ${
                   isDark 
                     ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700' 
-                    : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100 shadow-sm'
+                    : 'bg-white border-slate-300 text-slate-900 hover:bg-slate-50 hover:border-slate-400'
                 }`}
               >
                 <span>Masuk</span>
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4 text-slate-500 transition-transform duration-200" />
               </button>
 
               {loginDropdownOpen && (
@@ -320,7 +311,7 @@ export default function LandingPageClient() {
                     <Building2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold text-sm">Masuk sebagai Owner</p>
-                      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Akses dashboard, omzet & kelola toko</p>
+                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Akses dashboard, omzet & kelola toko</p>
                     </div>
                   </Link>
 
@@ -333,56 +324,47 @@ export default function LandingPageClient() {
                     <UserCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold text-sm">Login sebagai Karyawan</p>
-                      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Akses Kasir POS, Kitchen Display & Servis</p>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/superadmin"
-                    className={`flex items-start gap-3 p-3 rounded-xl  border-t ${
-                      isDark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-100 hover:bg-purple-50'
-                    }`}
-                  >
-                    <ShieldAlert className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-sm">Portal Superadmin</p>
-                      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Kelola lisensi & tenant global</p>
+                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Akses Kasir POS, Kitchen Display & Servis</p>
                     </div>
                   </Link>
                 </div>
               )}
-            </div>
+                </div>
 
             {/* Primary CTA */}
-            <Link 
-              href="/sign-up?redirect_url=/onboarding" 
-              className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/30 active:scale-95  flex items-center gap-2"
+            <Button
+              href="/sign-up?redirect_url=/onboarding"
+              variant="primary"
+              size="md"
+              rightIcon={<ArrowRight className="w-4 h-4" />}
             >
-              Coba Gratis 14 Hari <ArrowRight className="w-4 h-4" />
-            </Link>
+              Coba Gratis 14 Hari
+            </Button>
           </div>
 
           {/* Mobile Actions: Theme + Hamburger */}
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-xl border ${
-                isDark ? 'bg-slate-800 border-slate-700 text-amber-300' : 'bg-slate-100 border-slate-300 text-slate-700'
+              className={`p-2 rounded-full border transition-all duration-200 shadow-sm ${
+                isDark ? 'bg-slate-900 border-slate-700 text-amber-400' : 'bg-white border-slate-200 text-slate-700'
               }`}
               aria-label="Toggle Tema"
             >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
             </button>
 
-            <button 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`p-2 rounded-xl border ${
-                isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-800'
-              }`}
               aria-label="Buka Menu"
+              className={`transition-all duration-200 ${
+                isDark ? 'text-white hover:bg-slate-800/50' : 'text-slate-800 hover:bg-slate-100/50'
+              }`}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -393,7 +375,7 @@ export default function LandingPageClient() {
           }`}>
             <div className="space-y-1">
               <p className={`text-xs font-bold uppercase tracking-wider px-3 py-1 ${
-                isDark ? 'text-slate-400' : 'text-slate-500'
+                isDark ? 'text-slate-300' : 'text-slate-700'
               }`}>Solusi Vertikal</p>
               <Link href="/solusi/retail" className="block px-3 py-2 rounded-lg font-bold">🛒 Retail & Toko</Link>
               <Link href="/solusi/fnb" className="block px-3 py-2 rounded-lg font-bold">🍳 F&B & Kuliner</Link>
@@ -407,29 +389,31 @@ export default function LandingPageClient() {
               <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg">FAQ</a>
             </div>
             <div className={`border-t pt-4 flex flex-col gap-2.5 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-              <Link 
-                href="/sign-in?redirect_url=/auth-callback" 
-                className={`w-full text-center py-3 font-bold rounded-xl border ${
-                  isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-100 border-slate-300 text-slate-800'
-                }`}
-              >
-                Masuk (Owner)
-              </Link>
-              <Link 
-                href="/sign-in?redirect_url=/auth-callback" 
-                className={`w-full text-center py-3 font-bold rounded-xl border ${
-                  isDark ? 'bg-slate-800 border-slate-700 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                }`}
-              >
-                Login sebagai Karyawan
-              </Link>
-              <Link 
-                href="/sign-up?redirect_url=/onboarding" 
-                className="w-full text-center py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-xl shadow-lg"
-              >
-                Daftar Trial Gratis 14 Hari
-              </Link>
-            </div>
+                          <Button
+                            variant="secondary"
+                            size="md"
+                            href="/sign-in?redirect_url=/auth-callback"
+                            className="w-full"
+                          >
+                            Masuk (Owner)
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="md"
+                            href="/sign-in?redirect_url=/auth-callback"
+                            className="w-full"
+                          >
+                            Login sebagai Karyawan
+                          </Button>
+                          <Button
+                            variant="primary"
+                            size="md"
+                            href="/sign-up?redirect_url=/onboarding"
+                            className="w-full"
+                          >
+                            Daftar Trial Gratis 14 Hari
+                          </Button>
+                        </div>
           </div>
         )}
       </header>
@@ -447,11 +431,11 @@ export default function LandingPageClient() {
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-8 shadow-sm ${
             isDark 
               ? 'bg-slate-900/90 border-slate-700 text-slate-200' 
-              : 'bg-white border-blue-200 text-slate-800'
+              : 'bg-white border-slate-200 text-slate-700'
           }`}>
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs sm:text-sm font-bold">
-              SaaS Kasir Multi-Vertikal #1 Indonesia • <strong className="text-blue-600 dark:text-blue-400">4 Model Bisnis + 3 Template F&B + Import Excel 1 Klik</strong>
+            <span className="text-xs sm:text-sm font-medium">
+              300+ UMKM mempercayai PJTECH • Setup 5 menit • Gratis 14 hari
             </span>
           </div>
 
@@ -475,24 +459,22 @@ export default function LandingPageClient() {
 
           {/* Dual High-Contrast CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-12">
-            <Link 
-              href="/sign-up?redirect_url=/onboarding" 
-              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-0.5 active:scale-95  flex items-center justify-center gap-3"
+            <Button
+              href="/sign-up?redirect_url=/onboarding"
+              variant="primary"
+              size="xl"
+              rightIcon={<ArrowRight className="w-5 h-5" />}
             >
-              Coba Gratis 14 Hari <ArrowRight className="w-5 h-5" />
-            </Link>
+              Coba Gratis 14 Hari
+            </Button>
             
-            {/* High-Contrast "Lihat Perbandingan" Button */}
-                        <Link 
-                          href="/comparison" 
-                          className={`w-full sm:w-auto px-8 py-4 font-black text-lg rounded-2xl border-2  flex items-center justify-center gap-2 shadow-md ${
-                            isDark
-                              ? 'bg-slate-800 text-white border-slate-600 hover:bg-slate-700 hover:border-slate-500'
-                              : 'bg-white text-slate-900 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
-                          }`}
-                        >
-                          Lihat Perbandingan Lengkap
-                        </Link>
+            <Button
+              href="/comparison"
+              variant="secondary"
+              size="xl"
+            >
+              Lihat Perbandingan Lengkap
+            </Button>
           </div>
 
           {/* Micro Trust Points */}
@@ -522,7 +504,7 @@ export default function LandingPageClient() {
               }`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className={`text-xs font-extrabold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p className={`text-xs font-extrabold uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                       Total Penjualan Hari Ini
                     </p>
                     <h3 className={`text-3xl sm:text-4xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-950'}`}>
@@ -537,15 +519,15 @@ export default function LandingPageClient() {
                   isDark ? 'border-slate-800 text-slate-300' : 'border-slate-200 text-slate-700'
                 }`}>
                   <div>
-                    <p className="font-semibold text-slate-500">Transaksi</p>
+                    <p className="font-semibold text-slate-700">Transaksi</p>
                     <p className="text-base font-black">142 Struk</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-500">Rata-rata Struk</p>
+                    <p className="font-semibold text-slate-700">Rata-rata Struk</p>
                     <p className="text-base font-black">Rp 104.500</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-500">Laba Bersih</p>
+                    <p className="font-semibold text-slate-700">Laba Bersih</p>
                     <p className="text-base font-black text-emerald-600 dark:text-emerald-400">Rp 6.120.000</p>
                   </div>
                 </div>
@@ -561,7 +543,7 @@ export default function LandingPageClient() {
                     <div className="p-2.5 bg-orange-500 text-white rounded-xl"><Utensils className="w-4 h-4" /></div>
                     <div>
                       <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Meja 04 • KDS Dapur</p>
-                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>2x Nasi Goreng, 1x Es Kopi</p>
+                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>2x Nasi Goreng, 1x Es Kopi</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-1 bg-orange-100 text-orange-800 border border-orange-300 rounded-md">Dimasak 03:20</span>
@@ -575,7 +557,7 @@ export default function LandingPageClient() {
                     <div className="p-2.5 bg-emerald-600 text-white rounded-xl"><Wrench className="w-4 h-4" /></div>
                     <div>
                       <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Servis #1089 • NMax B 1234</p>
-                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Ganti Oli + Kampas Rem</p>
+                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Ganti Oli + Kampas Rem</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md flex items-center gap-1">
@@ -591,7 +573,7 @@ export default function LandingPageClient() {
                     <div className="p-2.5 bg-purple-600 text-white rounded-xl"><Car className="w-4 h-4" /></div>
                     <div>
                       <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Avanza Veloz B 5678</p>
-                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Sewa 3 Hari (Deposit OK)</p>
+                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Sewa 3 Hari (Deposit OK)</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-1 bg-purple-100 text-purple-800 border border-purple-300 rounded-md">Ready 14:00</span>
@@ -610,7 +592,7 @@ export default function LandingPageClient() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className={`text-center text-xs uppercase tracking-widest font-extrabold mb-6 ${
-            isDark ? 'text-slate-400' : 'text-slate-500'
+            isDark ? 'text-slate-300' : 'text-slate-700'
           }`}>
             Terintegrasi Native dengan Hardware & Pembayaran Modern
           </p>
@@ -654,7 +636,7 @@ export default function LandingPageClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-black tracking-widest text-blue-600 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase">
+            <span className="text-xs font-extrabold tracking-wider text-blue-700 bg-blue-100/80 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-300 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase shadow-xs">
               Dirancang Spesifik Tiap Industri
             </span>
             <h2 className={`text-3xl sm:text-5xl font-black tracking-tight mt-4 mb-4 ${
@@ -723,58 +705,88 @@ export default function LandingPageClient() {
                         <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                         <div>
                           <h4 className={`text-sm font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{feat.title}</h4>
-                          <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{feat.desc}</p>
+                          <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{feat.desc}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
-                  <Link
+                <div className="pt-4 flex items-center">
+                  <Button
                     href={currentVertical.link}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-md "
+                    variant="primary"
+                    size="md"
+                    rightIcon={<ArrowRight className="w-4 h-4" />}
                   >
-                    Pelajari Solusi {currentVertical.title} <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    href="/sign-up?redirect_url=/onboarding"
-                    className={`w-full sm:w-auto px-6 py-3.5 font-bold rounded-xl flex items-center justify-center text-sm border  ${
-                      isDark 
-                        ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' 
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
-                    }`}
-                  >
-                    Coba Gratis 14 Hari
-                  </Link>
+                    Pelajari Solusi {currentVertical.title}
+                  </Button>
                 </div>
               </div>
 
-              {/* Right Column: Metric Callout & Illustration */}
-              <div className={`lg:col-span-5 p-6 sm:p-8 rounded-2xl border flex flex-col justify-between space-y-6 ${
+              {/* Right Column: Screenshot Showcase (Retail) or Metric Callout (Others) */}
+              <div className={`lg:col-span-5 p-5 sm:p-6 rounded-2xl border flex flex-col justify-between space-y-4 ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
               }`}>
-                <div>
-                  <span className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Hasil Terbukti
-                  </span>
-                  <h4 className="text-4xl sm:text-5xl font-black text-blue-600 mt-2">
-                    {currentVertical.metrics.value}
-                  </h4>
-                  <p className={`text-sm font-bold mt-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{currentVertical.metrics.label}</p>
-                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{currentVertical.metrics.sub}</p>
-                </div>
+                {activeTab === 'retail' ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                      <div>
+                        <span className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          Preview Antarmuka Retail
+                        </span>
+                        <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Layar Kasir & Ringkasan Checkout</p>
+                      </div>
+                      <span className="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800">
+                        Live System
+                      </span>
+                    </div>
 
-                <div className={`p-4 rounded-xl border space-y-2 ${
-                  isDark ? 'bg-slate-800/80 border-slate-700 text-slate-300' : 'bg-white border-slate-200 text-slate-700 shadow-sm'
-                }`}>
-                  <p className={`text-xs font-black flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    <Zap className="w-4 h-4 text-amber-500" /> Bebas Biaya Tambahan Add-On
-                  </p>
-                  <p className="text-xs leading-relaxed">
-                    Tidak seperti software kasir lain yang menagih biaya per modul (KDS bayar lagi, multi-meja bayar lagi), di PJTECH semua fitur sudah all-in.
-                  </p>
-                </div>
+                    {/* Foto 1: Desktop POS Screen */}
+                    <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-md bg-white dark:bg-slate-950 group">
+                      <img 
+                        src="/images/showcase/retail-pos-preview.png" 
+                        alt="Tampilan Antarmuka Kasir POS Retail PJTECH" 
+                        className="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    {/* Foto 2: Mobile / Detail Modal */}
+                    <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-md bg-white dark:bg-slate-950 group">
+                      <img 
+                        src="/images/showcase/retail-pos-mobile.png" 
+                        alt="Tampilan Detail Transaksi & Cetak Struk Retail" 
+                        className="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <span className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        Hasil Terbukti
+                      </span>
+                      <h4 className="text-4xl sm:text-5xl font-black text-blue-600 mt-2">
+                        {currentVertical.metrics.value}
+                      </h4>
+                      <p className={`text-sm font-bold mt-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{currentVertical.metrics.label}</p>
+                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{currentVertical.metrics.sub}</p>
+                    </div>
+
+                    <div className={`p-4 rounded-xl border space-y-2 ${
+                      isDark ? 'bg-slate-800/80 border-slate-700 text-slate-300' : 'bg-white border-slate-200 text-slate-700 shadow-sm'
+                    }`}>
+                      <p className={`text-xs font-black flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <Zap className="w-4 h-4 text-amber-500" /> Bebas Biaya Tambahan Add-On
+                      </p>
+                      <p className="text-xs leading-relaxed">
+                        Tidak seperti software kasir lain yang menagih biaya per modul (KDS bayar lagi, multi-meja bayar lagi), di PJTECH semua fitur sudah all-in.
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
             </div>
@@ -871,7 +883,7 @@ export default function LandingPageClient() {
               
               {/* Left Column (7 cols) */}
               <div className="lg:col-span-7 space-y-4">
-                <span className="text-xs font-black text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full uppercase tracking-wider">
+                <span className="text-xs font-extrabold text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-xs">
                   Kenapa Beralih ke PJTECH?
                 </span>
                 <h2 className={`text-2xl sm:text-4xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>
@@ -883,11 +895,12 @@ export default function LandingPageClient() {
                   Aplikasi kasir lain seperti Moka POS dan Pawoon mengenakan biaya Rp 1.800.000 hingga Rp 2.400.000+ per tahun serta membebankan biaya tambahan untuk modul KDS dan multi-meja. Di PJTECH, Anda mendapatkan seluruh 4 vertikal bisnis all-in.
                 </p>
                 <div className="pt-2">
-                  <Link 
-                    href="/comparison" 
-                    className="inline-flex items-center gap-2 text-sm font-black text-blue-600 dark:text-blue-400 hover:underline"
+                  <Link
+                    href="/comparison"
+                    className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
                   >
-                    Lihat Perbandingan Lengkap vs Moka, Pawoon, iReap & Qashier →
+                    <ArrowRight className="w-4 h-4 shrink-0" />
+                    <span>Lihat Perbandingan Lengkap vs Moka, Pawoon, iReap & Qashier</span>
                   </Link>
                 </div>
               </div>
@@ -897,7 +910,7 @@ export default function LandingPageClient() {
                 <div className={`rounded-2xl p-5 border text-xs sm:text-sm space-y-3 ${
                   isDark ? 'bg-slate-950 border-slate-800 text-slate-200' : 'bg-white border-slate-200 shadow-md text-slate-800'
                 }`}>
-                  <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800 font-bold text-xs uppercase tracking-wider text-slate-400">
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800 font-bold text-xs uppercase tracking-wider text-slate-600">
                     <span>Fitur / Layanan</span>
                     <span className="text-blue-600 dark:text-blue-400">PJTECH vs Kompetitor</span>
                   </div>
@@ -945,7 +958,7 @@ export default function LandingPageClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <span className="text-xs font-black text-blue-600 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase tracking-wider">
+            <span className="text-xs font-extrabold text-blue-700 bg-blue-100/80 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-300 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-xs">
               Pilihan Paket Langganan
             </span>
             <h2 className={`text-3xl sm:text-5xl font-black tracking-tight mt-4 mb-3 ${
@@ -967,14 +980,14 @@ export default function LandingPageClient() {
               <div>
                 <div className="mb-5">
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Mulai Usaha</h3>
-                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                     Pengguna baru yang ragu dan ingin mencoba.
                   </p>
                 </div>
                 
                 <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Rp 0</div>
-                  <div className={`text-xs font-semibold mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Gratis 14 Hari Pertama</div>
+                  <div className={`text-xs font-semibold mt-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Gratis 14 Hari Pertama</div>
                 </div>
 
                 <div className="space-y-3 mb-8 text-xs font-medium">
@@ -993,16 +1006,14 @@ export default function LandingPageClient() {
                 </div>
               </div>
 
-              <Link
+              <Button
                 href="/sign-up?redirect_url=/onboarding"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center  ${
-                  isDark 
-                    ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
-                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                }`}
+                variant="secondary"
+                size="sm"
+                fullWidth
               >
                 Coba Gratis 14 Hari
-              </Link>
+              </Button>
             </div>
 
             {/* 2. Pro 1 Bulan */}
@@ -1012,17 +1023,17 @@ export default function LandingPageClient() {
               <div>
                 <div className="mb-5">
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Pro 1 Bulan</h3>
-                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                     Untuk mencoba fitur lengkap kasir pintar.
                   </p>
                 </div>
 
                 <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className={`text-3xl font-black flex items-baseline gap-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    Rp 129k <span className="text-xs font-normal text-slate-500">/ bulan</span>
+                    Rp 129k <span className="text-xs font-normal text-slate-600">/ bulan</span>
                   </div>
                   <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">Total: Rp 129.000 / 1 bulan</div>
-                  <div className="text-[11px] text-slate-400 italic mt-0.5">(Hanya Software)</div>
+                  <div className="text-[11px] text-slate-600 italic mt-0.5">(Hanya Software)</div>
                   <button 
                     onClick={() => setIsTncOpen(true)} 
                     className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline mt-1.5 block"
@@ -1047,16 +1058,14 @@ export default function LandingPageClient() {
                 </div>
               </div>
 
-              <Link
+              <Button
                 href="/sign-up?redirect_url=/onboarding"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center  block ${
-                  isDark 
-                    ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
-                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                }`}
+                variant="primary"
+                size="sm"
+                fullWidth
               >
                 Pilih 1 Bulan
-              </Link>
+              </Button>
             </div>
 
             {/* 3. Pro 6 Bulan */}
@@ -1066,17 +1075,17 @@ export default function LandingPageClient() {
               <div>
                 <div className="mb-5">
                   <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Pro 6 Bulan</h3>
-                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                     UMKM yang butuh fleksibilitas cashflow.
                   </p>
                 </div>
 
                 <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className={`text-3xl font-black flex items-baseline gap-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    Rp 99k <span className="text-xs font-normal text-slate-500">/ bulan</span>
+                    Rp 99k <span className="text-xs font-normal text-slate-600">/ bulan</span>
                   </div>
                   <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">Total: Rp 594.000 / 6 bulan</div>
-                  <div className="text-[11px] text-slate-400 italic mt-0.5">(Hanya Software)</div>
+                  <div className="text-[11px] text-slate-600 italic mt-0.5">(Hanya Software)</div>
                   <button 
                     onClick={() => setIsTncOpen(true)} 
                     className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline mt-1.5 block"
@@ -1101,16 +1110,14 @@ export default function LandingPageClient() {
                 </div>
               </div>
 
-              <Link
+              <Button
                 href="/sign-up?redirect_url=/onboarding"
-                className={`w-full py-3 text-xs sm:text-sm rounded-xl font-bold text-center  block ${
-                  isDark 
-                    ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' 
-                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                }`}
+                variant="primary"
+                size="sm"
+                fullWidth
               >
                 Pilih 6 Bulan
-              </Link>
+              </Button>
             </div>
 
             {/* 4. Pro 1 Tahun (HERO CARD) */}
@@ -1126,14 +1133,14 @@ export default function LandingPageClient() {
               <div>
                 <div className="mb-5 mt-1">
                   <h3 className={`text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Pro 1 Tahun</h3>
-                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                     Pemilik bisnis serius yang mencari nilai terbaik.
                   </p>
                 </div>
 
                 <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className={`text-3xl font-black flex items-baseline gap-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    Rp 82.5k <span className="text-xs font-bold text-slate-500">/ bulan</span>
+                    Rp 82.5k <span className="text-xs font-bold text-slate-600">/ bulan</span>
                   </div>
                   <div className="text-xs font-black text-orange-600 dark:text-orange-400 mt-1">Total: Rp 990.000 / 12 bulan</div>
                   <div className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 inline-block px-2 py-0.5 rounded-md mt-1.5">
@@ -1173,12 +1180,15 @@ export default function LandingPageClient() {
                 </div>
               </div>
 
-              <Link
+              <Button
                 href="/sign-up?redirect_url=/onboarding"
-                className="w-full py-3.5 text-xs sm:text-sm rounded-xl font-black text-center text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30  block"
+                variant="primary"
+                size="md"
+                fullWidth
+                className="bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/30 text-white"
               >
                 Pilih Paket Paling Hemat
-              </Link>
+              </Button>
             </div>
 
           </div>
@@ -1198,7 +1208,7 @@ export default function LandingPageClient() {
               </h3>
               <button
                 onClick={() => setIsTncOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 dark:bg-slate-800 rounded-full  shrink-0"
+                className="p-1.5 text-slate-600 hover:text-slate-800 bg-slate-100 dark:bg-slate-800 rounded-full  shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1207,7 +1217,7 @@ export default function LandingPageClient() {
             <div className="text-xs sm:text-sm space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <div>
                 <p className={`font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>1. Lisensi Perangkat Lunak (Software)</p>
-                <p className="text-slate-500 dark:text-slate-400">
+                <p className="text-slate-600 dark:text-slate-300">
                   Paket langganan ini hanya mencakup hak guna lisensi perangkat lunak PJTECH Kasir UMKM selama periode aktif yang dipilih.
                 </p>
               </div>
@@ -1267,7 +1277,7 @@ export default function LandingPageClient() {
                     }`}
                   >
                     <span className={`font-bold text-base sm:text-lg ${isDark ? 'text-white' : 'text-slate-900'}`}>{faq.q}</span>
-                    <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-600 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {isOpen && (
                     <div className={`px-5 pb-6 sm:px-6 text-sm sm:text-base leading-relaxed border-t pt-4 font-medium ${
@@ -1294,18 +1304,23 @@ export default function LandingPageClient() {
             Bergabunglah dengan pelaku usaha UMKM Indonesia yang telah beralih ke PJTECH. Setup dalam 5 menit, langsung jualan hari ini.
           </p>
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
+            <Button
               href="/sign-up?redirect_url=/onboarding"
-              className="w-full sm:w-auto px-8 py-4 bg-white text-slate-950 hover:bg-slate-100 font-black text-lg rounded-2xl shadow-2xl active:scale-95  flex items-center justify-center gap-2"
+              variant="secondary"
+              size="xl"
+              rightIcon={<ArrowRight className="w-5 h-5" />}
+              className="bg-white text-slate-950 hover:bg-slate-100 shadow-2xl"
             >
-              Mulai Trial Gratis 14 Hari <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
+              Mulai Trial Gratis 14 Hari
+            </Button>
+            <Button
               href="/sign-in?redirect_url=/auth-callback"
-              className="w-full sm:w-auto px-8 py-4 bg-blue-950/50 hover:bg-blue-950/70 text-white font-black text-lg rounded-2xl border border-white/30 "
+              variant="ghost"
+              size="xl"
+              className="bg-blue-950/50 hover:bg-blue-950/70 text-white border border-white/30"
             >
               Masuk ke Akun
-            </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -1327,7 +1342,7 @@ export default function LandingPageClient() {
             <p className="text-xs sm:text-sm leading-relaxed max-w-sm text-slate-300">
               Sistem POS SaaS multi-vertikal untuk UMKM Indonesia. Membantu digitalisasi operasional Retail, F&B, Jasa, dan Rental dengan arsitektur cloud cepat & hemat biaya.
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-300">
               Dikembangkan oleh <strong>Pranajaya Tech (PJTech)</strong>.
             </p>
           </div>
@@ -1351,7 +1366,6 @@ export default function LandingPageClient() {
               <li><Link href="/sign-in?redirect_url=/auth-callback" className="hover:text-emerald-400 ">Login Karyawan / Kasir</Link></li>
               <li><Link href="/comparison" className="hover:text-white ">Perbandingan POS</Link></li>
               <li><Link href="/blog" className="hover:text-white ">Blog & Tips Bisnis</Link></li>
-              <li><Link href="/superadmin" className="hover:text-purple-400 ">Superadmin</Link></li>
             </ul>
           </div>
 
@@ -1379,7 +1393,7 @@ export default function LandingPageClient() {
 
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300">
           <p>© 2026 PJTech (Pranajaya Tech). Hak cipta dilindungi undang-undang.</p>
           <div className="flex items-center gap-6">
             <span>SaaS POS UMKM Indonesia</span>
