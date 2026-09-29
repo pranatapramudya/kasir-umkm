@@ -4,7 +4,7 @@
  * Usage: node scripts/orchestrator.js
  */
 
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
 
 const processes = [
@@ -47,6 +47,36 @@ function log(prefix, message, color = '') {
   console.log(`${color}[${timestamp}] ${bold}${prefix}${reset} ${message}`);
 }
 
+function killTree(child) {
+  if (!child || !child.pid) return;
+  if (process.platform === 'win32') {
+    try {
+      execSync(`taskkill /pid ${child.pid} /T /F`, { stdio: 'ignore' });
+    } catch (_) {}
+  } else {
+    try {
+      child.kill('SIGTERM');
+    } catch (_) {}
+  }
+}
+
+let isShuttingDown = false;
+function shutdown(exitCode = 0) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  log('Orchestrator', 'Stopping all services...', '\x1b[33m');
+  processes.forEach(config => {
+    killTree(config.child);
+  });
+  process.exit(exitCode);
+}
+
+process.on('SIGINT', () => shutdown(0));
+process.on('SIGTERM', () => shutdown(0));
+process.on('exit', () => {
+  processes.forEach(config => killTree(config.child));
+});
+
 function runProcess(config) {
   return new Promise((resolve, reject) => {
     const child = spawn(config.command, config.args, {
@@ -55,6 +85,8 @@ function runProcess(config) {
       shell: true,
       env: { ...process.env, FORCE_COLOR: '1' },
     });
+
+    config.child = child;
 
     child.stdout.on('data', (data) => {
       const lines = data.toString().trim().split('\n');
@@ -72,6 +104,10 @@ function runProcess(config) {
 
     child.on('close', (code) => {
       log(config.name, `Process exited with code ${code}`, config.color);
+      if (code !== 0 && !isShuttingDown) {
+        log('Orchestrator', `${config.name} exited with error (${code}). Stopping other services...`, '\x1b[31m');
+        shutdown(code || 1);
+      }
       resolve(code);
     });
 
@@ -79,20 +115,6 @@ function runProcess(config) {
       log(config.name, `Failed to start: ${err.message}`, '\x1b[31m');
       reject(err);
     });
-
-    // Handle graceful shutdown
-    process.on('SIGINT', () => {
-      log('Orchestrator', `Stopping ${config.name}...`, '\x1b[33m');
-      child.kill('SIGINT');
-    });
-
-    process.on('SIGTERM', () => {
-      log('Orchestrator', `Stopping ${config.name}...`, '\x1b[33m');
-      child.kill('SIGTERM');
-    });
-
-    // Store reference for cleanup
-    config.child = child;
   });
 }
 
@@ -110,11 +132,7 @@ async function main() {
     process.exit(Math.max(...results));
   } catch (err) {
     console.error(`\n${bold}\x1b[31mOrchestrator error:\x1b[0m`, err);
-    // Kill all children on error
-    processes.forEach(config => {
-      if (config.child) config.child.kill('SIGTERM');
-    });
-    process.exit(1);
+    shutdown(1);
   }
 }
 

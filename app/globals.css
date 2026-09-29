@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,13 +19,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -26,7 +26,8 @@ body {
 }
 
 /* Clean Mobile Touch: Menghilangkan efek highlight tap tanpa memblokir gestur scroll */
-html, body {
+html,
+body {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -41,11 +42,18 @@ html, body {
   touch-action: pan-x;
 }
 
-button, a, input, select, textarea, [role="button"] {
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
   touch-action: manipulation;
 }
 
-button, [role="button"], a {
+button,
+[role="button"],
+a {
   -webkit-user-select: none;
   user-select: none;
 }
@@ -55,6 +63,7 @@ button, [role="button"], a {
   transition: transform 75ms ease-out, opacity 75ms ease-out;
   touch-action: manipulation;
 }
+
 .btn-snappy:active {
   transform: scale(0.96);
   opacity: 0.9;
@@ -62,7 +71,9 @@ button, [role="button"], a {
 
 /* Reset Cetak Presisi Tinggi Multi-Device (Mobile, Tablet, Desktop) */
 @media print {
-  html, body {
+
+  html,
+  body {
     width: 100% !important;
     height: auto !important;
     min-height: 100% !important;
@@ -76,7 +87,13 @@ button, [role="button"], a {
   }
 
   /* Mencegah clipping vertikal/horizontal akibat nested container scroll pada mobile WebKit/Chrome */
-  div, main, section, aside, header, nav, article {
+  div,
+  main,
+  section,
+  aside,
+  header,
+  nav,
+  article {
     overflow: visible !important;
     height: auto !important;
     max-height: none !important;
@@ -90,15 +107,15 @@ button, [role="button"], a {
   z-index: 9999;
   pointer-events: none;
 }
+
 .tutorial-spotlight__overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
-  clip-path: polygon(
-    0 0, 100% 0, 100% 100%, 0 100%,
-    0 0
-  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%,
+      0 0);
 }
+
 .tutorial-spotlight__hole {
   position: absolute;
   border: 3px solid #3b82f6;
@@ -106,10 +123,19 @@ button, [role="button"], a {
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
   animation: tutorial-pulse 2s ease-in-out infinite;
 }
+
 @keyframes tutorial-pulse {
-  0%, 100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35), 0 0 0 8px rgba(59, 130, 246, 0.2); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35), 0 0 0 8px rgba(59, 130, 246, 0.2);
+  }
 }
+
 .tutorial-tooltip {
   position: fixed;
   z-index: 10000;
@@ -117,31 +143,43 @@ button, [role="button"], a {
   background: white;
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   pointer-events: auto;
   animation: tutorial-pop 0.2s ease-out;
 }
+
 @keyframes tutorial-pop {
-  from { opacity: 0; transform: scale(0.95) translateY(4px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
+
 .tutorial-tooltip__title {
   font-weight: 700;
   font-size: 1rem;
   color: #111827;
   margin-bottom: 6px;
 }
+
 .tutorial-tooltip__text {
   font-size: 0.875rem;
   color: #4b5563;
   line-height: 1.5;
   margin-bottom: 12px;
 }
+
 .tutorial-tooltip__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
+
 .tutorial-tooltip__btn {
   padding: 8px 16px;
   border-radius: 8px;
@@ -150,18 +188,27 @@ button, [role="button"], a {
   cursor: pointer;
   transition: all 0.15s;
 }
+
 .tutorial-tooltip__btn--primary {
   background: #3b82f6;
   color: white;
   border: none;
 }
-.tutorial-tooltip__btn--primary:hover { background: #2563eb; }
+
+.tutorial-tooltip__btn--primary:hover {
+  background: #2563eb;
+}
+
 .tutorial-tooltip__btn--secondary {
   background: #f3f4f6;
   color: #374151;
   border: none;
 }
-.tutorial-tooltip__btn--secondary:hover { background: #e5e7eb; }
+
+.tutorial-tooltip__btn--secondary:hover {
+  background: #e5e7eb;
+}
+
 .tutorial-progress {
   display: flex;
   gap: 6px;
@@ -169,6 +216,7 @@ button, [role="button"], a {
   padding-top: 12px;
   border-top: 1px solid #e5e7eb;
 }
+
 .tutorial-progress__dot {
   width: 8px;
   height: 8px;
@@ -176,6 +224,7 @@ button, [role="button"], a {
   background: #d1d5db;
   transition: all 0.2s;
 }
+
 .tutorial-progress__dot--active {
   background: #3b82f6;
   width: 24px;

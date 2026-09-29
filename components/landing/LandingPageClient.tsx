@@ -44,6 +44,9 @@ export default function LandingPageClient() {
     const savedTheme = localStorage.getItem('pjtech_landing_theme') as 'light' | 'dark' | null;
     if (savedTheme) {
       setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 
@@ -51,6 +54,7 @@ export default function LandingPageClient() {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('pjtech_landing_theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   const isDark = theme === 'dark';
@@ -171,15 +175,15 @@ export default function LandingPageClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Logo Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl shadow-md shadow-blue-600/20 flex items-center justify-center text-white group-hover:scale-105 transition-transform">
-              <Store className="w-6 h-6" />
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl shadow-md shadow-blue-600/20 flex items-center justify-center text-white group-hover:scale-105 transition-transform shrink-0">
+              <Store className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="flex flex-col">
-              <span className={`text-xl font-black tracking-tight flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-950'}`}>
-                PJTECH <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-extrabold shadow-sm">KASIR UMKM</span>
+              <span className={`text-base sm:text-xl font-black tracking-tight flex items-center gap-1.5 sm:gap-2 ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                PJTECH <span className="text-[10px] sm:text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-extrabold shadow-sm">KASIR UMKM</span>
               </span>
-              <span className={`text-[10px] tracking-wider font-bold uppercase ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <span className={`text-[9px] sm:text-[10px] tracking-wider font-bold uppercase ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 Cloud POS Multi-Vertikal
               </span>
             </div>
@@ -332,88 +336,124 @@ export default function LandingPageClient() {
                 </div>
 
             {/* Primary CTA */}
-            <Button
+            <Link
               href="/sign-up?redirect_url=/onboarding"
-              variant="primary"
-              size="md"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs lg:text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/25 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-600/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
             >
-              Coba Gratis 14 Hari
-            </Button>
+              <span>Daftar jika Belum Punya Akun</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
+            </Link>
           </div>
 
-          {/* Mobile Actions: Theme + Hamburger */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile Actions: Theme + Hamburger (Spacious, High Contrast) */}
+          <div className="flex md:hidden items-center gap-2 sm:gap-2.5 shrink-0">
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-full border transition-all duration-200 shadow-sm ${
-                isDark ? 'bg-slate-900 border-slate-700 text-amber-400' : 'bg-white border-slate-200 text-slate-700'
+              className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border transition-all duration-200 shadow-sm shrink-0 ${
+                isDark 
+                  ? 'bg-slate-900 border-slate-700 text-amber-400 hover:bg-slate-800' 
+                  : 'bg-white border-slate-200 text-indigo-600 hover:bg-slate-50'
               }`}
               aria-label="Toggle Tema"
             >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+              {isDark ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />}
             </button>
 
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Buka Menu"
-              className={`transition-all duration-200 ${
-                isDark ? 'text-white hover:bg-slate-800/50' : 'text-slate-800 hover:bg-slate-100/50'
+              aria-label={mobileMenuOpen ? "Tutup Menu" : "Buka Menu"}
+              className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border transition-all duration-200 shadow-sm shrink-0 ${
+                isDark 
+                  ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 active:bg-slate-600' 
+                  : 'bg-slate-900 border-slate-900 text-white hover:bg-slate-800 active:bg-slate-950 shadow-slate-900/10'
               }`}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </Button>
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5 text-white stroke-[2.5]" />
+              ) : (
+                <Menu className="w-5 h-5 text-white stroke-[2.5]" />
+              )}
+            </button>
           </div>
         </div>
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className={`md:hidden border-b px-4 pt-3 pb-6 space-y-4 ${
-            isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
+          <div className={`md:hidden border-b px-4 pt-3 pb-6 space-y-4 shadow-xl ${
+            isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
           }`}>
             <div className="space-y-1">
               <p className={`text-xs font-bold uppercase tracking-wider px-3 py-1 ${
-                isDark ? 'text-slate-300' : 'text-slate-700'
+                isDark ? 'text-slate-400' : 'text-slate-500'
               }`}>Solusi Vertikal</p>
-              <Link href="/solusi/retail" className="block px-3 py-2 rounded-lg font-bold">🛒 Retail & Toko</Link>
-              <Link href="/solusi/fnb" className="block px-3 py-2 rounded-lg font-bold">🍳 F&B & Kuliner</Link>
-              <Link href="/solusi/jasa" className="block px-3 py-2 rounded-lg font-bold">🔧 Jasa & Servis</Link>
-              <Link href="/solusi/rental" className="block px-3 py-2 rounded-lg font-bold">🚗 Rental, Properti & Alat</Link>
+              <Link href="/solusi/retail" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>🛒 Retail & Toko</Link>
+              <Link href="/solusi/fnb" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>🍳 F&B & Kuliner</Link>
+              <Link href="/solusi/jasa" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>🔧 Jasa & Servis</Link>
+              <Link href="/solusi/rental" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>🚗 Rental, Properti & Alat</Link>
             </div>
-            <div className={`border-t pt-3 space-y-2 font-bold ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-              <Link href="/comparison" className="block px-3 py-2 rounded-lg">Perbandingan POS</Link>
-              <Link href="/blog" className="block px-3 py-2 rounded-lg">Blog & Panduan</Link>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg">Paket Harga</a>
-              <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-lg">FAQ</a>
+            <div className={`border-t pt-3 space-y-1.5 font-bold ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              <Link href="/comparison" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>Perbandingan POS</Link>
+              <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>Blog & Panduan</Link>
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>Paket Harga</a>
+              <a href="#faq" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+              }`}>FAQ</a>
             </div>
             <div className={`border-t pt-4 flex flex-col gap-2.5 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                          <Button
-                            variant="secondary"
-                            size="md"
-                            href="/sign-in?redirect_url=/auth-callback"
-                            className="w-full"
-                          >
-                            Masuk (Owner)
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="md"
-                            href="/sign-in?redirect_url=/auth-callback"
-                            className="w-full"
-                          >
-                            Login sebagai Karyawan
-                          </Button>
-                          <Button
-                            variant="primary"
-                            size="md"
-                            href="/sign-up?redirect_url=/onboarding"
-                            className="w-full"
-                          >
-                            Daftar Trial Gratis 14 Hari
-                          </Button>
-                        </div>
+              {/* Masuk (Owner) */}
+              <Link
+                href="/sign-in?redirect_url=/auth-callback"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm ${
+                  isDark
+                    ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
+                }`}
+              >
+                <Building2 className="w-4 h-4 text-blue-400 shrink-0" />
+                <span>Masuk (Owner)</span>
+              </Link>
+
+              {/* Login sebagai Karyawan - HIGH CONTRAST */}
+              <Link
+                href="/sign-in?redirect_url=/auth-callback"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm ${
+                  isDark
+                    ? 'bg-slate-800/80 hover:bg-slate-700 text-white border-2 border-slate-700'
+                    : 'bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-300 shadow-sm'
+                }`}
+              >
+                <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className={isDark ? 'text-white font-bold' : 'text-slate-900 font-bold'}>
+                  Login sebagai Karyawan
+                </span>
+              </Link>
+
+              {/* Primary CTA */}
+              <Link
+                href="/sign-up?redirect_url=/onboarding"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all duration-200"
+              >
+                <span>Daftar jika Belum Punya Akun</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
+              </Link>
+            </div>
           </div>
         )}
       </header>
