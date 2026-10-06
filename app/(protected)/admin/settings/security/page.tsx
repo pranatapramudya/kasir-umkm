@@ -30,8 +30,7 @@ export default async function AdminSecurityPage() {
       <div className="bg-white rounded-2xl shadow-sm border p-1 md:p-6 flex justify-center">
         {/* Clerk UserProfile Component handles MFA configuration */}
         <UserProfile 
-          path="/admin/settings/security" 
-          routing="path" 
+          routing="hash" 
           appearance={{
             elements: {
               rootBox: "w-full mx-auto",
