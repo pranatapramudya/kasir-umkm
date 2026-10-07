@@ -34,7 +34,16 @@ export default async function AdminProductsPage() {
         hargaJual: true,
         stock: true,
         image: true,
-        hasVariants: true,
+        kodeBarang: true,
+        category: true,
+        isArchived: true,
+        createdAt: true,
+        isService: true,
+        variant: true,
+        hpp: true,
+        biayaModal: true,
+        discount: true,
+        minStockThreshold: true,
       }
     }),
     prisma.product.count({

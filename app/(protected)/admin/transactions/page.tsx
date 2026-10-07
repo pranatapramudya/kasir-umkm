@@ -26,7 +26,7 @@ export default async function AdminTransactionsPage() {
           status: true,
           total: true,
           createdAt: true,
-          paymentMethod: true,
+          method: true,
         }
       });
     } else {
