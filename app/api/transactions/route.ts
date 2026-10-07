@@ -305,6 +305,8 @@ export async function POST(request: Request) {
 
     // Mengembalikan response sukses
     revalidatePath('/', 'layout');
+    revalidatePath('/admin', 'layout');
+    revalidatePath('/admin', 'page');
     return NextResponse.json({
       success: true,
       message: 'Transaksi berhasil disimpan dan stok telah diperbarui',

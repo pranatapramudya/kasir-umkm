@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { getAnalyticsData } from '@/lib/analytics-service';
 import AdminDashboardClient from './AdminDashboardClient';

@@ -79,9 +79,51 @@ export default function AdminDashboardClient({
       fallbackData: instantFallback,
       revalidateIfStale: true,
       revalidateOnFocus: true,
-      revalidateOnReconnect: true
+      revalidateOnReconnect: true,
+      refreshInterval: 3000, // Auto polling data pendapatan setiap 3 detik
     }
   );
+
+  // Sinkronisasi realtime instan (<50ms) antar tab / POS ketika transaksi baru terjadi
+  useEffect(() => {
+    if (!currentTenantId) return;
+
+    const triggerRefresh = () => {
+      mutate([queryUrl, currentTenantId]);
+      mutate([`/api/analytics?filter=hari_ini`, currentTenantId]);
+      mutate([`/api/analytics?filter=bulan_ini`, currentTenantId]);
+    };
+
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        channel = new BroadcastChannel('kasir_umkm_sync');
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'transaction_created' || event.data?.type === 'order_status_update') {
+            triggerRefresh();
+          }
+        };
+      }
+    } catch (e) {
+      console.warn('BroadcastChannel error:', e);
+    }
+
+    const handleCustomEvent = () => triggerRefresh();
+    window.addEventListener('umkm:transaction_created', handleCustomEvent);
+
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === 'umkm_last_tx_time') {
+        triggerRefresh();
+      }
+    };
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      if (channel) channel.close();
+      window.removeEventListener('umkm:transaction_created', handleCustomEvent);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
+  }, [queryUrl, currentTenantId, mutate]);
 
   const analytics = swrAnalytics || instantFallback;
 

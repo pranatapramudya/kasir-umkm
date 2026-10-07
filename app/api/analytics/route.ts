@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getAnalyticsData } from '@/lib/analytics-service';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: Request) {
   try {
     const { userId } = await auth();
@@ -16,7 +19,13 @@ export async function GET(request: Request) {
 
     const data = await getAnalyticsData(userId, filter, customDate);
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
 
   } catch (error: any) {
     console.error('Analytics Error:', error);

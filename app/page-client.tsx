@@ -977,6 +977,21 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       setLastTransaction(newTransaction);
       setIsModalOpen(true); // Tampilkan modal sukses
 
+      // Real-time Dashboard Sync: kabari dashboard seketika (<50ms)
+      try {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('umkm:transaction_created', { detail: newTransaction }));
+          localStorage.setItem('umkm_last_tx_time', String(Date.now()));
+          if ('BroadcastChannel' in window) {
+            const bc = new BroadcastChannel('kasir_umkm_sync');
+            bc.postMessage({ type: 'transaction_created', transaction: newTransaction });
+            bc.close();
+          }
+        }
+      } catch (bcErr) {
+        console.warn('Broadcast sync error:', bcErr);
+      }
+
       // Optimistic UI: Kurangi stok lokal secara instan (<50ms)
       mutate(
         (current) => {

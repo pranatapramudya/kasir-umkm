@@ -5,10 +5,29 @@ export async function getAnalyticsData(userId: string, filter: string, customDat
   const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
   const activeTenantId = employee ? employee.tenantId : userId;
 
+  // Resolusi tenant untuk mendapatkan Clerk userId & Tenant DB id secara bersamaan
+  // Menjamin multi-tenant isolation antar pebisnis dan sinkronisasi data antar owner & kasir
+  const tenant = await prisma.tenant.findFirst({
+    where: {
+      OR: [
+        { userId: activeTenantId },
+        { id: activeTenantId }
+      ]
+    }
+  });
+
+  const possibleUserIds = Array.from(new Set([
+    activeTenantId,
+    userId,
+    tenant?.userId,
+    tenant?.id
+  ].filter(Boolean) as string[]));
+
   // 1. Unified Date Filter (WIB - Asia/Jakarta)
   const nowStr = new Date().toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
 
-  let startOfDay, endOfDay;
+  let startOfDay: Date;
+  let endOfDay: Date;
 
   if (filter === 'hari_ini') {
     startOfDay = new Date(`${nowStr}T00:00:00+07:00`);
@@ -35,62 +54,67 @@ export async function getAnalyticsData(userId: string, filter: string, customDat
   const endDate = endOfDay;
 
   const transactionWhere = {
-    userId: activeTenantId,
+    userId: { in: possibleUserIds },
     createdAt: { gte: startDate, lte: endDate },
   };
 
   // 2. Jalankan semua query berat secara paralel di sisi Database Engine
   const [
-    transactionAggr,      // SUM(total) + COUNT(*) — kalkulasi di PostgreSQL
-    expenseAggr,          // SUM(amount) — kalkulasi di PostgreSQL
-    transactionItemsAggr, // SUM(qty) groupBy productId — untuk HPP
+    transactionAggr,      // SUM(total) + COUNT(*) kalkulasi di Database
+    expenseAggr,          // SUM(amount) kalkulasi di Database
+    transactionItemsAggr, // SUM(qty) groupBy productId untuk HPP
     salesTrendRaw,        // Hanya 2 kolom (createdAt, total) untuk trend per hari
-    products,             // Untuk mapping productId → hpp & salesTrend per WIB date
-    tenant,
+    products,             // Untuk mapping productId -> hpp & deteksi kategori
+    tenantData,
   ] = await Promise.all([
-    // A. Revenue & Transaction Count — sepenuhnya di Database
+    // A. Revenue & Transaction Count sepenuhnya di Database
     prisma.transaction.aggregate({
       where: transactionWhere,
       _sum: { total: true },
       _count: { id: true },
     }),
 
-    // B. Total Expense — sepenuhnya di Database
+    // B. Total Expense sepenuhnya di Database
     prisma.expense.aggregate({
       where: {
-        userId: activeTenantId,
+        userId: { in: possibleUserIds },
         date: { gte: startDate, lte: endDate },
       },
       _sum: { amount: true },
     }),
 
-    // C. HPP — groupBy di Database (sudah optimal)
+    // C. HPP groupBy di Database
     prisma.transactionItem.groupBy({
       by: ['productId'],
       where: {
         transaction: {
-          userId: activeTenantId,
+          userId: { in: possibleUserIds },
           createdAt: { gte: startDate, lte: endDate },
         },
       },
       _sum: { qty: true },
     }),
 
-    // D. Sales Trend — perlu createdAt per baris untuk grouping by WIB date
+    // D. Sales Trend perlu createdAt per baris untuk grouping by WIB date
     prisma.transaction.findMany({
       where: transactionWhere,
       select: { createdAt: true, total: true },
     }),
 
-    // E. Products untuk mapping hpp & productId → hpp dan deteksi kategori
+    // E. Products untuk mapping hpp & productId -> hpp dan deteksi kategori
     prisma.product.findMany({
-      where: { userId: activeTenantId },
+      where: { userId: { in: possibleUserIds } },
       select: { id: true, name: true, description: true, category: true, hpp: true },
     }),
 
     // F. Tenant category & name
-    prisma.tenant.findUnique({
-      where: { userId: activeTenantId },
+    tenant ? Promise.resolve(tenant) : prisma.tenant.findFirst({
+      where: {
+        OR: [
+          { userId: { in: possibleUserIds } },
+          { id: { in: possibleUserIds } }
+        ]
+      },
       select: { name: true, category: true },
     }),
   ]);
@@ -108,10 +132,10 @@ export async function getAnalyticsData(userId: string, filter: string, customDat
     totalHpp += hpp * (item._sum.qty ?? 0);
   });
 
-  // 5. Net Profit — kalkulasi sederhana dari nilai yang sudah diagregasi
+  // 5. Net Profit kalkulasi sederhana dari nilai yang sudah diagregasi
   const netProfit = totalRevenue - totalHpp - totalExpense;
 
-  // 6. Sales Trend — group by WIB date (harus dilakukan di JS karena timezone)
+  // 6. Sales Trend group by WIB date (harus dilakukan di JS karena timezone)
   const salesTrendMap = new Map<string, number>();
   salesTrendRaw.forEach(t => {
     const localDateStr = new Date(t.createdAt).toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
@@ -122,7 +146,7 @@ export async function getAnalyticsData(userId: string, filter: string, customDat
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([date, revenue]) => ({ date, revenue }));
 
-  const effectiveCategory = resolveBusinessCategory(tenant?.category, tenant?.name, products);
+  const effectiveCategory = resolveBusinessCategory(tenantData?.category, tenantData?.name, products);
 
   // Return exactly the fields needed with strings, no raw Date objects
   return {
