@@ -29,6 +29,8 @@ export default function AdminLayoutClient({
   const { user, isLoaded: isUserLoaded } = useUser();
   const { userId: clientUserId, isLoaded: isAuthLoaded } = useAuth();
   
+  const router = useRouter();
+
   const [trialState, setTrialState] = useState({
     isTrialActive: true,
     daysLeft: 14,
@@ -44,16 +46,24 @@ export default function AdminLayoutClient({
       const daysLeft = Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       
       const isPro = user.publicMetadata?.plan === 'pro';
-      // Lock out if trial is over AND not on a pro plan (or DB isExpired)
-      const isLockedOut = (!isPro && !isTrialActive) || isExpired;
+      
+      // Kami percaya pada 'isExpired' dari server (karena sudah nge-cek trialEndsAt dari DB)
+      // Namun fallback juga ke logic client
+      const isLockedOut = isExpired || (!isPro && !isTrialActive);
 
       setTrialState({
         isTrialActive,
         daysLeft: daysLeft > 0 ? daysLeft : 0,
         isLockedOut
       });
+
+      // 1. Paywall Redirect / Guard (Sesuai SOP)
+      const isSubscriptionRoute = pathname.startsWith('/admin/subscription') || pathname.startsWith('/pricing');
+      if (isLockedOut && !isSubscriptionRoute) {
+        router.replace('/admin/subscription?expired=true');
+      }
     }
-  }, [isUserLoaded, user, isExpired]);
+  }, [isUserLoaded, user, isExpired, pathname, router]);
 
   // Strict Tenant Block: Mencegah FOUC / Stale Cache dari session sebelumnya
   if (!isUserLoaded || !isAuthLoaded || (serverUserId && clientUserId && serverUserId !== clientUserId)) {

@@ -36,21 +36,34 @@ export async function checkSubscriptionStatus() {
 
   const endsAt = tenant.subscriptionEndsAt;
   let isExpired = false;
+  let inTrial = false;
 
-  if (!endsAt) {
-    isExpired = true; // Jika tidak ada tanggal berakhir, dianggap habis/belum aktif
+  if (tenant.subscriptionPlan === "FREE" && !endsAt) {
+    // Gunakan createdAt sebagai basis trial 14 hari
+    const trialEndsAt = new Date(tenant.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    
+    if (now > trialEndsAt) {
+      isExpired = true; // Trial habis
+    } else {
+      inTrial = true;
+      isExpired = false; // Masih trial
+    }
+  } else if (!endsAt) {
+    isExpired = true; // Selain free plan, kalau endsAt gak ada = habis
   } else {
     // Beri masa tenggang (Grace Period) 1 hari (24 jam)
-    // endsAt ditambah 1 hari (24 * 60 * 60 * 1000 ms)
     const endsAtPlusGracePeriod = new Date(endsAt).getTime() + (24 * 60 * 60 * 1000);
     isExpired = endsAtPlusGracePeriod < Date.now();
   }
 
   return { 
     isExpired, 
+    inTrial,
     plan: tenant.subscriptionPlan,
     status: tenant.subscriptionStatus,
     endsAt: endsAt ? endsAt.toISOString() : null,
+    trialEndsAt: inTrial ? new Date(tenant.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString() : null,
     storeName: tenant.name
   };
 }

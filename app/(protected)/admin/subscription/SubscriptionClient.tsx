@@ -14,10 +14,14 @@ export default function SubscriptionClient({ initialStatus }: { initialStatus: a
 
   useEffect(() => {
     setMounted(true);
-    if (!status.endsAt) return;
+    
+    // Gunakan trialEndsAt jika masih trial, atau endsAt jika berbayar
+    const activeEndsAt = status.inTrial ? status.trialEndsAt : status.endsAt;
+    
+    if (!activeEndsAt) return;
 
     const calculateTimeLeft = () => {
-      const targetTime = new Date(status.endsAt).getTime();
+      const targetTime = new Date(activeEndsAt).getTime();
       const currentTime = new Date().getTime();
       const difference = targetTime - currentTime;
 
@@ -37,12 +41,32 @@ export default function SubscriptionClient({ initialStatus }: { initialStatus: a
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [status.endsAt]);
+  }, [status.endsAt, status.trialEndsAt, status.inTrial]);
 
-  const isExpired = status.isExpired || (mounted && !timeLeft && status.endsAt);
+  // isExpired murni didapat dari server calculation (yang mengecek trialEndsAt juga)
+  const isExpired = status.isExpired || (mounted && !timeLeft && (status.endsAt || status.trialEndsAt));
+  const activeEndsAt = status.inTrial ? status.trialEndsAt : status.endsAt;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {isExpired && status.plan === 'FREE' && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in duration-300">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0 mt-1" />
+            <div>
+              <h3 className="text-amber-800 font-bold text-lg">Masa Trial 14 Hari Kamu Telah Berakhir!</h3>
+              <p className="text-amber-700 mt-1 font-medium">Upgrade ke paket Pro sekarang untuk membuka kembali akses kasir dan transaksi bisnismu.</p>
+            </div>
+          </div>
+          <a 
+            href="#pricing-section"
+            className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-bold transition shadow-sm"
+          >
+            Pilih Paket Berlangganan
+          </a>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
           <CreditCard className="w-7 h-7 text-blue-600" />
@@ -68,9 +92,9 @@ export default function SubscriptionClient({ initialStatus }: { initialStatus: a
                status.plan === 'PRO_SEMI_ANNUAL' ? 'Pro 6 Bulan' :
                'Free Trial'}
             </div>
-            {status.endsAt && (
+            {activeEndsAt && (
               <div className={`text-xs mt-1.5 font-medium ${isExpired ? 'text-red-500' : 'text-slate-400'}`}>
-                Berakhir: {new Date(status.endsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                Berakhir: {new Date(activeEndsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </div>
             )}
           </div>
