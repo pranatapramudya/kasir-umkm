@@ -186,6 +186,29 @@ Buka [http://localhost:3000](http://localhost:3000) di *browser* Anda untuk meli
 
 ---
 
+### v2.5.0 - Multi-Vertical Rental, Booking Redesign & Enterprise Light Auth Overhaul (Okt 8, 2026)
+- **Multi-Photo Unit Showcase (Neon DB Free Tier Optimized):**
+  - Mendukung upload hingga 5 foto per unit untuk kategori Rental Kendaraan, Properti & Kamar, dan Alat/Barang.
+  - Kompresi canvas client-side otomatis ke dimensi 640px @ 0.65 quality (~25-35KB/foto) guna melindungi kuota penyimpanan 512MB Neon DB serverless.
+  - Pembatasan 1 foto per produk untuk kategori Jasa/Servis dan Retail/F&B.
+  - Interactive Photo Showcase di formulir booking publik (`/book/[slug]`) dengan navigasi thumbnail dan carousel.
+- **Custom Responsive Selector Dropdown (`/book/[slug]`):**
+  - Menggantikan elemen native HTML `<select>` dengan Custom React Dropdown Selector yang terkunci presisi 100% pada kontainer kartu (`w-full max-w-full`).
+  - Mengeliminasi bug OS popup browser di mana nama armada yang panjang membentang melebar keluar batas kartu di mobile dan desktop.
+  - Teks nama unit kini membungkus rapi (`break-words line-clamp-2`) dilengkapi thumbnail foto unit dan harga terformat.
+- **Resilient Auth & Logout Lifecycle:**
+  - Mengeliminasi error runtime `useUser can only be used within the <ClerkProvider />` saat proses sign-out dengan meneruskan parameter `tenantId` langsung ke `usePendingBookingCount`.
+  - Penanganan graceful fallback pada `BottomNav` dan `Sidebar` yang aman dari unmounting session Clerk.
+- **Enterprise Light Theme Auth Overhaul (`/sign-in` & `/sign-up`):**
+  - Mengubah halaman otentikasi menjadi **Modern Executive Light SaaS Theme** berstandar Stripe & Shopify POS.
+  - **Header 3D Modern & Ringan (Mobile):** Menggunakan Pure CSS layered elevation (`rounded-3xl`, drop shadow, dan emblem logo 3D resmi) tanpa dependensi library eksternal.
+  - **All-in-One 5 Sektor Usaha (Mobile):** Grid 5 kolom presisi (`grid-cols-5`) menampilkan seluruh 5 pilar usaha (**Rental**, **Properti**, **Alat**, **F&B**, **Retail**) serentak tanpa perlu digeser.
+  - **Presisi Form di Tengah Layar:** Formulir login/daftar Clerk berposisi dead-center (`my-auto`) di perangkat mobile.
+  - **Distraction-Free Dedicated Auth:** Menghapus tombol keluar "← Beranda" sesuai kaidah UX aplikasi POS/ERP enterprise untuk mencegah kebingungan staf kasir.
+- **Multi-Tenant Isolation Verification:**
+  - Seluruh query database di API, POS, Kalender, Produk, dan Reservasi terisolasi 100% berdasarkan `tenant.userId` & `employee.tenantId`, menjamin data tidak bocor antar tenant.
+
+---
 ### v2.0.1 - Jasa/Servis Template & UX Fixes (Sep 19, 2026)
 - **Template Excel**: 2 sheet terpisah "Jasa" + "Sparepart" (download & export)
 - **biayaModal field**: Jasa murni pakai biaya modal/bahan (opsional), Sparepart pakai HPP

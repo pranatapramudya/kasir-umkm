@@ -8,6 +8,27 @@ const formatRupiah = (num: number) =>
     minimumFractionDigits: 0,
   }).format(num);
 
+const formatDisplayDate = (val?: string | null, fallbackTime?: string | null) => {
+  if (!val) return '-';
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return val;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const dateStr = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    if (val.includes('T') || val.includes(':')) {
+      const hours = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      return `${dateStr}, ${hours}:${mins} WIB`;
+    }
+    if (fallbackTime) {
+      return `${dateStr}, ${fallbackTime} WIB`;
+    }
+    return dateStr;
+  } catch {
+    return val;
+  }
+};
+
 export interface InvoiceRentalA4Props {
   tenantName: string;
   tenantCategory: string;
@@ -48,14 +69,25 @@ export default function InvoiceRentalA4({
     transaction.rentalMode === 'equipment' || (!isJasa && detectedType === 'equipment');
   const isVehicle = !isJasa && !isProperty && !isEquipment;
 
-  // Header Title
-  const documentTitle = isProperty
-    ? 'INVOICE SEWA PROPERTI & SURAT CHECK-IN'
-    : isEquipment
-      ? 'INVOICE SEWA ALAT & TANDA TERIMA'
-      : isJasa
-        ? 'INVOICE LAYANAN & SURAT PERINTAH KERJA'
-        : 'INVOICE SEWA / SURAT JALAN';
+  // Deteksi Status Lunas vs Belum Lunas (DP)
+  const isPaidOff = !transaction.remainingBalance || transaction.remainingBalance <= 0;
+
+  // Header Title Dinamis: INVOICE RESMI (Lunas) vs TANDA TERIMA DP & SURAT JALAN (Belum Lunas)
+  const documentTitle = isPaidOff
+    ? (isProperty
+        ? 'INVOICE RESMI SEWA PROPERTI & CHECK-IN'
+        : isEquipment
+          ? 'INVOICE RESMI SEWA ALAT'
+          : isJasa
+            ? 'INVOICE RESMI LAYANAN JASA'
+            : 'INVOICE RESMI SEWA KENDARAAN')
+    : (isProperty
+        ? 'TANDA TERIMA DP & SURAT CHECK-IN'
+        : isEquipment
+          ? 'TANDA TERIMA DP & BUKTI PINJAM ALAT'
+          : isJasa
+            ? 'SURAT PERINTAH KERJA & TANDA TERIMA DP'
+            : 'SURAT JALAN & TANDA TERIMA DP');
 
   // Durasi / Qty Unit Label
   const getQtyLabel = (qty: number) => {
@@ -108,10 +140,21 @@ export default function InvoiceRentalA4({
             Telp: {tenantPhone || '-'}
           </p>
         </div>
-        <div className="text-right">
-          <h2 className="text-lg font-bold uppercase text-slate-400 tracking-wider mb-1">
+        <div className="text-right flex flex-col items-end">
+          <h2 className="text-base sm:text-lg font-black uppercase text-slate-800 tracking-wider mb-1">
             {documentTitle}
           </h2>
+          <div className="mb-1.5">
+            {isPaidOff ? (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-black bg-emerald-100 text-emerald-800 border-2 border-emerald-500 uppercase tracking-wider">
+                ✓ LUNAS (PAID)
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-black bg-rose-100 text-rose-800 border-2 border-rose-500 uppercase tracking-wider animate-pulse">
+                ⚠️ BELUM LUNAS (DP)
+              </span>
+            )}
+          </div>
           <p className="text-xs font-semibold text-slate-700">
             No. TRX: <span className="text-slate-900 font-mono font-bold">{transaction.id}</span>
           </p>
@@ -158,11 +201,17 @@ export default function InvoiceRentalA4({
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.guarantee || '-'}</td>
               </tr>
+              {transaction.pickupLocation && (
+                <tr className="break-inside-avoid print:break-inside-avoid">
+                  <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">Titik Jemput</td>
+                  <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.pickupLocation}</td>
+                </tr>
+              )}
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
                   {isProperty ? 'Catatan Khusus' : isEquipment ? 'Kondisi / Catatan' : isJasa ? 'Tipe Pengerjaan' : 'Tujuan Perjalanan'}
                 </td>
-                <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.destination || '-'}</td>
+                <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.dropoffLocation || transaction.destination || (transaction.pickupLocation ? '-' : '-')}</td>
               </tr>
             </tbody>
           </table>
@@ -192,7 +241,7 @@ export default function InvoiceRentalA4({
                   {isProperty ? 'Check-in' : isEquipment ? 'Tgl Ambil' : isJasa ? 'Jadwal Pengerjaan' : 'Mulai Sewa'}
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">
-                  : {isJasa ? (transaction.serviceDate || transaction.date) : (transaction.startDate || '-')}
+                  : {isJasa ? formatDisplayDate(transaction.serviceDate || transaction.date) : formatDisplayDate(transaction.startDate)}
                 </td>
               </tr>
               <tr className="break-inside-avoid print:break-inside-avoid">
@@ -200,7 +249,7 @@ export default function InvoiceRentalA4({
                   {isProperty ? 'Check-out' : isEquipment ? 'Tgl Kembali' : isJasa ? 'Status' : 'Selesai Sewa'}
                 </td>
                 <td className="py-1 font-semibold text-slate-800 break-words">
-                  : {isJasa ? 'LUNAS & SELESAI' : (transaction.endDate || '-')}
+                  : {isJasa ? 'LUNAS & SELESAI' : formatDisplayDate(transaction.endDate, transaction.returnTime || '20:00')}
                 </td>
               </tr>
             </tbody>
@@ -249,13 +298,15 @@ export default function InvoiceRentalA4({
           {transaction.downPayment > 0 && (
             <>
               <div className="flex justify-between py-0.5">
-                <span className="text-slate-600">Uang Muka (DP)</span>
-                <span className="font-semibold text-green-600">-{formatRupiah(transaction.downPayment)}</span>
+                <span className="text-slate-600">Uang Muka (DP Diterima)</span>
+                <span className="font-semibold text-emerald-600">-{formatRupiah(transaction.downPayment)}</span>
               </div>
-              <div className="flex justify-between py-0.5 border-t border-slate-200 mt-1 pt-1">
-                <span className="text-slate-800 font-bold">Sisa Tagihan</span>
-                <span className="font-black text-red-600">{formatRupiah(transaction.remainingBalance || 0)}</span>
-              </div>
+              {transaction.remainingBalance > 0 && (
+                <div className="flex justify-between py-1 border-t-2 border-rose-300 mt-1.5 pt-1.5 bg-rose-50/80 px-2 rounded-lg items-center">
+                  <span className="text-rose-900 font-extrabold text-[11px] uppercase">SISA BELUM LUNAS:</span>
+                  <span className="font-black text-rose-600 text-sm">{formatRupiah(transaction.remainingBalance || 0)}</span>
+                </div>
+              )}
             </>
           )}
           <div className="flex justify-between py-1 border-t border-slate-200 mt-1 pt-1 items-center">

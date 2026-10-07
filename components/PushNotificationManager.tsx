@@ -70,8 +70,12 @@ async function subscribeAndSave(): Promise<boolean> {
     }
 
     return true;
-  } catch (error) {
-    console.error("[PushManager] Error saat subscribe:", error);
+  } catch (error: any) {
+    if (error?.name === "AbortError" || (typeof error?.message === "string" && error.message.includes("push service error"))) {
+      console.warn("[PushManager] Push service tidak tersedia / di-abort browser di localhost (non-kritis):", error?.message);
+    } else {
+      console.warn("[PushManager] Peringatan saat subscribe:", error?.message || error);
+    }
     return false;
   }
 }
@@ -97,7 +101,11 @@ export default function PushNotificationManager() {
     if (current === "granted" && !subscribedRef.current) {
       // Sudah diizinkan sebelumnya, langsung subscribe (silent)
       subscribedRef.current = true;
-      subscribeAndSave().catch(console.error);
+      subscribeAndSave().catch((err) => {
+        if (err?.name !== "AbortError") {
+          console.warn("[PushManager] Silent subscribe issue:", err);
+        }
+      });
     }
   }, []);
 

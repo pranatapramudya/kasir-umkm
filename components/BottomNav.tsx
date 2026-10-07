@@ -3,41 +3,41 @@ import { prisma } from "@/lib/prisma";
 import { BottomNavClient } from "./BottomNavClient";
 
 /**
- * Server Component wrapper — reads tenant category from Prisma
+ * Server Component wrapper — reads tenant category and user role from Prisma / sessionClaims
  * and passes it down to the client BottomNavClient.
- * Mirrors the same pattern as Sidebar.tsx → SidebarClient.tsx.
+ * Returns null safely during logout or when unauthenticated.
  */
 export async function BottomNav() {
-  let kategoriUsaha = "Retail";
-
   try {
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
 
     if (!userId) return null;
 
-    if (userId) {
-      // Resolve to owner: check if this user is an employee first
-      let targetUserId = userId;
-      const employee = await prisma.employee.findUnique({
-        where: { clerkUserId: userId },
-        select: { tenantId: true },
-      });
-      if (employee) {
-        targetUserId = employee.tenantId;
-      }
+    let role: string | undefined = (sessionClaims?.metadata as any)?.role || (sessionClaims as any)?.role;
+    let kategoriUsaha = "Retail";
+    let targetUserId = userId;
 
-      const tenant = await prisma.tenant.findUnique({
-        where: { userId: targetUserId },
-        select: { category: true },
-      });
-
-      if (tenant?.category) {
-        kategoriUsaha = tenant.category;
-      }
+    const employee = await prisma.employee.findUnique({
+      where: { clerkUserId: userId },
+      select: { tenantId: true },
+    });
+    if (employee) {
+      role = 'CASHIER';
+      targetUserId = employee.tenantId;
     }
-  } catch {
-    // Fail silently — BottomNav still renders, just without category isolation
-  }
 
-  return <BottomNavClient kategoriUsaha={kategoriUsaha} />;
+    const tenant = await prisma.tenant.findUnique({
+      where: { userId: targetUserId },
+      select: { category: true },
+    });
+
+    if (tenant?.category) {
+      kategoriUsaha = tenant.category;
+    }
+
+    return <BottomNavClient kategoriUsaha={kategoriUsaha} role={role} tenantId={targetUserId} />;
+  } catch {
+    // When user logs out or session is destroyed, return null safely
+    return null;
+  }
 }

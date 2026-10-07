@@ -222,6 +222,102 @@ export async function GET(req: NextRequest) {
     }
 
     // ------------------------------------------
+    
+    if (subType === 'bus' || subType === 'minibus') {
+      // ------------------------------------------
+      // TEMPLATE KHUSUS: MINIBUS & BUS PARIWISATA / ZIARAH
+      // Cocok untuk garasi sendiri & unit titipan mitra/investor
+      // ------------------------------------------
+      const wsBus = workbook.addWorksheet('1. Armada Minibus & Bus');
+      wsBus.columns = [
+        { header: 'Kode Unit', key: 'kodeUnit', width: 18 },
+        { header: 'Nama Unit Kendaraan / Plat', key: 'name', width: 44 },
+        { header: 'Tipe Kendaraan', key: 'tipe', width: 20 },
+        { header: 'Transmisi', key: 'transmisi', width: 16 },
+        { header: 'Tahun', key: 'tahun', width: 10 },
+        { header: 'Harga Sewa/Hari (Rp)', key: 'hargaHarian', width: 22 },
+        { header: 'Harga Sewa/Jam (Rp)', key: 'hargaJam', width: 20 },
+        { header: 'HPP / Biaya Operasional / Setoran (Rp)', key: 'hppHarian', width: 34 },
+        { header: 'Margin %', key: 'marginPct', width: 14 },
+        { header: 'Status', key: 'status', width: 16 },
+        { header: 'Catatan / Spesifikasi', key: 'description', width: 55 },
+      ];
+
+      for (let row = 2; row <= 150; row++) {
+        wsBus.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Minibus,Bus,Elf,Hiace,Medium Bus,Big Bus"'],
+          showErrorMessage: true,
+          errorTitle: 'Pilihan Tipe Armada',
+          error: 'Pilih: Minibus, Bus, Elf, Hiace, Medium Bus, atau Big Bus',
+        };
+        wsBus.getCell(`D${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Manual,Otomatis"'] };
+        wsBus.getCell(`J${row}`).dataValidation = { type: 'list', allowBlank: true, formulae: ['"Tersedia,Disewa,Perbaikan,Perawatan,Tidak Aktif"'] };
+        // Auto Margin % formula
+        wsBus.getCell(`I${row}`).value = { formula: `IF(F${row}>0,(F${row}-H${row})/F${row}*100,0)` };
+        wsBus.getCell(`I${row}`).numFmt = '0.0"%"';
+      }
+
+      const busData = [
+        ['BUS001', 'Hiace Commuter 14 Seat "Arimbi" - B 7123 PQA (Garasi Sendiri)', 'Hiace', 'Manual', 2023, 1100000, 150000, 350000, null, 'Tersedia', '14 seat penumpang, AC ducting dingin, armada sendiri | HPP: Solar 200k + Driver 100k + Kas 50k'],
+        ['BUS002', 'Hiace Premio Luxury 10 Seat "Sultan" - B 7890 KLR (Mitra - Bpk Joko)', 'Hiace', 'Manual', 2024, 1500000, 200000, 1050000, null, 'Tersedia', '10 Captain seat, TV Android, karaoke | HPP: Setoran Mitra 70% (1.050k) | Garasi profit 450k/hari'],
+        ['BUS003', 'Elf Long Giga 19 Seat "Barokah" - B 7456 ZX (Garasi Sendiri)', 'Elf', 'Manual', 2022, 1300000, 180000, 450000, null, 'Tersedia', '19 seat rombongan ziarah/wisata, bagasi luas | HPP: Solar 250k + Driver 150k + Kas 50k'],
+        ['BUS004', 'Elf Long Coaster 19 Seat "Madinah" - B 7661 YU (Mitra - H. Rohman)', 'Elf', 'Manual', 2023, 1300000, 180000, 900000, null, 'Tersedia', '19 seat rombongan majlis taklim/ziarah | HPP: Setoran wajib pemilik mitra 900k | Garasi fee 400k'],
+        ['BUS005', 'Medium Bus 35 Seat "Sahabat" - B 7999 TR (Garasi Sendiri)', 'Medium Bus', 'Manual', 2021, 2300000, 300000, 800000, null, 'Tersedia', '35 seat 2-2, Audio Subwoofer, Mic Karaoke, Coolbox | HPP: Solar 450k + Driver 250k + Kenek 100k'],
+        ['BUS006', 'Big Bus SHD 50 Seat "Al-Madinah" - B 7001 AA (Garasi Sendiri)', 'Big Bus', 'Manual', 2022, 3600000, 450000, 1400000, null, 'Tersedia', '50 seat 2-2, Toilet, Smoking Area, Dispenser, Full AC | HPP: Solar 800k + Driver 400k + Kenek 200k'],
+        ['BUS007', 'Big Bus HDD 59 Seat "Ziarah Barokah" - B 7333 WZ (Mitra - PO Barokah)', 'Big Bus', 'Manual', 2020, 3500000, 400000, 2800000, null, 'Tersedia', '59 seat konfigurasi 2-3 rombongan ziarah akbar | HPP: Bagi hasil mitra 80% (2.8jt) | Garasi fee 700k'],
+      ];
+
+      busData.forEach((rowData, i) => {
+        rowData.forEach((val, j) => {
+          wsBus.getCell(i + 2, j + 1).value = val;
+        });
+      });
+
+      // Sheet 2: Layanan & Add-on Khusus Bus & Ziarah
+      const wsLayananBus = workbook.addWorksheet('2. Layanan Tambahan Bus');
+      wsLayananBus.columns = [
+        { header: 'Kode Layanan', key: 'kodeLayanan', width: 18 },
+        { header: 'Nama Layanan', key: 'name', width: 38 },
+        { header: 'Kategori', key: 'category', width: 22 },
+        { header: 'Tarif (Rp)', key: 'harga', width: 18 },
+        { header: 'Satuan', key: 'satuan', width: 18 },
+        { header: 'Komisi Driver / Kru (Rp)', key: 'komisi', width: 24 },
+        { header: 'Deskripsi', key: 'description', width: 50 },
+      ];
+
+      for (let row = 2; row <= 50; row++) {
+        wsLayananBus.getCell(`C${row}`).dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"Supir/Driver,Kenek/Kru,BBM/Solar,Tol & Parkir,Spanduk/Banner,Lainnya"'],
+        };
+      }
+
+      const layananBusData = [
+        ['SV001', 'Jasa Driver Utama Pariwisata (Luar Kota)', 'Supir/Driver', 300000, 'Per Hari', 250000, 'Driver profesional berpengalaman rute wisata nusantara'],
+        ['SV002', 'Jasa Co-Driver / Kenek Bus', 'Kenek/Kru', 150000, 'Per Hari', 120000, 'Kru pendamping bantu parkir, bagasi & kebersihan unit'],
+        ['SV003', 'Paket Solar Full Tank / Uang Jalan Standar', 'BBM/Solar', 600000, 'Per Trip', 0, 'Pengisian solar subsidi/dexlite siap jalan'],
+        ['SV004', 'Paket Tol & Retribusi Parkir Ziarah', 'Tol & Parkir', 350000, 'Per Trip', 0, 'Estimasi biaya tol Trans Jawa & tiket parkir kawasan ziarah'],
+        ['SV005', 'Cetak Banner / Spanduk Rombongan Bus', 'Spanduk/Banner', 100000, 'Per Pcs', 30000, 'Spanduk nama rombongan ukuran 3x1 meter ditempel depan bus'],
+      ];
+
+      layananBusData.forEach((rowData, i) => {
+        rowData.forEach((val, j) => {
+          wsLayananBus.getCell(i + 2, j + 1).value = val;
+        });
+      });
+
+      const bufferBus = await workbook.xlsx.writeBuffer();
+      return new NextResponse(bufferBus, {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="template_import_minibus_bus_pariwisata.xlsx"',
+        },
+      });
+    }
+
     // DEFAULT: TEMPLATE KHUSUS RENTAL & TRAVEL
     // ------------------------------------------
     // Sheet 1: Armada Kendaraan

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { slug, customerName, customerPhone, bookingDate, notes, productId, startDate, endDate, pickupLocation, dropoffLocation, returnTime, deposit, conditionNotes } =
+    const { slug, customerName, customerPhone, bookingDate, notes, productId, startDate, endDate, pickupLocation, dropoffLocation, pickupTime, returnTime, deposit, conditionNotes } =
           body;
 
     // 1. Validasi kelengkapan data
@@ -141,6 +141,7 @@ export async function POST(request: Request) {
             pickupLocation: pickupLocation?.trim() || null,
             dropoffLocation: dropoffLocation?.trim() || null,
             // Equipment/Alat fields
+            pickupTime: pickupTime?.trim() || null,
             returnTime: returnTime?.trim() || null,
             deposit: deposit ? Number(deposit) : 0,
             conditionNotes: conditionNotes?.trim() || null,

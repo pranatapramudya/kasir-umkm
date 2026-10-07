@@ -3,6 +3,8 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { RentalDatePicker } from "@/components/RentalDatePicker";
 import { isRentalTravelCategory, detectRentalItemType } from "@/lib/business-category";
+import { parseProductImages } from "@/lib/product-images";
+import { ChevronDown, Check } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 
 interface Service {
@@ -12,6 +14,7 @@ interface Service {
   hargaJual: number;
   description?: string | null;
   isService?: boolean;
+  image?: string | null;
 }
 
 interface BookingFormProps {
@@ -76,12 +79,27 @@ function generateTimeSlots(
   return slots;
 }
 
-// Generate rental time slots 08:00 - 22:00 (Jam Operasional Standar), interval 30 menit
+// Helper label format jam Indonesia (24 Jam WIB Penuh 00:00 - 23:30)
+function formatIndoTimeSlot(time: string) {
+  const [h] = time.split(":").map(Number);
+  let period = "Pagi";
+  if (h === 0) period = "Tengah Malam";
+  else if (h >= 1 && h < 4) period = "Dini Hari";
+  else if (h >= 4 && h < 6) period = "Subuh";
+  else if (h >= 6 && h < 11) period = "Pagi";
+  else if (h >= 11 && h < 15) period = "Siang";
+  else if (h >= 15 && h < 18) period = "Sore";
+  else period = "Malam";
+  return `${time} WIB (${period})`;
+}
+
+// Generate rental time slots 24 Jam Penuh (Standar Rental, Bus Pariwisata & Travel Indonesia)
 function generateRentalTimeSlots() {
   const slots: string[] = [];
-  for (let h = 8; h <= 22; h++) {
-    slots.push(`${String(h).padStart(2, "0")}:00`);
-    if (h < 22) slots.push(`${String(h).padStart(2, "0")}:30`);
+  for (let h = 0; h < 24; h++) {
+    const hh = String(h).padStart(2, "0");
+    slots.push(`${hh}:00`);
+    slots.push(`${hh}:30`);
   }
   return slots;
 }
@@ -226,14 +244,57 @@ export default function BookingForm({
     durationHours: 3,
   });
 
+  // Inisialisasi formData terlebih dahulu agar tidak terjadi Temporal Dead Zone (TDZ)
   const [formData, setFormData] = useState({
-    productId: services[0]?.id?.toString() ?? "",
+    productId: (services.find(s => !s.isService) || services[0])?.id?.toString() ?? "",
     bookingDate: todayISO,
     bookingTime: "09:00",
     customerName: "",
     customerPhone: "",
     notes: "",
   });
+
+  // Filter unit fisik untuk dropdown sewa (menyingkirkan add-on seperti spanduk, bbm, kenek)
+  const selectableServices = useMemo(() => {
+    if (!isRental) return services;
+    let units = services.filter((s) => !s.isService);
+    if (availableRentalTypes.length > 1) {
+      const typeFiltered = units.filter((s) => {
+        const type = detectRentalItemType(s.name, s.description, s.category);
+        return type === rentalCategoryType;
+      });
+      if (typeFiltered.length > 0) return typeFiltered;
+    }
+    return units.length > 0 ? units : services.filter(s => !s.isService);
+  }, [services, isRental, availableRentalTypes, rentalCategoryType]);
+
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
+  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
+  const productDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (productDropdownRef.current && !productDropdownRef.current.contains(e.target as Node)) {
+        setIsProductDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Sinkronisasi otomatis productId saat selectableServices berubah
+  useEffect(() => {
+    if (selectableServices.length > 0) {
+      const exists = selectableServices.some((s) => s.id.toString() === formData.productId);
+      if (!exists) {
+        setFormData((prev) => ({ ...prev, productId: selectableServices[0].id.toString() }));
+      }
+    }
+  }, [selectableServices, formData.productId]);
+
+  useEffect(() => {
+    setActivePhotoIdx(0);
+  }, [formData.productId]);
 
   // State khusus Rental & Travel
       // State khusus Rental & Travel
@@ -263,6 +324,10 @@ export default function BookingForm({
   const selectedService = services.find(
     (s) => s.id.toString() === formData.productId
   );
+
+  const selectedServiceImages = useMemo(() => {
+    return parseProductImages(selectedService?.image);
+  }, [selectedService]);
 
     // Auto-set category type when selectedService changes or fallback to available
       useEffect(() => {
@@ -530,7 +595,7 @@ export default function BookingForm({
         text = `Halo, saya sudah melakukan pembayaran/DP untuk ID Pesanan: *${bookingId ? bookingId.slice(0, 8) : "-"}*.\n` +
           `Nama Pemesan: *${formData.customerName}*\n` +
           `Layanan: *${tenantName}*${serviceText}\n` +
-          `Tanggal Sewa: *${startLabel}* jam *${rentalData.pickupTime}* s/d *${endLabel}*.\n\n` +
+          `Jadwal Berangkat: *${startLabel}* jam *${rentalData.pickupTime} WIB*\nJadwal Kepulangan: *${endLabel}* jam *${rentalData.returnTime || "20:00"} WIB*.\n\n` +
           `Berikut bukti transfernya...`;
       }
     } else {
@@ -641,7 +706,7 @@ export default function BookingForm({
         } else {
           bookingDateTime = new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`);
           startDateIso = new Date(`${rentalData.startDate}T${rentalData.pickupTime}:00`).toISOString();
-          endDateIso = new Date(`${rentalData.endDate}T23:59:59`).toISOString();
+          endDateIso = new Date(`${rentalData.endDate}T${rentalData.returnTime || "23:59"}:00`).toISOString();
 
           if (rentalCategoryType === "vehicle") {
             const provName = rentalData.dropoffProvince.split("|")[1] || "";
@@ -681,7 +746,8 @@ export default function BookingForm({
                       pickupLocation: finalPickup,
                       dropoffLocation: finalDropoff,
                       // Equipment fields
-                      returnTime: rentalCategoryType === "equipment" ? rentalData.returnTime : null,
+                      pickupTime: (rentalCategoryType === "equipment" || rentalCategoryType === "vehicle") ? (rentalData.pickupTime || "08:00") : null,
+                      returnTime: (rentalCategoryType === "equipment" || rentalCategoryType === "vehicle") ? (rentalData.returnTime || "20:00") : null,
                       deposit: rentalCategoryType === "equipment" ? rentalData.deposit : 0,
                       conditionNotes: rentalCategoryType === "equipment" ? rentalData.conditionNotes : null,
                       fulfillmentType: rentalCategoryType === "equipment" ? rentalData.fulfillmentType : null,
@@ -998,60 +1064,252 @@ export default function BookingForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md space-y-5"
+      className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-md space-y-5 w-full max-w-full"
     >
       <div>
         <h2 className="text-lg font-bold text-slate-900 mb-0.5">
-          {isRental ? "Isi Detail Reservasi Sewa" : "Isi Detail Jadwal Layanan"}
+          {isRental ? "Formulir Pemesanan Sewa & Travel" : "Isi Detail Jadwal Layanan"}
         </h2>
         <p className="text-slate-500 text-xs">Semua field bertanda * wajib diisi</p>
       </div>
 
       {/* Pilih Layanan / Unit */}
-            {services.length > 0 && (
-              <div className="space-y-1.5">
-                <label htmlFor="productId" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  {isRental ? (
+      {services.length > 0 && (
+        <div className="space-y-3 w-full max-w-full">
+          <div className="space-y-1.5 w-full max-w-full">
+            <label htmlFor="productId" className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+              {isRental ? (
+                <>
+                  {availableRentalTypes.length === 1 && availableRentalTypes[0] === "equipment" && "Pilih Alat / Perlengkapan *"}
+                  {availableRentalTypes.length === 1 && availableRentalTypes[0] === "vehicle" && "Pilih Kendaraan / Armada *"}
+                  {availableRentalTypes.length === 1 && availableRentalTypes[0] === "property" && "Pilih Unit / Kamar *"}
+                  {availableRentalTypes.length > 1 && (
+                    rentalCategoryType === "vehicle" ? "Pilih Kendaraan / Armada *" :
+                    rentalCategoryType === "property" ? "Pilih Unit / Kamar *" :
+                    "Pilih Alat / Perlengkapan *"
+                  )}
+                </>
+              ) : "Pilih Layanan / Servis *"}
+            </label>
+
+            {/* Selector Custom Responsif: Tidak Pernah Melebar di Desktop maupun Mobile */}
+            <div ref={productDropdownRef} className="relative w-full max-w-full">
+              <input
+                type="hidden"
+                id="productId"
+                name="productId"
+                value={formData.productId}
+                required
+              />
+
+              {/* Trigger Button */}
+              <button
+                type="button"
+                onClick={() => setIsProductDropdownOpen((prev) => !prev)}
+                className={`w-full max-w-full bg-white border rounded-xl px-3.5 py-2.5 sm:py-3 text-left transition-all shadow-sm flex items-center justify-between gap-2.5 cursor-pointer ${
+                  isProductDropdownOpen
+                    ? "border-blue-500 ring-2 ring-blue-500/20"
+                    : "border-slate-300 hover:border-blue-400"
+                }`}
+                aria-haspopup="listbox"
+                aria-expanded={isProductDropdownOpen}
+              >
+                <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
+                  {selectedService ? (
                     <>
-                      {availableRentalTypes.length === 1 && availableRentalTypes[0] === "equipment" && "Pilih Alat / Perlengkapan *"}
-                      {availableRentalTypes.length === 1 && availableRentalTypes[0] === "vehicle" && "Pilih Kendaraan / Armada *"}
-                      {availableRentalTypes.length === 1 && availableRentalTypes[0] === "property" && "Pilih Unit / Kamar *"}
-                      {availableRentalTypes.length > 1 && "Pilih Unit / Layanan *"}
+                      {(() => {
+                        const imgs = parseProductImages(selectedService.image);
+                        if (imgs.length > 0) {
+                          return (
+                            <img
+                              src={imgs[0]}
+                              alt=""
+                              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover shrink-0 border border-slate-200"
+                            />
+                          );
+                        }
+                        return null;
+                      })()}
+                      <div className="min-w-0 flex-1 truncate">
+                        <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                          {selectedService.name}
+                        </p>
+                        <p className="text-[11px] sm:text-xs font-semibold text-blue-600 truncate">
+                          {formatRupiah(selectedService.hargaJual)}
+                        </p>
+                      </div>
                     </>
-                  ) : "Pilih Layanan / Servis *"}
-                </label>
-                <select
-                  id="productId"
-                  name="productId"
-                  value={formData.productId}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none"
-                >
-                  <option value="" className="bg-white text-slate-500">
-                    {isRental ? (
-                      <>
-                        {availableRentalTypes.length === 1 && availableRentalTypes[0] === "equipment" && "— Pilih Alat / Perlengkapan —"}
-                        {availableRentalTypes.length === 1 && availableRentalTypes[0] === "vehicle" && "— Pilih Kendaraan / Armada —"}
-                        {availableRentalTypes.length === 1 && availableRentalTypes[0] === "property" && "— Pilih Unit / Kamar —"}
-                        {availableRentalTypes.length > 1 && "— Pilih Unit / Layanan —"}
-                      </>
-                    ) : "— Pilih Layanan —"}
-                  </option>
-                  {services.map((s) => (
-                    <option key={s.id} value={s.id} className="bg-white text-slate-900">
-                      {s.name} — {isRental ? `Estimasi / Mulai dari ${formatRupiah(s.hargaJual)}` : formatRupiah(s.hargaJual)}
-                    </option>
-                  ))}
-                </select>
+                  ) : (
+                    <span className="text-xs sm:text-sm text-slate-400 font-medium truncate">
+                      {isRental ? (
+                        rentalCategoryType === "vehicle" ? "— Pilih Kendaraan / Armada —" :
+                        rentalCategoryType === "property" ? "— Pilih Unit / Kamar —" :
+                        "— Pilih Alat / Perlengkapan —"
+                      ) : "— Pilih Layanan —"}
+                    </span>
+                  )}
+                </div>
+
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                    isProductDropdownOpen ? "rotate-180 text-blue-600" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown Menu Popover (Lebar terkunci 100% container) */}
+              {isProductDropdownOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-72 overflow-y-auto divide-y divide-slate-100 w-full max-w-full">
+                  {selectableServices.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-400 font-medium">
+                      Tidak ada pilihan yang tersedia
+                    </div>
+                  ) : (
+                    selectableServices.map((s) => {
+                      const isSelected = s.id.toString() === formData.productId;
+                      const imgs = parseProductImages(s.image);
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, productId: s.id.toString() }));
+                            setIsProductDropdownOpen(false);
+                            setError(null);
+                          }}
+                          className={`w-full text-left p-2.5 sm:p-3 flex items-center justify-between gap-2.5 transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-blue-50/90 text-blue-900"
+                              : "hover:bg-slate-50 text-slate-800"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
+                            {imgs.length > 0 ? (
+                              <img
+                                src={imgs[0]}
+                                alt=""
+                                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg object-cover shrink-0 border border-slate-200"
+                              />
+                            ) : (
+                              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-400 text-xs">
+                                📷
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={`text-xs sm:text-sm leading-snug break-words line-clamp-2 ${
+                                  isSelected ? "font-bold text-blue-900" : "font-semibold text-slate-800"
+                                }`}
+                              >
+                                {s.name}
+                              </p>
+                              <p className="text-[11px] sm:text-xs font-bold text-blue-600 mt-0.5">
+                                {formatRupiah(s.hargaJual)}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 ml-1">
+                              <Check className="w-3 h-3 stroke-[2.5]" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Unit Showcase Card: Foto Galeri & Detail Unit */}
           {selectedService && (
-            <div className="pl-1">
-              <p className="text-blue-600 text-xs font-medium">
-                Harga: {isRental ? `Estimasi / Mulai dari ${formatRupiah(selectedService.hargaJual)}` : formatRupiah(selectedService.hargaJual)}
-              </p>
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-4 shadow-sm space-y-3 transition-all w-full max-w-full overflow-hidden">
+              {/* Photo Showcase (jika ada foto) */}
+              {selectedServiceImages.length > 0 && (
+                <div className="space-y-2">
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 shadow-inner group">
+                    <img
+                      src={selectedServiceImages[activePhotoIdx] || selectedServiceImages[0]}
+                      alt={selectedService.name}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    {/* Badge Photo Count */}
+                    {selectedServiceImages.length > 1 && (
+                      <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-sm text-white text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                        <span>📷</span>
+                        <span>{activePhotoIdx + 1}/{selectedServiceImages.length}</span>
+                      </div>
+                    )}
+                    {/* Prev/Next arrows if multiple photos */}
+                    {selectedServiceImages.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setActivePhotoIdx(prev => (prev === 0 ? selectedServiceImages.length - 1 : prev - 1));
+                          }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center text-xs transition-colors shadow"
+                        >
+                          ‹
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setActivePhotoIdx(prev => (prev === selectedServiceImages.length - 1 ? 0 : prev + 1));
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center text-xs transition-colors shadow"
+                        >
+                          ›
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Thumbnail Row */}
+                  {selectedServiceImages.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+                      {selectedServiceImages.map((imgUrl, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActivePhotoIdx(idx)}
+                          className={`relative w-14 h-11 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${
+                            activePhotoIdx === idx ? 'border-blue-600 scale-105 shadow-sm' : 'border-slate-200 opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <img src={imgUrl} alt={`Thumbnail ${idx+1}`} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Detail Info Unit */}
+              <div className="flex items-start justify-between gap-2 pt-1 border-t border-slate-100">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-slate-900 text-sm truncate">{selectedService.name}</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {isRental ? 'Unit / Armada Terpilih' : 'Layanan Terpilih'}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-[10px] text-slate-400 block font-normal">Tarif Sewa Mulai</span>
+                  <span className="font-black text-blue-600 text-sm sm:text-base">
+                    {formatRupiah(selectedService.hargaJual)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Deskripsi & Spesifikasi Unit */}
               {selectedService.description && (
-                <div className="mt-2 bg-slate-50 border border-slate-100 p-2.5 rounded-lg text-[11px] text-slate-500 italic">
-                  * {selectedService.description}
+                <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-xs text-slate-600 leading-relaxed">
+                  {selectedService.description}
                 </div>
               )}
             </div>
@@ -1239,7 +1497,7 @@ export default function BookingForm({
                                               disabled={isBooked}
                                               className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
                                             >
-                                              {slot} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+                                              {formatIndoTimeSlot(slot)} {isBooked ? "(Terisi / Penuh)" : ""}
                                             </option>
                                           );
                                         })}
@@ -1326,7 +1584,7 @@ export default function BookingForm({
                                               disabled={isBooked}
                                               className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
                                             >
-                                              {time} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+                                              {formatIndoTimeSlot(time)} {isBooked ? "(Terisi / Penuh)" : ""}
                                             </option>
                                           );
                                         })}
@@ -1375,7 +1633,7 @@ export default function BookingForm({
                                               disabled={isBooked}
                                               className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
                                             >
-                                              {time} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+                                              {formatIndoTimeSlot(time)} {isBooked ? "(Terisi / Penuh)" : ""}
                                             </option>
                                           );
                                         })}
@@ -1398,7 +1656,7 @@ export default function BookingForm({
                                       >
                                         {rentalTimeSlots.map((time) => (
                                           <option key={time} value={time}>
-                                            {time} WIB
+                                            {formatIndoTimeSlot(time)}
                                           </option>
                                         ))}
                                       </select>
@@ -1603,53 +1861,80 @@ export default function BookingForm({
                 onClearError={() => setError(null)}
               />
 
-              {/* Jam Penjemputan / Ambil / Mulai Sewa */}
-              <div className="space-y-1.5">
-                <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Jam Ambil / Mulai Sewa *
-                </label>
-                <select
-                  id="rental-pickupTime"
-                  value={rentalData.pickupTime}
-                  onChange={(e) => {
-                    setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
-                    setError(null);
-                  }}
-                  required
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                >
-                  {rentalTimeSlots.map((time) => {
-                    const isBooked = bookedSlots.includes(time);
-                    return (
-                      <option
-                        key={time}
-                        value={time}
-                        disabled={isBooked}
-                        className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
-                      >
-                        {time} WIB {isBooked ? "(Terisi / Penuh)" : ""}
+              {/* Jadwal Jam Berangkat & Jam Pulang (24 Jam WIB) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+                    <span>Jam Berangkat / Jemput *</span>
+                    <span className="text-[10px] text-amber-600 font-bold lowercase">24 jam wib</span>
+                  </label>
+                  <select
+                    id="rental-pickupTime"
+                    value={rentalData.pickupTime || "08:00"}
+                    onChange={(e) => {
+                      setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                      setError(null);
+                    }}
+                    required
+                    className="w-full bg-white border border-slate-200 hover:border-amber-400 focus:border-amber-500 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all appearance-none cursor-pointer"
+                  >
+                    {rentalTimeSlots.map((time) => {
+                      const isBooked = bookedSlots.includes(time);
+                      return (
+                        <option
+                          key={time}
+                          value={time}
+                          disabled={isBooked}
+                          className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
+                        >
+                          {formatIndoTimeSlot(time)} {isBooked ? "(Terisi)" : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="rental-returnTime" className="text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+                    <span>Jam Pulang / Selesai *</span>
+                    <span className="text-[10px] text-amber-600 font-bold lowercase">24 jam wib</span>
+                  </label>
+                  <select
+                    id="rental-returnTime"
+                    value={rentalData.returnTime || "20:00"}
+                    onChange={(e) => {
+                      setRentalData((prev) => ({ ...prev, returnTime: e.target.value }));
+                      setError(null);
+                    }}
+                    required
+                    className="w-full bg-white border border-slate-200 hover:border-amber-400 focus:border-amber-500 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all appearance-none cursor-pointer"
+                  >
+                    {rentalTimeSlots.map((time) => (
+                      <option key={time} value={time}>
+                        {formatIndoTimeSlot(time)}
                       </option>
-                    );
-                  })}
-                </select>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Tampilkan durasi jika ada */}
+              {/* Tampilkan durasi sewa & ringkasan rute */}
               {rentalData.startDate && rentalData.endDate && rentalData.endDate >= rentalData.startDate && (
-                <p className="text-amber-600 text-xs font-medium">
-                  Durasi sewa:{" "}
-                  {Math.round(
-                    (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                  ) + 1}{" "}
-                  hari
-                </p>
+                <div className="bg-amber-50 border border-amber-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs text-amber-900">
+                  <span className="font-semibold">Total Durasi Perjalanan:</span>
+                  <span className="font-bold bg-white px-2.5 py-1 rounded-lg border border-amber-200 text-amber-800 shadow-sm">
+                    {Math.round(
+                      (new Date(rentalData.endDate).getTime() - new Date(rentalData.startDate).getTime()) /
+                      (1000 * 60 * 60 * 24)
+                    ) + 1}{" "} Hari
+                  </span>
+                </div>
               )}
 
               {/* Lokasi Penjemputan / Alamat */}
               <div className="space-y-1.5">
                 <label htmlFor="rental-pickup" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  LOKASI AMBIL / ALAMAT AWAL <span className="normal-case font-normal text-slate-500">(opsional)</span>
+                  TITIK PENJEMPUTAN / LOKASI KUMPUL ROMBONGAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -1660,7 +1945,7 @@ export default function BookingForm({
                       setRentalData((prev) => ({ ...prev, pickupLocation: e.target.value }));
                       setError(null);
                     }}
-                    placeholder="contoh: Bandara Ngurah Rai atau Klik GPS"
+                    placeholder="contoh: Depan Pool Garasi, Bandara, Kantor, atau Alamat Rombongan"
                     className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
                   />
                   <button
@@ -1681,7 +1966,7 @@ export default function BookingForm({
 
                 <div className="space-y-1.5">
                   <label htmlFor="rental-dropoffProvince" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    PROVINSI TUJUAN *
+                    PROVINSI TUJUAN WISATA / PERJALANAN *
                   </label>
                   <select
                     id="rental-dropoffProvince"
@@ -1699,7 +1984,7 @@ export default function BookingForm({
 
                 <div className="space-y-1.5">
                   <label htmlFor="rental-dropoffRegency" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    KOTA/KABUPATEN TUJUAN *
+                    KOTA / KABUPATEN TUJUAN *
                   </label>
                   <select
                     id="rental-dropoffRegency"
@@ -1718,7 +2003,7 @@ export default function BookingForm({
 
                 <div className="space-y-1.5">
                   <label htmlFor="rental-dropoffDistrict" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    KECAMATAN TUJUAN *
+                    KECAMATAN / AREA TUJUAN *
                   </label>
                   <select
                     id="rental-dropoffDistrict"
@@ -1740,7 +2025,7 @@ export default function BookingForm({
 
                 <div className="space-y-1.5">
                   <label htmlFor="rental-dropoff" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    ALAMAT DETAIL TUJUAN <span className="normal-case font-normal text-slate-500">(opsional)</span>
+                    ALAMAT DETAIL DESTINASI / LOKASI ACARA <span className="normal-case font-normal text-slate-500">(opsional)</span>
                   </label>
                   <input
                     id="rental-dropoff"
@@ -1750,11 +2035,11 @@ export default function BookingForm({
                       setRentalData((prev) => ({ ...prev, dropoffLocation: e.target.value }));
                       setError(null);
                     }}
-                    placeholder="contoh: Hotel Aston Denpasar"
+                    placeholder="contoh: Kawasan Wisata Bromo, Hotel Santika, Candi Borobudur, dll."
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
                   />
                   <p className="text-[10px] text-amber-600 mt-1">
-                    *Catatan: Harga di atas adalah harga dasar/dalam kota. Harga final akan disesuaikan dengan jarak rute tujuan Anda dan dikonfirmasi melalui WhatsApp.
+                    *Catatan: Harga tercantum adalah tarif dasar. Biaya final akan disesuaikan dengan rute jarak tempuh (km), armada yang dipilih, dan kebutuhan operasional jalan.
                   </p>
                 </div>
               </div>
@@ -1824,7 +2109,7 @@ export default function BookingForm({
       {/* Nama */}
       <div className="space-y-1.5">
         <label htmlFor="customerName" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          Nama Lengkap *
+          {isRental ? "Nama Penanggung Jawab / Kontak Rombongan *" : "Nama Lengkap *"}
         </label>
         <input
           id="customerName"
@@ -1842,7 +2127,7 @@ export default function BookingForm({
       {/* HP */}
       <div className="space-y-1.5">
         <label htmlFor="customerPhone" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          Nomor HP / WhatsApp *
+          {isRental ? "Nomor WhatsApp Pemesan (Aktif) *" : "Nomor HP / WhatsApp *"}
         </label>
         <input
           id="customerPhone"
@@ -1860,14 +2145,29 @@ export default function BookingForm({
       {/* Catatan / Request Khusus */}
       <div className="space-y-1.5">
         <label htmlFor="notes" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          Catatan / Request Khusus <span className="normal-case font-normal text-slate-500">(opsional)</span>
+          {isRental && rentalCategoryType === "vehicle"
+            ? "Catatan / Request Khusus Perjalanan"
+            : isRental && rentalCategoryType === "equipment"
+            ? "Catatan / Request Sewa Alat"
+            : isRental && rentalCategoryType === "property"
+            ? "Catatan / Request Kamar / Unit"
+            : "Catatan / Request Khusus"}{" "}
+          <span className="normal-case font-normal text-slate-500">(opsional)</span>
         </label>
         <textarea
           id="notes"
           name="notes"
           value={formData.notes}
           onChange={handleChange}
-          placeholder={isRental ? "Cth: Request kamar di bawah, butuh supir, sewa helm tambahan..." : "Cth: Model potongan rambut, keluhan kerusakan motor/alat, request staf tertentu..."}
+          placeholder={
+            isRental && rentalCategoryType === "vehicle"
+              ? "Cth: Bawa banyak koper/bagasi rombongan, rute mampir ke rest area/pusat oleh-oleh, request mic karaoke bus, butuh supir berpengalaman..."
+              : isRental && rentalCategoryType === "equipment"
+              ? "Cth: Butuh kabel ekstensi cadangan, tes fungsi alat sebelum dikirim, bantuan pasang tenda..."
+              : isRental && rentalCategoryType === "property"
+              ? "Cth: Request kamar non-smoking, check-in lebih awal, kasur tambahan..."
+              : "Cth: Model potongan rambut, keluhan kerusakan motor/alat, request staf tertentu..."
+          }
           rows={3}
           className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
         />
@@ -1885,11 +2185,19 @@ export default function BookingForm({
         <span className="text-amber-600 mt-0.5 text-base">⚠️</span>
         <div className="text-[11px] md:text-xs text-amber-800 space-y-1 leading-relaxed">
           {isRental ? (
-            <>
-              <p className="font-bold">Informasi Pembayaran & Konfirmasi:</p>
-              <p>Pesanan sewa ini memerlukan <strong>Down Payment (DP) 50%</strong> dari total tagihan.</p>
-              <p>Setelah form dikirim, nomor rekening transfer akan ditampilkan dan Anda dapat langsung mengirim bukti pembayaran via WhatsApp.</p>
-            </>
+            rentalCategoryType === "vehicle" ? (
+              <>
+                <p className="font-bold">Informasi Reservasi Armada & Konfirmasi:</p>
+                <p>Pemesanan armada/travel ini memerlukan <strong>Uang Muka (DP) / Tanda Jadi</strong> untuk mengunci jadwal armada di tanggal pilihan rombongan Anda.</p>
+                <p>Setelah formulir dikirim, nomor rekening pembayaran akan ditampilkan dan Admin kami siap berkoordinasi via WhatsApp terkait rute, kontak driver, dan penjemputan.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-bold">Informasi Pembayaran & Konfirmasi:</p>
+                <p>Pesanan sewa ini memerlukan <strong>Down Payment (DP) 50%</strong> dari total tagihan.</p>
+                <p>Setelah form dikirim, nomor rekening transfer akan ditampilkan dan Anda dapat langsung mengirim bukti pembayaran via WhatsApp.</p>
+              </>
+            )
           ) : hasBankPayment ? (
             <>
               <p className="font-bold">Informasi Reservasi & Tanda Jadi (DP):</p>

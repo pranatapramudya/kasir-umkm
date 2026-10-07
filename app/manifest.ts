@@ -6,11 +6,12 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "PJTECH Kasir",
     description:
       "Aplikasi kasir (POS) multi-bisnis terlengkap untuk UMKM. Pantau laba rugi secara real-time.",
-    start_url: "/",
+    start_url: "/admin/pos",
+    scope: "/",
     display: "standalone",
     orientation: "portrait",
     background_color: "#ffffff",
-    theme_color: "#3b82f6",
+    theme_color: "#2563eb",
     icons: [
       {
         src: "/icon-192x192.png?v=4",

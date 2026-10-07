@@ -1,6 +1,5 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -15,15 +14,19 @@ import { usePendingBookingCount } from "@/hooks/usePendingBookingCount";
 
 interface BottomNavClientProps {
   kategoriUsaha?: string;
+  role?: string;
+  tenantId?: string;
 }
 
-export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientProps) {
+export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, tenantId }: BottomNavClientProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useUser();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isBukuPanduanOpen, setIsBukuPanduanOpen] = useState(false);
   const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
+
+  // SWR Polling & Real-time Chime Alert (called unconditionally at top level)
+  const { pendingCount } = usePendingBookingCount(tenantId);
 
   // Sync optimistic tab indicator with confirmed pathname
   useEffect(() => {
@@ -35,11 +38,8 @@ export function BottomNavClient({ kategoriUsaha: rawKategori }: BottomNavClientP
     return null;
   }
 
-  const role = user?.publicMetadata?.role as string | undefined;
+  const role = serverRole;
   const kategoriUsaha = rawKategori ?? "Retail";
-
-  // SWR Polling & Real-time Chime Alert
-  const { pendingCount } = usePendingBookingCount(role);
 
   const isOrderMenuItem = (item: { name: string; href: string }) => {
     const name = item.name.toLowerCase();

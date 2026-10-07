@@ -1,6 +1,6 @@
 "use client";
 
-import { X, BookOpen, CheckCircle, MessageSquare, ExternalLink, ShieldAlert } from "lucide-react";
+import { X, BookOpen, CheckCircle, MessageSquare, ExternalLink, ShieldAlert, Smartphone } from "lucide-react";
 import { isRentalTravelCategory, isServiceBusinessCategory } from "@/lib/business-category";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
@@ -102,20 +102,34 @@ export function BukuPanduanModal({ isOpen, onClose, category, tenantName }: Prop
 
             {businessType === 'RENTAL' && (
               <>
-                <Step num="1" title="Tambah Unit / Layanan" businessType={businessType}>Buka menu <b>Armada / Unit</b>. Masukkan data unit yang bisa disewa (mobil, motor, properti / kos, penginapan, kamera, atau peralatan).</Step>
-                <Step num="2" title="Atur Harga Sewa" businessType={businessType}>Tentukan harga per-hari, per-jam, atau per-malam untuk setiap unit yang Anda sewakan.</Step>
-                <Step num="3" title="Atur Rekening Pembayaran (DP 50%)" businessType={businessType}>Buka menu <b>Informasi Toko</b>, lalu lengkapi data rekening Bank / E-Wallet Anda. Ini wajib diisi agar pelanggan tahu ke mana harus mentransfer DP 50% saat melakukan reservasi online.</Step>
-                <Step num="4" title="Bagikan Link Katalog" businessType={businessType}>Di menu yang sama (<b>Informasi Toko</b>), salin Link Booking Publik Anda, dan bagikan ke WhatsApp atau bio Instagram pelanggan agar mereka bisa memesan mandiri.</Step>
-                <Step num="5" title="Tarik Pesanan / Input Transaksi Sewa" businessType={businessType}>
-                  Pelanggan bisa memesan dari link booking, atau Anda input manual di <b>Kasir POS / Kalender Sewa</b> dengan mengisi detail sewa:
+                <Step num="1" title="Input Data Unit / Armada / Properti / Alat" businessType={businessType}>
+                  Buka menu <b>Armada / Unit</b>. Masukkan unit fisik yang Anda sewakan (Mobil, Motor, Kamar Villa/Kost, Kamera, Tenda, Sound System).
+                  Setiap unit fisik otomatis memiliki stok 1. Jika ada supir, extra bed, atau operator, masukkan sebagai <b>Layanan Tambahan (Add-on)</b>.
+                </Step>
+                <Step num="2" title="Atur Tarif Sewa & Rekening DP" businessType={businessType}>
+                  Tentukan tarif sewa (per hari, per jam, atau per malam). Buka menu <b>Informasi Toko</b> untuk mengisi data rekening Bank / QRIS agar pelanggan dapat mentransfer DP 50% saat reservasi online.
+                </Step>
+                <Step num="3" title="Bagikan Link Booking Online Mandiri" businessType={businessType}>
+                  Salin Link Booking Publik Anda di menu <b>Informasi Toko</b>, lalu bagikan ke WhatsApp atau bio media sosial agar pelanggan bisa reservasi mandiri dan melihat ketersediaan unit secara live.
+                </Step>
+                <Step num="4" title="Konfirmasi Reservasi Online (ACC Jadwal)" businessType={businessType}>
+                  Buka menu <b>Kalender Rental & Reservasi</b> untuk melihat pesanan masuk dari link online. Periksa bukti transfer DP pelanggan, lalu klik tombol <b>"Terima & ACC"</b> untuk mengunci jadwal unit agar anti-bentrok.
+                </Step>
+                <Step num="5" title="Transaksi Kasir POS & Cetak Dokumen / Surat Jalan A4" businessType={businessType}>
+                  Saat pelanggan datang langsung atau jadwal sewa dimulai, buka <b>Kasir POS</b>:
                   <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600">
-                    <li><b>No. Seri / Kode Unit / Plat:</b> Isi dengan Plat Nomor (mobil/motor), Nomor Kamar/Unit (properti/kos/penginapan), atau Serial Number (kamera/alat).</li>
-                    <li><b>Jaminan (KTP/SIM/Deposit):</b> Isi dengan jaminan fisik seperti KTP, SIM, Paspor, atau Uang Deposit.</li>
-                    <li><b>Operator / Catatan Khusus:</b> Isi dengan nama supir, nama operator mesin, atau request khusus dari penyewa.</li>
+                    <li><b>Identitas Unit:</b> Isi Plat Nomor (kendaraan), No. Kamar (properti), atau Serial Number (alat sewa).</li>
+                    <li><b>Jaminan & Uang Deposit:</b> Catat jaminan KTP/SIM atau nominal uang deposit pelanggan.</li>
+                    <li><b>Cetak Bukti Resmi:</b> Selesaikan transaksi pembayaran dan cetak <b>Surat Jalan & Perjanjian Sewa / Invoice</b> dalam format Thermal (58/80mm) atau <b>Format Kertas A4</b> resmi.</li>
                   </ul>
                 </Step>
-                <Step num="6" title="Klik Start (Mulai Perjalanan / Sewa)" businessType={businessType}>Saat unit/kamar/alat diserahterimakan atau pemakaian dimulai, ubah status pesanan ke <b>Sedang Jalan / Aktif</b>.</Step>
-                <Step num="7" title="Finish & Lunas" businessType={businessType} isLast>Saat unit dikembalikan atau masa sewa selesai, tandai pesanan <b>Selesai</b> dan pastikan pembayaran lunas.</Step>
+                <Step num="6" title="Monitoring Kalender & Penyelesaian Sewa (Hitung Denda / Deposit)" businessType={businessType} isLast>
+                  Pantau pergerakan unit di <b>Kalender Rental</b>. Saat masa sewa selesai dan unit/kunci/alat dikembalikan pelanggan:
+                  <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600">
+                    <li>Klik tombol <b>"Penyelesaian Sewa"</b> (Terima Armada / Check-out & Selesai / Terima Alat).</li>
+                    <li>Sistem otomatis menyediakan kalkulasi <b>Denda Keterlambatan (Overtime)</b> jika ada telat pengembalian, serta pencatatan pengembalian <b>Uang Deposit Jaminan</b> pelanggan sebelum menutup pesanan menjadi <b>Selesai</b>.</li>
+                  </ul>
+                </Step>
               </>
             )}
           </div>
@@ -167,6 +181,31 @@ export function BukuPanduanModal({ isOpen, onClose, category, tenantName }: Prop
               </div>
             );
           })()}
+
+          {/* Panduan Instalasi Mobile (PWA Android & iOS) */}
+          <div className="mt-5 p-4 sm:p-5 bg-gradient-to-br from-slate-900 to-blue-950 text-white rounded-2xl border border-blue-800/40 shadow-md">
+            <div className="flex items-center gap-2 mb-2">
+              <Smartphone className="w-5 h-5 text-blue-400" />
+              <h4 className="font-bold text-sm text-white">Panduan Install di HP / Tablet Kasir (Android & iOS)</h4>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed mb-3">
+              Aplikasi ini adalah PWA (Progressive Web App). Pasang langsung ke layar utama HP kasir/karyawan tanpa perlu ke Play Store:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="p-3 bg-white/10 rounded-xl border border-white/10">
+                <p className="font-bold text-blue-300 mb-1">🤖 Android (Google Chrome)</p>
+                <p className="text-slate-300 text-[11px] leading-relaxed">
+                  Buka di Chrome → Klik titik tiga (⋮) pojok kanan atas → Pilih <b>"Install Aplikasi"</b> / <b>"Tambahkan ke Layar Utama"</b>.
+                </p>
+              </div>
+              <div className="p-3 bg-white/10 rounded-xl border border-white/10">
+                <p className="font-bold text-amber-300 mb-1">🍎 iPhone / iPad (Safari)</p>
+                <p className="text-slate-300 text-[11px] leading-relaxed">
+                  Buka di <b>Safari</b> → Klik tombol <b>Bagikan (Share)</b> [kotak panah atas] → Pilih <b>"Tambah ke Layar Utama"</b>.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
             <CheckCircle className="w-5 h-5 text-blue-600 shrink-0" />

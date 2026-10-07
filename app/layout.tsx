@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { customIdID, clerkAppearance } from "@/lib/clerk-localization";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
@@ -172,7 +174,7 @@ export const metadata: Metadata = {
       { url: '/icon-192x192.png?v=4', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512x512.png?v=4', sizes: '512x512', type: 'image/png' },
     ],
-    apple: '/icon-192x192.png?v=4',
+    apple: [{ url: '/apple-touch-icon.png?v=5', sizes: '180x180', type: 'image/png' }],
   },
   formatDetection: {
     telephone: false,
@@ -200,20 +202,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning>
-      <head>
-        {/* Preconnect untuk performa & AI crawler */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://api.clerk.com" />
-        <link rel="dns-prefetch" href="https://clerk.pjtechumkm.com" />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        suppressHydrationWarning
-      >
-        {children}
-      </body>
-    </html>
+    <ClerkProvider
+      localization={customIdID}
+      appearance={clerkAppearance}
+    >
+      <html lang="id" suppressHydrationWarning>
+        <head>
+          {/* Preconnect untuk performa & AI crawler */}
+          <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link rel="dns-prefetch" href="https://api.clerk.com" />
+          <link rel="dns-prefetch" href="https://clerk.pjtechumkm.com" />
+        </head>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          suppressHydrationWarning
+        >
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -165,9 +165,23 @@ export default function OnboardingWizard({ isOpen, tenantCategory, onClose, onCo
                 <p className="text-sm text-blue-700">Download template, isi data, upload sekaligus. Paling cepat untuk katalog banyak.</p>
                 <button 
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     const cat = tenantCategory || 'Jasa';
-                    window.open(`/api/onboarding/download-template?category=${encodeURIComponent(cat)}`, '_blank');
+                    try {
+                      const res = await fetch(`/api/onboarding/download-template?category=${encodeURIComponent(cat)}`);
+                      if (!res.ok) throw new Error('Gagal');
+                      const blob = await res.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `template_import_${cat.toLowerCase().replace(/[^a-z0-9]/g, '_')}.xlsx`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                    } catch (e) {
+                      window.location.href = `/api/onboarding/download-template?category=${encodeURIComponent(cat)}`;
+                    }
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors cursor-pointer"
                 >

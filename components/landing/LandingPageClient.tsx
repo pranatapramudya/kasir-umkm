@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from "next/image";
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import {
@@ -38,6 +39,8 @@ export default function LandingPageClient() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
+  const [installTab, setInstallTab] = useState<'android' | 'ios'>('android');
   const [isTncOpen, setIsTncOpen] = useState(false);
 
   useEffect(() => {
@@ -132,6 +135,10 @@ export default function LandingPageClient() {
 
   const faqs = [
     {
+      q: "Bagaimana cara instal aplikasi PJTECH di HP Android & iPhone (iOS)?",
+      a: "Sangat mudah! PJTECH adalah aplikasi web progresif (PWA) resmi tanpa perlu download ratusan MB dari Play Store atau App Store: \n• Android: Buka link website di Google Chrome → Ketuk menu titik tiga (⋮) di pojok kanan atas → Pilih 'Install Aplikasi' atau 'Tambahkan ke Layar Utama' → Ketuk Install. Aplikasi langsung terpasang di HP dengan ikon resmi PJTECH! \n• iPhone / iPad (iOS): Buka website di browser Safari (wajib Safari) → Ketuk ikon Bagikan (Share / ikon kotak panah ke atas di bilah bawah) → Gulir ke bawah lalu pilih 'Tambah ke Layar Utama' (Add to Home Screen) → Ketuk 'Tambah' di kanan atas. Ikon PJTECH langsung siap di Home Screen dan saat dibuka akan langsung masuk ke kasir POS fullscreen!"
+    },
+    {
       q: "Bagaimana cara Karyawan / Kasir login ke sistem?",
       a: "Karyawan masuk melalui menu 'Masuk' lalu pilih 'Login sebagai Karyawan'. Gunakan email & password yang sudah dibuatkan oleh Pemilik Toko (Owner) di menu Manajemen Karyawan. Karyawan akan langsung diarahkan ke layar Kasir POS atau Kitchen Display sesuai hak aksesnya."
     },
@@ -167,139 +174,151 @@ export default function LandingPageClient() {
       }`}>
 
         {/* 1. STICKY NAVBAR */}
-      <header className={`sticky top-0 z-50 backdrop-blur-md border-b  ${
+      <header className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors ${
         isDark 
-          ? 'bg-slate-900/90 border-slate-800' 
-          : 'bg-white/95 border-slate-200/80 shadow-sm'
+          ? 'bg-slate-900/90 border-slate-800 shadow-sm shadow-black/20' 
+          : 'bg-white/95 border-slate-200/80 shadow-xs'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           
-          {/* Logo Brand */}
-          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl shadow-md shadow-blue-600/20 flex items-center justify-center text-white group-hover:scale-105 transition-transform shrink-0">
-              <Store className="w-5 h-5 sm:w-6 sm:h-6" />
+          {/* Sisi Kiri: Logo Brand & Identitas */}
+          <Link href="/" className="flex items-center gap-3 group shrink-0">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform shrink-0 bg-blue-600 flex items-center justify-center">
+              <Image 
+                src="/logo-app.png" 
+                alt="PJTECH Kasir UMKM Logo" 
+                width={40} 
+                height={40} 
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
             <div className="flex flex-col">
-              <span className={`text-base sm:text-xl font-black tracking-tight flex items-center gap-1.5 sm:gap-2 ${isDark ? 'text-white' : 'text-slate-950'}`}>
+              <span className={`text-lg lg:text-xl font-black tracking-tight flex items-center gap-1.5 ${isDark ? 'text-white' : 'text-slate-950'}`}>
                 PJTECH <span className="text-[10px] sm:text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-extrabold shadow-sm">KASIR UMKM</span>
               </span>
-              <span className={`text-[9px] sm:text-[10px] tracking-wider font-bold uppercase ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <span className={`text-[9px] sm:text-[10px] tracking-wider font-bold uppercase ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Cloud POS Multi-Vertikal
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-bold">
+          {/* Sisi Tengah: Navigasi Utama (Bersih, Rapi, Terstruktur & Lega) */}
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-semibold">
             {/* Dropdown Solusi Bisnis */}
             <div className="relative group py-2">
-              <span className={`flex items-center gap-1 cursor-pointer  ${
-                isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
+              <span className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
+                isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-blue-600'
               }`}>
-                Solusi Bisnis <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform" />
+                Solusi Bisnis <ChevronDown className="w-4 h-4 text-slate-400 group-hover:rotate-180 transition-transform duration-200" />
               </span>
-              <div className={`absolute top-full left-0 w-72 rounded-2xl p-2.5 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible  duration-200 border ${
+              <div className={`absolute top-full left-0 w-72 rounded-2xl p-2.5 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
               }`}>
-                <Link href="/solusi/retail" className={`flex items-center gap-3 p-3 rounded-xl  ${
+                <Link href="/solusi/retail" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-blue-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-blue-100 text-blue-700 rounded-lg"><Store className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">Retail & Toko</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Barcode & Multi-Varian</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Barcode & Multi-Varian</p>
                   </div>
                 </Link>
-                <Link href="/solusi/fnb" className={`flex items-center gap-3 p-3 rounded-xl  ${
+                <Link href="/solusi/fnb" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-orange-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-orange-100 text-orange-700 rounded-lg"><Utensils className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">F&B & Kuliner</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>KDS & Meja Split Bill</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>KDS & Meja Split Bill</p>
                   </div>
                 </Link>
-                <Link href="/solusi/jasa" className={`flex items-center gap-3 p-3 rounded-xl  ${
+                <Link href="/solusi/jasa" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-emerald-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><Wrench className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">Jasa & Servis</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Antrean & Tracking WA</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Antrean & Tracking WA</p>
                   </div>
                 </Link>
-                <Link href="/solusi/rental" className={`flex items-center gap-3 p-3 rounded-xl  ${
+                <Link href="/solusi/rental" className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
                   isDark ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-purple-50 text-slate-800'
                 }`}>
                   <div className="p-2 bg-purple-100 text-purple-700 rounded-lg"><Car className="w-4 h-4" /></div>
                   <div>
                     <p className="font-bold text-sm">Rental, Properti & Alat</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Mobil, Villa & Alat Barang</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Mobil, Villa & Alat Barang</p>
                   </div>
                 </Link>
               </div>
             </div>
 
-            <Link href="/comparison" className={` ${
-              isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
+            <Link href="/comparison" className={`transition-colors ${
+              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-blue-600'
             }`}>
               Perbandingan POS
             </Link>
-            <Link href="/blog" className={` ${
-              isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
+            <Link href="/blog" className={`transition-colors ${
+              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-blue-600'
             }`}>
               Blog & Tips
             </Link>
-            <a href="#pricing" className={` ${
-              isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
+            <a href="#pricing" className={`transition-colors ${
+              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-blue-600'
             }`}>
               Harga
             </a>
-            <a href="#faq" className={` ${
-              isDark ? 'text-slate-200 hover:text-white' : 'text-slate-800 hover:text-blue-600'
+            <a href="#faq" className={`transition-colors ${
+              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-blue-600'
             }`}>
               FAQ
             </a>
           </nav>
 
-          {/* Right Header Actions */}
-          <div className="hidden md:flex items-center gap-3">
-            
-            {/* Theme Toggle Button (Modern Segmented / Pill Switcher) */}
+          {/* Sisi Kanan: Action Buttons (Spacious & Clean Hierarchy) */}
+          <div className="hidden md:flex items-center gap-2.5 lg:gap-3 shrink-0">
+            {/* Tombol Install App di HP */}
+            <button
+              type="button"
+              onClick={() => setInstallModalOpen(true)}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-xs hover:scale-[1.02] ${
+                isDark 
+                  ? 'bg-blue-950/60 border-blue-800/80 text-blue-300 hover:bg-blue-900/80' 
+                  : 'bg-blue-50/80 border-blue-200 text-blue-700 hover:bg-blue-100'
+              }`}
+              title="Panduan Install di Android & iOS"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>Install HP</span>
+            </button>
+
+            {/* Theme Toggle (Icon Compact) */}
             <button
               onClick={toggleTheme}
               aria-label="Toggle Tema"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-200 shadow-sm ${
+              className={`p-2 rounded-xl border transition-all duration-200 shadow-xs ${
                 isDark 
                   ? 'bg-slate-900 border-slate-700 text-amber-400 hover:border-slate-600 hover:bg-slate-800' 
                   : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
               }`}
+              title={isDark ? "Ganti ke Tema Terang" : "Ganti ke Tema Gelap"}
             >
-              {isDark ? (
-                <>
-                  <Sun className="w-4 h-4 text-amber-400" />
-                  <span>Terang</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4 text-indigo-500" />
-                  <span>Gelap</span>
-                </>
-              )}
+              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
             </button>
 
-            {/* Login Dropdown (Owner vs Karyawan) */}
+            {/* Login Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setLoginDropdownOpen(!loginDropdownOpen)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 shadow-sm ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs lg:text-sm font-bold border transition-all duration-200 shadow-xs ${
                   isDark 
                     ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700' 
-                    : 'bg-white border-slate-300 text-slate-900 hover:bg-slate-50 hover:border-slate-400'
+                    : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50 hover:border-slate-400'
                 }`}
               >
                 <span>Masuk</span>
-                <ChevronDown className="w-4 h-4 text-slate-500 transition-transform duration-200" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" />
               </button>
 
               {loginDropdownOpen && (
@@ -308,7 +327,7 @@ export default function LandingPageClient() {
                 }`}>
                   <Link
                     href="/sign-in?redirect_url=/auth-callback"
-                    className={`flex items-start gap-3 p-3 rounded-xl  ${
+                    className={`flex items-start gap-3 p-3 rounded-xl ${
                       isDark ? 'hover:bg-slate-800' : 'hover:bg-blue-50'
                     }`}
                   >
@@ -321,7 +340,7 @@ export default function LandingPageClient() {
 
                   <Link
                     href="/sign-in?redirect_url=/auth-callback"
-                    className={`flex items-start gap-3 p-3 rounded-xl  border-t ${
+                    className={`flex items-start gap-3 p-3 rounded-xl border-t ${
                       isDark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-100 hover:bg-emerald-50'
                     }`}
                   >
@@ -333,14 +352,14 @@ export default function LandingPageClient() {
                   </Link>
                 </div>
               )}
-                </div>
+            </div>
 
-            {/* Primary CTA */}
+            {/* Primary CTA (Ringkas & High-Contrast) */}
             <Link
               href="/sign-up?redirect_url=/onboarding"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs lg:text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/25 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-600/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-2 rounded-xl text-xs lg:text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/25 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-600/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all whitespace-nowrap"
             >
-              <span>Daftar jika Belum Punya Akun</span>
+              <span>Coba Gratis 14 Hari</span>
               <ArrowRight className="w-4 h-4 shrink-0" />
             </Link>
           </div>
@@ -382,6 +401,19 @@ export default function LandingPageClient() {
           <div className={`md:hidden border-b px-4 pt-3 pb-6 space-y-4 shadow-xl ${
             isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
           }`}>
+            {/* Quick Install Button for Mobile */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setInstallModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-xs"
+            >
+              <Smartphone className="w-4 h-4 text-blue-600" />
+              <span>📱 Panduan Install Android & iPhone</span>
+            </button>
+
             <div className="space-y-1">
               <p className={`text-xs font-bold uppercase tracking-wider px-3 py-1 ${
                 isDark ? 'text-slate-400' : 'text-slate-500'
@@ -450,7 +482,7 @@ export default function LandingPageClient() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all duration-200"
               >
-                <span>Daftar jika Belum Punya Akun</span>
+                <span>Coba Gratis 14 Hari</span>
                 <ArrowRight className="w-4 h-4 shrink-0" />
               </Link>
             </div>
@@ -528,95 +560,112 @@ export default function LandingPageClient() {
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500 stroke-[3]" /> Import Produk via Excel 1 Klik</span>
           </div>
 
+          {/* Quick Install Guide Trigger */}
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setInstallModalOpen(true)}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm group hover:scale-[1.02] ${
+                isDark
+                  ? 'bg-gradient-to-r from-blue-950/80 to-slate-900 border-blue-700 text-blue-300 hover:border-blue-500'
+                  : 'bg-white border-blue-200 text-blue-700 hover:border-blue-400 hover:bg-blue-50/50'
+              }`}
+            >
+              <Smartphone className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+              <span>📱 Panduan Install di HP (Android & iOS)</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-600 text-white font-extrabold ml-1">Gratis</span>
+            </button>
+          </div>
+
           {/* 4. HERO DASHBOARD BENTO PREVIEW */}
-          <div className={`mt-14 relative max-w-5xl mx-auto rounded-[2.5rem] p-3 sm:p-4 border shadow-2xl  ${
+          <div className={`mt-12 sm:mt-14 relative max-w-5xl mx-auto rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] p-2.5 sm:p-4 border shadow-2xl ${
             isDark 
               ? 'bg-slate-900/60 border-slate-800' 
               : 'bg-slate-200/80 border-slate-300 shadow-slate-300/50'
           }`}>
-            <div className={`rounded-[2rem] p-4 sm:p-8 border grid grid-cols-1 md:grid-cols-12 gap-4 text-left  ${
+            <div className={`rounded-xl sm:rounded-2xl md:rounded-[2rem] p-3.5 sm:p-6 md:p-8 border grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 text-left ${
               isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
             }`}>
               
               {/* Preview Card 1: Omzet & Profit */}
-              <div className={`md:col-span-7 rounded-2xl p-6 border flex flex-col justify-between relative overflow-hidden  ${
+              <div className={`md:col-span-7 rounded-xl sm:rounded-2xl p-4 sm:p-6 border flex flex-col justify-between relative overflow-hidden ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className={`text-xs font-extrabold uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <div className="flex justify-between items-start gap-2 mb-3 sm:mb-4">
+                  <div className="min-w-0">
+                    <p className={`text-[10px] sm:text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       Total Penjualan Hari Ini
                     </p>
-                    <h3 className={`text-3xl sm:text-4xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                    <h3 className={`text-2xl sm:text-3xl lg:text-4xl font-black mt-0.5 sm:mt-1 tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-950'}`}>
                       Rp 14.850.000
                     </h3>
                   </div>
-                  <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 rounded-full text-xs font-black flex items-center gap-1">
+                  <span className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 rounded-full text-[10px] sm:text-xs font-black flex items-center gap-1 shrink-0 whitespace-nowrap">
                     +18.4% vs kemarin
                   </span>
                 </div>
-                <div className={`grid grid-cols-3 gap-2 pt-4 border-t text-xs ${
+                <div className={`grid grid-cols-3 gap-1.5 sm:gap-3 pt-3 sm:pt-4 border-t ${
                   isDark ? 'border-slate-800 text-slate-300' : 'border-slate-200 text-slate-700'
                 }`}>
-                  <div>
-                    <p className="font-semibold text-slate-700">Transaksi</p>
-                    <p className="text-base font-black">142 Struk</p>
+                  <div className="min-w-0">
+                    <p className={`text-[10px] sm:text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate`}>Transaksi</p>
+                    <p className="text-xs sm:text-sm md:text-base font-black truncate mt-0.5">142 Struk</p>
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-700">Rata-rata Struk</p>
-                    <p className="text-base font-black">Rp 104.500</p>
+                  <div className="min-w-0">
+                    <p className={`text-[10px] sm:text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate`}>Rata-rata Struk</p>
+                    <p className="text-xs sm:text-sm md:text-base font-black whitespace-nowrap mt-0.5">Rp 104.500</p>
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-700">Laba Bersih</p>
-                    <p className="text-base font-black text-emerald-600 dark:text-emerald-400">Rp 6.120.000</p>
+                  <div className="min-w-0">
+                    <p className={`text-[10px] sm:text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate`}>Laba Bersih</p>
+                    <p className="text-xs sm:text-sm md:text-base font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap mt-0.5">Rp 6.120.000</p>
                   </div>
                 </div>
               </div>
 
               {/* Preview Card 2: Multi-Vertikal Live Feeds */}
-              <div className="md:col-span-5 flex flex-col gap-3">
+              <div className="md:col-span-5 flex flex-col gap-2.5 sm:gap-3">
                 {/* F&B KDS Ticket */}
-                <div className={`rounded-2xl p-4 border flex items-center justify-between  ${
+                <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-3.5 border flex items-center justify-between gap-2.5 transition-all ${
                   isDark ? 'bg-slate-900 border-orange-500/30' : 'bg-orange-50/70 border-orange-200'
                 }`}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-orange-500 text-white rounded-xl"><Utensils className="w-4 h-4" /></div>
-                    <div>
-                      <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Meja 04 • KDS Dapur</p>
-                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>2x Nasi Goreng, 1x Es Kopi</p>
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="p-2 sm:p-2.5 bg-orange-500 text-white rounded-xl shrink-0"><Utensils className="w-4 h-4" /></div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs sm:text-sm font-black truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>Meja 04 • KDS Dapur</p>
+                      <p className={`text-[10px] sm:text-[11px] font-medium truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>2x Nasi Goreng, 1x Es Kopi</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-1 bg-orange-100 text-orange-800 border border-orange-300 rounded-md">Dimasak 03:20</span>
+                  <span className="shrink-0 text-[10px] font-bold px-2 py-1 bg-orange-100 text-orange-800 border border-orange-300 rounded-md whitespace-nowrap">Dimasak 03:20</span>
                 </div>
 
                 {/* Jasa Tracking WA */}
-                <div className={`rounded-2xl p-4 border flex items-center justify-between  ${
+                <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-3.5 border flex items-center justify-between gap-2.5 transition-all ${
                   isDark ? 'bg-slate-900 border-emerald-500/30' : 'bg-emerald-50/70 border-emerald-200'
                 }`}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-emerald-600 text-white rounded-xl"><Wrench className="w-4 h-4" /></div>
-                    <div>
-                      <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Servis #1089 • NMax B 1234</p>
-                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Ganti Oli + Kampas Rem</p>
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="p-2 sm:p-2.5 bg-emerald-600 text-white rounded-xl shrink-0"><Wrench className="w-4 h-4" /></div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs sm:text-sm font-black truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>Servis #1089 • NMax B 1234</p>
+                      <p className={`text-[10px] sm:text-[11px] font-medium truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Ganti Oli + Kampas Rem</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md flex items-center gap-1">
-                    <MessageSquare className="w-3 h-3" /> WA Sent
+                  <span className="shrink-0 text-[10px] font-bold px-2 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md flex items-center gap-1 whitespace-nowrap">
+                    <MessageSquare className="w-3 h-3 shrink-0" /> WA Sent
                   </span>
                 </div>
 
                 {/* Rental Booking Calendar */}
-                <div className={`rounded-2xl p-4 border flex items-center justify-between  ${
+                <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-3.5 border flex items-center justify-between gap-2.5 transition-all ${
                   isDark ? 'bg-slate-900 border-purple-500/30' : 'bg-purple-50/70 border-purple-200'
                 }`}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-purple-600 text-white rounded-xl"><Car className="w-4 h-4" /></div>
-                    <div>
-                      <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Avanza Veloz B 5678</p>
-                      <p className={`text-[11px] font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Sewa 3 Hari (Deposit OK)</p>
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="p-2 sm:p-2.5 bg-purple-600 text-white rounded-xl shrink-0"><Car className="w-4 h-4" /></div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs sm:text-sm font-black truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>Avanza Veloz B 5678</p>
+                      <p className={`text-[10px] sm:text-[11px] font-medium truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Sewa 3 Hari (Deposit OK)</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-1 bg-purple-100 text-purple-800 border border-purple-300 rounded-md">Ready 14:00</span>
+                  <span className="shrink-0 text-[10px] font-bold px-2 py-1 bg-purple-100 text-purple-800 border border-purple-300 rounded-md whitespace-nowrap">Ready 14:00</span>
                 </div>
               </div>
 
@@ -652,11 +701,17 @@ export default function LandingPageClient() {
             }`}>
               <WifiOff className="w-5 h-5 text-emerald-600" /> Offline-First Sync
             </div>
-            <div className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border ${
-              isDark ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
-            }`}>
-              <Smartphone className="w-5 h-5 text-purple-600" /> Android / iOS / PC
-            </div>
+            <button
+              type="button"
+              onClick={() => setInstallModalOpen(true)}
+              className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border transition-all text-left hover:scale-[1.02] group ${
+                isDark ? 'bg-slate-900 border-slate-800 text-slate-200 hover:border-blue-500' : 'bg-white border-slate-200 text-slate-800 shadow-sm hover:border-blue-500 hover:shadow-md'
+              }`}
+              title="Klik untuk panduan instalasi di Android & iPhone"
+            >
+              <Smartphone className="w-5 h-5 text-purple-600 group-hover:scale-110 transition-transform" />
+              <span>Android / iOS / PC <span className="text-[10px] text-blue-600 font-extrabold block sm:inline sm:ml-1">(Panduan)</span></span>
+            </button>
             <div className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border ${
               isDark ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
             }`}>
@@ -672,25 +727,25 @@ export default function LandingPageClient() {
       </section>
 
       {/* 6. 4 VERTICALS INTERACTIVE SHOWCASE */}
-      <section className="py-20 md:py-32 relative">
+      <section className="py-16 md:py-28 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
             <span className="text-xs font-extrabold tracking-wider text-blue-700 bg-blue-100/80 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-300 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase shadow-xs">
               Dirancang Spesifik Tiap Industri
             </span>
-            <h2 className={`text-3xl sm:text-5xl font-black tracking-tight mt-4 mb-4 ${
+            <h2 className={`text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight mt-4 mb-3 sm:mb-4 ${
               isDark ? 'text-white' : 'text-slate-950'
             }`}>
               4 Model Bisnis. Satu Aplikasi Kasir.
             </h2>
-            <p className={`text-base sm:text-lg font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+            <p className={`text-sm sm:text-base lg:text-lg font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Setiap jenis usaha memiliki alur operasional yang berbeda. PJTECH mengadaptasi fitur kasir sesuai vertikal bisnis Anda secara otomatis.
             </p>
           </div>
 
-          {/* Vertical Tab Selector */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
+          {/* Vertical Tab Selector - Responsive 2x2 Grid on Mobile, Flex on Desktop */}
+          <div className="grid grid-cols-2 md:flex md:flex-wrap items-stretch justify-center gap-2 sm:gap-3 max-w-4xl mx-auto mb-8 sm:mb-12">
             {(Object.keys(verticals) as Array<keyof typeof verticals>).map((key) => {
               const item = verticals[key];
               const Icon = item.icon;
@@ -699,85 +754,108 @@ export default function LandingPageClient() {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm sm:text-base  border ${
+                  className={`flex items-center justify-center sm:justify-start gap-2 sm:gap-2.5 px-3 py-3 sm:px-5 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm md:text-base border transition-all duration-200 text-center sm:text-left ${
                     isActive
-                      ? `bg-gradient-to-r ${item.accentColor} text-white shadow-lg shadow-blue-500/20 scale-105 border-transparent`
+                      ? `bg-gradient-to-r ${item.accentColor} text-white shadow-lg shadow-blue-500/25 ring-2 ring-blue-500/40 border-transparent scale-[1.02] md:scale-105 z-10`
                       : isDark
-                        ? 'bg-slate-900 text-slate-300 hover:text-white border-slate-800'
-                        : 'bg-white text-slate-700 hover:text-slate-950 border-slate-200 shadow-sm'
+                        ? 'bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border-slate-800'
+                        : 'bg-white text-slate-700 hover:text-slate-950 hover:bg-slate-50 border-slate-200 shadow-xs'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.title}</span>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span className="truncate">
+                    {key === 'fnb' ? (
+                      <>
+                        <span className="inline md:hidden">F&B & Kuliner</span>
+                        <span className="hidden md:inline">F&B & Kuliner (3 Template)</span>
+                      </>
+                    ) : key === 'rental' ? (
+                      <>
+                        <span className="inline md:hidden">Rental & Travel</span>
+                        <span className="hidden md:inline">Rental, Travel, Properti & Alat Barang</span>
+                      </>
+                    ) : (
+                      item.title
+                    )}
+                  </span>
                 </button>
               );
             })}
           </div>
 
           {/* Active Vertical Details Card */}
-          <div className={`rounded-3xl p-6 sm:p-10 border shadow-2xl  ${
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-7 lg:p-10 border shadow-2xl ${
             isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200'
           }`}>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
               
               {/* Left Column: Descriptions & Features */}
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-7 space-y-5 sm:space-y-6">
                 <div className="space-y-2">
-                  <span className={`text-xs font-black uppercase tracking-wider ${
-                    isDark ? 'text-blue-400' : 'text-blue-600'
-                  }`}>
-                    {currentVertical.tagline}
-                  </span>
-                  <h3 className={`text-2xl sm:text-3xl font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-black uppercase tracking-wider border ${currentVertical.badgeColor}`}>
+                      Spesifik Industri
+                    </span>
+                    <span className={`text-[11px] sm:text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {currentVertical.tagline}
+                    </span>
+                  </div>
+                  <h3 className={`text-xl sm:text-2xl lg:text-3xl font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>
                     Fitur Lengkap untuk Operasional {currentVertical.title}
                   </h3>
-                  <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                  <p className={`text-xs sm:text-sm md:text-base leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                     {currentVertical.description}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 pt-1">
                   {currentVertical.features.map((feat, idx) => (
-                    <div key={idx} className={`p-4 rounded-2xl border  ${
+                    <div key={idx} className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all ${
                       isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'
                     }`}>
-                      <div className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className={`text-sm font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{feat.title}</h4>
-                          <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{feat.desc}</p>
+                      <div className="flex items-start gap-2.5 sm:gap-3">
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <h4 className={`text-xs sm:text-sm font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{feat.title}</h4>
+                          <p className={`text-[11px] sm:text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{feat.desc}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-4 flex items-center">
+                <div className="pt-2 sm:pt-4 flex items-center">
                   <Button
                     href={currentVertical.link}
                     variant="primary"
                     size="md"
                     rightIcon={<ArrowRight className="w-4 h-4" />}
+                    className="w-full sm:w-auto justify-center text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all"
                   >
-                    Pelajari Solusi {currentVertical.title}
+                    <span className="sm:hidden">
+                      Pelajari Solusi {activeTab === 'retail' ? 'Retail' : activeTab === 'fnb' ? 'F&B' : activeTab === 'jasa' ? 'Jasa' : 'Rental & Travel'}
+                    </span>
+                    <span className="hidden sm:inline">
+                      Pelajari Solusi {currentVertical.title}
+                    </span>
                   </Button>
                 </div>
               </div>
 
               {/* Right Column: Screenshot Showcase (Retail) or Metric Callout (Others) */}
-              <div className={`lg:col-span-5 p-5 sm:p-6 rounded-2xl border flex flex-col justify-between space-y-4 ${
+              <div className={`lg:col-span-5 p-4 sm:p-6 rounded-2xl border flex flex-col justify-between space-y-4 ${
                 isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
               }`}>
                 {activeTab === 'retail' ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
                       <div>
-                        <span className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        <span className={`text-[10px] sm:text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                           Preview Antarmuka Retail
                         </span>
-                        <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Layar Kasir & Ringkasan Checkout</p>
+                        <p className={`text-[11px] sm:text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Layar Kasir & Ringkasan Checkout</p>
                       </div>
-                      <span className="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800">
+                      <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-md border border-blue-200 dark:border-blue-800 shrink-0">
                         Live System
                       </span>
                     </div>
@@ -787,7 +865,7 @@ export default function LandingPageClient() {
                       <img 
                         src="/images/showcase/retail-pos-preview.png" 
                         alt="Tampilan Antarmuka Kasir POS Retail PJTECH" 
-                        className="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-300"
+                        className="w-full h-auto max-h-56 sm:max-h-64 object-cover object-top transform group-hover:scale-102 transition-transform duration-300"
                         loading="lazy"
                       />
                     </div>
@@ -797,35 +875,41 @@ export default function LandingPageClient() {
                       <img 
                         src="/images/showcase/retail-pos-mobile.png" 
                         alt="Tampilan Detail Transaksi & Cetak Struk Retail" 
-                        className="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-300"
+                        className="w-full h-auto max-h-48 sm:max-h-56 object-cover object-top transform group-hover:scale-102 transition-transform duration-300"
                         loading="lazy"
                       />
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <div>
-                      <span className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        Hasil Terbukti
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className={`p-4 sm:p-6 rounded-2xl border ${
+                      isDark ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-200 shadow-sm'
+                    }`}>
+                      <span className={`text-[10px] sm:text-xs font-black uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        Hasil Terukur & Terbukti
                       </span>
-                      <h4 className="text-4xl sm:text-5xl font-black text-blue-600 mt-2">
+                      <h4 className={`text-3xl sm:text-4xl lg:text-5xl font-black mt-1 bg-gradient-to-r ${currentVertical.accentColor} bg-clip-text text-transparent`}>
                         {currentVertical.metrics.value}
                       </h4>
-                      <p className={`text-sm font-bold mt-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{currentVertical.metrics.label}</p>
-                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{currentVertical.metrics.sub}</p>
+                      <p className={`text-xs sm:text-sm font-bold mt-1 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                        {currentVertical.metrics.label}
+                      </p>
+                      <p className={`text-[11px] sm:text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {currentVertical.metrics.sub}
+                      </p>
                     </div>
 
-                    <div className={`p-4 rounded-xl border space-y-2 ${
+                    <div className={`p-3.5 sm:p-4 rounded-xl border space-y-1.5 ${
                       isDark ? 'bg-slate-800/80 border-slate-700 text-slate-300' : 'bg-white border-slate-200 text-slate-700 shadow-sm'
                     }`}>
                       <p className={`text-xs font-black flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        <Zap className="w-4 h-4 text-amber-500" /> Bebas Biaya Tambahan Add-On
+                        <Zap className="w-4 h-4 text-amber-500 shrink-0" /> Bebas Biaya Tambahan Add-On
                       </p>
-                      <p className="text-xs leading-relaxed">
+                      <p className="text-[11px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                         Tidak seperti software kasir lain yang menagih biaya per modul (KDS bayar lagi, multi-meja bayar lagi), di PJTECH semua fitur sudah all-in.
                       </p>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 
@@ -911,25 +995,25 @@ export default function LandingPageClient() {
       </section>
 
       {/* 8. COMPETITOR COMPARISON SUMMARY */}
-      <section className="py-20 md:py-28 relative">
+      <section className="py-12 md:py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className={`border rounded-3xl p-6 sm:p-10 lg:p-12  ${
+          <div className={`border rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 ${
             isDark 
               ? 'bg-slate-900/90 border-slate-800' 
               : 'bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 border-slate-200 shadow-sm'
           }`}>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
               
               {/* Left Column (7 cols) */}
-              <div className="lg:col-span-7 space-y-4">
-                <span className="text-xs font-extrabold text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-xs">
+              <div className="lg:col-span-7 space-y-3 sm:space-y-4">
+                <span className="inline-block text-[10px] sm:text-xs font-black text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
                   Kenapa Beralih ke PJTECH?
                 </span>
-                <h2 className={`text-2xl sm:text-4xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                <h2 className={`text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>
                   Hemat hingga 70% Biaya POS per Tahun
                 </h2>
-                <p className={`text-sm sm:text-base leading-relaxed font-medium ${
+                <p className={`text-xs sm:text-sm md:text-base leading-relaxed font-medium ${
                   isDark ? 'text-slate-300' : 'text-slate-600'
                 }`}>
                   Aplikasi kasir lain seperti Moka POS dan Pawoon mengenakan biaya Rp 1.800.000 hingga Rp 2.400.000+ per tahun serta membebankan biaya tambahan untuk modul KDS dan multi-meja. Di PJTECH, Anda mendapatkan seluruh 4 vertikal bisnis all-in.
@@ -937,49 +1021,49 @@ export default function LandingPageClient() {
                 <div className="pt-2">
                   <Link
                     href="/comparison"
-                    className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
+                    className="inline-flex items-center justify-center gap-2 py-2.5 px-4 sm:px-5 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-400 font-bold text-xs sm:text-sm border border-blue-200 dark:border-blue-800 transition-all shadow-xs group w-full sm:w-auto text-center"
                   >
-                    <ArrowRight className="w-4 h-4 shrink-0" />
                     <span>Lihat Perbandingan Lengkap vs Moka, Pawoon, iReap & Qashier</span>
+                    <ArrowRight className="w-4 h-4 shrink-0 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>
 
               {/* Right Column (5 cols) - Clean Comparison Breakdown */}
               <div className="lg:col-span-5 w-full">
-                <div className={`rounded-2xl p-5 border text-xs sm:text-sm space-y-3 ${
+                <div className={`rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border text-xs sm:text-sm space-y-2.5 sm:space-y-3 ${
                   isDark ? 'bg-slate-950 border-slate-800 text-slate-200' : 'bg-white border-slate-200 shadow-md text-slate-800'
                 }`}>
-                  <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800 font-bold text-xs uppercase tracking-wider text-slate-600">
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800 font-bold text-[10px] sm:text-xs uppercase tracking-wider text-slate-500">
                     <span>Fitur / Layanan</span>
-                    <span className="text-blue-600 dark:text-blue-400">PJTECH vs Kompetitor</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-black">PJTECH vs Kompetitor</span>
                   </div>
                   
-                  <div className="flex justify-between items-center py-1">
-                    <span className="font-semibold">4 Vertikal Bisnis</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">All-In (Included)</span>
+                  <div className="flex justify-between items-center py-1 gap-2">
+                    <span className="font-semibold truncate">4 Vertikal Bisnis</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 shrink-0 text-right">All-In (Included)</span>
                   </div>
                   
-                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800">
-                    <span className="font-semibold">Kitchen Display (KDS)</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Gratis (No Addon)</span>
+                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800 gap-2">
+                    <span className="font-semibold truncate">Kitchen Display (KDS)</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 shrink-0 text-right">Gratis (No Addon)</span>
                   </div>
 
-                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800">
-                    <span className="font-semibold">Tracking Servis & WA</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Included</span>
+                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800 gap-2">
+                    <span className="font-semibold truncate">Tracking Servis & WA</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 shrink-0 text-right">Included</span>
                   </div>
 
-                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800">
-                    <span className="font-semibold">Import Produk via Excel</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Template Siap Pakai</span>
+                  <div className="flex justify-between items-center py-1 border-t border-slate-100 dark:border-slate-800 gap-2">
+                    <span className="font-semibold truncate">Import Produk via Excel</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 shrink-0 text-right">Template Siap Pakai</span>
                   </div>
 
-                  <div className="flex justify-between items-center pt-2.5 border-t-2 border-slate-200 dark:border-slate-700">
-                    <span className="font-black text-sm">Biaya Tahunan</span>
-                    <div className="text-right">
-                      <span className="font-black text-base text-blue-600 dark:text-blue-400">Rp 990.000</span>
-                      <span className="text-[11px] text-slate-400 line-through ml-1.5">Rp 2.400.000</span>
+                  <div className="flex justify-between items-center pt-2.5 sm:pt-3 border-t-2 border-slate-200 dark:border-slate-700">
+                    <span className="font-black text-xs sm:text-sm">Biaya Tahunan</span>
+                    <div className="flex items-baseline gap-1.5 shrink-0 text-right">
+                      <span className="font-black text-sm sm:text-base text-blue-600 dark:text-blue-400 whitespace-nowrap">Rp 990.000</span>
+                      <span className="text-[10px] sm:text-xs text-slate-400 line-through whitespace-nowrap">Rp 2.400.000</span>
                     </div>
                   </div>
                 </div>
@@ -1374,8 +1458,14 @@ export default function LandingPageClient() {
           {/* Col 1: Brand Info */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black">
-                <Store className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-blue-500/20 bg-blue-600 shrink-0 flex items-center justify-center">
+                <Image 
+                  src="/logo-app.png" 
+                  alt="PJTECH Logo" 
+                  width={40} 
+                  height={40} 
+                  className="w-full h-full object-cover" 
+                />
               </div>
               <span className="text-xl font-black tracking-tight text-white">PJTECH KASIR UMKM</span>
             </div>
@@ -1441,6 +1531,148 @@ export default function LandingPageClient() {
           </div>
         </div>
       </footer>
+
+    
+      {/* MODAL PANDUAN INSTALASI ANDROID & IOS */}
+      {installModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div 
+            className={`relative w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border transition-all ${
+              isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setInstallModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Tutup Modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header Modal */}
+            <div className="flex items-center gap-3.5 mb-5">
+              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-md shadow-blue-600/30 bg-blue-600 shrink-0">
+                <Image src="/logo-app.png" alt="PJTECH" width={48} height={48} className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h3 className="text-lg sm:text-xl font-black tracking-tight">Panduan Install PJTECH di HP</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Aplikasi PWA Ringan • Langsung di Layar Utama</p>
+              </div>
+            </div>
+
+            {/* Platform Tab Switcher */}
+            <div className="flex rounded-2xl p-1 bg-slate-100 dark:bg-slate-800 mb-6">
+              <button
+                type="button"
+                onClick={() => setInstallTab('android')}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                  installTab === 'android'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                }`}
+              >
+                <span>🤖 HP Android (Chrome)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setInstallTab('ios')}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                  installTab === 'ios'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                }`}
+              >
+                <span>🍎 iPhone / iPad (Safari)</span>
+              </button>
+            </div>
+
+            {/* Steps Content */}
+            {installTab === 'android' ? (
+              <div className="space-y-3.5 text-xs sm:text-sm">
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</div>
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">Buka di Google Chrome</p>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Buka website PJTECH di browser Google Chrome pada HP Android Anda.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</div>
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">Ketuk Menu Titik Tiga (⋮)</p>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk ikon titik tiga di sudut kanan atas layar browser Chrome.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</div>
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">Pilih "Install Aplikasi" / "Tambahkan ke Layar Utama"</p>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk pilihan tersebut dan konfirmasi dengan menekan <strong>Install</strong>.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">✓</div>
+                  <div>
+                    <p className="font-bold text-emerald-900 dark:text-emerald-300">Selesai!</p>
+                    <p className="text-emerald-800 dark:text-emerald-400 text-xs mt-0.5">Ikon resmi PJTECH akan muncul di layar depan HP Anda dan langsung siap digunakan transaksi kasir.</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3.5 text-xs sm:text-sm">
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</div>
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">Buka di Safari (Wajib)</p>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Di iPhone/iPad, pastikan membuka website menggunakan browser <strong>Safari</strong> bawaan Apple.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</div>
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">Ketuk Ikon Bagikan (Share)</p>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk ikon kotak dengan tanda panah ke atas di bagian bilah menu bawah layar Safari.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</div>
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">Pilih "Tambah ke Layar Utama" (Add to Home Screen)</p>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Gulir ke bawah menu lalu ketuk opsi <strong>Tambah ke Layar Utama</strong>, kemudian ketuk <strong>Tambah</strong> di pojok kanan atas.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">✓</div>
+                  <div>
+                    <p className="font-bold text-emerald-900 dark:text-emerald-300">Selesai & Fullscreen!</p>
+                    <p className="text-emerald-800 dark:text-emerald-400 text-xs mt-0.5">Ikon PJTECH terpasang di Home Screen iPhone dan akan terbuka fullscreen tanpa bilah browser.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer Tip */}
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">⚡ Ukuran &lt; 5MB • Otomatis Update</span>
+              <button
+                type="button"
+                onClick={() => setInstallModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                Tutup Panduan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

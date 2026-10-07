@@ -1,7 +1,6 @@
 "use client";
 
 import useSWR from "swr";
-import { useUser } from "@clerk/nextjs";
 import { useEffect, useRef } from "react";
 import { playNotificationChime } from "@/lib/audio";
 
@@ -14,13 +13,13 @@ const fetcher = (args: string | [string, string]) => {
  * Hook to poll and track incoming pending online bookings/orders.
  * Provides real-time badge count and triggers an in-app audio chime
  * when a new order arrives.
+ *
+ * Takes tenantId directly without relying on Clerk's client useUser hook,
+ * eliminating any runtime error during sign-out / logout.
  */
-export function usePendingBookingCount(role?: string) {
-  const { user } = useUser();
-  const currentTenantId = role === "CASHIER" ? user?.publicMetadata?.tenantId : user?.id;
-
+export function usePendingBookingCount(tenantId?: string) {
   const { data, mutate, error } = useSWR<{ count: number }>(
-    currentTenantId ? ["/api/booking/pending-count", currentTenantId as string] : null,
+    tenantId ? ["/api/booking/pending-count", tenantId] : null,
     fetcher,
     {
       refreshInterval: 10000, // Poll every 10 seconds for real-time responsiveness
@@ -33,7 +32,6 @@ export function usePendingBookingCount(role?: string) {
   const prevCountRef = useRef<number>(0);
 
   useEffect(() => {
-    // Only process once data has been loaded from the API
     if (data === undefined) return;
 
     if (isInitialLoadRef.current) {
@@ -43,7 +41,6 @@ export function usePendingBookingCount(role?: string) {
     }
 
     const currentCount = data.count || 0;
-    // If pending count increased compared to previous state, ring the notification chime
     if (currentCount > prevCountRef.current) {
       playNotificationChime();
     }

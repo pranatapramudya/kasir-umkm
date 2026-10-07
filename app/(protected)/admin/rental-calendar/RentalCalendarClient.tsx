@@ -48,10 +48,17 @@ interface Booking {
   status: BookingStatus;
   pickupLocation?: string | null;
   dropoffLocation?: string | null;
-  // Equipment/Alat fields
+  pickupTime?: string | null;
   returnTime?: string | null;
-  deposit?: number | null;
+  notes?: string | null;
   conditionNotes?: string | null;
+  deposit?: number | null;
+  driverName?: string | null;
+  licensePlate?: string | null;
+  guarantee?: string | null;
+  downPayment?: number | null;
+  remainingBalance?: number | null;
+  total?: number | null;
   source?: "ONLINE" | "POS";
 }
 
@@ -99,6 +106,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   const getStatusBadge = (status: BookingStatus, niche: "property" | "vehicle" | "equipment") => {
     switch (status) {
       case "PENDING":
+        return { label: "Menunggu ACC / Konfirmasi", bg: "bg-amber-100 text-amber-900 border-amber-300 font-bold" };
       case "COMPLETED":
         if (niche === "property") return { label: "Terjadwal (Siap Check-in)", bg: "bg-blue-100 text-blue-800 border-blue-200" };
         if (niche === "vehicle") return { label: "Terjadwal (Siap Berangkat)", bg: "bg-blue-100 text-blue-800 border-blue-200" };
@@ -166,12 +174,21 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   const [filter, setFilter] = useState<"ALL" | BookingStatus>("ALL");
   const [finishingOrder, setFinishingOrder] = useState<Booking | null>(null);
   const [overtimeFee, setOvertimeFee] = useState<string>("0");
+  const [finishPaymentMethod, setFinishPaymentMethod] = useState<string>("TUNAI");
   const [isFinishing, setIsFinishing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [orderPage, setOrderPage] = useState(1);
+  const agendaTopRef = React.useRef<HTMLDivElement>(null);
+  const ORDERS_PER_PAGE = 10;
 
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Reset pagination ke halaman 1 jika tanggal yang dipilih atau filter berubah
+  React.useEffect(() => {
+    setOrderPage(1);
+  }, [selectedDate, filter]);
 
   if (!isMounted || !data) {
     return (
@@ -187,14 +204,14 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
     if (!finishingOrder) return;
     setIsFinishing(true);
     const fee = parseInt(overtimeFee.replace(/\D/g, ""), 10) || 0;
-    const res = await finishOrder(finishingOrder.id, fee);
+    const res = await finishOrder(finishingOrder.id, fee, finishPaymentMethod);
     if (res.success) {
-      toast.success("Pesanan berhasil diselesaikan!");
+      toast.success("Pelunasan berhasil diterima! Transaksi kini LUNAS.");
       setFinishingOrder(null);
       await mutate();
       router.refresh();
     } else {
-      toast.error("Gagal menyelesaikan pesanan");
+      toast.error(res.error || "Gagal menyelesaikan pelunasan");
     }
     setIsFinishing(false);
   };
@@ -251,6 +268,11 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   };
 
   const selectedDateBookings = getBookingsForDate(selectedDate);
+  const totalOrderPages = Math.max(1, Math.ceil(selectedDateBookings.length / ORDERS_PER_PAGE));
+  const safeCurrentPage = Math.min(orderPage, totalOrderPages);
+  const startIndex = (safeCurrentPage - 1) * ORDERS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ORDERS_PER_PAGE, selectedDateBookings.length);
+  const paginatedBookings = selectedDateBookings.slice(startIndex, endIndex);
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-20">
@@ -275,6 +297,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
           {([
             { value: "ALL", label: "Semua" },
+            { value: "PENDING", label: "Menunggu ACC" },
             { value: "COMPLETED", label: "Terjadwal" },
             { value: "IN_PROGRESS", label: rentalNiche === "property" ? "Tamu Menginap" : rentalNiche === "vehicle" ? "Sedang Digunakan" : "Sedang Disewa" },
             { value: "OVERDUE", label: rentalNiche === "property" ? "Lewat Check-out" : "Terlambat" },
@@ -296,7 +319,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
       {/* Main Grid Content (2-Columns on lg+, Stacked on mobile) */}
       <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start max-w-7xl mx-auto w-full">
         {/* Left Column: Monthly Calendar */}
-        <div className="lg:col-span-7 xl:col-span-8 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+        <div className="lg:col-span-7 xl:col-span-7 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4 lg:sticky lg:top-20 self-start">
           {/* Calendar Navigation */}
           <div className="flex justify-between items-center px-1">
             <button
@@ -391,18 +414,62 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
         </div>
 
         {/* Right Column: Agenda / Selected Date Bookings */}
-        <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-3 lg:sticky lg:top-24">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div ref={agendaTopRef} className="lg:col-span-5 xl:col-span-5 flex flex-col gap-3.5 scroll-mt-24">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Jadwal Tanggal</span>
               <h3 className="font-bold text-slate-800 text-sm sm:text-base capitalize">
                 {format(selectedDate, "EEEE, dd MMM yyyy", { locale: idLocale })}
               </h3>
             </div>
-            <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-bold shrink-0">
-              {selectedDateBookings.length} Jadwal
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-bold shrink-0">
+                {selectedDateBookings.length} Orderan
+              </span>
+              {totalOrderPages > 1 && (
+                <span className="text-xs bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-full font-bold shrink-0">
+                  Hal. {safeCurrentPage}/{totalOrderPages}
+                </span>
+              )}
+            </div>
           </div>
+
+          {/* Quick Pagination Bar di atas jika orderan > 10 */}
+          {selectedDateBookings.length > ORDERS_PER_PAGE && (
+            <div className="bg-white border border-slate-200/80 px-3.5 py-2 rounded-xl flex items-center justify-between text-xs text-slate-500 shadow-xs">
+              <span>
+                Menampilkan <strong className="text-slate-800">{startIndex + 1} - {endIndex}</strong> dari <strong className="text-slate-800">{selectedDateBookings.length}</strong> orderan
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrderPage(p => Math.max(1, p - 1));
+                    agendaTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  disabled={safeCurrentPage <= 1}
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition-all"
+                  title="Halaman Sebelumnya"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Sebelumnya</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrderPage(p => Math.min(totalOrderPages, p + 1));
+                    agendaTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  disabled={safeCurrentPage >= totalOrderPages}
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition-all"
+                  title="Halaman Sesudah"
+                >
+                  <span>Sesudah</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {selectedDateBookings.length === 0 ? (
             <div className="bg-white border border-slate-200 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-xs">
@@ -411,7 +478,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
               <p className="text-slate-400 text-xs mt-1">Belum ada reservasi atau sewa untuk tanggal ini.</p>
             </div>
           ) : (
-          selectedDateBookings.map((b) => {
+          paginatedBookings.map((b) => {
             const badge = getStatusBadge(b.status, rentalNiche);
             const itemType = detectRentalItemType(b.itemName);
 
@@ -448,17 +515,17 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                       ) : (
                         <CarFront className="w-4 h-4 text-blue-600 shrink-0" />
                       )}
-                      <h4 className="font-bold text-slate-800 text-sm truncate">{b.itemName || "Menunggu Info Unit"}</h4>
+                      <h4 className="font-bold text-slate-800 text-sm leading-snug">{b.itemName || "Menunggu Info Unit"}</h4>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <div className="flex items-center gap-1">
                         <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <p className="text-xs text-slate-600 font-medium truncate">{b.customerName || "Pelanggan Baru"}</p>
+                        <p className="text-xs text-slate-700 font-semibold">{b.customerName || "Pelanggan Baru"}</p>
                       </div>
                       {b.customerPhone && (
                         <a
                           href={`https://wa.me/${b.customerPhone.replace(/\D/g, "").replace(/^0/, "62")}?text=${encodeURIComponent(
-                            `Halo Kak ${b.customerName}, konfirmasi jadwal sewa ${b.itemName} pada ${format(safeDate(b.startDate), "dd MMM yyyy, HH:mm", { locale: idLocale })}.`
+                            `Halo Kak ${b.customerName}, konfirmasi jadwal sewa armada ${b.itemName} pada ${format(safeDate(b.startDate), "dd MMM yyyy, HH:mm", { locale: idLocale })} WIB.`
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -468,6 +535,15 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                           Chat WA
                         </a>
                       )}
+                      {b.source === "ONLINE" ? (
+                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+                          🌐 Booking Online
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                          🏪 Kasir Manual POS
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold border shrink-0 ${badge.bg}`}>
@@ -475,82 +551,195 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                   </div>
                 </div>
 
-                <div className="bg-slate-50 rounded-xl p-3 flex flex-col gap-2">
+                {/* Box Waktu Berangkat & Kembali */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <LogIn className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <LogIn className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                     <div className="flex-1 flex justify-between items-center text-xs">
-                      <span className="text-slate-500">{actionLabels.startLabel}</span>
-                      <span className="font-semibold text-slate-700">
-                        {format(safeDate(b.startDate), "dd MMM, HH:mm", { locale: idLocale })} WIB
+                      <span className="text-slate-500 font-medium">{actionLabels.startLabel}</span>
+                      <span className="font-bold text-slate-800">
+                        {format(safeDate(b.startDate), "dd MMM yyyy, HH:mm", { locale: idLocale })} WIB
                       </span>
                     </div>
                   </div>
                   <div className="border-t border-slate-200 border-dashed" />
                   <div className="flex items-center gap-2">
-                    <LogOut className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <LogOut className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <div className="flex-1 flex justify-between items-center text-xs">
-                      <span className="text-slate-500">{actionLabels.endLabel}</span>
-                      <span className="font-semibold text-slate-700">
-                        {format(safeDate(b.endDate), "dd MMM, HH:mm", { locale: idLocale })} WIB
+                      <span className="text-slate-500 font-medium">{actionLabels.endLabel}</span>
+                      <span className="font-bold text-slate-800">
+                        {format(safeDate(b.endDate), "dd MMM yyyy, HH:mm", { locale: idLocale })} WIB
                       </span>
                     </div>
                   </div>
-
-                  {/* Extra Details */}
-                  {(b.pickupLocation || b.dropoffLocation || b.returnTime || b.deposit || b.conditionNotes) && (
-                    <>
-                      <div className="border-t border-slate-200 border-dashed mt-1 mb-1" />
-                      <div className="grid grid-cols-2 gap-2 mt-1">
-                        {b.dropoffLocation && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-slate-400 font-semibold uppercase">Tujuan / Lokasi</span>
-                            <span className="text-xs text-slate-700 font-medium truncate">{b.dropoffLocation}</span>
-                          </div>
-                        )}
-                        {b.returnTime && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-slate-400 font-semibold uppercase">Jam Selesai</span>
-                            <span className="text-xs text-slate-700 font-medium truncate">{b.returnTime}</span>
-                          </div>
-                        )}
-                        {b.deposit && b.deposit > 0 && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-slate-400 font-semibold uppercase">Deposit Jaminan</span>
-                            <span className="text-xs text-slate-700 font-medium truncate">Rp {new Intl.NumberFormat("id-ID").format(b.deposit)}</span>
-                          </div>
-                        )}
-                        {b.conditionNotes && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-slate-400 font-semibold uppercase">Catatan Khusus</span>
-                            <span className="text-xs text-slate-700 font-medium truncate">{b.conditionNotes}</span>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
+                  <div className="border-t border-slate-200 border-dashed" />
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500">Total Durasi Perjalanan:</span>
+                    <span className="font-bold text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-300 text-[11px]">
+                      ⏱️ {Math.max(1, Math.round((safeDate(b.endDate).getTime() - safeDate(b.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)} Hari Sewa
+                    </span>
+                  </div>
                 </div>
+
+                {/* Rute & Lokasi (Penjemputan & Tujuan) — Teks Lengkap Tanpa Terpotong */}
+                {(b.pickupLocation || b.dropoffLocation) && (
+                  <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex flex-col gap-2 text-xs">
+                    {b.pickupLocation && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-base shrink-0 mt-0.5">📍</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[10px] text-amber-900 font-bold uppercase tracking-wider block">Titik Jemput / Lokasi Kumpul:</span>
+                          <span className="text-slate-900 font-semibold leading-relaxed break-words">{b.pickupLocation}</span>
+                        </div>
+                      </div>
+                    )}
+                    {b.pickupLocation && b.dropoffLocation && (
+                      <div className="border-t border-amber-200/60" />
+                    )}
+                    {b.dropoffLocation && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-base shrink-0 mt-0.5">🏁</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[10px] text-amber-900 font-bold uppercase tracking-wider block">Destinasi / Rute Tujuan:</span>
+                          <span className="text-slate-900 font-semibold leading-relaxed break-words">{b.dropoffLocation}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Catatan / Request Khusus Rombongan */}
+                {(b.notes || b.conditionNotes) && (
+                  <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs flex flex-col gap-1.5">
+                    {b.notes && (
+                      <div>
+                        <span className="text-[10px] text-blue-900 font-bold uppercase tracking-wider block">📝 Catatan / Request Rombongan:</span>
+                        <p className="text-slate-800 italic leading-relaxed break-words mt-0.5 bg-white p-2.5 rounded-lg border border-blue-100">"{b.notes}"</p>
+                      </div>
+                    )}
+                    {b.notes && b.conditionNotes && (
+                      <div className="border-t border-blue-200/60 my-0.5" />
+                    )}
+                    {b.conditionNotes && (
+                      <div>
+                        <span className="text-[10px] text-blue-900 font-bold uppercase tracking-wider block">🔧 Catatan Armada / Unit:</span>
+                        <p className="text-slate-700 leading-relaxed break-words mt-0.5">{b.conditionNotes}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Info Driver, Plat Nomor & Jaminan Dokumen (Khusus Kasir POS) */}
+                {(b.driverName || b.licensePlate || b.guarantee) && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-2 gap-2 text-xs">
+                    {b.driverName && (
+                      <div>
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Supir / Driver:</span>
+                        <span className="text-slate-900 font-bold">{b.driverName}</span>
+                      </div>
+                    )}
+                    {b.licensePlate && (
+                      <div>
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Plat Nomor:</span>
+                        <span className="text-slate-900 font-bold font-mono bg-white px-2 py-0.5 rounded border border-slate-200">{b.licensePlate}</span>
+                      </div>
+                    )}
+                    {b.guarantee && (
+                      <div className="col-span-2 pt-1.5 border-t border-slate-200">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Jaminan Titipan (KTP/SIM/Paspor):</span>
+                        <span className="text-slate-800 font-medium">{b.guarantee}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Rincian Finansial / Pembayaran */}
+                {(Boolean(b.deposit && b.deposit > 0) || Boolean(b.downPayment && b.downPayment > 0) || Boolean(b.total && b.total > 0)) && (
+                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between text-xs flex-wrap gap-2">
+                    {b.total ? (
+                      <div>
+                        <span className="text-[10px] text-emerald-900 font-bold uppercase tracking-wider block">Total Biaya:</span>
+                        <span className="font-bold text-emerald-700">Rp {new Intl.NumberFormat("id-ID").format(b.total)}</span>
+                      </div>
+                    ) : null}
+                    {b.downPayment ? (
+                      <div>
+                        <span className="text-[10px] text-emerald-900 font-bold uppercase tracking-wider block">DP / Tanda Jadi:</span>
+                        <span className="font-semibold text-emerald-700">Rp {new Intl.NumberFormat("id-ID").format(b.downPayment)}</span>
+                      </div>
+                    ) : null}
+                    {b.remainingBalance && b.remainingBalance > 0 ? (
+                      <div>
+                        <span className="text-[10px] text-rose-800 font-bold uppercase tracking-wider block">Sisa Pelunasan:</span>
+                        <span className="font-bold text-rose-600">Rp {new Intl.NumberFormat("id-ID").format(b.remainingBalance)}</span>
+                      </div>
+                    ) : null}
+                    {b.deposit && b.deposit > 0 ? (
+                      <div>
+                        <span className="text-[10px] text-amber-900 font-bold uppercase tracking-wider block">Deposit:</span>
+                        <span className="font-semibold text-amber-700">Rp {new Intl.NumberFormat("id-ID").format(b.deposit)}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
                 
                 {/* Action Buttons */}
-                                {b.source === "ONLINE" && b.status !== "FINISHED" && (
+                                {b.status !== "FINISHED" && (
                                   <div className="flex gap-2 mt-1 pt-2 border-t border-slate-100">
-                                    {b.status === "PENDING" && (
+                                    {b.source === "ONLINE" && b.status === "PENDING" && (
                                       <>
-                                        <button onClick={() => handleApprove(b.id)} className="flex-1 px-3 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm">
-                                          ✅ Setujui Pesanan
+                                        <button
+                                          onClick={() => handleApprove(b.id)}
+                                          className="flex-1 min-w-[130px] px-3 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5"
+                                        >
+                                          <CheckCircle className="w-3.5 h-3.5" />
+                                          ACC / Setujui Pesanan
                                         </button>
-                                        <button onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")} className="flex-1 px-3 py-2 text-xs font-bold text-rose-700 bg-rose-100 hover:bg-rose-200 border border-rose-300 rounded-xl transition-colors shadow-sm">
-                                          ❌ Batalkan
+                                        <button
+                                          onClick={() => router.push("/admin/pos")}
+                                          className="px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1"
+                                        >
+                                          Tarik ke POS
+                                        </button>
+                                        <button
+                                          onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")}
+                                          className="px-3 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors shadow-sm"
+                                        >
+                                          Tolak
                                         </button>
                                       </>
                                     )}
-                                    {b.status === "COMPLETED" && (
-                                      <button onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")} className="w-full px-3 py-2 text-xs font-bold text-rose-700 bg-rose-100 hover:bg-rose-200 border border-rose-300 rounded-xl transition-colors shadow-sm">
-                                        ❌ Batalkan Reservasi
-                                      </button>
+                                    {b.source === "ONLINE" && b.status === "COMPLETED" && (
+                                      <>
+                                        <button
+                                          onClick={() => router.push("/admin/pos")}
+                                          className="flex-1 min-w-[140px] px-3 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5"
+                                        >
+                                          <LogIn className="w-3.5 h-3.5" />
+                                          Proses di Kasir POS (Check-in)
+                                        </button>
+                                        <button
+                                          onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")}
+                                          className="px-3 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors shadow-sm"
+                                        >
+                                          Batalkan Reservasi
+                                        </button>
+                                      </>
                                     )}
-                                    {(b.status === "IN_PROGRESS" || b.status === "OVERDUE") && (
-                                      <button onClick={() => { setFinishingOrder(b); setOvertimeFee("0"); }} className="w-full px-3 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5">
-                                        {actionLabels.finish}
+                                    {(b.status === "IN_PROGRESS" || b.status === "OVERDUE" || (b.remainingBalance && b.remainingBalance > 0)) && (
+                                      <button 
+                                        onClick={() => { 
+                                          setFinishingOrder(b); 
+                                          setOvertimeFee("0"); 
+                                          setFinishPaymentMethod("TUNAI");
+                                        }} 
+                                        className={`w-full px-3 py-2.5 text-xs font-bold text-white rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 ${
+                                          b.remainingBalance && b.remainingBalance > 0
+                                            ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
+                                            : "bg-emerald-600 hover:bg-emerald-700"
+                                        }`}
+                                      >
+                                        {b.remainingBalance && b.remainingBalance > 0 ? "💰 Terima Pelunasan & Selesai" : actionLabels.finish}
                                       </button>
                                     )}
                                   </div>
@@ -559,6 +748,81 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
             );
           })
         )}
+
+          {/* Bottom Pagination Control Bar */}
+          {totalOrderPages > 1 && (
+            <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setOrderPage(p => Math.max(1, p - 1));
+                  agendaTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                disabled={safeCurrentPage <= 1}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  safeCurrentPage <= 1
+                    ? "bg-slate-100 text-slate-400 cursor-not-allowed opacity-50"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 shadow-xs"
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Sebelumnya</span>
+              </button>
+
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                {Array.from({ length: totalOrderPages }, (_, i) => i + 1).map((pageNum) => {
+                  if (
+                    totalOrderPages <= 6 ||
+                    pageNum === 1 ||
+                    pageNum === totalOrderPages ||
+                    Math.abs(pageNum - safeCurrentPage) <= 1
+                  ) {
+                    const isActive = pageNum === safeCurrentPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => {
+                          setOrderPage(pageNum);
+                          agendaTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-xs font-bold transition-all flex items-center justify-center ${
+                          isActive
+                            ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30 font-extrabold"
+                            : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/70"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  } else if (
+                    (pageNum === 2 && safeCurrentPage > 3) ||
+                    (pageNum === totalOrderPages - 1 && safeCurrentPage < totalOrderPages - 2)
+                  ) {
+                    return <span key={pageNum} className="text-slate-400 text-xs px-0.5">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setOrderPage(p => Math.min(totalOrderPages, p + 1));
+                  agendaTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                disabled={safeCurrentPage >= totalOrderPages}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  safeCurrentPage >= totalOrderPages
+                    ? "bg-slate-100 text-slate-400 cursor-not-allowed opacity-50"
+                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-500/20 active:scale-95"
+                }`}
+              >
+                <span>Sesudah</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -573,21 +837,29 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
               </button>
             </div>
             <form onSubmit={handleFinishSubmit} className="p-5 space-y-4">
-              <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
-                <div className="flex justify-between text-sm">
+              <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100 text-xs">
+                <div className="flex justify-between">
                   <span className="text-slate-500">Penyewa</span>
-                  <span className="font-semibold text-slate-800">{finishingOrder?.customerName || "Pelanggan Baru"}</span>
+                  <span className="font-bold text-slate-900">{finishingOrder?.customerName || "Pelanggan"}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Unit/Layanan</span>
-                  <span className="font-semibold text-slate-800">{finishingOrder?.itemName || "Menunggu Info Unit"}</span>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Unit / Armada</span>
+                  <span className="font-semibold text-slate-800">{finishingOrder?.itemName || "-"}</span>
                 </div>
+                {finishingOrder?.remainingBalance && finishingOrder.remainingBalance > 0 ? (
+                  <div className="flex justify-between pt-2 border-t border-slate-200 items-center">
+                    <span className="font-bold text-rose-700">Sisa Tagihan Belum Lunas:</span>
+                    <span className="font-black text-rose-600 text-sm">
+                      Rp {new Intl.NumberFormat("id-ID").format(finishingOrder.remainingBalance)}
+                    </span>
+                  </div>
+                ) : null}
               </div>
               
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Biaya Tambahan / Denda Overtime (Opsional)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Denda Overtime / Biaya Kerusakan (Opsional)</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">Rp</span>
                   <input 
                     type="text" 
                     value={overtimeFee}
@@ -595,21 +867,53 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                       const val = e.target.value.replace(/\D/g, "");
                       setOvertimeFee(val ? new Intl.NumberFormat("id-ID").format(Number(val)) : "");
                     }}
-                    className="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-2.5"
+                    className="bg-white border border-slate-300 text-slate-900 text-xs rounded-xl focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-9 p-2.5 font-bold"
                     placeholder="0"
                   />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Isi jika penyewa melebihi batas waktu (overtime) atau ada biaya kerusakan. Kosongkan jika tidak ada.</p>
+                <p className="text-[11px] text-slate-400 mt-1">Isi jika ada overtime/denda. Kosongkan jika tidak ada.</p>
+              </div>
+
+              {/* Total Pelunasan Wajib Dibayar */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex justify-between items-center text-xs">
+                <div>
+                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Total Pelunasan Sekarang:</span>
+                  <span className="text-[10px] text-emerald-600">Sisa Tagihan + Denda / Overtime</span>
+                </div>
+                <span className="text-base font-black text-emerald-700">
+                  Rp {new Intl.NumberFormat("id-ID").format((finishingOrder?.remainingBalance || 0) + (parseInt(overtimeFee.replace(/\D/g, "") || "0")))}
+                </span>
+              </div>
+
+              {/* Metode Pembayaran Pelunasan */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Metode Pembayaran Pelunasan</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFinishPaymentMethod("TUNAI")}
+                    className={`py-2 text-xs font-bold rounded-xl border transition-all ${finishPaymentMethod === "TUNAI" ? "bg-emerald-600 text-white border-emerald-600 shadow-xs" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}
+                  >
+                    💵 Tunai
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFinishPaymentMethod("TRANSFER / QRIS")}
+                    className={`py-2 text-xs font-bold rounded-xl border transition-all ${finishPaymentMethod !== "TUNAI" ? "bg-emerald-600 text-white border-emerald-600 shadow-xs" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"}`}
+                  >
+                    📱 Transfer / QRIS
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2">
                 <button 
                   type="submit"
                   disabled={isFinishing}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-colors px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm shadow-emerald-600/30 text-xs sm:text-sm"
                 >
-                  {isFinishing && <Loader2 className="w-5 h-5 animate-spin" />}
-                  Konfirmasi Selesai
+                  {isFinishing && <Loader2 className="w-4 h-4 animate-spin" />}
+                  ✓ Simpan Pelunasan & Selesaikan Sewa
                 </button>
               </div>
             </form>

@@ -8,7 +8,13 @@ import { redirect } from 'next/navigation';
 
 export default async function AdminDashboardPage() {
   const { userId } = await auth();
-  const user = await currentUser();
+  let user = null;
+  try {
+    user = await currentUser();
+  } catch (err) {
+    console.warn("Failed to fetch currentUser:", err);
+    redirect('/sign-in');
+  }
   
   if (!userId || !user) {
     redirect('/sign-in');

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat, Package
+  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat, Package, Fuel
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -23,6 +23,57 @@ import { routeOrderItems, isBarItem } from '@/lib/printer-routing';
 import { useOffline } from '@/components/OfflineProvider';
 import nextDynamic from 'next/dynamic';
 
+const INDONESIAN_TIME_SLOTS = [
+  { value: "00:00", label: "00:00 WIB (Tengah Malam)" },
+  { value: "00:30", label: "00:30 WIB (Tengah Malam)" },
+  { value: "01:00", label: "01:00 WIB (Dini Hari)" },
+  { value: "01:30", label: "01:30 WIB (Dini Hari)" },
+  { value: "02:00", label: "02:00 WIB (Dini Hari)" },
+  { value: "02:30", label: "02:30 WIB (Dini Hari)" },
+  { value: "03:00", label: "03:00 WIB (Dini Hari)" },
+  { value: "03:30", label: "03:30 WIB (Dini Hari)" },
+  { value: "04:00", label: "04:00 WIB (Subuh)" },
+  { value: "04:30", label: "04:30 WIB (Subuh)" },
+  { value: "05:00", label: "05:00 WIB (Subuh)" },
+  { value: "05:30", label: "05:30 WIB (Subuh)" },
+  { value: "06:00", label: "06:00 WIB (Pagi)" },
+  { value: "06:30", label: "06:30 WIB (Pagi)" },
+  { value: "07:00", label: "07:00 WIB (Pagi)" },
+  { value: "07:30", label: "07:30 WIB (Pagi)" },
+  { value: "08:00", label: "08:00 WIB (Pagi)" },
+  { value: "08:30", label: "08:30 WIB (Pagi)" },
+  { value: "09:00", label: "09:00 WIB (Pagi)" },
+  { value: "09:30", label: "09:30 WIB (Pagi)" },
+  { value: "10:00", label: "10:00 WIB (Pagi)" },
+  { value: "10:30", label: "10:30 WIB (Pagi)" },
+  { value: "11:00", label: "11:00 WIB (Siang)" },
+  { value: "11:30", label: "11:30 WIB (Siang)" },
+  { value: "12:00", label: "12:00 WIB (Siang)" },
+  { value: "12:30", label: "12:30 WIB (Siang)" },
+  { value: "13:00", label: "13:00 WIB (Siang)" },
+  { value: "13:30", label: "13:30 WIB (Siang)" },
+  { value: "14:00", label: "14:00 WIB (Siang)" },
+  { value: "14:30", label: "14:30 WIB (Siang)" },
+  { value: "15:00", label: "15:00 WIB (Sore)" },
+  { value: "15:30", label: "15:30 WIB (Sore)" },
+  { value: "16:00", label: "16:00 WIB (Sore)" },
+  { value: "16:30", label: "16:30 WIB (Sore)" },
+  { value: "17:00", label: "17:00 WIB (Sore)" },
+  { value: "17:30", label: "17:30 WIB (Sore)" },
+  { value: "18:00", label: "18:00 WIB (Malam)" },
+  { value: "18:30", label: "18:30 WIB (Malam)" },
+  { value: "19:00", label: "19:00 WIB (Malam)" },
+  { value: "19:30", label: "19:30 WIB (Malam)" },
+  { value: "20:00", label: "20:00 WIB (Malam)" },
+  { value: "20:30", label: "20:30 WIB (Malam)" },
+  { value: "21:00", label: "21:00 WIB (Malam)" },
+  { value: "21:30", label: "21:30 WIB (Malam)" },
+  { value: "22:00", label: "22:00 WIB (Malam)" },
+  { value: "22:30", label: "22:30 WIB (Malam)" },
+  { value: "23:00", label: "23:00 WIB (Malam)" },
+  { value: "23:30", label: "23:30 WIB (Malam)" },
+];
+
 const PrinterHelpModal = nextDynamic(() => import('@/components/PrinterHelpModal'), {
   ssr: false,
 });
@@ -30,6 +81,9 @@ const FnbModifierModal = nextDynamic(() => import('@/components/FnbModifierModal
   ssr: false,
 });
 const TutorialOverlay = nextDynamic(() => import('@/components/TutorialOverlay'), {
+  ssr: false,
+});
+const SmartRouteFuelCalculator = nextDynamic(() => import('@/components/SmartRouteFuelCalculator'), {
   ssr: false,
 });
 const TableGridModal = nextDynamic(() => import('@/components/TableGridModal'), {
@@ -114,55 +168,99 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   });
+  // Untuk rental/travel, default ke 'all' agar pesanan baru yang masuk langsung terlihat tanpa perlu tebak tanggal
+  const [filterMode, setFilterMode] = useState<'all' | 'date'>(isRental ? 'all' : 'date');
 
   const fetcher = (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then(r => r.json());
   const { user } = useUser();
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
+
+  const queryUrl = filterMode === 'all'
+    ? `/api/booking/today?date=all`
+    : `/api/booking/today?date=${selectedQueueDate}`;
+
   const { data, error, isLoading } = useSWR(
-    isOpen && currentTenantId ? [`/api/booking/today?date=${selectedQueueDate}`, currentTenantId as string] : null,
+    isOpen && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
     {
       keepPreviousData: true,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false
+      revalidateIfStale: true,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true
     }
   );
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden">
-        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-2xl">
-          <h2 className="text-lg font-bold text-gray-900 truncate pr-4 flex items-center gap-2">
-            📋 {isRental ? "Tarik Pesanan Online" : "Tarik Antrean Online"}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full shrink-0">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden max-h-[85vh]">
+        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-3xl">
+          <div>
+            <h2 className="text-lg font-black text-gray-900 truncate flex items-center gap-2">
+              📋 {isRental ? "Tarik Pesanan Sewa / Travel" : "Tarik Antrean Online"}
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {isRental ? "Pilih pesanan online pelanggan untuk diproses ke Kasir POS" : "Antrean layanan pelanggan yang mendaftar online"}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full shrink-0">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-5 pt-4 pb-2 bg-slate-50 border-b border-gray-100">
-          <input
-            type="date"
-            value={selectedQueueDate}
-            onChange={(e) => setSelectedQueueDate(e.target.value)}
-            className="w-full p-2 border border-slate-300 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
-          />
+        {/* Tab Filter (Semua Pesanan Masuk vs Pilih Tanggal) */}
+        <div className="px-5 pt-3 pb-2 bg-slate-50 border-b border-gray-100 flex flex-col gap-2">
+          {isRental && (
+            <div className="flex bg-slate-200/80 p-1 rounded-xl gap-1 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setFilterMode('all')}
+                className={`flex-1 py-1.5 px-3 rounded-lg transition-all ${filterMode === 'all' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                ⏳ Semua Pesanan Masuk
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode('date')}
+                className={`flex-1 py-1.5 px-3 rounded-lg transition-all ${filterMode === 'date' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                📅 Filter Tanggal
+              </button>
+            </div>
+          )}
+
+          {(!isRental || filterMode === 'date') && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500 shrink-0">Tanggal:</span>
+              <input
+                type="date"
+                value={selectedQueueDate}
+                onChange={(e) => setSelectedQueueDate(e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+              />
+            </div>
+          )}
         </div>
 
-        <div className="p-4 max-h-[60vh] overflow-y-auto bg-slate-50">
+        <div className="p-4 overflow-y-auto bg-slate-50 space-y-3">
           {(!data && !error) && (
-            <div className="flex justify-center p-8">
+            <div className="flex flex-col justify-center items-center p-10 gap-2">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+              <span className="text-xs text-slate-500">Memuat pesanan online...</span>
             </div>
           )}
           {error && (
-            <div className="text-center p-8 text-red-500 font-medium">Gagal memuat antrean.</div>
+            <div className="text-center p-8 text-red-500 font-medium text-sm">Gagal memuat pesanan online.</div>
           )}
           {data && data.length === 0 && (
-            <div className="text-center p-8 text-slate-500 font-medium">Belum ada antrean untuk tanggal yang dipilih.</div>
+            <div className="text-center p-10 text-slate-500 flex flex-col items-center gap-2">
+              <span className="text-3xl">📭</span>
+              <p className="font-bold text-sm text-slate-700">Belum Ada Pesanan Masuk</p>
+              <p className="text-xs text-slate-400">
+                {filterMode === 'all' ? 'Belum ada pelanggan yang membuat reservasi sewa.' : 'Tidak ada jadwal sewa pada tanggal yang dipilih.'}
+              </p>
+            </div>
           )}
           {data && data.length > 0 && (
             <div className="space-y-3">
@@ -171,31 +269,70 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
                 const isInProgress = booking.status === 'IN_PROGRESS';
                 const isFinished = booking.status === 'FINISHED' || booking.status === 'COMPLETED';
 
-                const statusLabel = isInProgress ? '⚙️ Sedang Dikerjakan' : (isFinished ? '✅ Selesai' : '⏳ Menunggu');
-                const statusBadgeBg = isInProgress ? 'bg-purple-50 text-purple-700 border-purple-200' : (isFinished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200');
+                const statusLabel = isInProgress ? '⚙️ Sedang Jalan' : (isFinished ? '✅ Selesai' : '⏳ Menunggu Kasir');
+                const statusBadgeBg = isInProgress ? 'bg-purple-50 text-purple-700 border-purple-200' : (isFinished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200');
+
+                const formatTgl = (dStr: string) => {
+                  if (!dStr) return '-';
+                  const d = new Date(dStr);
+                  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                };
 
                 return (
-                  <div key={booking.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-bold text-slate-800">{booking.customerName}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusBadgeBg}`}>
-                          {statusLabel}
-                        </span>
+                  <div key={booking.id} className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-blue-400 shadow-sm flex flex-col gap-3 transition-all">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-slate-900 text-sm truncate">{booking.customerName}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${statusBadgeBg}`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                        <p className="text-xs font-bold text-blue-700 flex items-center gap-1">
+                          🚗 {booking.product ? booking.product.name : 'Armada / Layanan Custom'}
+                        </p>
                       </div>
-                      <span className="text-sm text-slate-600 flex items-center gap-1">
-                        {booking.product ? booking.product.name : 'Layanan Custom'}
-                      </span>
-                      <span className="text-xs text-slate-500 mt-1">
-                        Jam: {new Date(booking.bookingDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
-                      </span>
+
+                      <button
+                        onClick={() => onProcess(booking)}
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 text-xs shrink-0 flex items-center gap-1"
+                      >
+                        📥 Tarik ke Kasir
+                      </button>
                     </div>
-                    <button
-                      onClick={() => onProcess(booking)}
-                      className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold rounded-lg transition-colors shadow-sm text-sm"
-                    >
-                      {isFinished ? 'Bayar' : 'Proses'}
-                    </button>
+
+                    {/* Informasi Detail Khusus Rental & Travel */}
+                    {isRental ? (
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 text-xs text-slate-700 flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500 font-medium">Jadwal:</span>
+                          <span className="font-bold text-slate-900">
+                            {formatTgl(booking.startDate)} ({booking.pickupTime || '08:00'} WIB) ➜ {formatTgl(booking.endDate)} ({booking.returnTime || '20:00'} WIB)
+                          </span>
+                        </div>
+                        {booking.dropoffLocation && (
+                          <div className="flex items-start gap-1.5 text-[11px] pt-1 border-t border-slate-200">
+                            <span className="text-slate-500 shrink-0 font-medium">Tujuan:</span>
+                            <span className="font-semibold text-slate-800 break-words flex-1">{booking.dropoffLocation}</span>
+                          </div>
+                        )}
+                        {booking.pickupLocation && (
+                          <div className="flex items-start gap-1.5 text-[11px]">
+                            <span className="text-slate-500 shrink-0 font-medium">Jemput:</span>
+                            <span className="text-slate-800 break-words flex-1">{booking.pickupLocation}</span>
+                          </div>
+                        )}
+                        {booking.notes && (
+                          <div className="text-[11px] text-blue-800 italic bg-blue-50/70 p-1.5 rounded-lg border border-blue-100 mt-0.5">
+                            "{booking.notes}"
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-slate-500">
+                        Jam Kunjungan: {new Date(booking.bookingDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -325,7 +462,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           startDate: '',
           endDate: '',
           guarantee: '',
-          returnTime: '',
+          returnTime: '20:00',
           deposit: 0,
           conditionNotes: '',
           pickupTime: '08:00',
@@ -370,15 +507,40 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         const niche = useMemo(() => resolveRentalNiche(tenantCategory, tenantName, rawProducts), [tenantCategory, tenantName, rawProducts]);
         const config = niche ? RENTAL_NICHE_CONFIG[niche] : null;
 
-        // Filter tabs from niche config (always 3 tabs: Semua, Unit, Addon) - only for rental
-                const filterTabs = useMemo(() => {
-                  if (!isRental || !config) return [];
-                  return [
-                    { value: "ALL", label: "Semua" },
-                    { value: "UNIT", label: config.unitLabel },
-                    { value: "ADDON", label: config.addonLabel },
-                  ];
-                }, [isRental, config]);
+      // Detect available rental types from actual catalog (physical units only, like admin CRUD & booking link)
+      const availableRentalTypes = useMemo(() => {
+        if (!isRental) return [] as ("property" | "vehicle" | "equipment")[];
+        const types = new Set<"property" | "vehicle" | "equipment">();
+        rawProducts.forEach(p => {
+          if (p.isService) return; // only physical units
+          const type = detectRentalItemType(p.name, p.description, p.category);
+          if (type !== "unknown") types.add(type);
+        });
+        return Array.from(types);
+      }, [isRental, rawProducts]);
+      // Fallback to tenant category if catalog empty
+      const tenantRentalType = useMemo(() => getTenantRentalType(tenantCategory), [tenantCategory]);
+      const effectiveRentalTypes = availableRentalTypes.length > 0 ? availableRentalTypes : (tenantRentalType ? [tenantRentalType] : (["vehicle"] as const));
+      // Lock rentalMode to first available type
+      const lockedRentalType = effectiveRentalTypes[0] as "property" | "vehicle" | "equipment";
+
+        // Filter tabs from niche config (multi-niche adaptive if mixed templates imported)
+        const filterTabs = useMemo(() => {
+          if (!isRental || !config) return [];
+          if (availableRentalTypes.length > 1) {
+            const tabs = [{ value: "ALL", label: "Semua Unit" }];
+            if (availableRentalTypes.includes("vehicle")) tabs.push({ value: "VEHICLE", label: "🚗 Kendaraan" });
+            if (availableRentalTypes.includes("property")) tabs.push({ value: "PROPERTY", label: "🏨 Properti" });
+            if (availableRentalTypes.includes("equipment")) tabs.push({ value: "EQUIPMENT", label: "📦 Alat & Barang" });
+            tabs.push({ value: "ADDON", label: "🛠️ Layanan & Addon" });
+            return tabs;
+          }
+          return [
+            { value: "ALL", label: "Semua" },
+            { value: "UNIT", label: config.unitLabel },
+            { value: "ADDON", label: config.addonLabel },
+          ];
+        }, [isRental, config, availableRentalTypes]);
 
                 // Filter tabs for jasa/servis (3 tabs: Semua, Jasa/Servis, Produk/Barang)
                         const jasaFilterTabs = useMemo(() => {
@@ -461,7 +623,13 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                           if (selectedFilterTab !== "ALL") {
                             if (isRental && config) {
                               // Try config tabs first (values: "UNIT", "ADDON")
-                              if (selectedFilterTab === "UNIT") {
+                              if (selectedFilterTab === "VEHICLE") {
+                                result = result.filter(p => !p.isService && detectRentalItemType(p.name, p.description, p.category) === "vehicle");
+                              } else if (selectedFilterTab === "PROPERTY") {
+                                result = result.filter(p => !p.isService && detectRentalItemType(p.name, p.description, p.category) === "property");
+                              } else if (selectedFilterTab === "EQUIPMENT") {
+                                result = result.filter(p => !p.isService && detectRentalItemType(p.name, p.description, p.category) === "equipment");
+                              } else if (selectedFilterTab === "UNIT") {
                                 result = result.filter(p => !p.isService);
                               } else if (selectedFilterTab === "ADDON") {
                                 result = result.filter(p => p.isService);
@@ -520,22 +688,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
       const products = filteredProducts;
 
-      // Detect available rental types from actual catalog (physical units only, like admin CRUD & booking link)
-      const availableRentalTypes = useMemo(() => {
-        if (!isRental) return [] as ("property" | "vehicle" | "equipment")[];
-        const types = new Set<"property" | "vehicle" | "equipment">();
-        rawProducts.forEach(p => {
-          if (p.isService) return; // only physical units
-          const type = detectRentalItemType(p.name, p.description, p.category);
-          if (type !== "unknown") types.add(type);
-        });
-        return Array.from(types);
-      }, [isRental, rawProducts]);
-          // Fallback to tenant category if catalog empty
-          const tenantRentalType = useMemo(() => getTenantRentalType(tenantCategory), [tenantCategory]);
-          const effectiveRentalTypes = availableRentalTypes.length > 0 ? availableRentalTypes : (tenantRentalType ? [tenantRentalType] : (["vehicle"] as const));
-          // Lock rentalMode to first available type
-          const lockedRentalType = effectiveRentalTypes[0] as "property" | "vehicle" | "equipment";
+
 
         // Auto-set rental mode from catalog/tenant when modal opens
         useEffect(() => {
@@ -942,8 +1095,13 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
               licensePlate: rentalInfo.licensePlate.trim() || undefined,
               pickupLocation: rentalInfo.pickupLocation?.trim() || undefined,
               dropoffLocation: rentalInfo.dropoffLocation?.trim() || undefined,
-              startDate: rentalInfo.startDate || undefined,
-              endDate: rentalInfo.endDate || undefined,
+              destination: rentalInfo.dropoffLocation?.trim() || rentalInfo.pickupLocation?.trim() || undefined,
+              startDate: rentalInfo.startDate 
+                ? (rentalInfo.pickupTime ? `${rentalInfo.startDate}T${rentalInfo.pickupTime}:00+07:00` : rentalInfo.startDate) 
+                : undefined,
+              endDate: rentalInfo.endDate 
+                ? `${rentalInfo.endDate}T${rentalInfo.returnTime || '20:00'}:00+07:00`
+                : undefined,
               guarantee: rentalInfo.guarantee.trim() || undefined,
               returnTime: rentalInfo.returnTime || undefined,
               deposit: rentalInfo.deposit || 0,
@@ -1043,7 +1201,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         setServiceDate("");
         setIsDownPayment(false);
         setDownPaymentInput("");
-        setRentalInfo({ driverName: '', licensePlate: '', pickupLocation: '', dropoffLocation: '', startDate: '', endDate: '', guarantee: '', returnTime: '', deposit: 0, conditionNotes: '', pickupTime: '08:00' });
+        setRentalInfo({ driverName: '', licensePlate: '', pickupLocation: '', dropoffLocation: '', startDate: '', endDate: '', guarantee: '', returnTime: '20:00', deposit: 0, conditionNotes: '', pickupTime: '08:00' });
         setPrintType('customer');
   };
 
@@ -1282,17 +1440,34 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
     }
 
     if (isRental) {
+      const pTime = booking.pickupTime || (booking.startDate ? new Date(booking.startDate).toISOString().slice(11, 16) : '08:00');
+      const rTime = booking.returnTime || (booking.endDate ? new Date(booking.endDate).toISOString().slice(11, 16) : '20:00');
+      const sDate = booking.startDate ? booking.startDate.split('T')[0] : '';
+      const eDate = booking.endDate ? booking.endDate.split('T')[0] : '';
+
       setRentalInfo(prev => ({
         ...prev,
         pickupLocation: booking.pickupLocation || '',
         dropoffLocation: booking.dropoffLocation || '',
-        startDate: booking.startDate ? booking.startDate.split('T')[0] : '',
-        endDate: booking.endDate ? booking.endDate.split('T')[0] : '',
+        startDate: sDate,
+        endDate: eDate,
+        pickupTime: pTime,
+        returnTime: rTime,
+        deposit: booking.deposit || 0,
+        conditionNotes: booking.notes || booking.conditionNotes || '',
       }));
+
+      if (booking.downPayment && booking.downPayment > 0) {
+        setIsDownPayment(true);
+        setDownPaymentInput(String(booking.downPayment));
+      }
+
+      // Otomatis buka form modal rental kasir agar kasir langsung melihat data lengkap dan tinggal melengkapi Supir, Plat Nomor, dll lalu cetak!
+      setIsRentalFormModalOpen(true);
     }
 
     setIsQueueModalOpen(false);
-    toast.success("Data antrean berhasil ditarik ke keranjang");
+    toast.success(isRental ? "Pesanan online berhasil ditarik! Silakan lengkapi Supir & Plat Nomor." : "Data antrean berhasil ditarik ke keranjang");
   };
 
   const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -1319,8 +1494,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
         <div className="hidden lg:flex flex-1 flex-col justify-center p-8 lg:p-20 z-10 order-2 lg:order-1">
           <div className="max-w-xl mx-auto lg:mx-0">
             <div className="flex items-center gap-2 mb-8 animate-in fade-in slide-in-from-left-4 duration-500">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm shadow-blue-600/30">
-                <Store className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-600/30 shrink-0 bg-blue-600 flex items-center justify-center">
+                <Image src="/logo-app.png" alt="PJTECH" width={40} height={40} className="w-full h-full object-cover" />
               </div>
               <div>
                 <h2 className="text-xl font-black text-slate-800 tracking-tight leading-tight">{tenantName || "PJTECH KASIR POS"}</h2>
@@ -1363,8 +1538,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
             <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-white/10 pointer-events-none"></div>
 
             <div className="relative z-10 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
-                <Store className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-6 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300 bg-blue-600 flex items-center justify-center">
+                <Image src="/logo-app.png" alt="PJTECH Kasir UMKM" width={64} height={64} className="w-full h-full object-cover" />
               </div>
               <Link href="/superadmin" className="cursor-default" tabIndex={-1}>
                 <h3 className="text-sm font-bold text-blue-600 tracking-widest uppercase mb-1 hover:text-blue-600">PJTECH KASIR UMKM</h3>
@@ -1463,17 +1638,31 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="font-bold text-sm text-gray-800 leading-tight truncate">{item.name}</span>
                     {isRental ? (
-                      <div className="mt-1 flex items-center">
-                        <span className="text-xs text-gray-500 font-bold mr-1">Rp</span>
-                        <input
-                          type="number"
-                          className="text-xs p-1 border border-gray-300 rounded w-24 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          value={item.hargaJual === 0 ? '' : item.hargaJual}
-                          onChange={(e) => {
-                            const newPrice = parseInt(e.target.value) || 0;
-                            setCart(prev => prev.map(cartItem => cartItem.cartItemId === item.cartItemId ? { ...cartItem, hargaJual: newPrice } : cartItem));
+                      <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 font-bold mr-1">Rp</span>
+                          <input
+                            type="number"
+                            className="text-xs p-1 border border-gray-300 rounded w-24 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            value={item.hargaJual === 0 ? '' : item.hargaJual}
+                            onChange={(e) => {
+                              const newPrice = parseInt(e.target.value) || 0;
+                              setCart(prev => prev.map(cartItem => cartItem.cartItemId === item.cartItemId ? { ...cartItem, hargaJual: newPrice } : cartItem));
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRentalMode('vehicle');
+                            setIsRentalFormModalOpen(true);
                           }}
-                        />
+                          className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors flex items-center gap-1 cursor-pointer"
+                          title="Hitung Estimasi BBM & Jarak Rute"
+                        >
+                          <Fuel className="w-3 h-3 text-amber-600" />
+                          <span>Hitung BBM</span>
+                        </button>
                       </div>
                     ) : (
                       <span className="text-gray-500 font-medium text-xs mt-0.5">{formatRupiah(item.hargaJual)}</span>
@@ -1633,7 +1822,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                 onClick={() => setIsRentalFormModalOpen(true)}
                 className={`w-full py-2.5 rounded-xl border-2 font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${rentalInfo.driverName && rentalInfo.licensePlate && rentalInfo.guarantee
                   ? "bg-emerald-50 text-emerald-700 border-emerald-400 hover:bg-emerald-100"
-                  : "bg-amber-50 text-amber-700 border-amber-400 hover:bg-amber-100 animate-pulse"
+                  : "bg-amber-50 text-amber-800 border-amber-400 hover:bg-amber-100"
                   }`}
               >
                 <FileText className="w-5 h-5" />
@@ -1672,7 +1861,20 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
           {/* Input Kembalian Jika Tunai */}
                     {paymentMethod === 'cash' && cart.length > 0 && (
                       <div>
-                        <label className="text-xs font-bold text-gray-500 mb-1 block">Uang Diterima</label>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs font-bold text-gray-700">
+                            {isDownPayment && parsedDownPayment > 0 ? "Uang Diterima (Untuk Bayar DP)" : "Uang Diterima"}
+                          </label>
+                          {isDownPayment && parsedDownPayment > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setCashGiven(parsedDownPayment.toLocaleString('id-ID'))}
+                              className="text-[10px] font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded border border-amber-300 transition-colors"
+                            >
+                              Uang Pas DP
+                            </button>
+                          )}
+                        </div>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
                           <input
@@ -1689,31 +1891,77 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                       </div>
                     )}
 
-          {/* DP System */}
+          {/* DP System & Uang Muka */}
           {(isRental) && cart.length > 0 && (
-            <div className="pt-2 border-t border-gray-100">
-              <label className="flex items-center gap-2 cursor-pointer mb-2">
-                <input type="checkbox" checked={isDownPayment} onChange={(e) => setIsDownPayment(e.target.checked)} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
-                <span className="text-sm font-bold text-gray-700">Bayar Uang Muka (DP)</span>
+            <div className="pt-2.5 border-t border-gray-100">
+              <label className="flex items-center justify-between cursor-pointer mb-2 bg-slate-50 hover:bg-slate-100 p-2 rounded-xl border border-slate-200 transition-colors">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    checked={isDownPayment} 
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setIsDownPayment(checked);
+                      if (checked && !downPaymentInput) {
+                        // Default preset 50%
+                        setDownPaymentInput(Math.round(grandTotal * 0.5).toLocaleString('id-ID'));
+                      }
+                    }} 
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500" 
+                  />
+                  <span className="text-xs sm:text-sm font-bold text-slate-800">Pelanggan Bayar Uang Muka (DP)</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-300 bg-amber-100 text-amber-800">
+                  {isDownPayment ? "DP Aktif" : "Non-DP"}
+                </span>
               </label>
+
               {isDownPayment && (
-                              <div className="ml-6 space-y-2">
-                                <div className="relative">
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
-                                  <input
-                                    type="text"
-                                    placeholder="Nominal DP"
-                                    className="w-full pl-9 pr-3 p-2 bg-white border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-gray-900 placeholder-gray-400 transition-all"
-                                    value={downPaymentInput}
-                                    onChange={(e) => {
-                                      const val = e.target.value.replace(/[^0-9]/g, '');
-                                      setDownPaymentInput(val ? parseInt(val).toLocaleString('id-ID') : "");
-                                    }}
-                                  />
-                                </div>
-                  <div className="flex justify-between text-xs font-medium text-gray-500 bg-gray-50 p-2 rounded">
-                    <span>Sisa Tagihan:</span>
-                    <span className="text-red-500 font-bold">{formatRupiah(remainingBalance)}</span>
+                <div className="space-y-2.5 bg-amber-50/50 p-3 rounded-xl border border-amber-200/80">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs font-bold text-amber-900">Nominal DP Diterima Sekarang:</span>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setDownPaymentInput(Math.round(grandTotal * 0.5).toLocaleString('id-ID'))}
+                          className="text-[10px] font-bold px-1.5 py-0.5 bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 rounded shadow-2xs transition-all"
+                          title="Setel DP 50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDownPaymentInput(Math.round(grandTotal * 0.3).toLocaleString('id-ID'))}
+                          className="text-[10px] font-bold px-1.5 py-0.5 bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 rounded shadow-2xs transition-all"
+                          title="Setel DP 30%"
+                        >
+                          30%
+                        </button>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-bold">Rp</span>
+                      <input
+                        type="text"
+                        placeholder="Contoh: 500.000"
+                        className="w-full pl-9 pr-3 p-2 bg-white border border-amber-300 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-lg text-sm font-bold text-gray-900 transition-all"
+                        value={downPaymentInput}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          setDownPaymentInput(val ? parseInt(val).toLocaleString('id-ID') : "");
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Ringkasan Status Belum Lunas (Angka Merah) */}
+                  <div className="flex justify-between items-center text-xs p-2 bg-white rounded-lg border border-rose-200 shadow-2xs">
+                    <div>
+                      <span className="font-bold text-rose-700 block text-[11px] uppercase tracking-wider">⚠️ Sisa Tagihan (Belum Lunas):</span>
+                      <span className="text-[10px] text-slate-500">Wajib dilunasi saat serah terima / selesai sewa</span>
+                    </div>
+                    <span className="text-base font-black text-rose-600">{formatRupiah(remainingBalance)}</span>
                   </div>
                 </div>
               )}
@@ -2614,7 +2862,7 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
       {/* Modal Data Armada & Sewa (Khusus Rental - Dual Mode) */}
       {isRentalFormModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
+          <div className="bg-white rounded-2xl w-full max-w-xl sm:max-w-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-slate-50">
               <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-blue-600" />
@@ -2766,12 +3014,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                     </div>
                                     <div>
                                       <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jam Ambil *</label>
-                                      <input
-                                        type="time"
+                                      <select
                                         value={rentalInfo.pickupTime || "08:00"}
                                         onChange={(e) => setRentalInfo(prev => ({ ...prev, pickupTime: e.target.value }))}
-                                        className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
-                                      />
+                                        title="Jam Ambil (WIB 24 Jam)"
+                                        className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 font-bold transition-all appearance-none cursor-pointer"
+                                      >
+                                        {INDONESIAN_TIME_SLOTS.map(t => (
+                                          <option key={t.value} value={t.value}>
+                                            {t.label}
+                                          </option>
+                                        ))}
+                                      </select>
                                     </div>
                                   </div>
 
@@ -2799,12 +3053,18 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jam Kembali *</label>
-                                      <input
-                                        type="time"
+                                      <select
                                         value={rentalInfo.returnTime || "17:00"}
                                         onChange={(e) => setRentalInfo(prev => ({ ...prev, returnTime: e.target.value }))}
-                                        className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
-                                      />
+                                        title="Jam Kembali (WIB 24 Jam)"
+                                        className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 font-bold transition-all appearance-none cursor-pointer"
+                                      >
+                                        {INDONESIAN_TIME_SLOTS.map(t => (
+                                          <option key={t.value} value={t.value}>
+                                            {t.label}
+                                          </option>
+                                        ))}
+                                      </select>
                                     </div>
                                     <div>
                                       <label className="text-sm font-bold text-gray-700 mb-1.5 block">Deposit / Jaminan <span className="font-normal text-gray-400">(opsional)</span></label>
@@ -2882,24 +3142,86 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Mulai</label>
-                      <input
-                        type="date"
-                        value={rentalInfo.startDate}
-                        onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
-                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
-                      />
+                  {/* Kalkulator Rute & Estimasi BBM */}
+                  <SmartRouteFuelCalculator
+                    vehicleName={cart[0]?.name || rentalInfo.licensePlate || "Armada"}
+                    basePrice={cart[0]?.hargaJual || 0}
+                    pickupLocation={rentalInfo.pickupLocation || ''}
+                    dropoffLocation={rentalInfo.dropoffLocation || ''}
+                    onUpdateLocations={(p, d) => {
+                      setRentalInfo(prev => ({
+                        ...prev,
+                        pickupLocation: p,
+                        dropoffLocation: d
+                      }));
+                    }}
+                    onApplyPricing={(newPrice, breakdownNote) => {
+                      if (cart.length > 0) {
+                        setCart(prev => prev.map((c, idx) => idx === 0 ? { ...c, hargaJual: newPrice } : c));
+                      }
+                      setRentalInfo(prev => ({
+                        ...prev,
+                        conditionNotes: prev.conditionNotes
+                          ? `${prev.conditionNotes}\n[Kalkulasi BBM]: ${breakdownNote}`
+                          : `[Kalkulasi BBM]: ${breakdownNote}`
+                      }));
+                      toast.success(`Tarif sewa armada disesuaikan ke ${formatRupiah(newPrice)}`);
+                    }}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-gray-700 flex items-center justify-between gap-1">
+                        <span className="truncate">Tgl & Jam Berangkat / Ambil <span className="text-rose-500">*</span></span>
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded shrink-0">WIB</span>
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="date"
+                          value={rentalInfo.startDate}
+                          onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
+                          className="flex-1 min-w-0 p-2.5 sm:p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 transition-all font-medium"
+                        />
+                        <select
+                          value={rentalInfo.pickupTime || "08:00"}
+                          onChange={(e) => setRentalInfo(prev => ({ ...prev, pickupTime: e.target.value }))}
+                          title="Jam Berangkat / Ambil (WIB 24 Jam)"
+                          className="w-28 sm:w-32 shrink-0 px-2 py-2.5 sm:py-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 font-bold transition-all cursor-pointer text-center"
+                        >
+                          {INDONESIAN_TIME_SLOTS.map(t => (
+                            <option key={t.value} value={t.value}>
+                              {t.value} WIB
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-bold text-gray-700 mb-1.5 block">Tgl Selesai</label>
-                      <input
-                        type="date"
-                        value={rentalInfo.endDate}
-                        onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
-                        className="w-full p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
-                      />
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-gray-700 flex items-center justify-between gap-1">
+                        <span className="truncate">Tgl & Jam Kembali / Selesai <span className="text-rose-500">*</span></span>
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded shrink-0">WIB</span>
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="date"
+                          value={rentalInfo.endDate}
+                          onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
+                          className="flex-1 min-w-0 p-2.5 sm:p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 transition-all font-medium"
+                        />
+                        <select
+                          value={rentalInfo.returnTime || "20:00"}
+                          onChange={(e) => setRentalInfo(prev => ({ ...prev, returnTime: e.target.value }))}
+                          title="Jam Pulang / Selesai (WIB 24 Jam)"
+                          className="w-28 sm:w-32 shrink-0 px-2 py-2.5 sm:py-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 font-bold transition-all cursor-pointer text-center"
+                        >
+                          {INDONESIAN_TIME_SLOTS.map(t => (
+                            <option key={t.value} value={t.value}>
+                              {t.value} WIB
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
 

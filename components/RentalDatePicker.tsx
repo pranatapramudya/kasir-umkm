@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { DayPicker, DateRange } from "react-day-picker";
+import { id } from "date-fns/locale";
 import "react-day-picker/style.css";
 
 // Helper to convert Date to local ISO string (YYYY-MM-DD) safely
@@ -88,7 +89,7 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
 
   const handleConfirm = () => {
     if (range?.from && range?.to) {
-      // Validasi apakah rentang yang dipilih beririsan dengan disabled dates (krn react-day-picker mengizinkan 'jump' secara default)
+      // Validasi apakah rentang yang dipilih beririsan dengan disabled dates
       let isOverlap = false;
       const rFrom = range.from.getTime();
       const rTo = range.to.getTime();
@@ -112,11 +113,11 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
       onChange(toLocalISOString(range.from), toLocalISOString(range.to));
       setIsOpen(false);
     } else if (range?.from && !range?.to) {
-      // Jika hanya pilih start, kita asumsikan 1 hari (start = end)
+      // Jika hanya pilih start, asumsikan 1 hari (start = end)
       onChange(toLocalISOString(range.from), toLocalISOString(range.from));
       setIsOpen(false);
     } else {
-      alert("Pilih tanggal mulai dan selesai.");
+      alert("Silakan pilih tanggal keberangkatan dan kepulangan.");
     }
   };
 
@@ -129,63 +130,92 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
   return (
     <>
       <div className="space-y-1.5" onClick={() => setIsOpen(true)}>
-        <label className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          Pilih Tanggal Sewa *
+        <label className="text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+          <span>Jadwal Tanggal Berangkat & Kepulangan *</span>
+          <span className="text-amber-600 font-bold normal-case text-xs">Klik buka kalender</span>
         </label>
-        <div className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm cursor-pointer hover:border-amber-500 transition-all flex items-center justify-between">
-          <span>{startDate ? displayFormat(startDate) : "Mulai"}</span>
-          <span className="text-slate-400 font-bold mx-2">→</span>
-          <span>{endDate ? displayFormat(endDate) : "Selesai"}</span>
+        <div className="w-full bg-white border border-slate-200 hover:border-amber-500 rounded-xl px-3.5 py-3 text-slate-900 text-[13px] sm:text-sm cursor-pointer shadow-sm transition-all flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-base">📅</span>
+            <span className="font-semibold">{startDate ? displayFormat(startDate) : "Pilih Tgl Berangkat"}</span>
+          </div>
+          <span className="text-amber-500 font-bold mx-2">➜</span>
+          <div className="flex items-center gap-2 text-right">
+            <span className="font-semibold">{endDate ? displayFormat(endDate) : "Pilih Tgl Pulang"}</span>
+            <span className="text-base">🏁</span>
+          </div>
         </div>
       </div>
 
-      {/* Modal / Popover Overlay */}
+      {/* Modal Kalender Indonesia */}
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-slate-900 text-lg">Pilih Jadwal Sewa</h3>
-              <button type="button" onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full p-2">
+              <div>
+                <h3 className="font-bold text-slate-900 text-lg">Kalender Sewa & Perjalanan</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Waktu Indonesia (WIB) - Jadwal Terverifikasi</p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsOpen(false)} 
+                className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full p-2 transition-colors"
+                title="Tutup Kalender"
+              >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            {/* Helper Text UX */}
-            <div className="mb-4 bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-3 text-left">
-              <span className="text-blue-500 shrink-0 mt-0.5 text-sm">ℹ️</span>
-              <p className="text-xs text-blue-800 leading-relaxed">
-                <strong>Cara Memilih Jadwal:</strong> Klik pada tanggal MULAI sewa, kemudian klik pada tanggal SELESAI sewa. Tanggal yang dicoret berarti armada sudah tidak tersedia.
+            {/* Helper Text UX Berbahasa Indonesia */}
+            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2.5 text-left">
+              <span className="text-amber-600 shrink-0 text-base">ℹ️</span>
+              <p className="text-xs text-amber-900 leading-relaxed">
+                <strong>Cara Memilih:</strong> Klik tanggal <strong>BERANGKAT</strong>, lalu klik tanggal <strong>KEPULANGAN</strong>. Tanggal yang dicoret menandakan armada sudah terisi penuh oleh rombongan lain.
               </p>
             </div>
             
             {isLoading ? (
-              <div className="py-12 flex justify-center items-center">
+              <div className="py-12 flex flex-col justify-center items-center gap-2">
                 <svg className="w-8 h-8 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
+                <span className="text-xs text-slate-500">Memeriksa ketersediaan armada...</span>
               </div>
             ) : (
               <div className="flex justify-center rd-picker-custom overflow-x-auto p-1">
                 <DayPicker
+                  locale={id}
                   mode="range"
                   selected={range}
                   onSelect={handleSelect}
                   disabled={disabledDates}
                   className="bg-white"
                   classNames={{
-                    day: "text-slate-900",
-                    selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white",
-                    disabled: "text-slate-300 line-through bg-slate-50",
-                    month_caption: "text-slate-900 font-bold",
-                    weekday: "text-slate-700 font-medium",
-                    button_next: "text-slate-800 hover:bg-slate-100",
-                    button_previous: "text-slate-800 hover:bg-slate-100",
-                    chevron: "text-slate-800"
+                    day: "text-slate-900 font-medium",
+                    selected: "bg-amber-500 text-white hover:bg-amber-600 hover:text-white font-bold",
+                    disabled: "text-slate-300 line-through bg-slate-50 cursor-not-allowed",
+                    month_caption: "text-slate-900 font-bold text-base capitalize",
+                    weekday: "text-slate-600 font-semibold text-xs capitalize",
+                    button_next: "text-slate-800 hover:bg-slate-100 rounded-lg p-1",
+                    button_previous: "text-slate-800 hover:bg-slate-100 rounded-lg p-1",
+                    chevron: "text-slate-800 fill-slate-800"
                   }}
                 />
+              </div>
+            )}
+
+            {range?.from && (
+              <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 flex justify-between items-center">
+                <div>
+                  <span className="text-slate-500">Jadwal Terpilih: </span>
+                  <span className="font-bold text-slate-900">
+                    {displayFormat(toLocalISOString(range.from))}
+                    {range.to && ` s/d ${displayFormat(toLocalISOString(range.to))}`}
+                  </span>
+                </div>
               </div>
             )}
             
@@ -201,9 +231,9 @@ export function RentalDatePicker({ slug, productId, startDate, endDate, onChange
                 type="button" 
                 onClick={handleConfirm}
                 disabled={!range?.from}
-                className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-bold text-sm hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-bold text-sm hover:bg-amber-600 disabled:opacity-50 transition-colors shadow-md"
               >
-                Terapkan
+                Gunakan Jadwal Ini
               </button>
             </div>
           </div>

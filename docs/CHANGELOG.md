@@ -7,6 +7,161 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🎯 2026-10-08 — Tata Letak Mobile All-in-One: Seluruh 5 Sektor Usaha Terlihat Tanpa Perlu Digeser
+- **Grid 5-Kolom Presisi (`components/auth/AuthShell.tsx`):**
+  - Mengubah baris chip sektor usaha pada header mobile dari sistem scroll horizontal menjadi **Grid 5 Kolom Proporsional (`grid-cols-5`)**.
+  - Seluruh 5 pilar usaha (**Rental**, **Properti**, **Alat**, **F&B**, **Retail**) kini **tampil 100% all-in-one sekaligus** di semua resolusi layar mobile tanpa perlu digeser atau terpotong.
+  - Setiap sektor dilengkapi mini-kartu 3D dengan ikon berwarna dan teks presisi yang serasi.
+
+### 💎 2026-10-08 — Header 3D Ringan untuk Mobile Auth & Keselarasan 5 Sektor Usaha
+- **Header 3D Modern & Ringan (`components/auth/AuthShell.tsx`):**
+  - Mengimplementasikan kartu header 3D berestetika tinggi menggunakan Pure CSS (bevel gradient, soft layered elevation shadow `shadow-[0_10px_25px_-5px_rgba(0,0,0,0.06)]`, dan logo emblem 3D mengambang) tanpa aset berat atau library 3D eksternal.
+  - Memadukan bilah chip 5 sektor usaha (`🚗 Rental`, `🏨 Properti`, `📦 Alat/Barang`, `🍽️ F&B`, `🛍️ Retail/Jasa`) dalam satu baris presisi terpadu tanpa ada chip yang terpecah sendirian.
+  - Mempertahankan posisi formulir otentikasi Clerk **presisi di titik tengah vertikal layar mobile** (`my-auto`).
+
+### ☀️ 2026-10-08 — Transformasi Tema Terang (Light Mode) & Presisi Form Mobile
+- **Tema Terang Eksekutif (`components/auth/AuthShell.tsx`):**
+  - Mengubah keseluruhan tema dari tema gelap menjadi **Clean Modern SaaS Light Theme** (`bg-slate-50 / white`) dengan aksen biru korporat dan pencahayaan lembut di desktop maupun mobile.
+  - **Presisi Mobile Vertikal:** Formulir login/daftar Clerk kini berposisi **tepat di tengah-tengah layar** (`my-auto`), dengan chip 5 sektor usaha ringkas di atasnya dan lencana keamanan di bawahnya.
+  - **Copywriting Lengkap Alat & Barang:** Menambahkan sektor **📦 Alat, Barang & Perlengkapan** (Sewa sound system, tenda pesta, kamera, delivery fee & deposit jaminan) ke dalam matriks sektor bisnis di desktop maupun mobile.
+
+### 📱 2026-10-08 — Penyempurnaan Tampilan Mobile & Eliminasi Ikon AI Gemini pada Auth
+- **Penyempurnaan Mobile (`components/auth/AuthShell.tsx`):**
+  - Tampilan mobile kini menghadirkan seluruh showcase ekosistem seperti di desktop (Headline, lencana sektor, dan matriks 4 kartu sektor: Rental & Travel, Properti, F&B, dan Retail), sehingga tidak lagi terkesan polos/kosong.
+  - Palet warna disesuaikan menjadi *luminous slate-navy* (`slate-900 / slate-850`) yang seimbang, modern, elegan, dan tidak terlalu gelap (*not pitch-black*).
+  - Menggantikan logo aplikasi dengan ikon resmi APK 3D PJTECH (`/logo-app.png`).
+- **Eliminasi Ikon Gemini / Sparkle:**
+  - Menghapus ikon bintang sparkle (`Sparkles`) dan menggantinya dengan ikon verifikasi enterprise resmi (`CheckCircle2`) untuk menjamin estetika bisnis profesional dan bebas dari kesan generic AI slop.
+
+### 🌟 2026-10-08 — Overhaul UI/UX Profesional Halaman Login & Registrasi (/sign-in & /sign-up)
+- **Komponen `AuthShell` Enterprise (`components/auth/AuthShell.tsx`):**
+  - Menggantikan tampilan polos/kosong dengan layout Split-Screen SaaS kelas dunia (berstandar Stripe/Linear).
+  - **Sisi Kiri (Desktop/Tablet):** Showcase branding *PJTECH UMKM (pjtechumkm.com)* dengan ambient gradient, logo resmi, headline terarah, matriks kartu 5 sektor bisnis (Rental & Travel, Properti, F&B, Retail, Jasa), garansi keamanan multi-tenant, dan social proof.
+  - **Sisi Kanan (Desktop & Mobile):** Kontainer form otentikasi terpusat dengan subtle radial background, header responsif di mobile, security badges (SSL 256-Bit, Cloud Multi-Tenant Terisolasi), dan navigasi bolak-balik antara Sign-In & Sign-Up.
+  - **Clerk Component Styling:** Menyematkan custom `appearance` pada `<SignIn />` dan `<SignUp />` dengan border halus, radius 3xl, font konsisten, dan tombol primer aksen biru korporat.
+
+### 🎨 2026-10-08 — Perbaikan Dropdown Pemilihan Unit / Armada Form Booking (/book/[slug])
+- **Custom Responsive Selector Dropdown (`app/book/[slug]/BookingForm.tsx`):**
+  - Menggantikan elemen native HTML `<select>` dengan Custom React Dropdown Selector yang terkunci presisi 100% pada lebar kontainer kartu (`w-full max-w-full`).
+  - Mengeliminasi bug browser OS popup di mana teks armada yang panjang (seperti *Big Bus HDD 59 Seat...*) membentang melebar keluar batas kartu di mobile maupun desktop.
+  - Teks nama unit kini membungkus rapi (`break-words line-clamp-2`) dengan harga terformat di baris tersendiri dan preview thumbnail foto unit.
+  - Menjaga validasi form tetap seamless dengan input tersembunyi (`<input type="hidden" name="productId" ... />`) serta penanganan klik luar (`click-outside listener`).
+  - Menyesuaikan padding kartu formulir menjadi responsif (`p-4 sm:p-6`) agar lebih leluasa di layar mobile yang sempit.
+
+### 🛡️ 2026-10-08 — Perbaikan Error Logout (useUser & BottomNav Resilience)
+- **Eliminasi Error `useUser` Saat Logout (`hooks/usePendingBookingCount.ts`):**
+  - Melepaskan ketergantungan hook dari `useUser()` milik Clerk client SDK, menggantikannya dengan parameter `tenantId` yang diteruskan dari server component (`Sidebar.tsx` & `BottomNav.tsx`).
+  - Menghilangkan potensi crash saat sesi Clerk di-*teardown* / *unmount* ketika pengguna menekan tombol keluar (logout).
+- **Graceful Unmount & Kepatuhan Rules of Hooks (`components/BottomNav.tsx` & `components/BottomNavClient.tsx`):**
+  - Memastikan `BottomNav.tsx` me-return `null` secara aman saat sesi `auth()` gagal/berakhir.
+  - Memindahkan pemanggilan hook SWR polling `usePendingBookingCount` ke baris teratas di `BottomNavClient` sebelum percabangan early return path (`hiddenPaths`).
+
+### 🛡️ 2026-10-08 — Isolasi Multi-Tenant & Optimasi Penyimpanan Neon DB
+- **Isolasi Niche Multi-Foto Produk (`admin/products/page-client.tsx`):**
+  - **Khusus Rental / Travel, Properti, dan Alat & Barang:** Dibuka kuota hingga **5 foto per unit**.
+  - **Khusus Jasa / Servis & Retail/F&B:** Tetap dibatasi **1 foto** agar katalog ringan.
+  - **Ultra-Lightweight Canvas Compression:** Dimensi dibatasi maks 640px dengan kualitas 0.65 (~25–35KB per foto), sehingga 5 foto hanya menghabiskan ~150KB. Database Neon gratisan (kuota 512MB) tetap super aman dan mampu menampung ribuan armada tanpa khawatir penyimpanan penuh.
+- **Verifikasi Keamanan Multi-Tenant:**
+  - Memastikan isolasi query database pada `app/book/[slug]` strictly difilter berdasarkan `userId: tenant.userId`, menjamin data tidak akan pernah bocor antar tenant/toko lain.
+
+### 🌟 2026-10-08 — Galeri Multi-Foto Produk & Perbaikan Selector Reservasi Online
+- **Multi-Foto Produk (s/d 5 Foto) di Admin & Galeri Booking (`admin/products` & `app/book/[slug]`):**
+  - Menyediakan upload multi-foto (hingga 5 foto per unit/produk) untuk semua bisnis (Rental, Properti, Alat, Retail & F&B).
+  - Foto dikompresi otomatis client-side dan disimpan terstruktur via `lib/product-images.ts` dengan kompatibilitas penuh untuk data lama.
+  - Di halaman reservasi publik (`/book/[slug]`), unit yang dipilih menampilkan kartu showcase foto galeri interaktif (foto utama, navigasi prev/next, thumbnail switcher, dan counter foto).
+- **Perbaikan Selector Armada Melebar & Pemisahan Add-on (`BookingForm.tsx`):**
+  - Mengeliminasi bug dropdown melebar (*overflow*) di mobile/desktop dengan menerapkan styling `w-full max-w-full truncate overflow-hidden` dan teks opsi ringkas (`[Nama Unit] • [Harga]`).
+  - Memisahkan add-on/layanan tambahan (seperti spanduk, bbm, kenek) agar tidak tercampur ke dalam dropdown pilihan unit armada/fisik utama.
+
+### 🚀 2026-10-07 — Eliminasi Flicker Hapus Produk & Download Template Minibus
+- **Perbaikan Hapus Produk Bebas Kedip / Blank Flash (`app/(protected)/admin/products/page-client.tsx`):**
+  - Mengubah mutasi optimistik pada `confirmDelete` dan `handleQuickRestock` menjadi update instan (`mutate({ products, totalPages }, false)`) tanpa memicu revalidasi yang me-reset array produk menjadi kosong (`[]`).
+  - Menjaga data produk lokal tetap utuh dan stabil di layar sementara request DELETE dijalankan secara asinkron di latar belakang.
+  - Memperbaiki kondisi loader tabel dari `(!data && !error)` menjadi `(!data && !error && isLoading)` sehingga transisi data tidak pernah memicu loader putih atau kedip hilang.
+- **Template Excel & Download Stream Minibus / Bus Pariwisata (`components/CsvImportModal.tsx` & `app/api/onboarding/download-template/route.ts`):**
+  - Mengganti `window.open` menjadi direct stream download via `Blob` agar tidak membuka tab kosong yang berputar/loading tanpa henti.
+  - Menambahkan tombol khusus Minibus & Bus Pariwisata / Ziarah dengan 150 baris rumus & dropdown otomatis.
+  - Mendaftarkan ikon `Bus` dari `lucide-react` pada modal impor.
+
+### 🎯 2026-10-07 — Kalender Sewa Desktop/Tablet: Pagination Rata 10 & Penataan Layout
+- **Penambahan Contoh Armada Bus Pariwisata & Ziarah di Template Excel (`lib/excel-template.ts`):**
+  - Menyediakan baris contoh siap pakai untuk bisnis PO Bus Pariwisata & Travel Ziarah (Big Bus SHD 50 Seat, Big Bus 59 Seat, Medium Bus 35 Seat, dan Elf Long).
+  - Menyertakan konvensi penamaan unit yang membedakan **Unit Garasi Sendiri** vs **Unit Titipan Mitra/Investor (Bagi Hasil)** di nama unit dan kolom deskripsi agar orang awam mudah mengisi tanpa bingung.
+- **Alur Pelunasan Sewa & Jam Pulang Invoice (`app/(protected)/admin/rental-calendar` & `components/InvoiceRentalA4.tsx`):**
+  - **Jam Pulang / Selesai Sewa Selalu Tercetak:** Memperbaiki inisialisasi default `returnTime` ('20:00') dan fallback format tanggal cetak sehingga baris `Selesai Sewa` di dokumen invoice/surat jalan selalu menampilkan jam pulang secara lengkap (`08 Okt 2026, 20:00 WIB`), tidak lagi terpotong tanggalnya saja.
+  - **Fitur Input Pelunasan Lengkap di Kalender Sewa:**
+    - Membuka tombol **`[ 💰 Terima Pelunasan & Selesai ]`** untuk semua orderan yang belum lunas (baik transaksi langsung dari Kasir POS maupun booking Online).
+    - Menghadirkan modal **Penyelesaian Sewa & Pelunasan**:
+      - Rincian Sisa Tagihan Belum Lunas (Angka Merah).
+      - Input Denda Overtime / Biaya Kerusakan tambahan (opsional).
+      - Kalkulasi otomatis total pelunasan yang harus diterima kasir saat ini.
+      - Pilihan metode pembayaran pelunasan: `💵 Tunai` atau `📱 Transfer / QRIS`.
+    - Server Action `finishOrder` kini mendukung pelunasan transaksi POS maupun booking online secara otomatis (`status: 'completed'`, `remainingBalance: 0`).
+- **Perbaikan Data Tujuan Perjalanan & Format Tanggal Cetak Invoice (`components/InvoiceRentalA4.tsx` & `app/page-client.tsx`):**
+  - **Tujuan Perjalanan Terekam Akurat:** Memperbaiki pembacaan field destinasi agar membaca `dropoffLocation` (dan `destination`) sehingga rute/tujuan yang diisi kasir di form sewa armada/travel tercetak nyata dan tidak lagi kosong/dummy `-`.
+  - **Dukungan Titik Jemput:** Menambahkan baris cetak `Titik Jemput` pada dokumen jika kasir mengisi lokasi penjemputan.
+  - **Format Tanggal Rapi (Bukan ISO Mentah):** Mengubah tampilan tanggal `Mulai Sewa` dan `Selesai Sewa` dari format raw ISO (`2026-10-07T23:00:00+07:00`) menjadi format rapi bahasa Indonesia yang profesional (`07 Okt 2026, 23:00 WIB`).
+- **Penyempurnaan Alur Uang Muka (DP) & Dokumen Invoice (`app/page-client.tsx` & `components/InvoiceRentalA4.tsx`):**
+  - **Tombol Lengkapi Data Sewa Tetap Tenang:** Menghapus efek kedap-kedip (`animate-pulse`) pada tombol `[📝 Lengkapi Data Sewa / Check-in *]` agar tampilan kasir tidak menyilaukan mata dan tetap fokus.
+  - **Alur Pengisian DP Mudah & Cepat:**
+    - Menambahkan tombol preset instan `[50%]` dan `[30%]` saat opsi DP dicentang.
+    - Menambahkan tombol `[Uang Pas DP]` pada input pembayaran tunai sehingga kasir tidak perlu mengetik manual ulang nominal uang yang diterima.
+    - Menampilkan kalkulasi **Sisa Tagihan (Angka Merah Tebal)** secara transparan sebelum checkout.
+  - **Pembedaan Jelas: Invoice Resmi (Lunas) vs Surat Jalan / Tanda Terima DP (Belum Lunas):**
+    - **Jika Lunas (Sisa Tagihan = 0):** Dokumen dicetak dengan judul **INVOICE RESMI SEWA** disertai stempel hijau **[✓ LUNAS (PAID)]**.
+    - **Jika Belum Lunas (Masih Ada Sisa Tagihan):** Dokumen dicetak sebagai **SURAT JALAN & TANDA TERIMA DP** disertai stempel merah **[⚠️ BELUM LUNAS (DP)]** dan angka merah mencolok pada rincian sisa tagihan yang wajib dilunasi saat pengembalian armada/check-out unit.
+- **Perbaikan Presisi Form Rental Kendaraan & Surat Jalan Desktop (`app/page-client.tsx`):**
+  - Memperluas lebar modal di desktop menjadi `max-w-xl sm:max-w-2xl` agar tata letak input lapang dan proporsional.
+  - Memperbaiki label "Tgl & Jam Berangkat / Ambil *" dan "Tgl & Jam Kembali / Selesai *" agar badge WIB dan tanda bintang `*` tidak terpotong atau turun baris secara canggung.
+  - Mengganti grid rasio kaku pada input tanggal & jam dengan struktur `flex gap-2` di mana box jam sewa memiliki lebar pasti `w-28 sm:w-32` dengan format teks bersih (`08:00 WIB`, `20:00 WIB`) sehingga teks jam tidak lagi terpotong menjadi "08:00 WI".
+- **Bugfix React Rules of Hooks (`RentalCalendarClient.tsx`):** Memindahkan pemanggilan hook `useRef(agendaTopRef)`, `useState(orderPage)`, dan `useEffect` ke level paling atas komponen (sebelum early return kondisi `!isMounted || !data`) untuk mematuhi aturan urutan hooks React.
+- **Sistem Pagination 10 Rata per Halaman (`/admin/rental-calendar`):**
+  - Mengatasi penumpukan orderan di hari yang sama dengan membatasi tampilan maksimal **10 orderan per halaman** secara rata (`ORDERS_PER_PAGE = 10`).
+  - Menambahkan tombol kontrol navigasi **[← Sebelumnya]** dan **[Sesudah →]** baik di ringkasan atas maupun di bar kontrol bawah.
+  - Ditambahkan indikator nomor halaman dinamis (`Halaman X dari Y`, tombol angka hal. 1, 2, dst., serta info `Menampilkan 1 - 10 dari Total N Orderan`).
+  - Auto-reset ke halaman 1 setiap kali user memilih tanggal baru di kalender atau mengubah filter status.
+  - Auto smooth scroll kembali ke awal daftar orderan saat berpindah halaman agar pengalaman navigasi responsif.
+  - Validasi deteksi tabrakan waktu sewa (`hasConflict`) tetap menganalisis seluruh data orderan di tanggal tersebut tanpa terpotong pagination.
+- **Perbaikan Layout Desktop & Tablet (Bebas Spasi Putih Kosong):**
+  - Mengunci kolom kalender bulanan di sisi kiri dengan `lg:sticky lg:top-20 self-start` agar kalender tetap nampak jelas dan tidak hilang saat user men-scroll kartu orderan di sisi kanan.
+  - Menyeimbangkan rasio grid desktop (`xl:col-span-7` & `xl:col-span-5`) dengan jarak antar kartu `gap-3.5` yang rapi dan terstruktur, cocok untuk rental kendaraan, travel, properti, maupun sewa alat & barang.
+
+
+
+### 📱 PWA, Branding & UI/UX Refinement: Multi-Platform Install, Official App Icon & Header Redesign (2026-10-07)
+- **Header Desktop Landing Page Redesign (`components/landing/LandingPageClient.tsx`):**
+  - Mengatasi masalah tata letak padat/mepet dengan alokasi whitespace proporsional (`gap-6 xl:gap-8`).
+  - Pemisahan bersih antara navigasi murni (Solusi Bisnis, Perbandingan POS, Blog, Harga, FAQ) di sisi tengah dan grup aksi pengguna di sisi kanan.
+  - Mempersingkat teks tombol CTA primer dari `"Daftar jika Belum Punya Akun"` menjadi `"Coba Gratis 14 Hari ➔"` untuk efisiensi ruang dan rasio konversi tinggi.
+  - Mengubah theme switcher teks menjadi compact icon-only button (menghemat ~50px ruang horizontal).
+  - Menempatkan tombol "Install HP" sebagai pill badge elegan di action group kanan.
+- **PWA Multi-Platform Install Notification (`components/PwaInstallPrompt.tsx`):**
+  - Menambahkan deteksi otomatis perangkat Apple iOS (iPhone/iPad) dan standalone mode detection.
+  - Menyediakan tab switcher platform interaktif `[🤖 Android]` & `[🍎 iPhone / iPad (iOS)]`.
+  - Khusus pengguna iOS: panduan visual 3 langkah (Safari Share ⎋ -> Add to Home Screen -> Tambah) dengan tombol konfirmasi siap pasang.
+  - Khusus pengguna Android/Chromium: native 1-click install via `beforeinstallprompt`.
+  - Supresi prompt otomatis jika aplikasi sudah berjalan dalam mode standalone (PWA terinstal).
+- **Branding & Official App Icon Consistency:**
+  - Mengganti seluruh ikon placeholder generic (`Store` icon) di Landing Page Header & Footer, Sidebar Dashboard Kasir POS, Auth Page, Onboarding Page, dan Comparison Card menjadi Logo Resmi APK 3D PJTECH (`public/logo-app.png` & `public/icon-192x192.png`).
+  - Konfigurasi PWA Manifest (`app/manifest.ts`) dengan `start_url: "/admin/pos"` agar saat aplikasi dibuka dari Home Screen langsung meluncur ke mesin kasir POS (bukan web marketing).
+  - Pembuatan berkas PNG valid resolusi tinggi: `public/icon-192x192.png`, `public/icon-512x512.png`, dan `public/apple-touch-icon.png` (180x180) untuk kejernihan ikon di Android & iOS.
+- **Panduan & SOP Instalasi Mobile:**
+  - Modal interaktif panduan instalasi Android & iOS pada Landing Page.
+  - FAQ nomor 1 di Landing Page mengenai langkah instalasi tanpa Play Store/App Store.
+  - SOP panduan instalasi PWA di modal Buku Panduan & Bantuan dashboard (`components/BukuPanduanModal.tsx`).
+- **Pembaruan SOP Rental & Travel (`components/BukuPanduanModal.tsx`):**
+  - Mengeliminasi instruksi usang ("Klik Start / Finish") dan menyelaraskannya dengan fitur aktif sistem.
+  - Alur SOP operasional diperbarui: Input Unit (Stok 1) ➔ Atur Tarif & Rekening DP ➔ Bagikan Link Booking Publik ➔ Terima & ACC Jadwal di Kalender ➔ Transaksi Kasir POS & Cetak Surat Jalan/Perjanjian Sewa Format A4 ➔ Monitoring Kalender & Penyelesaian Sewa (kalkulasi Denda Overtime & pengembalian Deposit Jaminan).
+- **Multi-Niche Rental Hybrid Safeguard (`page-client.tsx` & `admin/products/page-client.tsx`):**
+  - Mengantisipasi skenario jika tenant mengimpor ketiga template sekaligus (Kendaraan + Properti + Peralatan).
+  - Sistem secara dinamis memecah tab filter menjadi kategori mandiri (`[🚗 Kendaraan & Armada]`, `[🏨 Properti & Kamar]`, `[📦 Alat & Barang]`, dan `[🛠️ Layanan & Add-on]`) sehingga unit tidak bercampur aduk.
+  - Modal checkout POS dan Booking Online otomatis menyajikan mode selector adaptif per unit sewa.
+- **Verifikasi Arsitektur Multi-Niche Rental/Travel:**
+  - Memastikan integrasi `lib/rental-filter.ts` dan `lib/business-category.ts` otomatis mengadaptasi UI/UX kasir, terminologi, filter, dan form reservasi sesuai data (Kendaraan, Properti & Kamar, atau Peralatan & Alat).
+  - Aksesibilitas multi-template download pada `components/CsvImportModal.tsx` tetap terbuka fleksibel untuk tenant rental multi-unit.
+  - Operasi CRUD (Armada, Properti, Peralatan) terisolasi aman dengan penanganan stok unit fisik (`isService: false`) vs layanan tambahan (`isService: true`).
+
+
 ### 🐛 Bugfix & UX: Jasa/Servis Template & Onboarding Fixes (2026-09-19)
 - **Template Excel 2 Sheet**: Download & export terpisah "Jasa" (unlimited stock, biayaModal) + "Sparepart" (stock, HPP)
 - **biayaModal field**: Jasa murni pakai biaya modal/bahan per pengerjaan (opsional), Sparepart pakai HPP

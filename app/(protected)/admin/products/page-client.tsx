@@ -1,5 +1,7 @@
 "use client";
 
+import { parseProductImages, serializeProductImages } from '@/lib/product-images';
+
 import React, { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { toast } from 'sonner';
@@ -170,7 +172,13 @@ export default function AdminProductsClientPage({
               if (result.length === rawProducts.length) { // no filter applied yet
                 const catLower = selectedFilterTab.toLowerCase().trim();
                 if (isRental) {
-                  if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
+                  if (selectedFilterTab === "VEHICLE") {
+                    result = result.filter(p => !p.isService && detectRentalItemType(p.name, p.description, p.category) === "vehicle");
+                  } else if (selectedFilterTab === "PROPERTY") {
+                    result = result.filter(p => !p.isService && detectRentalItemType(p.name, p.description, p.category) === "property");
+                  } else if (selectedFilterTab === "EQUIPMENT") {
+                    result = result.filter(p => !p.isService && detectRentalItemType(p.name, p.description, p.category) === "equipment");
+                  } else if (selectedFilterTab === "Unit Sewa" || catLower === "unit sewa" || catLower === "unit" || selectedFilterTab === "UNIT") {
                     result = result.filter(p => !p.isService);
                   } else if (selectedFilterTab === "Layanan & Add-on" || catLower.includes("layanan") || catLower.includes("add-on") || catLower.includes("tambahan") || selectedFilterTab === "ADDON") {
                     result = result.filter(p => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan"));
@@ -287,7 +295,15 @@ export default function AdminProductsClientPage({
                         ...uniqueCategories.map(c => ({ value: c, label: c }))
                       ]
                     : fnbFilterOptions)
-                : isRental && config
+                : isRental && availableRentalTypes.length > 1
+              ? [
+                  { value: "ALL", label: "Semua Unit" },
+                  ...(availableRentalTypes.includes("vehicle") ? [{ value: "VEHICLE", label: "🚗 Kendaraan & Armada" }] : []),
+                  ...(availableRentalTypes.includes("property") ? [{ value: "PROPERTY", label: "🏨 Properti & Kamar" }] : []),
+                  ...(availableRentalTypes.includes("equipment") ? [{ value: "EQUIPMENT", label: "📦 Alat & Barang" }] : []),
+                  { value: "ADDON", label: "🛠️ Layanan & Add-on" }
+                ]
+              : isRental && config
               ? config.tabs
               : isRental
                 ? [
@@ -610,12 +626,29 @@ export default function AdminProductsClientPage({
     }
   };
 
+  const maxPhotosAllowed = isRental ? 5 : 1;
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const currentImages = isRental ? parseProductImages(formData.image) : [];
+    const remainingSlots = isRental ? (maxPhotosAllowed - currentImages.length) : 1;
+
+    if (isRental && remainingSlots <= 0) {
+      toast.error(`Maksimal ${maxPhotosAllowed} foto untuk unit ini (Neon DB hemat kapasitas).`);
+      e.target.value = '';
+      return;
+    }
+
+    const filesToProcess = files.slice(0, remainingSlots);
+    let processedCount = 0;
+    const newImages: string[] = [];
+
+    filesToProcess.forEach((file) => {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Ukuran foto terlalu besar. Maksimal 5MB.");
-        e.target.value = '';
+        toast.error(`Foto "${file.name}" terlalu besar (>5MB).`);
+        processedCount++;
         return;
       }
       const reader = new FileReader();
@@ -624,7 +657,8 @@ export default function AdminProductsClientPage({
         img.onload = () => {
           const canvas = document.createElement('canvas');
           let { width, height } = img;
-          const MAX_DIM = 800;
+          // Kompresi optimal 640px @ 0.65 kualitas (~25-40KB per foto, sangat hemat Neon DB)
+          const MAX_DIM = 640;
 
           if (width > height && width > MAX_DIM) {
             height = Math.round(height * (MAX_DIM / width));
@@ -639,13 +673,34 @@ export default function AdminProductsClientPage({
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
 
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          setFormData(prev => ({ ...prev, image: compressedBase64 }));
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
+          newImages.push(compressedBase64);
+          processedCount++;
+
+          if (processedCount === filesToProcess.length) {
+            if (isRental) {
+              const combined = [...currentImages, ...newImages];
+              setFormData(prev => ({ ...prev, image: serializeProductImages(combined) }));
+            } else {
+              setFormData(prev => ({ ...prev, image: newImages[0] || '' }));
+            }
+          }
         };
         img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removeSpecificImage = (indexToRemove: number) => {
+    if (!isRental) {
+      setFormData(prev => ({ ...prev, image: '' }));
+      return;
     }
+    const currentImages = parseProductImages(formData.image);
+    const filtered = currentImages.filter((_, idx) => idx !== indexToRemove);
+    setFormData(prev => ({ ...prev, image: serializeProductImages(filtered) }));
   };
 
   const removeImage = () => {
@@ -721,29 +776,34 @@ export default function AdminProductsClientPage({
     const targetId = productToDelete;
     setProductToDelete(null);
 
-    // Optimistic UI: langsung hapus produk dari UI lokal dalam waktu < 50ms
+    // Ambil data produk saat ini secara aman dari cache lokal agar tidak pernah undefined/kosong
+    const currentList = data?.products || initialData?.products || [];
+    const updatedProducts = currentList.filter(p => p.id !== targetId);
+    const updatedTotalPages = data?.totalPages || 1;
+
+    // 1. Langsung hapus produk dari UI seketika (0ms) TANPA revalidasi awal
+    // Ini menjamin produk lain tetap stay terlihat, tidak kedip atau hilang mendadak
     mutate(
-      async (current) => {
-        const res = await fetch(`/api/products/${targetId}`, { method: 'DELETE' });
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error || 'Gagal menghapus');
-        toast.success('Produk berhasil dihapus');
-        return {
-          products: (current?.products || []).filter(p => p.id !== targetId),
-          totalPages: current?.totalPages || 1
-        };
-      },
       {
-        optimisticData: (current) => ({
-          products: (current?.products || []).filter(p => p.id !== targetId),
-          totalPages: current?.totalPages || 1
-        }),
-        rollbackOnError: true,
-        revalidate: true,
-      }
-    ).catch((err: any) => {
+        products: updatedProducts,
+        totalPages: updatedTotalPages,
+      },
+      false // false = Jangan trigger revalidasi/loader agar UI stabil tidak berkedip
+    );
+
+    try {
+      const res = await fetch(`/api/products/${targetId}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Gagal menghapus');
+      toast.success('Produk berhasil dihapus');
+
+      // 2. Revalidasi halus di background untuk menyelaraskan data dengan server
+      mutate();
+    } catch (err: any) {
       toast.error(humanizeError(err));
-    });
+      // Kembalikan data semula jika server gagal
+      mutate();
+    }
   };
 
   const handleQuickRestock = async (e: React.FormEvent) => {
@@ -760,38 +820,37 @@ export default function AdminProductsClientPage({
     setQuickRestockProduct(null);
     setQuickRestockAmount('');
 
-    // Optimistic UI: langsung perbarui stok di UI lokal dalam waktu < 50ms
+    const currentList = data?.products || initialData?.products || [];
+    const updatedProducts = currentList.map(p =>
+      p.id === targetProduct.id ? { ...p, stock: p.stock + amount } : p
+    );
+
+    // Update optimistik instan tanpa reload/kedip
     mutate(
-      async (current) => {
-        setIsRestocking(true);
-        try {
-          const res = await fetch(`/api/products/${targetProduct.id}/stock`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount })
-          });
-          const result = await res.json();
-          if (!res.ok) throw new Error(result.error || 'Gagal menambah stok');
-          toast.success(`Stok ${targetProduct.name} berhasil ditambahkan!`);
-          return {
-            products: (current?.products || []).map(p => p.id === targetProduct.id ? { ...p, stock: p.stock + amount } : p),
-            totalPages: current?.totalPages || 1
-          };
-        } finally {
-          setIsRestocking(false);
-        }
-      },
       {
-        optimisticData: (current) => ({
-          products: (current?.products || []).map(p => p.id === targetProduct.id ? { ...p, stock: p.stock + amount } : p),
-          totalPages: current?.totalPages || 1
-        }),
-        rollbackOnError: true,
-        revalidate: true,
-      }
-    ).catch((err: any) => {
+        products: updatedProducts,
+        totalPages: data?.totalPages || 1,
+      },
+      false
+    );
+
+    setIsRestocking(true);
+    try {
+      const res = await fetch(`/api/products/${targetProduct.id}/stock`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Gagal menambah stok');
+      toast.success(`Stok ${targetProduct.name} berhasil ditambahkan!`);
+      mutate();
+    } catch (err: any) {
       toast.error(humanizeError(err));
-    });
+      mutate();
+    } finally {
+      setIsRestocking(false);
+    }
   };
 
   const formatRupiah = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
@@ -896,7 +955,7 @@ export default function AdminProductsClientPage({
 
       {/* Table Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        {(!data && !error) ? (
+        {(!data && !error && isLoading) ? (
           <div className="p-12 flex flex-col items-center justify-center text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
             <p>Memuat data produk...</p>
@@ -907,15 +966,24 @@ export default function AdminProductsClientPage({
               {products.map(product => (
                 <div key={product.id} className="bg-white p-4 rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-200 flex gap-4 hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:border-blue-200 transition-all">
                   {/* Product Image */}
-                  {product.image ? (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50 relative">
-                      <Image src={product.image} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 5rem, 6rem" />
-                    </div>
-                  ) : (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg shrink-0 border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300">
-                      <PackageSearch className="w-8 h-8 opacity-50" />
-                    </div>
-                  )}
+                  {(() => {
+                    const images = parseProductImages(product.image);
+                    const mainImg = images[0];
+                    return mainImg ? (
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50 relative">
+                        <Image src={mainImg} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 5rem, 6rem" />
+                        {images.length > 1 && (
+                          <span className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                            📷 {images.length}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg shrink-0 border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300">
+                        <PackageSearch className="w-8 h-8 opacity-50" />
+                      </div>
+                    );
+                  })()}
 
                   {/* Product Details */}
                   <div className="flex-1 min-w-0 flex flex-col">
@@ -1032,25 +1100,76 @@ export default function AdminProductsClientPage({
             <div className="overflow-y-auto p-2">
               <form id="product-form" onSubmit={handleSubmit} className="p-3 space-y-4">
                 {/* Image Upload Area */}
-                <div className="mb-6">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Foto {isRental ? (rentalModalType === 'equipment' ? 'Alat' : rentalModalType === 'vehicle' ? 'Kendaraan' : rentalModalType === 'property' ? 'Properti' : 'Layanan') : isPureJasa ? 'Layanan' : isFNB ? 'Menu' : 'Produk'} <span className="text-gray-400 font-normal">(Opsional)</span></label>
-                  {formData.image ? (
-                    <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 group">
-                      <Image src={formData.image} alt="Preview" fill className="object-cover" />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
-                        <button type="button" onClick={removeImage} className="text-white p-2 bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                <div className="mb-6 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-bold text-gray-700">
+                      Foto {isRental ? (rentalModalType === 'equipment' ? 'Alat' : rentalModalType === 'vehicle' ? 'Kendaraan' : rentalModalType === 'property' ? 'Properti' : 'Layanan') : isPureJasa ? 'Layanan' : isFNB ? 'Menu' : 'Produk'}{" "}
+                      <span className="text-gray-400 font-normal">
+                        {isRental ? "(Maks. 5 Foto • Khusus Unit)" : "(1 Foto • Opsional)"}
+                      </span>
+                    </label>
+                    {isRental && (
+                      <span className="text-xs text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-full">
+                        {parseProductImages(formData.image).length} / 5 Foto
+                      </span>
+                    )}
+                  </div>
+
+                  {isRental ? (
+                    /* Multi-foto (Rental Kendaraan, Properti, Alat) */
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2.5 items-center">
+                        {parseProductImages(formData.image).map((imgUrl, idx) => (
+                          <div key={idx} className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden border-2 border-slate-200 group bg-slate-100 shadow-sm">
+                            <Image src={imgUrl} alt={`Foto ${idx+1}`} fill className="object-cover" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 z-10">
+                              <button
+                                type="button"
+                                onClick={() => removeSpecificImage(idx)}
+                                className="text-white p-1.5 bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow"
+                                title="Hapus foto ini"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="text-[9px] text-white font-bold">{idx === 0 ? 'Utama' : `Foto ${idx+1}`}</span>
+                            </div>
+                          </div>
+                        ))}
+
+                        {parseProductImages(formData.image).length < 5 && (
+                          <label className="w-20 h-20 sm:w-22 sm:h-22 rounded-xl border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/40 hover:bg-blue-50 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                            <ImagePlus className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform mb-1" />
+                            <p className="text-[11px] text-blue-700 font-bold">+ Foto</p>
+                            <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
+                          </label>
+                        )}
                       </div>
+                      <p className="text-[11px] text-slate-400">
+                        *Foto 1 otomatis jadi cover utama. Foto 2 s/d 5 tampil di galeri link reservasi pelanggan. Kompresi otomatis aman untuk kuota database.
+                      </p>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-24 border border-gray-200 rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors">
-                      <div className="flex flex-col items-center justify-center">
-                        <ImagePlus className="w-6 h-6 text-gray-400 mb-1" />
-                        <p className="text-xs text-gray-500 font-medium">Klik untuk unggah foto</p>
-                      </div>
-                      <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                    </label>
+                    /* Single foto (Jasa / Servis / Retail / F&B) */
+                    <div>
+                      {formData.image ? (
+                        <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 group">
+                          <Image src={formData.image} alt="Preview" fill className="object-cover" />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                            <button type="button" onClick={removeImage} className="text-white p-2 bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-24 border border-gray-200 rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                          <div className="flex flex-col items-center justify-center">
+                            <ImagePlus className="w-6 h-6 text-gray-400 mb-1" />
+                            <p className="text-xs text-gray-500 font-medium">Klik untuk unggah foto</p>
+                          </div>
+                          <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                        </label>
+                      )}
+                    </div>
                   )}
                 </div>
 

@@ -42,19 +42,47 @@ export async function rejectOrder(id: string) {
   return { success: true };
 }
 
-export async function finishOrder(id: string, overtimeFee: number) {
+export async function finishOrder(id: string, overtimeFee: number, paymentMethod: string = "TUNAI") {
   const { userId } = await auth();
-  if (!userId) return { success: false };
+  if (!userId) return { success: false, error: "Unauthorized" };
 
   let targetUserId = userId;
   const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
   if (employee) targetUserId = employee.tenantId;
 
+  const fee = Number(overtimeFee) || 0;
+
+  // 1. Cek apakah ini transaksi yang dibuat dari Kasir POS (misal id: "#6882" atau sejenisnya)
+  const tx = await prisma.transaction.findFirst({
+    where: {
+      id,
+      userId: targetUserId
+    }
+  });
+
+  if (tx) {
+    const newTotal = (tx.total || 0) + fee;
+    await prisma.transaction.update({
+      where: { id: tx.id },
+      data: {
+        status: "completed",
+        remainingBalance: 0,
+        total: newTotal,
+        method: paymentMethod || tx.method || "TUNAI",
+      }
+    });
+
+    revalidatePath("/admin/rental-calendar");
+    revalidatePath("/admin/orders");
+    return { success: true, transactionId: tx.id };
+  }
+
+  // 2. Jika bukan transaksi POS, cek tabel booking (reservasi online)
   const booking = await prisma.booking.findUnique({ 
     where: { id },
     include: { product: true }
   });
-  if (!booking) return { success: false, error: "Booking tidak ditemukan" };
+  if (!booking) return { success: false, error: "Pesanan sewa tidak ditemukan" };
 
   const start = booking.startDate ?? booking.bookingDate;
   const now = new Date();
@@ -64,21 +92,21 @@ export async function finishOrder(id: string, overtimeFee: number) {
   if (diffDays < 1) diffDays = 1;
 
   const basePrice = booking.product ? booking.product.hargaJual * diffDays : 0;
-  const total = basePrice + overtimeFee;
+  const total = basePrice + fee;
 
   const transactionId = `TRX-${Date.now()}`;
   
-  await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
+  await prisma.$transaction(async (prismaTx) => {
+    await prismaTx.booking.update({
       where: { id },
       data: {
         status: "FINISHED",
-        overtimeFee,
+        overtimeFee: fee,
         endDate: now,
       }
     });
 
-    await tx.transaction.create({
+    await prismaTx.transaction.create({
       data: {
         id: transactionId,
         userId: targetUserId,
@@ -86,12 +114,13 @@ export async function finishOrder(id: string, overtimeFee: number) {
         customerName: booking.customerName,
         cashierId: employee ? employee.id : null,
         total: total,
-        method: "TUNAI",
+        method: paymentMethod || "TUNAI",
         status: "completed",
         startDate: start,
         endDate: end,
         pickupLocation: booking.pickupLocation,
         dropoffLocation: booking.dropoffLocation,
+        remainingBalance: 0,
         items: {
           create: booking.productId ? [
             {
@@ -105,7 +134,9 @@ export async function finishOrder(id: string, overtimeFee: number) {
     });
   });
 
-  return { success: true };
+  revalidatePath("/admin/rental-calendar");
+  revalidatePath("/admin/orders");
+  return { success: true, transactionId };
 }
 
 export async function startOrder(id: string) {

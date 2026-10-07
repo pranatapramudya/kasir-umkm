@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -71,8 +72,8 @@ export default function OnboardingClient() {
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-sm shadow-blue-500/30">
-              <Store className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/30 bg-blue-600 flex items-center justify-center">
+              <Image src="/logo-app.png" alt="PJTECH" width={64} height={64} className="w-full h-full object-cover" />
             </div>
           </div>
           <h2 className="mt-6 text-center text-3xl font-black text-slate-900 tracking-tight">

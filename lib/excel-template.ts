@@ -107,7 +107,7 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
     });
     wsKendaraan.addRow({
       kodeUnit: 'UNT005',
-      name: 'Elf Long 2022 - B 7890 MNO',
+      name: 'Elf Long 19 Seat - B 7890 MNO (Unit Garasi)',
       tipe: 'Minibus',
       transmisi: 'Manual',
       tahun: 2022,
@@ -115,8 +115,47 @@ export async function downloadExcelTemplate(kategoriUsaha: string = 'Jasa') {
       hargaJam: 200000,
       hppHarian: 400000,
       marginPct: null,
-      status: 'Perbaikan',
-      description: '19 seat, diesel, armada shuttle bandara | HPP: Solar 200k + Supir 120k + Toll/Perawatan 80k',
+      status: 'Tersedia',
+      description: '19 seat, diesel, shuttle & ziarah rombongan kecil | HPP: Solar 200k + Supir 120k + Perawatan 80k',
+    });
+    wsKendaraan.addRow({
+      kodeUnit: 'BUS001',
+      name: 'Big Bus SHD 50 Seat - Bima Sena - B 7123 BUS (Unit Garasi)',
+      tipe: 'Bus',
+      transmisi: 'Manual',
+      tahun: 2023,
+      hargaHarian: 3500000,
+      hargaJam: 300000,
+      hppHarian: 1500000,
+      marginPct: null,
+      status: 'Tersedia',
+      description: '50 Seat (2-2), Toilet, AC, TV Karaoke, Coolbox, Bagasi Luas | HPP: Solar 800k + Driver & Co-Driver 500k + Tol/Perawatan 200k',
+    });
+    wsKendaraan.addRow({
+      kodeUnit: 'BUS002',
+      name: 'Big Bus 59 Seat - Al-Barokah Ziarah - D 7890 ZIA (Mitra H. Slamet)',
+      tipe: 'Bus',
+      transmisi: 'Manual',
+      tahun: 2022,
+      hargaHarian: 3200000,
+      hargaJam: 250000,
+      hppHarian: 1400000,
+      marginPct: null,
+      status: 'Tersedia',
+      description: '59 Seat (3-2), Khusus Ziarah Walisongo / Tour Jawa-Bali, AC, Karaoke, Bantal Selimut | Unit Titipan Mitra H. Slamet (Bagi Hasil 70:30)',
+    });
+    wsKendaraan.addRow({
+      kodeUnit: 'BUS003',
+      name: 'Medium Bus 35 Seat - Satria Muda - B 9456 MED (Mitra Pak Budi)',
+      tipe: 'Bus',
+      transmisi: 'Manual',
+      tahun: 2023,
+      hargaHarian: 2200000,
+      hargaJam: 200000,
+      hppHarian: 900000,
+      marginPct: null,
+      status: 'Tersedia',
+      description: '35 Seat (2-2), Rute ziarah & wisata dalam/luar kota, suspensi empuk | Unit Titipan Mitra Pak Budi',
     });
 
     // Sheet 2: Unit Properti (Kos/Kamar/Homestay/Villa)

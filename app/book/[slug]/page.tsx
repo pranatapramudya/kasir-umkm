@@ -73,7 +73,7 @@ export default async function BookingPage({ params }: PageProps) {
       ...(isRental ? {} : { isService: true }),
     },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, category: true, hargaJual: true, description: true, isService: true },
+    select: { id: true, name: true, category: true, hargaJual: true, description: true, isService: true, image: true },
   });
 
   return (
@@ -106,7 +106,7 @@ export default async function BookingPage({ params }: PageProps) {
 
       {/* Form Card */}
       <main className="flex-1 flex items-start justify-center px-4 pb-12">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-lg">
           <BookingForm
             slug={slug}
             tenantName={tenant.name}

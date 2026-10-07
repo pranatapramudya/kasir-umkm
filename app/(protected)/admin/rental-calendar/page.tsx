@@ -41,7 +41,7 @@ export default async function RentalCalendarPage() {
       status: { in: ["PENDING", "COMPLETED", "IN_PROGRESS", "FINISHED"] }
     },
     include: {
-      product: { select: { name: true } }
+      product: { select: { name: true, hargaJual: true } }
     },
     orderBy: { startDate: "asc" }
   });
@@ -102,8 +102,12 @@ export default async function RentalCalendarPage() {
         status: derivedStatus,
         pickupLocation: b.pickupLocation || undefined,
         dropoffLocation: b.dropoffLocation || undefined,
-        returnTime: b.returnTime || undefined,
+        pickupTime: b.pickupTime || (b.startDate ? b.startDate.toISOString().slice(11, 16) : undefined),
+        returnTime: b.returnTime || (b.endDate ? b.endDate.toISOString().slice(11, 16) : undefined),
+        notes: b.notes || undefined,
         deposit: b.deposit || undefined,
+        downPayment: b.downPayment || undefined,
+        total: b.product?.hargaJual || undefined,
         conditionNotes: b.conditionNotes || undefined,
         source: "ONLINE" as const
       };
@@ -115,8 +119,20 @@ export default async function RentalCalendarPage() {
 
       if (!start || !end) return null;
 
-      const startDateObj = new Date(start);
-      const endDateObj = new Date(end);
+      let startDateObj = new Date(start);
+      let endDateObj = new Date(end);
+
+      if (tx.pickupTime) {
+        const dStr = startDateObj.toISOString().split('T')[0];
+        const combinedStart = new Date(`${dStr}T${tx.pickupTime}:00+07:00`);
+        if (!isNaN(combinedStart.getTime())) startDateObj = combinedStart;
+      }
+
+      if (tx.returnTime) {
+        const dStr = endDateObj.toISOString().split('T')[0];
+        const combinedEnd = new Date(`${dStr}T${tx.returnTime}:00+07:00`);
+        if (!isNaN(combinedEnd.getTime())) endDateObj = combinedEnd;
+      }
 
       let derivedStatus: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE" = "FINISHED";
 
@@ -138,6 +154,7 @@ export default async function RentalCalendarPage() {
         status: derivedStatus,
         pickupLocation: tx.pickupLocation || undefined,
         dropoffLocation: tx.dropoffLocation || undefined,
+        pickupTime: tx.pickupTime || undefined,
         returnTime: tx.returnTime || undefined,
         deposit: tx.deposit || undefined,
         conditionNotes: tx.conditionNotes || undefined,

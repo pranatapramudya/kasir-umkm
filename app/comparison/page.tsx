@@ -1,11 +1,12 @@
+import Image from "next/image";
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { CheckCircle, XCircle, Award, TrendingUp, Shield, Users, Zap, ArrowRight, Star, BarChart, Lock, Globe, Smartphone, Download, HelpCircle, Sparkles } from 'lucide-react';
+import { CheckCircle, XCircle, Award, TrendingUp, Shield, Users, Zap, ArrowRight, Star, BarChart, Lock, Globe, Smartphone, Download, HelpCircle, ArrowLeft } from 'lucide-react';
 
 const comparisonSchema = {
  "@context": "https://schema.org",
  "@type": "ComparisonTable",
- "name": "Perbandingan Aplikasi Kasir UMKM Indonesia 2024",
+ "name": "Perbandingan Aplikasi Kasir UMKM Indonesia 2026",
  "description": "Perbandingan fitur & harga PJTECH vs Moka vs Pawoon vs iReap vs Qashier",
  "items": [
  { "@type": "Product", "name": "PJTECH Kasir UMKM", "offers": { "price": "990000", "priceCurrency": "IDR" } },
@@ -18,10 +19,10 @@ const comparisonSchema = {
 
 export const metadata: Metadata = {
  title: 'Perbandingan POS UMKM - PJTECH vs Moka vs Pawoon vs iReap vs Qashier | PJTECH',
- description: 'Perbandingan lengkap aplikasi kasir UMKM Indonesia 2024: PJTECH vs Moka vs Pawoon vs iReap vs Qashier. Harga, fitur retail, F&B, jasa, rental. PJTECH mulai Rp 990rb/tahun all-in.',
- keywords: ['perbandingan POS UMKM', 'PJTECH vs Moka', 'PJTECH vs Pawoon', 'PJTECH vs iReap', 'PJTECH vs Qashier', 'POS terbaik Indonesia 2024', 'aplikasi kasir termurah'],
+ description: 'Perbandingan lengkap aplikasi kasir UMKM Indonesia 2026: PJTECH vs Moka vs Pawoon vs iReap vs Qashier. Harga, fitur retail, F&B, jasa, rental. PJTECH mulai Rp 990rb/tahun all-in.',
+ keywords: ['perbandingan POS UMKM', 'PJTECH vs Moka', 'PJTECH vs Pawoon', 'PJTECH vs iReap', 'PJTECH vs Qashier', 'POS terbaik Indonesia 2026', 'aplikasi kasir termurah'],
  openGraph: {
- title: 'Perbandingan POS UMKM 2024 - PJTECH vs Moka vs Pawoon vs iReap vs Qashier',
+ title: 'Perbandingan POS UMKM 2026 - PJTECH vs Moka vs Pawoon vs iReap vs Qashier',
  description: 'Harga mulai Rp 990rb/tahun all-in. Fitur Retail, F&B, Jasa, Rental lengkap. Lihat perbandingan detail.',
  type: 'website',
  url: 'https://www.pjtechumkm.com/comparison',
@@ -165,8 +166,8 @@ function WinnerBadge({ children }: { children: React.ReactNode }) {
 
 function HighlightTag({ children }: { children: React.ReactNode }) {
  return (
- <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
- <Sparkles className="w-3 h-3" />
+ <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200/60">
+ <CheckCircle className="w-3 h-3 text-blue-600 shrink-0" />
  {children}
  </span>
  );
@@ -176,49 +177,62 @@ export default function ComparisonPage() {
  const categories = [...new Set(comparisonRows.map(r => r.category))];
 
  return (
- <main className="min-h-screen bg-white">
- {/* Floating Trust Badge */}
- <div className="fixed top-4 right-4 z-50 md:top-8 md:right-8 hidden md:block">
- <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
- <div className="flex items-center gap-2 text-slate-600 mb-2">
- <Award className="w-4 h-4 text-amber-500" />
- <span className="text-sm font-medium">Diupdate: Desember 2024</span>
+ <main className="min-h-screen bg-white selection:bg-blue-600 selection:text-white">
+ {/* Navigation Header */}
+ <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+ <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between">
+ <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-blue-600 font-bold text-xs sm:text-sm transition-colors group">
+ <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+ <span className="hidden sm:inline">Kembali ke Beranda</span>
+ <span className="sm:hidden">Beranda</span>
+ </Link>
+ 
+ <div className="flex items-center gap-2 sm:gap-3">
+ <Link href="/solusi" className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-blue-600 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+ Solusi Bisnis
+ </Link>
+ <Link href="/sign-up?redirect_url=/onboarding" className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:from-blue-700 hover:to-indigo-700 transition-all">
+ <span>Coba Gratis</span>
+ <ArrowRight className="w-3.5 h-3.5" />
+ </Link>
  </div>
- <p className="text-xs text-slate-500">Data dari website resmi & review user terverifikasi</p>
  </div>
- </div>
+ </header>
+
 
  {/* Hero Section */}
  <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white border-b border-slate-100">
  <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" aria-hidden="true" />
- <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32 relative">
+ <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 md:py-24 relative">
  <div className="text-center max-w-4xl mx-auto">
  {/* Trust Badge */}
- <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-slate-200 backdrop-blur-sm mb-8 shadow-sm">
- <Award className="w-4 h-4 text-amber-500" />
- <span className="text-sm font-medium text-slate-700">Perbandingan Jujur & Transparan</span>
- <span className="w-px h-4 bg-slate-200 mx-1" />
- <span className="text-sm font-medium text-slate-700">Tanpa Sponsor & Tanpa Bias</span>
+ <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-full bg-white/90 border border-slate-200 backdrop-blur-sm mb-6 sm:mb-8 shadow-xs">
+ <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700">
+ <Award className="w-4 h-4 text-amber-500 shrink-0" />
+ <span>Diupdate 2026: Data Resmi & Review Terverifikasi</span>
+ </div>
+ <span className="hidden sm:inline w-px h-4 bg-slate-200 mx-1" />
+ <span className="text-xs sm:text-sm font-semibold text-slate-600">Jujur, Transparan & Tanpa Bias</span>
  </div>
 
- <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight text-slate-950 mb-6 leading-[1.05]">
- Perbandingan <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">POS UMKM Indonesia 2024</span>
+ <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-slate-950 mb-4 sm:mb-6 leading-tight">
+ Perbandingan <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">POS UMKM Indonesia 2026</span>
  </h1>
- <p className="text-lg sm:text-xl lg:text-2xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
+ <p className="text-sm sm:text-lg md:text-xl text-slate-600 mb-6 sm:mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
  Harga transparan. Fitur lengkap 4 vertikal. Tanpa biaya tersembunyi. Data dari website resmi & review terverifikasi.
  </p>
 
  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
  <Link 
  href="/sign-up?redirect_url=/onboarding" 
- className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2 min-w-[280px]"
+ className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2 w-full sm:w-auto min-w-0 sm:min-w-[240px]"
  >
  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
  Coba PJTECH Gratis 14 Hari
  </Link>
  <Link 
  href="#detailed-comparison" 
- className="px-8 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 min-w-[280px]"
+ className="px-8 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto min-w-0 sm:min-w-[240px]"
  >
  Lihat Detail Perbandingan
  <ArrowRight className="w-5 h-5" />
@@ -226,7 +240,7 @@ export default function ComparisonPage() {
  </div>
 
  {/* Quick Stats */}
- <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-center">
+ <div className="mt-10 sm:mt-16 grid grid-cols-2 lg:flex lg:flex-wrap items-center justify-center gap-3 sm:gap-6 text-center">
  <div className="flex items-center gap-2">
  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
  <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -272,78 +286,98 @@ export default function ComparisonPage() {
  </section>
 
  {/* Competitor Cards - Modern Pricing Card Style */}
- <section className="py-16 sm:py-20 bg-slate-50" aria-labelledby="competitors-heading">
+ <section className="py-14 sm:py-20 bg-slate-50" aria-labelledby="competitors-heading">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
- <div className="text-center mb-12">
- <h2 id="competitors-heading" className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">Ringkasan Cepat 5 Peserta</h2>
- <p className="text-slate-600 max-w-2xl mx-auto">Semua harga basis tahunan all-in. Klik card untuk detail.</p>
+ <div className="text-center mb-8 sm:mb-12">
+ <h2 id="competitors-heading" className="text-2xl sm:text-4xl font-black text-slate-900 mb-2 sm:mb-3">Ringkasan Cepat 5 Peserta</h2>
+ <p className="text-xs sm:text-base text-slate-600 max-w-2xl mx-auto">Semua harga basis tahunan all-in. Bandingkan fitur utama sebelum melihat tabel detail.</p>
  </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-5 pt-6 sm:pt-8 items-stretch">
  {competitors.map((c, i) => (
  <article 
  key={c.id} 
- className={`relative group bg-white p-4 sm:p-6 rounded-2xl border-2 transition-all duration-200 ${
+ className={`relative group bg-white pt-8 pb-5 px-4 sm:px-5 rounded-2xl border-2 transition-all duration-200 flex flex-col justify-between h-full ${
  c.id === 'pjtech' 
- ? 'border-blue-500 shadow-xl ring-2 ring-blue-500/20 scale-105 z-10 lg:scale-105' 
- : 'border-slate-100 hover:border-slate-300 hover:shadow-lg'
+ ? 'border-blue-500 shadow-xl ring-2 ring-blue-500/20 bg-gradient-to-b from-blue-50/30 via-white to-white z-10 lg:-translate-y-1' 
+ : 'border-slate-200 hover:border-slate-300 hover:shadow-lg'
  }`}
  >
- {/* Badge */}
- <div className="absolute -top-3 left-1/2 -translate-x-1/2">
- <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black ${
- c.id === 'pjtech' ? 'bg-blue-500 text-white shadow-lg' : 'bg-slate-100 text-slate-600'
+ {/* Badge Pill - Positioned with proper breathing room */}
+ <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+ <span className={`inline-flex items-center justify-center px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-black shadow-sm ${
+ c.id === 'pjtech' 
+ ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/30' 
+ : 'bg-slate-100 text-slate-700 border border-slate-200/90'
  }`}>
  {c.badge}
  </span>
  </div>
 
+ {/* Top Details: Logo, Name, Tagline & Price */}
+ <div className="flex-1 flex flex-col">
  {/* Logo Area */}
- <div className="text-center mb-4 sm:mb-5">
- <div className={`w-12 sm:w-16 h-12 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-2xl flex items-center justify-center ${
- c.id === 'pjtech' ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25' : 'bg-slate-100'
+ <div className="text-center mb-4 mt-2">
+ <div className={`w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2.5 rounded-2xl flex items-center justify-center overflow-hidden ${
+ c.id === 'pjtech' ? 'shadow-md shadow-blue-500/25 ring-2 ring-blue-500/30 bg-blue-600' : 'bg-slate-100 border border-slate-200'
  }`}>
- <span className={`text-xl sm:text-2xl font-black ${c.id === 'pjtech' ? 'text-white' : 'text-slate-600'}`}>
- {c.name.charAt(0)}
- </span>
+ {c.id === 'pjtech' ? (
+   <Image src="/logo-app.png" alt="PJTECH" width={56} height={56} className="w-full h-full object-cover" />
+ ) : (
+   <span className={`text-lg sm:text-xl font-black ${c.id === 'pjtech' ? 'text-white' : 'text-slate-700'}`}>
+     {c.name.charAt(0)}
+   </span>
+ )}
  </div>
- <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-1">{c.name}</h3>
- <p className="text-xs sm:text-sm text-slate-500">{c.tagline}</p>
+ <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-0.5">{c.name}</h3>
+ <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight min-h-[18px]">{c.tagline}</p>
  </div>
 
  {/* Price */}
- <div className="text-center mb-4 sm:mb-5 pb-4 sm:pb-5 border-b border-slate-100">
+ <div className="text-center mb-4 pb-4 border-b border-slate-100">
  <span className="text-2xl sm:text-3xl font-black text-slate-900">Rp {c.price.toLocaleString('id-ID')}</span>
- <span className="text-xs sm:text-slate-500 ml-1">{c.period}</span>
- {c.id === 'pjtech' && (
- <p className="mt-1 text-[10px] sm:text-xs text-emerald-600 font-medium">= Rp 82.500/bulan</p>
+ <span className="text-[11px] sm:text-xs text-slate-500 ml-1">{c.period}</span>
+ {c.id === 'pjtech' ? (
+ <p className="mt-1 text-[11px] sm:text-xs text-emerald-600 font-bold">= Rp 82.500/bulan</p>
+ ) : (
+ <p className="mt-1 text-[11px] text-slate-400 font-medium opacity-0 select-none">filler</p>
  )}
  </div>
 
- {/* Highlights */}
- <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+ {/* Highlights List */}
+ <ul className="space-y-2 sm:space-y-2.5 mb-5 flex-1">
  {c.highlights.map((h, idx) => (
- <li key={idx} className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600">
- <span className={`flex-shrink-0 w-4 sm:w-5 h-4 sm:h-5 rounded-lg flex items-center justify-center mt-0.5 ${
+ <li key={idx} className="flex items-start gap-2 text-xs text-slate-600">
+ <span className={`shrink-0 w-4 h-4 rounded-md flex items-center justify-center mt-0.5 ${
  c.id === 'pjtech' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'
  }`}>
- {c.id === 'pjtech' ? <CheckCircle className="w-3 h-3.5 sm:w-3.5 h-3.5" /> : <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-current" />}
+ {c.id === 'pjtech' ? <CheckCircle className="w-3 h-3" /> : <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />}
  </span>
- <span className="leading-relaxed">{h}</span>
+ <span className="leading-snug">{h}</span>
  </li>
  ))}
  </ul>
+ </div>
 
- {/* CTA */}
+ {/* Bottom CTA Buttons - Aligned perfectly at bottom */}
+ <div className="mt-auto pt-2 shrink-0">
  {c.id === 'pjtech' ? (
- <Link href="/sign-up?redirect_url=/onboarding" className="block w-full py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl text-center hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 text-sm sm:text-base">
+ <Link 
+ href="/sign-up?redirect_url=/onboarding" 
+ className="block w-full py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black rounded-xl text-center shadow-md shadow-blue-500/25 transition-all text-xs sm:text-sm active:scale-[0.98]"
+ >
  Mulai Gratis 14 Hari
  </Link>
  ) : (
- <button className="block w-full py-2.5 sm:py-3 bg-slate-100 border border-slate-200 text-slate-600 font-medium rounded-xl text-center hover:bg-slate-200 transition-all disabled:opacity-50 text-sm sm:text-base" disabled>
- Lihat Detail di Bawah
- </button>
+ <Link 
+ href="#detailed-comparison" 
+ className="flex items-center justify-center gap-1.5 w-full py-2.5 sm:py-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 hover:text-blue-600 font-bold rounded-xl text-center transition-all text-xs sm:text-sm group"
+ >
+ <span>Lihat Detail Fitur</span>
+ <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:translate-y-0.5 rotate-90 transition-transform text-slate-500 group-hover:text-blue-600" />
+ </Link>
  )}
+ </div>
  </article>
  ))}
  </div>
@@ -372,7 +406,7 @@ export default function ComparisonPage() {
  <h3 id={`cat-${catIndex}`} className="text-2xl font-black text-slate-900">{cat}</h3>
  </header>
 
- <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+ <div className="hidden lg:block overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
  <table className="w-full min-w-[900px] text-sm" role="table">
  <thead>
  <tr className="bg-slate-50 border-b border-slate-200">
@@ -626,7 +660,7 @@ export default function ComparisonPage() {
  {/* Footer Note */}
  <footer className="py-8 bg-slate-50 border-t border-slate-200">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
- <p>Data perbandingan berdasarkan website resmi, review pengguna terverifikasi, & pengujian hands-on tim PJTECH per Desember 2024.</p>
+ <p>Data perbandingan berdasarkan website resmi, review pengguna terverifikasi, & pengujian hands-on tim PJTECH per Desember 2026.</p>
  <p className="mt-1">Harga & fitur kompetitor dapat berubah. Verifikasi langsung di website masing-masing vendor sebelum keputusan beli.</p>
  <p className="mt-3"><Link href="/solusi" className="text-blue-600 hover:underline font-medium">Lihat Solusi per Vertikal →</Link></p>
  </div>

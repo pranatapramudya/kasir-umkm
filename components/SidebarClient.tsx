@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getNavigationMenu } from "@/lib/navigation";
@@ -19,9 +20,10 @@ interface SidebarClientProps {
   endsAt: string | undefined;
   kategoriUsaha: string;
   tenantName?: string;
+  tenantId?: string;
 }
 
-export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUsaha, tenantName }: SidebarClientProps) {
+export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUsaha, tenantName, tenantId }: SidebarClientProps) {
   const kategoriUsaha = rawKategoriUsaha || 'Retail';
   const pathname = usePathname();
   const router = useRouter();
@@ -64,7 +66,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
   }, [router, filteredMenuGroups]);
 
   // SWR Polling & Real-time Chime Alert
-  const { pendingCount } = usePendingBookingCount(role);
+  const { pendingCount } = usePendingBookingCount(tenantId);
 
   const handleLinkClick = (href: string) => {
     setOptimisticHref(href);
@@ -93,13 +95,23 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
         transition-transform duration-200 ease-in-out print:hidden
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
-      <div className="p-6 border-b border-slate-100">
-        <div className="flex flex-col">
-          <h2 className="text-xl font-black flex items-center gap-2 text-slate-800 tracking-tight">
-            <Store className="w-6 h-6 text-blue-600" />
-            KASIR POS
-          </h2>
-          <span className="text-[10px] text-blue-600 font-bold ml-8 uppercase tracking-wider relative top-[-4px]">by PJTECH</span>
+      <div className="p-5 border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shrink-0 bg-blue-600 flex items-center justify-center">
+            <Image 
+              src="/logo-app.png" 
+              alt="PJTECH Kasir" 
+              width={40} 
+              height={40} 
+              className="w-full h-full object-cover" 
+            />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-base font-black text-slate-900 tracking-tight leading-tight">
+              KASIR POS
+            </h2>
+            <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">by PJTECH</span>
+          </div>
         </div>
       </div>
 
