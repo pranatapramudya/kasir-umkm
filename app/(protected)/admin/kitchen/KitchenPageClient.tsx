@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
-import { ChefHat, Clock, CheckCircle2, Flame, RefreshCw, Volume2, AlertCircle, Bell, X } from 'lucide-react';
+import { ChefHat, Clock, CheckCircle2, Flame, RefreshCw, Volume2, AlertCircle, Bell, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -25,8 +25,28 @@ type KitchenOrder = {
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-// Professional sound notification (base64 encoded short beep)
-const NOTIFICATION_SOUND = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAA';
+// Professional Web Audio API synthesizer chime (clear, pleasant kitchen bell)
+const playKitchenChime = (volume = 0.5) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (e) {
+    console.warn('[KDS] Sound chime failed:', e);
+  }
+};
 
 export default function KitchenPageClient() {
   const { data, error, mutate, isLoading } = useSWR<{ success: boolean; orders: KitchenOrder[] }>(
@@ -73,17 +93,13 @@ export default function KitchenPageClient() {
           mutate();
           // Play sound for status changes
           if (soundEnabled) {
-            const audio = new Audio(NOTIFICATION_SOUND);
-            audio.volume = 0.4;
-            audio.play().catch(() => {});
+            playKitchenChime(0.4);
           }
         } else if (msg.type === 'new_order') {
           // New order arrived - revalidate
           mutate();
           if (soundEnabled) {
-            const audio = new Audio(NOTIFICATION_SOUND);
-            audio.volume = 0.6;
-            audio.play().catch(() => {});
+            playKitchenChime(0.6);
           }
         }
       } catch (e) {
@@ -169,9 +185,7 @@ export default function KitchenPageClient() {
     
     if (newOrders.length > 0) {
       setNewOrderCount(c => c + newOrders.length);
-      const audio = new Audio(NOTIFICATION_SOUND);
-      audio.volume = 0.6;
-      audio.play().catch(() => {});
+      playKitchenChime(0.6);
     }
     prevOrdersRef.current = currentIds;
   }, [orders, soundEnabled, wsConnected]);
@@ -261,9 +275,10 @@ export default function KitchenPageClient() {
 
           <Link
             href="/admin/pos"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-xs font-bold text-white transition-colors text-center shrink-0"
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg text-xs font-bold text-white transition-colors text-center shrink-0 shadow-sm"
           >
-            ← Kembali ke Kasir
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Kembali ke Kasir</span>
           </Link>
         </div>
       </div>

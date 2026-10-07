@@ -60,7 +60,7 @@ export default function AdminProductsClientPage({
       const isPureJasa = isPureServiceCategory(kategoriUsaha);
       const isFNB = isFnBCategory(kategoriUsaha);
 
-      // FNB filter config (dynamic based on sub-type: cafe/resto/generic - matches Excel template validation)
+      // FNB filter fallback config (used when catalog is empty)
       const fnbFilterOptions = useMemo(() => {
         const subType = getFnbSubType(kategoriUsaha);
         if (subType === 'cafe') {
@@ -187,20 +187,8 @@ export default function AdminProductsClientPage({
                                                   result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                 }
                                             } else if (isFNB) {
-                                                                                                                        // FNB: filter by category (dynamic based on sub-type: cafe/resto/generic)
-                                                                                                                        const subType = getFnbSubType(kategoriUsaha);
-                                                                                                                        let fnbCategories = ["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"]; // generic fallback
-                                                                                                                        if (subType === 'cafe') {
-                                                                                                                          fnbCategories = ["Kopi", "Non-Kopi", "Makanan Ringan", "Dessert", "Paket Sarapan"];
-                                                                                                                        } else if (subType === 'resto') {
-                                                                                                                          fnbCategories = ["Appetizer", "Main Course", "Dessert", "Beverage", "Paket Hemat"];
-                                                                                                                        }
-                                                                                                                        if (fnbCategories.includes(selectedFilterTab)) {
-                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                                                                                        } else {
-                                                                                                                          result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                                                                                        }
-                                                                                                                      } else {
+                    result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                  } else {
                                                                                                                                                                                                                                               // Retail / Umum: filter by category
                                                                                                                                                                                                                                               result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                                                                                                                                                                                                             }
@@ -293,7 +281,12 @@ export default function AdminProductsClientPage({
                     { value: "Produk / Barang", label: "Produk / Barang" },
                   ]
                 : isFNB
-                ? fnbFilterOptions
+                ? (uniqueCategories.length > 0
+                    ? [
+                        { value: "ALL", label: "Semua" },
+                        ...uniqueCategories.map(c => ({ value: c, label: c }))
+                      ]
+                    : fnbFilterOptions)
                 : isRental && config
               ? config.tabs
               : isRental

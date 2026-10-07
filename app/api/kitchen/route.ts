@@ -21,14 +21,13 @@ export async function GET() {
       activeTenantId = metaTenantId;
     }
 
-    // Ambil transaksi hari ini yang statusnya belum 'completed' atau 'cancelled'
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Ambil transaksi aktif (pending, cooking, ready) dalam 24 jam terakhir agar shift malam / lintas tanggal tetap aman
+    const sinceTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     const orders = await prisma.transaction.findMany({
       where: {
         userId: activeTenantId,
-        createdAt: { gte: today },
+        createdAt: { gte: sinceTime },
         status: { in: ['pending', 'cooking', 'ready'] },
       },
       include: {

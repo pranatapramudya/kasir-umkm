@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { isRentalTravelCategory, isPureServiceCategory } from '@/lib/business-category';
+import { isFnBCategory } from '@/lib/navigation';
 
 const safeInt = (val: any, fallback = 0): number => {
   if (val === null || val === undefined) return fallback;
@@ -146,6 +147,7 @@ export async function POST(request: Request) {
           const tenantCategory = tenant?.category || '';
           const isRentalBusiness = isRentalTravelCategory(tenantCategory);
           const isPureJasaBusiness = isPureServiceCategory(tenantCategory);
+          const isFnBBusiness = isFnBCategory(tenantCategory);
 
       const newTransaction = await tx.transaction.create({
         data: {
@@ -159,14 +161,15 @@ export async function POST(request: Request) {
           cashierId: validCashierId,
                     method: String(body.method || "Tunai"),
                               status: (() => {
-                                // F&B: status 'pending' supaya muncul di KDS, baru dapur update ke cooking/ready/completed
-                                // Non-F&B: 'completed' langsung (atau 'partial' jika ada remainingBalance)
-                                // Gunakan isFnBCategory untuk konsistensi dengan frontend
-                                const isFNB = body.tableId && typeof body.tableId === 'string' && body.tableId.trim() !== '';
-                                const hasRemaining = safeInt(body.remainingBalance, 0) > 0;
-                                if (isFNB) return 'pending';
-                                return hasRemaining ? 'partial' : 'completed';
-                              })(),
+                    const clientStatus = typeof body.status === 'string' ? body.status.toLowerCase().trim() : '';
+                    const hasRemaining = safeInt(body.remainingBalance, 0) > 0;
+                    // F&B: Setiap pesanan F&B (Makan di Tempat maupun Bungkus/Takeaway) masuk antrean KDS dengan status 'pending'
+                    if (isFnBBusiness || Boolean(body.tableId)) {
+                      return clientStatus === 'completed' ? 'completed' : 'pending';
+                    }
+                    if (hasRemaining) return 'partial';
+                    return clientStatus || 'completed';
+                  })(),
                     driverName: body.driverName ? String(body.driverName).trim() : null,
                               licensePlate: body.licensePlate ? String(body.licensePlate).trim() : null,
                               pickupLocation: body.pickupLocation ? String(body.pickupLocation).trim() : null,

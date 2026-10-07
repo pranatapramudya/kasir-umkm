@@ -390,40 +390,49 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                           ];
                         }, [isPureJasa]);
 
-                        // Filter tabs for FNB (dynamic based on sub-type: cafe/resto/generic - matches Excel template validation)
-                                const fnbFilterTabs = useMemo(() => {
-                                  if (!isFNB) return [];
-                                  const subType = getFnbSubType(tenantCategory || '');
-                                  if (subType === 'cafe') {
-                                    return [
-                                      { value: "ALL", label: "Semua" },
-                                      { value: "Kopi", label: "Kopi" },
-                                      { value: "Non-Kopi", label: "Non-Kopi" },
-                                      { value: "Makanan Ringan", label: "Makanan Ringan" },
-                                      { value: "Dessert", label: "Dessert" },
-                                      { value: "Paket Sarapan", label: "Paket Sarapan" },
-                                    ];
-                                  }
-                                  if (subType === 'resto') {
-                                    return [
-                                      { value: "ALL", label: "Semua" },
-                                      { value: "Appetizer", label: "Appetizer" },
-                                      { value: "Main Course", label: "Main Course" },
-                                      { value: "Dessert", label: "Dessert" },
-                                      { value: "Beverage", label: "Beverage" },
-                                      { value: "Paket Hemat", label: "Paket Hemat" },
-                                    ];
-                                  }
-                                  // generic fallback
-                                  return [
-                                    { value: "ALL", label: "Semua" },
-                                    { value: "Makanan", label: "Makanan" },
-                                    { value: "Minuman", label: "Minuman" },
-                                    { value: "Snack", label: "Snack" },
-                                    { value: "Dessert", label: "Dessert" },
-                                    { value: "Paket Hemat", label: "Paket Hemat" },
-                                  ];
-                                }, [isFNB, tenantCategory]);
+                        // Filter tabs for FNB (dynamic: derives from products actually imported / fallback to template defaults)
+        const fnbFilterTabs = useMemo(() => {
+          if (!isFNB) return [];
+          const productCats = Array.from(
+            new Set(rawProducts.map(p => (p.category || "").trim()).filter(Boolean))
+          );
+          if (productCats.length > 0) {
+            return [
+              { value: "ALL", label: "Semua" },
+              ...productCats.map(c => ({ value: c, label: c }))
+            ];
+          }
+          const subType = getFnbSubType(tenantCategory || '');
+          if (subType === 'cafe') {
+            return [
+              { value: "ALL", label: "Semua" },
+              { value: "Kopi", label: "Kopi" },
+              { value: "Non-Kopi", label: "Non-Kopi" },
+              { value: "Makanan Ringan", label: "Makanan Ringan" },
+              { value: "Dessert", label: "Dessert" },
+              { value: "Paket Sarapan", label: "Paket Sarapan" },
+            ];
+          }
+          if (subType === 'resto') {
+            return [
+              { value: "ALL", label: "Semua" },
+              { value: "Appetizer", label: "Appetizer" },
+              { value: "Main Course", label: "Main Course" },
+              { value: "Dessert", label: "Dessert" },
+              { value: "Beverage", label: "Beverage" },
+              { value: "Paket Hemat", label: "Paket Hemat" },
+            ];
+          }
+          // generic fallback
+          return [
+            { value: "ALL", label: "Semua" },
+            { value: "Makanan", label: "Makanan" },
+            { value: "Minuman", label: "Minuman" },
+            { value: "Snack", label: "Snack" },
+            { value: "Dessert", label: "Dessert" },
+            { value: "Paket Hemat", label: "Paket Hemat" },
+          ];
+        }, [isFNB, rawProducts, tenantCategory]);
 
                                                 // Filter tabs for Retail (dynamically derived from store's products)
                                                 const retailFilterTabs = useMemo(() => {
@@ -479,20 +488,8 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                                                                                                         result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
                                                                                                                       }
                                                                                                                     } else if (isFNB) {
-                                                                                                                                                                                                                                          // FNB: filter by category (dynamic based on sub-type: cafe/resto/generic)
-                                                                                                                                                                                                                                          const subType = getFnbSubType(tenantCategory || '');
-                                                                                                                                                                                                                                          let fnbCategories = ["Makanan", "Minuman", "Snack", "Dessert", "Paket Hemat"]; // generic fallback
-                                                                                                                                                                                                                                          if (subType === 'cafe') {
-                                                                                                                                                                                                                                            fnbCategories = ["Kopi", "Non-Kopi", "Makanan Ringan", "Dessert", "Paket Sarapan"];
-                                                                                                                                                                                                                                          } else if (subType === 'resto') {
-                                                                                                                                                                                                                                            fnbCategories = ["Appetizer", "Main Course", "Dessert", "Beverage", "Paket Hemat"];
-                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                          if (fnbCategories.includes(selectedFilterTab)) {
-                                                                                                                                                                                                                                            result = result.filter(p => (p.category || "").toLowerCase().trim() === selectedFilterTab.toLowerCase().trim());
-                                                                                                                                                                                                                                          } else {
-                                                                                                                                                                                                                                            result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
-                                                                                                                                                                                                                                          }
-                                                                                                                    } else if (catLower.includes("jasa") || catLower.includes("servis")) {
+                    result = result.filter(p => (p.category || "").toLowerCase().trim() === catLower);
+                  } else if (catLower.includes("jasa") || catLower.includes("servis")) {
                                                             result = result.filter(p => {
                                                               const c = (p.category || "").toLowerCase().trim();
                                                               return c.includes("jasa") || c.includes("servis") || p.isService;
