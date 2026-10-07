@@ -28,6 +28,15 @@ export default async function AdminProductsPage() {
       where: { userId: targetUserId, isArchived: false },
       orderBy: { createdAt: 'desc' },
       take: 10,
+      select: {
+        id: true,
+        name: true,
+        hargaJual: true,
+        stock: true,
+        image: true,
+        sku: true,
+        hasVariants: true,
+      }
     }),
     prisma.product.count({
       where: { userId: targetUserId, isArchived: false },

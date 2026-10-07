@@ -84,7 +84,7 @@ export default function AnalyticsClient({ initialData, initialDateRange }: { ini
     }
   };
 
-  if (!isLoaded || (isLoadingData && user)) {
+  if (!isLoaded || (isLoadingData && !data)) {
     return (
       <div className="p-8 h-96 flex flex-col items-center justify-center text-slate-500 font-medium gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />

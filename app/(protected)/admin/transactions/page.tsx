@@ -19,8 +19,16 @@ export default async function AdminTransactionsPage() {
     if (prisma.transaction) {
       transactions = await prisma.transaction.findMany({
         where: { userId },
-        take: 50, // Batasi 50 transaksi terbaru untuk efisiensi memori
+        take: 20, // Batasi 20 transaksi terbaru untuk efisiensi memori (Fast Render)
         orderBy: { createdAt: 'desc' }, // Transaksi terbaru muncul di atas
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          total: true,
+          createdAt: true,
+          paymentMethod: true,
+        }
       });
     } else {
       hasError = true;

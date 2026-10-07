@@ -36,7 +36,14 @@ export default async function PesananOnlinePage() {
       userId: targetUserId,
       status: { in: ["PENDING", "COMPLETED", "IN_PROGRESS"] }
     },
-    include: {
+    take: 20,
+    select: {
+      id: true,
+      customerName: true,
+      bookingDate: true,
+      startDate: true,
+      endDate: true,
+      status: true,
       product: { select: { name: true, hargaJual: true } }
     },
     orderBy: { createdAt: "desc" }

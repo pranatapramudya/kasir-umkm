@@ -44,7 +44,7 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
     // 1. Data Jam Sibuk
     const transactions = await prisma.transaction.findMany({
       where: { userId: targetUserId, createdAt: dateFilter },
-      select: { createdAt: true }
+      select: { createdAt: true },
     });
 
     const hourCounts: Record<number, number> = {};

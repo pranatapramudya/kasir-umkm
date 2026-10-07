@@ -8,81 +8,79 @@ datasource db {
 
 model product {
   id                 Int       @id @default(autoincrement())
-  userId             String // Identifikasi tenant (Clerk User ID)
-  kodeBarang         String? // SKU/Barcode barang (opsional)
+  userId             String
+  kodeBarang         String?
   name               String
-  hpp                Int      @default(0) // Harga Pokok Penjualan (Modal) - untuk Retail/FNB/Rental/Sparepart
-  biayaModal         Int      @default(0) // Biaya Modal/Bahan per pengerjaan - KHUSUS Jasa murni
-  hargaJual          Int // Harga yang ditampilkan ke pelanggan (dulu price)
-  category           String   @default("Umum")
-  stock              Int      @default(0)
-  discount           Int      @default(0) // Potongan harga bawaan produk
-  image              String   @default("")
+  hpp                Int       @default(0)
+  hargaJual          Int
+  category           String    @default("Umum")
+  stock              Int       @default(0)
+  discount           Int       @default(0)
+  image              String    @default("")
   brand              String?
   variant            String?
-  minStockThreshold  Int      @default(5)
-  isService          Boolean  @default(false)
+  minStockThreshold  Int       @default(5)
+  isService          Boolean   @default(false)
   description        String?
-  employeeCommission Int?     @default(0)
-  isActive           Boolean  @default(true)
-  isArchived         Boolean  @default(false)
-  createdAt          DateTime @default(now()) // Harus ada baris ini!
+  employeeCommission Int?      @default(0)
+  isActive           Boolean   @default(true)
+  isArchived         Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  biayaModal         Int       @default(0)
   bookings           Booking[]
 
-  // Memastikan kodeBarang bersifat unik di dalam satu tenant (userId)
   @@unique([userId, kodeBarang])
   @@index([userId])
   @@index([category])
 }
 
 model Transaction {
-  id           String            @id
-  userId       String // Identifikasi tenant
-  timestamp    BigInt
-  customerName String
-  cashierId    String?
-  cashier      Employee?         @relation("CashierTransactions", fields: [cashierId], references: [id])
-  tableId      String?
-  table        DiningTable?      @relation(fields: [tableId], references: [id])
-  discount     Int               @default(0) // Potongan harga oleh kasir
-  total        Int
-  method       String
-  status       String            @default("pending")
-  createdAt    DateTime          @default(now())
-  // === Rental & Travel fields ===
-  startDate    DateTime?
-  endDate      DateTime?
-  pickupLocation String?
-  dropoffLocation String?
-  driverName   String?
-  licensePlate String?
-  serviceDate  DateTime?
-  guarantee    String?
-  returnTime   String?
-  deposit      Int               @default(0)
-  conditionNotes String?
-  pickupTime   String?
-  downPayment  Int               @default(0)
-  remainingBalance Int           @default(0)
-  items        TransactionItem[]
+  id               String            @id
+  userId           String
+  timestamp        BigInt
+  customerName     String
+  cashierId        String?
+  tableId          String?
+  discount         Int               @default(0)
+  total            Int
+  method           String
+  status           String            @default("pending")
+  createdAt        DateTime          @default(now())
+  startDate        DateTime?
+  endDate          DateTime?
+  pickupLocation   String?
+  dropoffLocation  String?
+  driverName       String?
+  licensePlate     String?
+  serviceDate      DateTime?
+  guarantee        String?
+  downPayment      Int               @default(0)
+  remainingBalance Int               @default(0)
+  conditionNotes   String?
+  deposit          Int               @default(0)
+  pickupTime       String?
+  returnTime       String?
+  cashier          Employee?         @relation("CashierTransactions", fields: [cashierId], references: [id])
+  table            DiningTable?      @relation(fields: [tableId], references: [id])
+  items            TransactionItem[]
 
   @@index([userId, createdAt])
-  @@index([userId, createdAt, cashierId]) // Optimasi query laporan shift per kasir
+  @@index([userId, createdAt, cashierId])
   @@index([status])
 }
 
 model TransactionItem {
   id                 Int         @id @default(autoincrement())
   transactionId      String
-  transaction        Transaction @relation(fields: [transactionId], references: [id])
   productId          Int
   qty                Int
-  price              Int // Harga barang pada saat transaksi terjadi
+  price              Int
   note               String?
   workerId           String?
-  worker             Employee?   @relation("WorkerItems", fields: [workerId], references: [id])
   serviceDuration    Int?        @default(0)
-  commissionSnapshot Int         @default(0) // Snapshot komisi pada saat transaksi terjadi
+  commissionSnapshot Int         @default(0)
+  transaction        Transaction @relation(fields: [transactionId], references: [id])
+  worker             Employee?   @relation("WorkerItems", fields: [workerId], references: [id])
 
   @@index([transactionId])
   @@index([productId])
@@ -102,28 +100,24 @@ model Expense {
 }
 
 model Tenant {
-  id                 String    @id @default(cuid())
-  userId             String    @unique
-  name               String
-  category           String
-  slug               String?   @unique
-  phone              String?   @default("")
-  subscriptionPlan   String    @default("FREE")
-  subscriptionStatus String    @default("ACTIVE")
-  subscriptionEndsAt DateTime?
-  createdAt          DateTime  @default(now())
-  bookings           Booking[]
-  
-  // === Payment & Contact Info ===
-  adminWhatsApp      String?
-  bankName           String?
-  bankAccount        String?
-  bankAccountName    String?
-
-  // === Booking Schedule Settings (Khusus Jasa / Servis) ===
-  bookingOpenTime    String?   @default("08:00")
-  bookingCloseTime   String?   @default("21:00")
-  bookingSlotDuration Int?     @default(30)
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  name                String
+  category            String
+  slug                String?   @unique
+  phone               String?   @default("")
+  subscriptionPlan    String    @default("FREE")
+  subscriptionStatus  String    @default("ACTIVE")
+  subscriptionEndsAt  DateTime?
+  createdAt           DateTime  @default(now())
+  adminWhatsApp       String?
+  bankName            String?
+  bankAccount         String?
+  bankAccountName     String?
+  bookingCloseTime    String?   @default("21:00")
+  bookingOpenTime     String?   @default("08:00")
+  bookingSlotDuration Int?      @default(30)
+  bookings            Booking[]
 
   @@index([subscriptionStatus])
   @@index([slug])
@@ -165,40 +159,30 @@ model AuditLog {
   @@index([tenantId, createdAt])
 }
 
-enum BookingStatus {
-  PENDING
-  COMPLETED
-  IN_PROGRESS
-  CANCELLED
-  FINISHED
-}
-
 model Booking {
-  id            String        @id @default(uuid())
-  userId        String        // Identifikasi tenant (Multi-Tenant Isolation)
-  tenant        Tenant        @relation(fields: [userId], references: [userId])
-  customerName  String
-  customerPhone String
-  bookingDate   DateTime
-  notes         String?
-  status        BookingStatus @default(PENDING)
-  productId     Int?
-  product       product?      @relation(fields: [productId], references: [id])
-  // === Rental & Travel fields ===
-  startDate     DateTime?
-  endDate       DateTime?
-  pickupLocation String?
+  id              String        @id @default(uuid())
+  userId          String
+  customerName    String
+  customerPhone   String
+  bookingDate     DateTime
+  notes           String?
+  status          BookingStatus @default(PENDING)
+  productId       Int?
+  startDate       DateTime?
+  endDate         DateTime?
+  pickupLocation  String?
   dropoffLocation String?
-  // === Equipment/Alat fields ===
-  returnTime    String?
-  deposit       Int           @default(0)
-  conditionNotes String?
-  pickupTime    String?
   actualStartedAt DateTime?
-  overtimeFee   Int           @default(0)
-  downPayment   Int           @default(0)
-  paymentMethod String?       // e.g. "CASH", "TUNAI", "QRIS"
-  createdAt     DateTime      @default(now())
+  overtimeFee     Int           @default(0)
+  downPayment     Int           @default(0)
+  paymentMethod   String?
+  createdAt       DateTime      @default(now())
+  conditionNotes  String?
+  deposit         Int           @default(0)
+  pickupTime      String?
+  returnTime      String?
+  product         product?      @relation(fields: [productId], references: [id])
+  tenant          Tenant        @relation(fields: [userId], references: [userId])
 
   @@index([userId, createdAt])
   @@index([status])
@@ -209,8 +193,16 @@ model PushSubscription {
   endpoint  String   @unique
   p256dh    String
   auth      String
-  userId    String   // Clerk User ID (Owner atau Super Admin)
+  userId    String
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+enum BookingStatus {
+  PENDING
+  COMPLETED
+  IN_PROGRESS
+  CANCELLED
+  FINISHED
 }
