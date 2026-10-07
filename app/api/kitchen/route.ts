@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET: Ambil daftar pesanan aktif untuk layar dapur
 export async function GET() {
   try {
@@ -21,12 +24,29 @@ export async function GET() {
       activeTenantId = metaTenantId;
     }
 
+    // Resolusi tenant untuk mendapatkan Clerk userId & Tenant ID sekaligus
+    const tenant = await prisma.tenant.findFirst({
+      where: {
+        OR: [
+          { userId: activeTenantId },
+          { id: activeTenantId }
+        ]
+      }
+    });
+
+    const possibleUserIds = Array.from(new Set([
+      activeTenantId,
+      userId,
+      tenant?.userId,
+      tenant?.id
+    ].filter(Boolean) as string[]));
+
     // Ambil transaksi aktif (pending, cooking, ready) dalam 24 jam terakhir agar shift malam / lintas tanggal tetap aman
     const sinceTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     const orders = await prisma.transaction.findMany({
       where: {
-        userId: activeTenantId,
+        userId: { in: possibleUserIds },
         createdAt: { gte: sinceTime },
         status: { in: ['pending', 'cooking', 'ready'] },
       },
@@ -60,7 +80,16 @@ export async function GET() {
       })),
     }));
 
-    return NextResponse.json({ success: true, orders: formattedOrders });
+    return NextResponse.json(
+      { success: true, orders: formattedOrders },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      }
+    );
   } catch (err: any) {
     console.error('Error fetching kitchen orders:', err);
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
@@ -86,6 +115,22 @@ export async function PATCH(request: Request) {
       activeTenantId = metaTenantId;
     }
 
+    const tenant = await prisma.tenant.findFirst({
+      where: {
+        OR: [
+          { userId: activeTenantId },
+          { id: activeTenantId }
+        ]
+      }
+    });
+
+    const possibleUserIds = Array.from(new Set([
+      activeTenantId,
+      userId,
+      tenant?.userId,
+      tenant?.id
+    ].filter(Boolean) as string[]));
+
     const body = await request.json();
     const { transactionId, status } = body;
 
@@ -98,10 +143,17 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: false, message: 'Status tidak valid' }, { status: 400 });
     }
 
+    const rawId = String(transactionId).trim();
+    const idVariants = Array.from(new Set([
+      rawId,
+      rawId.replace(/^#/, ''),
+      `#${rawId.replace(/^#/, '')}`
+    ]));
+
     const updated = await prisma.transaction.updateMany({
       where: {
-        id: String(transactionId),
-        userId: activeTenantId,
+        id: { in: idVariants },
+        userId: { in: possibleUserIds },
       },
       data: { status },
     });
@@ -110,20 +162,14 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: false, message: 'Transaksi tidak ditemukan' }, { status: 404 });
     }
 
-    // Broadcast WebSocket event for real-time KDS update
-    try {
-      const { broadcastToTenant } = await import('../../../scripts/websocket-server');
-      broadcastToTenant(activeTenantId, {
-        type: 'order_status_update',
-        transactionId: String(transactionId),
-        status,
-        timestamp: Date.now()
-      });
-    } catch (wsErr) {
-      console.warn('[WS] Broadcast failed (server may not be running):', wsErr);
-    }
-
-    return NextResponse.json({ success: true, status });
+    return NextResponse.json(
+      { success: true, status },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
   } catch (err: any) {
     console.error('Error updating kitchen order status:', err);
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
