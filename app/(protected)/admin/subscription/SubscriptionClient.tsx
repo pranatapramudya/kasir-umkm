@@ -49,7 +49,7 @@ export default function SubscriptionClient({ initialStatus }: { initialStatus: a
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      {isExpired && status.plan === 'FREE' && (
+      {isExpired && (status.plan === 'FREE' || status.plan === 'TRIAL') && (
         <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0 mt-1" />

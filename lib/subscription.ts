@@ -38,7 +38,7 @@ export async function checkSubscriptionStatus() {
   let isExpired = false;
   let inTrial = false;
 
-  if (tenant.subscriptionPlan === "FREE" && !endsAt) {
+  if ((tenant.subscriptionPlan === "FREE" || tenant.subscriptionPlan === "TRIAL") && !endsAt) {
     // Gunakan createdAt sebagai basis trial 14 hari
     const trialEndsAt = new Date(tenant.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
     const now = new Date();
@@ -55,6 +55,10 @@ export async function checkSubscriptionStatus() {
     // Beri masa tenggang (Grace Period) 1 hari (24 jam)
     const endsAtPlusGracePeriod = new Date(endsAt).getTime() + (24 * 60 * 60 * 1000);
     isExpired = endsAtPlusGracePeriod < Date.now();
+    
+    if (tenant.subscriptionPlan === "TRIAL" && !isExpired) {
+      inTrial = true;
+    }
   }
 
   return { 
@@ -63,7 +67,7 @@ export async function checkSubscriptionStatus() {
     plan: tenant.subscriptionPlan,
     status: tenant.subscriptionStatus,
     endsAt: endsAt ? endsAt.toISOString() : null,
-    trialEndsAt: inTrial ? new Date(tenant.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString() : null,
+    trialEndsAt: inTrial ? (endsAt ? endsAt.toISOString() : new Date(tenant.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()) : null,
     storeName: tenant.name
   };
 }
