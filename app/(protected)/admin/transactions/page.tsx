@@ -23,7 +23,6 @@ export default async function AdminTransactionsPage() {
         orderBy: { createdAt: 'desc' }, // Transaksi terbaru muncul di atas
         select: {
           id: true,
-          type: true,
           status: true,
           total: true,
           createdAt: true,

@@ -34,7 +34,6 @@ export default async function AdminProductsPage() {
         hargaJual: true,
         stock: true,
         image: true,
-        sku: true,
         hasVariants: true,
       }
     }),
