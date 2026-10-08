@@ -1548,132 +1548,145 @@ export default function LandingPageClient() {
     
       {/* MODAL PANDUAN INSTALASI ANDROID & IOS */}
       {installModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setInstallModalOpen(false)}
+        >
           <div 
-            className={`relative w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border transition-all ${
+            className={`w-full max-w-lg rounded-3xl shadow-2xl border transition-all flex flex-col max-h-[90vh] overflow-hidden ${
               isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button */}
-            <button
-              onClick={() => setInstallModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Tutup Modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Header Modal */}
-            <div className="flex items-center gap-3.5 mb-5">
-              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-md shadow-blue-600/30 bg-blue-600 shrink-0">
-                <Image src="/logo-app.png" alt="PJTECH" width={48} height={48} className="w-full h-full object-cover" />
+            {/* Header Modal - Dedicated Flex Row with Close Button */}
+            <div className="flex items-start justify-between gap-3 p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-md shadow-blue-600/30 bg-blue-600 shrink-0 flex items-center justify-center">
+                  <Image src="/logo-app.png" alt="PJTECH" width={48} height={48} className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-black tracking-tight leading-tight text-slate-900 dark:text-white truncate">
+                    Panduan Install PJTECH di HP
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    Aplikasi PWA Ringan • Langsung di Layar Utama
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-black tracking-tight">Panduan Install PJTECH di HP</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Aplikasi PWA Ringan • Langsung di Layar Utama</p>
-              </div>
-            </div>
 
-            {/* Platform Tab Switcher */}
-            <div className="flex rounded-2xl p-1 bg-slate-100 dark:bg-slate-800 mb-6">
+              {/* Close Button - in its own dedicated space */}
               <button
                 type="button"
-                onClick={() => setInstallTab('android')}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-                  installTab === 'android'
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-                }`}
+                onClick={() => setInstallModalOpen(false)}
+                className="p-2 -mr-1 -mt-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 touch-manipulation"
+                aria-label="Tutup Modal"
               >
-                <span>🤖 HP Android (Chrome)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setInstallTab('ios')}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-                  installTab === 'ios'
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-                }`}
-              >
-                <span>🍎 iPhone / iPad (Safari)</span>
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Steps Content */}
-            {installTab === 'android' ? (
-              <div className="space-y-3.5 text-xs sm:text-sm">
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Buka di Google Chrome</p>
-                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Buka website PJTECH di browser Google Chrome pada HP Android Anda.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Ketuk Menu Titik Tiga (⋮)</p>
-                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk ikon titik tiga di sudut kanan atas layar browser Chrome.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Pilih "Install Aplikasi" / "Tambahkan ke Layar Utama"</p>
-                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk pilihan tersebut dan konfirmasi dengan menekan <strong>Install</strong>.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
-                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">✓</div>
-                  <div>
-                    <p className="font-bold text-emerald-900 dark:text-emerald-300">Selesai!</p>
-                    <p className="text-emerald-800 dark:text-emerald-400 text-xs mt-0.5">Ikon resmi PJTECH akan muncul di layar depan HP Anda dan langsung siap digunakan transaksi kasir.</p>
-                  </div>
-                </div>
+            {/* Scrollable Body Content */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              {/* Platform Tab Switcher */}
+              <div className="flex rounded-2xl p-1 bg-slate-100 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setInstallTab('android')}
+                  className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                    installTab === 'android'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  <span>🤖 HP Android (Chrome)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInstallTab('ios')}
+                  className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                    installTab === 'ios'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  <span>🍎 iPhone / iPad (Safari)</span>
+                </button>
               </div>
-            ) : (
-              <div className="space-y-3.5 text-xs sm:text-sm">
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Buka di Safari (Wajib)</p>
-                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Di iPhone/iPad, pastikan membuka website menggunakan browser <strong>Safari</strong> bawaan Apple.</p>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Ketuk Ikon Bagikan (Share)</p>
-                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk ikon kotak dengan tanda panah ke atas di bagian bilah menu bawah layar Safari.</p>
+              {/* Steps Content */}
+              {installTab === 'android' ? (
+                <div className="space-y-3 text-xs sm:text-sm">
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">Buka di Google Chrome</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Buka website PJTECH di browser Google Chrome pada HP Android Anda.</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</div>
-                  <div>
-                    <p className="font-bold text-slate-900 dark:text-white">Pilih "Tambah ke Layar Utama" (Add to Home Screen)</p>
-                    <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Gulir ke bawah menu lalu ketuk opsi <strong>Tambah ke Layar Utama</strong>, kemudian ketuk <strong>Tambah</strong> di pojok kanan atas.</p>
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">Ketuk Menu Titik Tiga (⋮)</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk ikon titik tiga di sudut kanan atas layar browser Chrome.</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
-                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">✓</div>
-                  <div>
-                    <p className="font-bold text-emerald-900 dark:text-emerald-300">Selesai & Fullscreen!</p>
-                    <p className="text-emerald-800 dark:text-emerald-400 text-xs mt-0.5">Ikon PJTECH terpasang di Home Screen iPhone dan akan terbuka fullscreen tanpa bilah browser.</p>
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">Pilih "Install Aplikasi" / "Tambahkan ke Layar Utama"</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk pilihan tersebut dan konfirmasi dengan menekan <strong>Install</strong>.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                    <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">✓</div>
+                    <div>
+                      <p className="font-bold text-emerald-900 dark:text-emerald-300">Selesai!</p>
+                      <p className="text-emerald-800 dark:text-emerald-400 text-xs mt-0.5">Ikon resmi PJTECH akan muncul di layar depan HP Anda dan langsung siap digunakan transaksi kasir.</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-3 text-xs sm:text-sm">
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">Buka di Safari (Wajib)</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Di iPhone/iPad, pastikan membuka website menggunakan browser <strong>Safari</strong> bawaan Apple.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">Ketuk Ikon Bagikan (Share)</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Ketuk ikon kotak dengan tanda panah ke atas di bagian bilah menu bawah layar Safari.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">Pilih "Tambah ke Layar Utama" (Add to Home Screen)</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">Gulir ke bawah menu lalu ketuk opsi <strong>Tambah ke Layar Utama</strong>, kemudian ketuk <strong>Tambah</strong> di pojok kanan atas.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                    <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">✓</div>
+                    <div>
+                      <p className="font-bold text-emerald-900 dark:text-emerald-300">Selesai & Fullscreen!</p>
+                      <p className="text-emerald-800 dark:text-emerald-400 text-xs mt-0.5">Ikon PJTECH terpasang di Home Screen iPhone dan akan terbuka fullscreen tanpa bilah browser.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Footer Tip */}
-            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 sm:px-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
               <span className="text-[11px] text-slate-500 dark:text-slate-400">⚡ Ukuran &lt; 5MB • Otomatis Update</span>
               <button
                 type="button"

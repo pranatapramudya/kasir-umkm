@@ -95,8 +95,8 @@ export function PwaInstallPrompt() {
         
         {/* Header Prompt */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-md shadow-blue-600/30 bg-blue-600 shrink-0 flex items-center justify-center">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-md shadow-blue-600/30 bg-blue-600 shrink-0 flex items-center justify-center">
               <Image
                 src="/logo-app.png"
                 alt="PJTECH Logo"
@@ -105,11 +105,11 @@ export function PwaInstallPrompt() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div>
-              <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white leading-tight truncate">
                 Install PJTECH KASIR
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                 Akses aplikasi lebih cepat tanpa browser.
               </p>
             </div>
@@ -117,7 +117,7 @@ export function PwaInstallPrompt() {
 
           <button
             onClick={handleDismiss}
-            className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+            className="p-2 -mr-1 -mt-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 touch-manipulation"
             aria-label="Tutup notifikasi install"
           >
             <X className="w-4 h-4" />

@@ -7,6 +7,18 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 📱 2026-10-08 — Perbaikan Tombol Tutup (X) & Navigasi Panduan Install Mobile (Android & iOS)
+- **Modal Panduan Install di Landing Page (`components/landing/LandingPageClient.tsx`):**
+  - Menghilangkan tombol close `absolute top-5 right-5` yang sebelumnya menimpa teks judul *"Panduan Install PJTECH di HP"* pada viewport layar smartphone Android & iOS.
+  - Memperbarui struktur header menjadi Flexbox dedicated (`items-start justify-between gap-3`) dengan alokasi khusus untuk tombol X (`shrink-0`), memastikan tombol tidak pernah tumpang tindih dengan teks atau elemen lain.
+  - Menambahkan pembungkus modal `max-h-[90vh] flex flex-col overflow-hidden` dengan area konten yang dapat di-scroll lancar dan footer yang tetap rapi.
+- **Buku Panduan Penggunaan di APK (`components/BukuPanduanModal.tsx`):**
+  - Memperbaiki tata letak header dengan flexbox responsif sehingga tombol X memiliki ruang terpisah tanpa menabrak judul di layar smartphone.
+  - Menambahkan tab khusus **"📱 Install HP / iOS"** di samping **"📖 SOP Bisnis"** dan **"💬 Bantuan WA"**, sehingga pengguna di dalam APK dapat langsung mengakses panduan instalasi PWA di Android (Chrome) dan iPhone/iPad (Safari) dalam 1 sentuhan.
+  - Mendukung tema terang dan gelap dengan visual profesional.
+- **Notifikasi Install PWA (`components/PwaInstallPrompt.tsx`):**
+  - Merestrukturisasi baris header dengan `min-w-0 flex-1` dan proteksi `truncate` agar tombol close X tetap memiliki ruang aman dan tidak bertabrakan pada smartphone berlayar sempit.
+
 ### 🎯 2026-10-08 — Tata Letak Mobile All-in-One: Seluruh 5 Sektor Usaha Terlihat Tanpa Perlu Digeser
 - **Grid 5-Kolom Presisi (`components/auth/AuthShell.tsx`):**
   - Mengubah baris chip sektor usaha pada header mobile dari sistem scroll horizontal menjadi **Grid 5 Kolom Proporsional (`grid-cols-5`)**.
