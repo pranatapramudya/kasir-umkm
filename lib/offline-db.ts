@@ -215,6 +215,9 @@ export async function processSyncQueue(apiBase: string, authToken: string) {
 
 let syncInterval: ReturnType<typeof setInterval> | null = null;
 let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+// Bug 1 fix: store handler refs so removeEventListener works correctly
+let _onlineHandler: (() => void) | null = null;
+let _offlineHandler: (() => void) | null = null;
 
 export function startAutoSync(apiBase: string, getToken: () => Promise<string | null>, intervalMs = 30000) {
   if (syncInterval) return;
@@ -234,20 +237,17 @@ export function startAutoSync(apiBase: string, getToken: () => Promise<string | 
 
   syncInterval = setInterval(attemptSync, intervalMs);
 
-  window.addEventListener('online', () => {
-    isOnline = true;
-    attemptSync();
-  });
-  window.addEventListener('offline', () => {
-    isOnline = false;
-  });
+  _onlineHandler = () => { isOnline = true; attemptSync(); };
+  _offlineHandler = () => { isOnline = false; };
+
+  window.addEventListener('online', _onlineHandler);
+  window.addEventListener('offline', _offlineHandler);
 }
 
 export function stopAutoSync() {
-  if (syncInterval) {
-    clearInterval(syncInterval);
-    syncInterval = null;
-  }
+  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
+  if (_onlineHandler) { window.removeEventListener('online', _onlineHandler); _onlineHandler = null; }
+  if (_offlineHandler) { window.removeEventListener('offline', _offlineHandler); _offlineHandler = null; }
 }
 
 export function getOnlineStatus() {

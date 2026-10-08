@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat, Package, Fuel, QrCode, Copy, AlertCircle
 } from 'lucide-react';
@@ -1122,7 +1122,7 @@ export default function POSApp({
   const isCashInsufficient = paymentMethod === 'cash' && cart.length > 0 && parsedCashGiven < currentTotalToPay;
 
   // --- OFFLINE SYNC LOGIC ---
-  const syncOfflineTransactions = async () => {
+  const syncOfflineTransactions = useCallback(async () => {
     if (!navigator.onLine) return;
     const offlineTxsStr = localStorage.getItem('offline_transactions');
     if (!offlineTxsStr) return;
@@ -1130,7 +1130,9 @@ export default function POSApp({
     const offlineTxs: Transaction[] = JSON.parse(offlineTxsStr);
     if (offlineTxs.length === 0) return;
 
+    // Bug 2 fix: track per-item success, don't use slice(count) which loses order info
     let successCount = 0;
+    const failed: Transaction[] = [];
     for (const tx of offlineTxs) {
       try {
         const res = await fetch('/api/transactions', {
@@ -1140,30 +1142,31 @@ export default function POSApp({
         });
         if (res.ok) {
           successCount++;
+        } else {
+          failed.push(tx);
         }
       } catch (err) {
         console.error("Failed to sync offline transaction:", err);
-        break; // Stop syncing if internet drops again
+        failed.push(tx); // keep failed, continue others
       }
     }
 
-    // Remove successful ones
     if (successCount > 0) {
-      const remainingTxs = offlineTxs.slice(successCount);
-      localStorage.setItem('offline_transactions', JSON.stringify(remainingTxs));
+      localStorage.setItem('offline_transactions', JSON.stringify(failed));
       toast.success(`${successCount} transaksi offline berhasil disinkronisasi ke server!`);
       mutate();
     }
-  };
+  }, [mutate]);
 
+  // Bug 4 fix: include syncOfflineTransactions in dep array so removeEventListener
+  // removes the same stable reference that was added (useCallback ensures stable ref)
   useEffect(() => {
     window.addEventListener('online', syncOfflineTransactions);
-    // Attempt to sync on mount if online
     if (navigator.onLine) {
       syncOfflineTransactions();
     }
     return () => window.removeEventListener('online', syncOfflineTransactions);
-  }, []);
+  }, [syncOfflineTransactions]);
 
   const handleCheckout = async () => {
       if (isSubmittingRef.current || isCheckoutLoading) return;
