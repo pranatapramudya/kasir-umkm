@@ -24,12 +24,8 @@ export async function GET(request: Request) {
 
     if (from || to) {
       whereClause.date = {};
-      if (from) whereClause.date.gte = new Date(from);
-      if (to) {
-        const toDate = new Date(to);
-        toDate.setHours(23, 59, 59, 999);
-        whereClause.date.lte = toDate;
-      }
+      if (from) whereClause.date.gte = new Date(`${from}T00:00:00+07:00`);
+      if (to) whereClause.date.lte = new Date(`${to}T23:59:59.999+07:00`);
     }
 
     const expenses = await prisma.expense.findMany({

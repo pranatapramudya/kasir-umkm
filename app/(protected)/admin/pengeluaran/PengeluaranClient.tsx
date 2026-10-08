@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import useSWR, { mutate } from 'swr';
-import { Wallet, Plus, Trash2, Loader2, X, Receipt } from 'lucide-react';
+import { Wallet, Plus, Trash2, Loader2, X, Receipt, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -41,7 +41,57 @@ const formatRupiah = (number: number) => {
 
 export default function PengeluaranClient({ initialExpenses, tenantId, initialDateRange }: Props) {
   const router = useRouter();
+  const getWibDateString = (d: Date = new Date()) => {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(d);
+  };
+
   const [dateRange, setDateRange] = useState(initialDateRange);
+
+  const activePreset = useMemo(() => {
+    const now = new Date();
+    const todayStr = getWibDateString(now);
+    const d7 = getWibDateString(new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000));
+    const [year, month] = todayStr.split('-');
+    const thisMonthStart = `${year}-${month}-01`;
+    const d30 = getWibDateString(new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000));
+    
+    const firstOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfPrevMonth = new Date(firstOfThisMonth.getTime() - 24 * 60 * 60 * 1000);
+    const prevMonthEndStr = getWibDateString(lastDayOfPrevMonth);
+    const [prevYear, prevMonth] = prevMonthEndStr.split('-');
+    const lastMonthStart = `${prevYear}-${prevMonth}-01`;
+
+    if (dateRange.from === todayStr && dateRange.to === todayStr) return 'today';
+    if (dateRange.from === d7 && dateRange.to === todayStr) return '7days';
+    if (dateRange.from === thisMonthStart && dateRange.to === todayStr) return 'thisMonth';
+    if (dateRange.from === d30 && dateRange.to === todayStr) return '30days';
+    if (dateRange.from === lastMonthStart && dateRange.to === prevMonthEndStr) return 'lastMonth';
+    return 'custom';
+  }, [dateRange.from, dateRange.to]);
+
+  const handleSelectPreset = (preset: 'today' | '7days' | 'thisMonth' | '30days' | 'lastMonth') => {
+    const now = new Date();
+    const todayStr = getWibDateString(now);
+
+    if (preset === 'today') {
+      setDateRange({ from: todayStr, to: todayStr });
+    } else if (preset === '7days') {
+      const d = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+      setDateRange({ from: getWibDateString(d), to: todayStr });
+    } else if (preset === 'thisMonth') {
+      const [year, month] = todayStr.split('-');
+      setDateRange({ from: `${year}-${month}-01`, to: todayStr });
+    } else if (preset === '30days') {
+      const d = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000);
+      setDateRange({ from: getWibDateString(d), to: todayStr });
+    } else if (preset === 'lastMonth') {
+      const firstOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDayOfPrevMonth = new Date(firstOfThisMonth.getTime() - 24 * 60 * 60 * 1000);
+      const prevMonthEndStr = getWibDateString(lastDayOfPrevMonth);
+      const [prevYear, prevMonth] = prevMonthEndStr.split('-');
+      setDateRange({ from: `${prevYear}-${prevMonth}-01`, to: prevMonthEndStr });
+    }
+  };
 
     const queryUrl = `/api/expenses?from=${dateRange.from}&to=${dateRange.to}`;
   
@@ -151,45 +201,107 @@ export default function PengeluaranClient({ initialExpenses, tenantId, initialDa
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 min-h-screen pb-20 md:pb-0">
-      <div className="bg-white border-b border-slate-200 px-6 py-5 sticky top-0 z-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-5xl mx-auto">
-          <div>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-              <Wallet className="w-7 h-7 text-blue-600" />
-              Pengeluaran
-            </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">Catat dan pantau biaya operasional bisnis Anda</p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
-            <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 w-full sm:w-auto justify-center">
-               <input 
-                 type="date" 
-                 value={dateRange.from}
-                 onChange={(e) => setDateRange(prev => ({...prev, from: e.target.value}))}
-                 className="bg-transparent text-sm font-medium text-slate-700 outline-none px-2 py-1 w-full sm:w-auto"
-               />
-               <span className="text-slate-400 text-sm font-bold">-</span>
-               <input 
-                 type="date" 
-                 value={dateRange.to}
-                 onChange={(e) => setDateRange(prev => ({...prev, to: e.target.value}))}
-                 className="bg-transparent text-sm font-medium text-slate-700 outline-none px-2 py-1 w-full sm:w-auto"
-               />
+    <div className="flex-1 flex flex-col bg-slate-50 min-h-screen pb-20 md:pb-8">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-6">
+        {/* Header Card & Filter Tanggal Presisi */}
+        <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                  <Wallet className="w-5 h-5" />
+                </div>
+                <span>Pengeluaran</span>
+              </h1>
+              <p className="text-sm text-slate-500 font-medium mt-1">Catat dan pantau biaya operasional bisnis Anda</p>
             </div>
 
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 justify-center shrink-0"
-            >
-              <Plus className="w-5 h-5" />
-              Tambah
-            </button>
+            <div className="flex flex-col gap-3 bg-slate-50/90 p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs shrink-0 w-full lg:w-auto">
+              {/* Filter Cepat Presisi Waktu */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                {[
+                  { id: 'today', label: 'Hari Ini' },
+                  { id: '7days', label: '7 Hari' },
+                  { id: 'thisMonth', label: 'Bulan Ini' },
+                  { id: '30days', label: '30 Hari' },
+                  { id: 'lastMonth', label: 'Bulan Lalu' },
+                ].map((preset) => {
+                  const isActive = activePreset === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleSelectPreset(preset.id as any)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer select-none ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200/80'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Tanggal Mulai, Tanggal Selesai & Tambah Pengeluaran */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="grid grid-cols-2 gap-2 flex-1 min-w-0">
+                  {/* Dari Tanggal */}
+                  <div className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-xs flex flex-col justify-center focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Calendar className="w-2.5 h-2.5 text-blue-500" /> Dari
+                    </span>
+                    <input
+                      type="date"
+                      value={dateRange.from}
+                      max={dateRange.to}
+                      onChange={(e) => {
+                        const newFrom = e.target.value;
+                        if (!newFrom) return;
+                        setDateRange((prev) => ({
+                          from: newFrom,
+                          to: newFrom > prev.to ? newFrom : prev.to,
+                        }));
+                      }}
+                      className="bg-transparent text-xs sm:text-sm font-bold text-slate-800 outline-none w-full cursor-pointer py-0.5"
+                    />
+                  </div>
+
+                  {/* Sampai Tanggal */}
+                  <div className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-xs flex flex-col justify-center focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Calendar className="w-2.5 h-2.5 text-blue-500" /> Sampai
+                    </span>
+                    <input
+                      type="date"
+                      value={dateRange.to}
+                      min={dateRange.from}
+                      onChange={(e) => {
+                        const newTo = e.target.value;
+                        if (!newTo) return;
+                        setDateRange((prev) => ({
+                          from: newTo < prev.from ? newTo : prev.from,
+                          to: newTo,
+                        }));
+                      }}
+                      className="bg-transparent text-xs sm:text-sm font-bold text-slate-800 outline-none w-full cursor-pointer py-0.5"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white shadow-sm transition-all duration-200 ease-in-out font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm flex items-center gap-2 justify-center shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="p-6 max-w-5xl mx-auto w-full space-y-6">
         
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
           <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center shrink-0">

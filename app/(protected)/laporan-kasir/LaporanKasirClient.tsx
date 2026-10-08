@@ -119,7 +119,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
         <div className="min-h-screen lg:h-screen bg-gray-50 flex flex-col lg:flex-row text-slate-900 lg:overflow-hidden">
             {sidebar}
             <div className="flex-1 min-w-0 flex flex-col lg:overflow-hidden">
-                <header className="bg-white border-b border-slate-200/80 px-4 sm:px-6 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-3.5 sm:py-4 sticky top-0 z-10 shrink-0 shadow-xs">
+                <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-3.5 sm:py-4 sticky top-0 z-30 shrink-0 shadow-xs">
                     <div className="flex justify-between items-center">
                         <h1 className="text-lg sm:text-xl font-black flex items-center gap-2.5 text-slate-900 tracking-tight">
                             <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
@@ -202,7 +202,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="bg-white p-4 rounded-2xl border border-blue-100 shadow-[0_8px_30px_rgb(59,130,246,0.05)] relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-0"></div>
-                            <div className="flex items-center gap-4 relative z-10">
+                            <div className="flex items-center gap-4 relative">
                                 <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                                     <Store className="w-5 h-5" />
                                 </div>
@@ -215,7 +215,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
 
                         <div className="bg-white p-4 rounded-2xl border border-green-100 shadow-[0_8px_30px_rgb(34,197,94,0.05)] relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-bl-full -z-0"></div>
-                            <div className="flex items-center gap-4 relative z-10">
+                            <div className="flex items-center gap-4 relative">
                                 <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
                                     <Wallet className="w-5 h-5" />
                                 </div>
@@ -229,7 +229,7 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
 
                         <div className="bg-white p-4 rounded-2xl border border-purple-100 shadow-[0_8px_30px_rgb(168,85,247,0.05)] relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -z-0"></div>
-                            <div className="flex items-center gap-4 relative z-10">
+                            <div className="flex items-center gap-4 relative">
                                 <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
                                     <CreditCard className="w-5 h-5" />
                                 </div>

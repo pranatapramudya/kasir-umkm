@@ -27,22 +27,20 @@ export default async function PengeluaranPage() {
   const tenantId = (sessionClaims?.metadata as any)?.tenantId;
   const targetUserId = role === 'CASHIER' ? tenantId : userId;
 
-  // Default range: First day of current month to today
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  // Default range: First day of current month to today (WIB UTC+7)
+  const now = new Date();
+  const wibDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now);
+  const [year, month] = wibDateStr.split('-');
   
-  const fromStr = getLocalDateString(firstDay);
-  const toStr = getLocalDateString(today);
-
-  const toDate = new Date(toStr);
-  toDate.setHours(23, 59, 59, 999);
+  const fromStr = `${year}-${month}-01`;
+  const toStr = wibDateStr;
 
   const initialExpenses = await prisma.expense.findMany({
     where: {
       userId: targetUserId,
       date: {
-        gte: new Date(fromStr),
-        lte: toDate
+        gte: new Date(`${fromStr}T00:00:00+07:00`),
+        lte: new Date(`${toStr}T23:59:59.999+07:00`)
       }
     },
     orderBy: { date: 'desc' }

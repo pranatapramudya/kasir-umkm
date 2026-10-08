@@ -7,6 +7,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### ⚡ 2026-10-08 — Presisi Filter Tanggal Pengeluaran & Perbaikan Stacking Laporan Shift Mobile
+- **Presisi Filter Tanggal Modul Pengeluaran (`app/(protected)/admin/pengeluaran/PengeluaranClient.tsx` & `app/api/expenses/route.ts`):**
+  - Menggantikan input rentang tanggal tunggal yang sempit di mobile dengan tata letak dua kartu tanggal sentuh terpisah (*Dari* dan *Sampai*), dilengkapi ikon kalender dan validasi rentang otomatis (`max` pada *Dari*, `min` pada *Sampai*, serta auto-swap bila tanggal awal melampaui tanggal akhir).
+  - Menambahkan baris preset cepat 1-tap **Hari Ini, 7 Hari, Bulan Ini, 30 Hari, Bulan Lalu** dengan indikator aktif yang memudahkan kasir/admin memfilter pengeluaran langsung tanpa perlu membuka kalender manual.
+  - Memperbaiki kalkulasi tanggal backend pada `/api/expenses/route.ts` dan SSR `page.ts` menggunakan offset zona waktu Indonesia (`+07:00` WIB) dari awal hari `00:00:00` sampai akhir hari `23:59:59.999`, mencegah selisih tanggal akibat konversi default UTC server.
+  - Menghapus redundansi header inner yang bertabrakan dengan header navigasi admin layout.
+- **Perbaikan Stacking Context & Header "Nerawang" Laporan Shift (`app/(protected)/laporan-kasir/LaporanKasirClient.tsx`):**
+  - Mengubah sticky header Laporan Shift di mobile dari `z-10` menjadi `sticky top-0 z-30 bg-white/95 backdrop-blur-md shrink-0 shadow-xs`.
+  - Menghapus aturan `relative z-10` pada komponen kartu metriks (*Tunai (Kas Laci)*, *Total Pendapatan:, dsb.) yang sebelumnya menyebabkan teks dan ikon kartu menerawang dan menimpa teks header saat halaman digulir ke atEs di browser HP/mobile.
+
 ### ⚡ 2026-10-08 — Modernisasi UI Waktu & BBM, Presisi Analitik WIB, & Panduan Pembayaran Multi-Tenant
 - **Modern Time Picker Enterprise (`components/ModernTimePicker.tsx`):**
   - Menggantikan elemen `<select>` bawaan 48 slot yang kaku dengan pemilih waktu modern berdesain responsif (bottom-sheet di mobile dan dialog tengah di desktop).
