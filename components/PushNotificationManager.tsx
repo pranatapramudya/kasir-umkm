@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { playNotificationChime } from "@/lib/audio";
+
+// Fallback VAPID public key
+const DEFAULT_VAPID_PUBLIC_KEY =
+  "[REDACTED_VAPID_PUBLIC_KEY]";
 
 /**
  * Mengkonversi base64url string ke Uint8Array<ArrayBuffer>
@@ -13,8 +18,6 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
     .replace(/-/g, "+")
     .replace(/_/g, "/");
   const rawData = window.atob(base64);
-  // Gunakan new ArrayBuffer(n) agar tipe menjadi Uint8Array<ArrayBuffer>
-  // (bukan Uint8Array<ArrayBufferLike> yang tidak kompatibel dengan PushManager API)
   const outputArray = new Uint8Array(new ArrayBuffer(rawData.length));
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
@@ -24,36 +27,48 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
 
 /**
  * Mendaftarkan Service Worker dan meng-subscribe push notification.
- * Mengirimkan subscription ke API backend untuk disimpan.
+ * Mengirimkan subscription ke API backend untuk disimpan ke database.
  */
 async function subscribeAndSave(): Promise<boolean> {
-  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  if (!vapidPublicKey) {
-    console.warn("[PushManager] NEXT_PUBLIC_VAPID_PUBLIC_KEY tidak di-set.");
+  const vapidPublicKey =
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
+
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    console.warn("[PushManager] Browser tidak mendukung Notification API.");
     return false;
   }
 
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    console.warn("[PushManager] Browser tidak mendukung Push Notifications.");
+    console.warn("[PushManager] Browser tidak mendukung ServiceWorker / PushManager.");
     return false;
   }
 
   try {
-    // Daftarkan service worker
+    // Daftarkan service worker (/sw.js)
     const registration = await navigator.serviceWorker.register("/sw.js", {
       scope: "/",
     });
     await navigator.serviceWorker.ready;
 
-    // Subscribe push
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-    });
+    // Cek apakah subscription sudah ada di browser
+    let subscription = await registration.pushManager.getSubscription();
+
+    // Jika belum ada, lakukan subscribe baru
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+    }
 
     const subscriptionJSON = subscription.toJSON();
 
-    // Kirim ke backend
+    if (!subscriptionJSON.endpoint) {
+      console.warn("[PushManager] Subscription endpoint kosong.");
+      return false;
+    }
+
+    // Kirim subscription data ke backend
     const response = await fetch("/api/push/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -65,16 +80,26 @@ async function subscribeAndSave(): Promise<boolean> {
     });
 
     if (!response.ok) {
-      console.error("[PushManager] Gagal menyimpan subscription ke server.");
+      console.error(
+        "[PushManager] Gagal menyimpan subscription ke server, status:",
+        response.status
+      );
       return false;
     }
 
     return true;
   } catch (error: any) {
-    if (error?.name === "AbortError" || (typeof error?.message === "string" && error.message.includes("push service error"))) {
-      console.warn("[PushManager] Push service tidak tersedia / di-abort browser di localhost (non-kritis):", error?.message);
+    if (
+      error?.name === "AbortError" ||
+      (typeof error?.message === "string" &&
+        error.message.includes("push service error"))
+    ) {
+      console.warn(
+        "[PushManager] Push service tidak tersedia / di-abort browser (non-kritis):",
+        error?.message
+      );
     } else {
-      console.warn("[PushManager] Peringatan saat subscribe:", error?.message || error);
+      console.error("[PushManager] Gagal subscribe push notification:", error);
     }
     return false;
   }
@@ -82,7 +107,7 @@ async function subscribeAndSave(): Promise<boolean> {
 
 /**
  * PushNotificationManager
- * Client component yang dipasang di /admin layout.
+ * Client component yang dipasang di layout admin.
  * Secara otomatis meminta izin notifikasi dan mendaftarkan subscription.
  */
 export default function PushNotificationManager() {
@@ -99,7 +124,7 @@ export default function PushNotificationManager() {
     setPermissionStatus(current);
 
     if (current === "granted" && !subscribedRef.current) {
-      // Sudah diizinkan sebelumnya, langsung subscribe (silent)
+      // Sudah diizinkan sebelumnya, langsung subscribe secara diam-diam (silent)
       subscribedRef.current = true;
       subscribeAndSave().catch((err) => {
         if (err?.name !== "AbortError") {
@@ -116,30 +141,39 @@ export default function PushNotificationManager() {
       // Tampilkan toast ajakan mengaktifkan notifikasi
       toast("🔔 Aktifkan notifikasi untuk pesanan baru", {
         description:
-          "Dapatkan notifikasi real-time setiap ada booking atau pesanan masuk.",
+          "Dapatkan notifikasi real-time setiap ada booking atau pesanan kasir masuk.",
         duration: 12000,
         action: {
           label: "Aktifkan",
           onClick: async () => {
-            const permission = await Notification.requestPermission();
-            setPermissionStatus(permission);
+            try {
+              const permission = await Notification.requestPermission();
+              setPermissionStatus(permission);
 
-            if (permission === "granted") {
-              const success = await subscribeAndSave();
-              if (success) {
-                toast.success("Notifikasi berhasil diaktifkan! 🎉", {
-                  description: "Anda akan menerima notifikasi pesanan baru.",
-                });
-              } else {
-                toast.error("Gagal mendaftarkan notifikasi.", {
+              if (permission === "granted") {
+                const success = await subscribeAndSave();
+                if (success) {
+                  playNotificationChime();
+                  toast.success("Notifikasi real-time aktif! 🎉", {
+                    description:
+                      "Anda akan menerima notifikasi setiap ada booking atau pesanan baru.",
+                  });
+                } else {
+                  toast.error("Gagal mendaftarkan notifikasi.", {
+                    description:
+                      "Pastikan service worker berjalan atau periksa koneksi internet.",
+                  });
+                }
+              } else if (permission === "denied") {
+                toast.error("Notifikasi diblokir oleh browser.", {
                   description:
-                    "Pastikan service worker berjalan dan coba lagi.",
+                    "Klik ikon gembok pada bilah alamat browser untuk mengizinkan notifikasi.",
                 });
               }
-            } else if (permission === "denied") {
-              toast.error("Notifikasi diblokir.", {
-                description:
-                  "Aktifkan di pengaturan browser untuk menerima notifikasi.",
+            } catch (err: any) {
+              console.error("[PushManager] Error request permission:", err);
+              toast.error("Gagal mengaktifkan notifikasi.", {
+                description: err?.message || "Terjadi kesalahan pada browser.",
               });
             }
           },
@@ -152,6 +186,5 @@ export default function PushNotificationManager() {
     }
   }, [permissionStatus]);
 
-  // Komponen ini tidak me-render apapun secara visual
   return null;
 }

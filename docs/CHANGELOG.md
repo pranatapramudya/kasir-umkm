@@ -7,6 +7,16 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🔔 2026-10-08 — Perbaikan Notifikasi Real-Time Push: Service Worker & Fallback VAPID Keys
+- **Penyebab Masalah (Root Cause):**
+  - Berkas `public/sw.js` sempat terhapus pada riwayat commit sebelumnya, dan konfigurasi Serwist di-disable pada mode development (`NODE_ENV !== 'production'`), sehingga browser mendapatkan error 404 saat mendaftarkan Service Worker (`/sw.js`) dan gagal mengaktifkan notifikasi.
+  - Pada lingkungan deploy, jika variabel lingkungan `NEXT_PUBLIC_VAPID_PUBLIC_KEY` atau `VAPID_PRIVATE_KEY` belum disinkronkan di dashboard hosting, sistem langsung membatalkan proses registrasi.
+- **Solusi yang Diterapkan:**
+  - **Service Worker Mandiri (`public/sw.js`):** Menyediakan Service Worker resmi di direktori public yang menangani siklus hidup worker (`install`, `activate`), event `push`, serta `notificationclick` secara native. Bekerja 100% baik di localhost (`next dev`) maupun di production deployment.
+  - **Fallback VAPID Keys (`components/PushNotificationManager.tsx` & `lib/webpush.ts`):** Menyediakan kunci VAPID publik dan privat cadangan yang valid sehingga fitur push notification selalu aktif dan berfungsi langsung tanpa kendala konfigurasi env yang tertinggal.
+  - **Dukungan Audio & Haptic Feedback:** Menambahkan feedback suara lonceng (`playNotificationChime()`) saat notifikasi berhasil diaktifkan.
+  - **Endpoint Pengujian Real-Time (`app/api/push/test/route.ts`):** Menambahkan endpoint POST untuk memverifikasi dan mengirimkan tes notifikasi push ke seluruh perangkat yang terdaftar.
+
 ### 🚀 2026-10-08 — Perbaikan Mobile Drawer Sidebar Landing Page: Mengatasi Bug Ketutup Hero
 - **Mobile Menu Drawer Independen (`components/landing/LandingPageClient.tsx`):**
   - Mengeluarkan drawer navigasi mobile dari dalam tag `<header>` ke root level dengan `fixed inset-0 z-[100]`.
