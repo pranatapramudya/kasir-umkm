@@ -30,6 +30,10 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Manajemen Karyawan & Sistem Komisi:** Pelacakan performa staf dan kalkulasi komisi otomatis berdasarkan transaksi yang diselesaikan (sangat cocok untuk bisnis Jasa/Salon/Bengkel).
 - **Manajemen Meja & Takeaway Resto:** Visualisasi ketersediaan status meja real-time serta opsi khusus *Takeaway / Bungkus / Konter* tanpa meja fisik untuk bisnis F&B.
 - **Keamanan Transaksi & Data (Soft Delete):** Menggunakan flag `isActive` pada produk untuk menjaga integritas data historis transaksi (mencegah isu *Time-of-Check to Time-of-Use / TOCTOU*).
+- **Point of Sales (POS) & Manajemen Produk Responsif Berbasis Layar:**
+  - **Desktop (≥ 1024px):** Batas maksimal 12 item per halaman, mengisi penuh grid 4-kolom POS dan 3-kolom Produk Admin secara presisi tanpa slot gantung.
+  - **Mobile (< 1024px):** Batas maksimal 10 item per halaman dengan navigasi touch swipe lancar.
+  - **Zero-Delay Pagination:** Dilengkapi preloading data halaman berdekatan secara proaktif untuk responsivitas perpindahan halaman 0ms.
 - **Point of Sales (POS) Responsif & Cepat:** Antarmuka Kasir *Mobile-First* yang lancar digunakan pada tablet atau *smartphone*, dilengkapi fitur keranjang dan kalkulasi diskon otomatis.
 - **Integrasi Hardware Barcode Scanner & Audio Feedback (Retail & F&B):**
   - **Global Hardware Scanner Listener:** Mendeteksi otomatis pemindaian barcode USB/Bluetooth HID melalui perhitungan interval keystroke cepat (< 70ms), langsung memasukkan item ke keranjang dan menambah kuantitas tanpa perlu klik tombol.

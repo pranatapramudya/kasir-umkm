@@ -14,10 +14,9 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
 
   return (
     <div className="flex items-center justify-center gap-2 mt-4 p-4">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
+      <button type="button" onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors shadow-sm flex items-center justify-center"
+        className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 active:scale-90 disabled:opacity-40 disabled:hover:bg-transparent disabled:active:scale-100 transition-all shadow-xs flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
@@ -42,10 +41,8 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
           }
 
           return (
-            <button
-              key={page}
-              onClick={() => onPageChange(page)}
-              className={`min-w-[36px] h-9 rounded-lg text-sm font-bold transition-all shadow-sm ${
+            <button type="button" key={page} onClick={() => onPageChange(page)}
+              className={`min-w-[36px] h-9 rounded-lg text-sm font-bold transition-all shadow-xs active:scale-95 cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -57,10 +54,9 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         })}
       </div>
 
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
+      <button type="button" onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors shadow-sm flex items-center justify-center"
+        className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 active:scale-90 disabled:opacity-40 disabled:hover:bg-transparent disabled:active:scale-100 transition-all shadow-xs flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
       >
         <ChevronRight className="w-5 h-5" />
       </button>

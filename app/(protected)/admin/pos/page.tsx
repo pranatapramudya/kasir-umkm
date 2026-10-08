@@ -47,7 +47,7 @@ export default async function POSAppAdminRoute() {
     prisma.product.findMany({
       where: { userId: targetUserId, isArchived: false },
       orderBy: { createdAt: 'desc' },
-      take: 10
+      take: 12
     }),
     prisma.product.count({ where: { userId: targetUserId, isArchived: false } })
   ]);
@@ -59,7 +59,8 @@ export default async function POSAppAdminRoute() {
         isExpired={isExpired}
         initialData={{
           products,
-          totalPages: Math.max(1, Math.ceil(totalCount / 10))
+          totalPages: Math.max(1, Math.ceil(totalCount / 12)),
+          totalCount
         }}
         tenantName={tenant?.name || ""}
         tenantCategory={tenant?.category || ""}

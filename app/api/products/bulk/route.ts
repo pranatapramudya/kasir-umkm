@@ -241,7 +241,8 @@ export async function POST(req: Request) {
     for (const p of productsToInsert) {
       const existing = existingMap.get(p.kodeBarang);
       if (existing) {
-        toUpdate.push({ id: existing.id, data: { ...p, isArchived: false } });
+        const { userId: _, ...updateData } = p;
+        toUpdate.push({ id: existing.id, data: { ...updateData, isArchived: false } });
       } else {
         toCreate.push(p);
       }
@@ -256,14 +257,19 @@ export async function POST(req: Request) {
     }
 
     if (toUpdate.length > 0) {
-      await prisma.$transaction(
-        toUpdate.map(item =>
-          prisma.product.update({
-            where: { id: item.id },
-            data: item.data,
-          })
-        )
-      );
+      // Chunk concurrent updates untuk menghindari Prisma transaction timeout (P2028) pada koneksi remote/SSL
+      const CHUNK_SIZE = 10;
+      for (let i = 0; i < toUpdate.length; i += CHUNK_SIZE) {
+        const chunk = toUpdate.slice(i, i + CHUNK_SIZE);
+        await Promise.all(
+          chunk.map(item =>
+            prisma.product.update({
+              where: { id: item.id },
+              data: item.data,
+            })
+          )
+        );
+      }
     }
 
     const totalProcessed = toCreate.length + toUpdate.length;

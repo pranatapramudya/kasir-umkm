@@ -18,6 +18,13 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isTncOpen, setIsTncOpen] = useState(false);
 
+  React.useEffect(() => {
+    // Presisi stay di paling atas saat katalog paket ditampilkan
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   const handleMayarCheckout = (planCode: string) => {
     let link = '';
     if (planCode === 'PRO_MONTHLY') {
@@ -51,7 +58,7 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
         if (isLoaded && user) {
           await user.reload();
         }
-        window.location.href = '/admin';
+        window.location.href = onSuccessRedirect || '/admin';
       } else {
         alert('Gagal memproses paket.');
         setIsLoading(false);
@@ -94,46 +101,70 @@ export default function PricingSection({ currentPlan, onSuccessRedirect }: Prici
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-          {/* Card 0: Mulai Usaha */}
-          <div className="border border-slate-200 rounded-3xl p-5 flex flex-col hover:border-slate-300 transition-all">
+          {/* Card 0: Free Trial 14 Hari (PILIHAN UTAMA PENDAFTAR BARU) */}
+          <div className="border-2 border-blue-600 rounded-3xl p-5 flex flex-col relative shadow-[0_8px_30px_rgb(37,99,235,0.12)] bg-gradient-to-b from-blue-50/50 via-white to-white ring-2 ring-blue-500/20 ring-offset-2">
+            <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-black px-3.5 py-1.5 rounded-full shadow-md tracking-wider uppercase flex items-center gap-1">
+              <span>✨</span>
+              <span>UJI COBA GRATIS</span>
+            </div>
+
+            <div className="mb-4 mt-2">
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[11px] font-bold mb-2">
+                Pilihan Terbaik Pendaftar Baru
+              </div>
+              <h3 className="text-xl font-black text-slate-800">Free Trial 14 Hari</h3>
+              <p className="text-[13px] text-slate-600 mt-1">Coba seluruh fitur kasir PJTECH tanpa komitmen &amp; tanpa biaya di awal.</p>
+            </div>
+
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-800">Mulai Usaha</h3>
-              <p className="text-[13px] text-slate-500 mt-1.5">Pengguna baru yang ragu dan ingin mencoba.</p>
+              <div className="text-3xl font-black text-slate-900 flex items-baseline gap-1.5">
+                Rp 0
+                <span className="text-xs font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-md uppercase">Gratis</span>
+              </div>
+              <div className="text-xs font-semibold text-blue-600 mt-1.5">Masa Uji Coba Penuh 14 Hari</div>
+              <div className="text-[11px] text-slate-500 italic mt-0.5">Langsung aktif tanpa kartu kredit</div>
             </div>
-            <div className="mb-6">
-              <div className="text-2xl font-bold text-slate-800">Rp 0</div>
-              <div className="text-[13px] text-slate-500 mt-1">Gratis 14 Hari Pertama</div>
-            </div>
-            <div className="space-y-2 mb-8 flex-1">
+
+            <div className="space-y-2 mb-8 flex-1 border-t border-blue-100 pt-4">
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Akses Kasir Penuh (POS)</span>
+                <span className="text-xs text-slate-700 font-semibold">Akses Kasir POS Penuh (Semua Mode Usaha)</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Manajemen Produk Dasar</span>
+                <span className="text-xs text-slate-600">Manajemen Produk, Stok &amp; Kategori</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span className="text-xs text-slate-600">Dasbor Analitik (Terbatas)</span>
+                <span className="text-xs text-slate-600">Catat Transaksi Kasbon &amp; QRIS</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <span className="text-xs text-slate-600">Dasbor Laporan Penjualan &amp; Laba</span>
               </div>
             </div>
+
             <button
               disabled={isLoading || currentPlan === 'TRIAL' || currentPlan === 'FREE'}
               onClick={() => {
                 handleExtend(14, 'TRIAL');
               }}
-              className={`w-full py-2 text-sm rounded-xl font-bold transition-colors flex items-center justify-center gap-2 ${currentPlan === 'TRIAL' || currentPlan === 'FREE'
+              className={`w-full py-3 text-sm rounded-xl font-black transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98] ${
+                currentPlan === 'TRIAL' || currentPlan === 'FREE'
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/25'
+              }`}
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Memproses...</span>
+                  <span>Menyiapkan Akun Anda...</span>
                 </>
-              ) : (currentPlan === 'TRIAL' || currentPlan === 'FREE' ? 'Paket Anda Saat Ini' : 'Gunakan Akses Trial')}
+              ) : currentPlan === 'TRIAL' || currentPlan === 'FREE' ? (
+                'Paket Trial Anda Saat Ini'
+              ) : (
+                'Mulai Free Trial 14 Hari Sekarang 🚀'
+              )}
             </button>
           </div>
 

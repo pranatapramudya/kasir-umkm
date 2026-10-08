@@ -27,7 +27,7 @@ export default async function AdminProductsPage() {
     prisma.product.findMany({
       where: { userId: targetUserId, isArchived: false },
       orderBy: { createdAt: 'desc' },
-      take: 10,
+      take: 12,
       select: {
         id: true,
         name: true,
@@ -53,7 +53,8 @@ export default async function AdminProductsPage() {
 
   const initialData = {
     products,
-    totalPages: Math.max(1, Math.ceil(totalCount / 10)),
+    totalPages: Math.max(1, Math.ceil(totalCount / 12)),
+    totalCount,
   };
 
   return <AdminProductsClientPage kategoriUsaha={kategoriUsaha} initialData={initialData} />;

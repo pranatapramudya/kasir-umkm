@@ -18,6 +18,25 @@ interface BottomNavClientProps {
   tenantId?: string;
 }
 
+// Label ringkas khusus bottom nav mobile agar tidak berdempetan/sesak
+const getShortNavLabel = (fullName: string): string => {
+  const lower = fullName.toLowerCase().trim();
+  if (lower === "transaksi sewa") return "Sewa";
+  if (lower === "kalender sewa") return "Kalender";
+  if (lower === "laporan shift") return "Shift";
+  if (lower.startsWith("kasir")) return "Kasir";
+  if (lower === "manajemen meja") return "Meja";
+  if (lower === "pesanan online") return "Pesanan";
+  if (lower.includes("unit") || lower.includes("armada") || lower.includes("properti")) return "Armada";
+  if (lower === "daftar menu") return "Menu";
+  if (lower === "rekomendasi hardware") return "Hardware";
+  if (lower === "informasi toko") return "Toko";
+  if (lower === "rekap komisi") return "Komisi";
+  if (lower === "pengeluaran") return "Biaya";
+  if (lower === "analitik") return "Analitik";
+  return fullName;
+};
+
 export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, tenantId }: BottomNavClientProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -92,8 +111,8 @@ export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, 
 
   return (
     <>
-      <nav className="fixed bottom-0 w-full bg-white border-t shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] z-40 lg:hidden print:hidden select-none">
-        <div className="flex justify-around items-center h-16 max-w-lg mx-auto relative px-2">
+      <nav className="fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.08)] z-40 lg:hidden print:hidden select-none pb-[env(safe-area-inset-bottom,0px)]">
+        <div className="flex justify-between items-center h-16 max-w-md mx-auto relative px-1 sm:px-2">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePath === item.href;
@@ -101,19 +120,19 @@ export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, 
             const shouldShowBadge = isOrderItem && pendingCount > 0;
 
             return (
-              <div key={item.name} className="flex justify-center flex-1 h-full relative">
+              <div key={item.name} className="flex justify-center flex-1 min-w-0 h-full relative">
                 <Link
                   href={item.href}
                   prefetch={true}
                   onClick={() => handleTabClick(item.href)}
-                  className={`flex flex-col items-center w-full h-full group touch-manipulation active:scale-[0.92] transition-transform duration-75 ${
-                    isActive ? "justify-end pb-2" : "justify-center"
+                  className={`flex flex-col items-center justify-center w-full h-full group touch-manipulation active:scale-[0.92] transition-transform duration-75 px-0.5 ${
+                    isActive ? "justify-end pb-1.5" : "justify-center"
                   }`}
                 >
                   <div
                     className={`flex items-center justify-center transition-all duration-150 relative ${
                       isActive
-                        ? "absolute -top-5 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm border-4 border-slate-50 scale-100"
+                        ? "absolute -top-4 w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-500/30 border-[3.5px] border-white scale-100"
                         : "w-auto h-auto bg-transparent shadow-none mb-1 scale-95"
                     }`}
                   >
@@ -135,13 +154,13 @@ export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, 
                     )}
                   </div>
                   <span
-                    className={`text-[10px] whitespace-nowrap text-center transition-colors duration-100 ${
+                    className={`text-[10px] truncate max-w-full text-center transition-colors duration-100 tracking-tight ${
                       isActive
                         ? "font-bold text-blue-600"
                         : "font-medium text-slate-400 group-hover:text-slate-600"
                     }`}
                   >
-                    {item.name}
+                    {getShortNavLabel(item.name)}
                   </span>
                 </Link>
               </div>
@@ -150,7 +169,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, 
 
           {/* TOMBOL LAINNYA JIKA ADA SISA MENU */}
           {moreItems.length > 0 && (
-            <div className="flex justify-center flex-1 h-full relative">
+            <div className="flex justify-center flex-1 min-w-0 h-full relative">
               <button
                 onClick={() => {
                   try {
@@ -160,14 +179,14 @@ export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, 
                   } catch {}
                   setIsMoreOpen(!isMoreOpen);
                 }}
-                className={`flex flex-col items-center justify-center w-full h-full group touch-manipulation active:scale-[0.92] transition-transform duration-75 ${
-                  isMoreActive && !isMoreOpen ? "pb-2" : ""
+                className={`flex flex-col items-center justify-center w-full h-full group touch-manipulation active:scale-[0.92] transition-transform duration-75 px-0.5 ${
+                  isMoreActive && !isMoreOpen ? "justify-end pb-1.5" : "justify-center"
                 }`}
               >
                 <div
                   className={`flex items-center justify-center transition-all duration-150 relative ${
                     (isMoreActive && !isMoreOpen) || isMoreOpen
-                      ? "absolute -top-5 w-14 h-14 rounded-full bg-slate-800 shadow-lg shadow-slate-700/50 border-4 border-slate-50 scale-100"
+                      ? "absolute -top-4 w-12 h-12 rounded-full bg-slate-800 shadow-md shadow-slate-700/30 border-[3.5px] border-white scale-100"
                       : "w-auto h-auto bg-transparent shadow-none mb-1 scale-95"
                   }`}
                 >
@@ -191,7 +210,7 @@ export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, 
                   )}
                 </div>
                 <span
-                  className={`text-[10px] transition-colors duration-100 ${
+                  className={`text-[10px] truncate max-w-full transition-colors duration-100 tracking-tight ${
                     (isMoreActive && !isMoreOpen) || isMoreOpen
                       ? "font-bold text-slate-800"
                       : "font-medium text-slate-400 group-hover:text-slate-600"

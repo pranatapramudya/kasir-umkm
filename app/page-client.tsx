@@ -7,7 +7,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import useSWR from 'swr';
+import useSWR, { preload } from 'swr';
 import { toast } from 'sonner';
 import { useAuth, SignInButton, UserButton, useUser } from '@clerk/nextjs';
 
@@ -173,7 +173,7 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
 
   const fetcher = (args: string | [string, string]) => fetch(Array.isArray(args) ? args[0] : args).then(r => r.json());
   const { user } = useUser();
-  const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
+  const currentTenantId = (user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id) || "default-tenant";
 
   const queryUrl = filterMode === 'all'
     ? `/api/booking/today?date=all`
@@ -344,7 +344,7 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
   );
 }
 
-export default function POSApp({ sidebar, isExpired = false, initialData, tenantName, tenantCategory, tenantPhone, tenantSlug }: { sidebar: React.ReactNode; isExpired?: boolean; initialData?: { products: Product[], totalPages: number }, tenantName?: string, tenantCategory?: string, tenantPhone?: string, tenantSlug?: string | null }) {
+export default function POSApp({ sidebar, isExpired = false, initialData, tenantName, tenantCategory, tenantPhone, tenantSlug }: { sidebar: React.ReactNode; isExpired?: boolean; initialData?: { products: Product[], totalPages: number, totalCount?: number }, tenantName?: string, tenantCategory?: string, tenantPhone?: string, tenantSlug?: string | null }) {
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
   const { user } = useUser();
@@ -376,9 +376,54 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   const [tempNote, setTempNote] = useState("");
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const isSubmittingRef = React.useRef(false);
+  // Pointer / Mouse Drag-to-Scroll support untuk Mobile Emulator & Touch Swipe
+  const productScrollRef = React.useRef<HTMLDivElement>(null);
+  const isPointerDownRef = React.useRef(false);
+  const startYRef = React.useRef(0);
+  const startScrollTopRef = React.useRef(0);
+  const isSwipingRef = React.useRef(false);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    isPointerDownRef.current = true;
+    isSwipingRef.current = false;
+    startYRef.current = e.clientY;
+    if (productScrollRef.current) {
+      startScrollTopRef.current = productScrollRef.current.scrollTop;
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current || !productScrollRef.current) return;
+    const deltaY = e.clientY - startYRef.current;
+    if (Math.abs(deltaY) > 6) {
+      isSwipingRef.current = true;
+      productScrollRef.current.scrollTop = startScrollTopRef.current - deltaY;
+    }
+  };
+
+  const handlePointerUp = () => {
+    isPointerDownRef.current = false;
+  };
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+
+  const itemsPerPage = isDesktop ? 12 : 10;
+
+  // Reset ke halaman 1 saat itemsPerPage berubah (misal breakpoint berubah)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
 
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
     const [isSplitBillOpen, setIsSplitBillOpen] = useState(false);
@@ -488,20 +533,60 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
   };
 
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=`;
-  const { data: swrResponse, error, mutate } = useSWR<{ products: Product[], totalPages: number }>(
-    queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
+  const isInitialPage = currentPage === 1 && !search && (!selectedFilterTab || selectedFilterTab === "ALL");
+  const initialDataForScreen = useMemo(() => {
+    if (!initialData) return undefined;
+    const limit = isDesktop ? 12 : 10;
+    const count = initialData.totalCount ?? initialData.products.length;
+    return {
+      products: initialData.products.slice(0, limit),
+      totalPages: Math.max(1, Math.ceil(count / limit))
+    };
+  }, [initialData, isDesktop]);
+
+  const { data: swrResponse, error, mutate } = useSWR<{ products: Product[], totalPages: number, totalCount?: number }>(
+    queryUrl ? [queryUrl, currentTenantId as string] : null,
     fetcher,
     {
-      fallbackData: initialData,
+      fallbackData: isInitialPage ? initialDataForScreen : undefined,
       keepPreviousData: true,
-      revalidateIfStale: false,
+      revalidateIfStale: true,
       revalidateOnFocus: false,
       revalidateOnReconnect: false
     }
   );
 
   const rawProducts = swrResponse?.products || [];
-        const totalPages = swrResponse?.totalPages || 1;
+  const totalPages = swrResponse?.totalPages || 1;
+
+  // Reset ke halaman 1 saat filter tab atau search berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedFilterTab, search]);
+
+  // Scroll kembali ke atas saat berpindah halaman
+  useEffect(() => {
+    if (productScrollRef.current) {
+      productScrollRef.current.scrollTop = 0;
+    }
+  }, [currentPage]);
+
+  // Proactive Adjacent Page Preloading (Zero-Delay Pagination)
+  useEffect(() => {
+    if (!currentTenantId) return;
+    
+    // Preload halaman berikutnya jika ada
+    if (currentPage < totalPages) {
+      const nextPageUrl = `/api/products?page=${currentPage + 1}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=`;
+      preload([nextPageUrl, currentTenantId as string], fetcher);
+    }
+    
+    // Preload halaman sebelumnya jika ada
+    if (currentPage > 1) {
+      const prevPageUrl = `/api/products?page=${currentPage - 1}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=`;
+      preload([prevPageUrl, currentTenantId as string], fetcher);
+    }
+  }, [currentPage, totalPages, search, currentTenantId]);
 
         // Resolve rental niche from tenant category / catalog / tenant name
         const niche = useMemo(() => resolveRentalNiche(tenantCategory, tenantName, rawProducts), [tenantCategory, tenantName, rawProducts]);
@@ -2277,7 +2362,14 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                 )}
               </div>
 
-              <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50 pb-28 lg:pb-4 flex flex-col touch-pan-y [-webkit-overflow-scrolling:touch]">
+              <div
+                ref={productScrollRef}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50 pb-28 lg:pb-4 flex flex-col touch-pan-y [-webkit-overflow-scrolling:touch] select-none"
+              >
                 {(isPureJasa || isRental) && (
                   <div className="lg:hidden p-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl flex flex-row items-center justify-between shadow-sm">
                     <span className="text-sm font-medium text-blue-800">Ada pesanan online?</span>
@@ -2299,8 +2391,12 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                     return (
                       <div
                         key={product.id}
-                        onClick={() => !isOutOfStock && addToCart(product)}
-                        className={`group relative rounded-xl border p-3 flex flex-col select-none ${
+                        onDragStart={(e) => e.preventDefault()}
+                        onClick={() => {
+                          if (isSwipingRef.current) return;
+                          if (!isOutOfStock) addToCart(product);
+                        }}
+                        className={`group relative rounded-xl border p-3 flex flex-col select-none touch-pan-y ${
                           isOutOfStock
                             ? 'bg-red-50 border-red-200 cursor-not-allowed opacity-90'
                             : 'bg-white cursor-pointer hover:shadow-lg hover:border-blue-500 active:scale-[0.96] active:border-blue-600 transition-transform duration-75'
@@ -2316,12 +2412,13 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                             STOK MINIMUM
                           </div>
                         )}
-                        <div className="relative mb-3 w-full h-32 rounded-lg overflow-hidden">
+                        <div className="relative mb-3 w-full h-32 rounded-lg overflow-hidden pointer-events-none select-none">
                           <Image
                             src={product.image || "https://placehold.co/400x300?text=No+Image"}
                             alt={product.name}
                             fill
-                            className={`object-cover ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
+                            draggable={false}
+                            className={`object-cover select-none pointer-events-none ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                           />
                           {(!isJasaMurni && !isRental) && (

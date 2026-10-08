@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import useSWR from 'swr';
+import useSWR, { preload } from 'swr';
 import { useUser } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package, Loader2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
@@ -100,26 +100,40 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
     const transactions = activeData?.transactions || [];
     const metrics = activeData?.metrics || { totalGross: 0, totalCash: 0, totalQRIS: 0 };
     const totalPages = activeData?.totalPages || 1;
+    // Proactive Preloading untuk pagination Laporan Shift (0ms delay)
+    useEffect(() => {
+        if (!currentTenantId) return;
+        if (currentPage < totalPages) {
+            const nextUrl = `/api/reports/shift?date=${selectedDate}&page=${currentPage + 1}`;
+            preload([nextUrl, currentTenantId as string], fetcher);
+        }
+        if (currentPage > 1) {
+            const prevUrl = `/api/reports/shift?date=${selectedDate}&page=${currentPage - 1}`;
+            preload([prevUrl, currentTenantId as string], fetcher);
+        }
+    }, [currentPage, totalPages, selectedDate, currentTenantId]);
     const soldSummary = activeData?.soldSummary || {};
     const isFetching = isLoading && !data;
 
     return (
-        <div className="flex h-screen bg-gray-50 overflow-hidden text-slate-900">
+        <div className="min-h-screen lg:h-screen bg-gray-50 flex flex-col lg:flex-row text-slate-900 lg:overflow-hidden">
             {sidebar}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="bg-white border-b p-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <h1 className="text-xl font-black flex items-center gap-2">
-                            <FileText className="w-6 h-6 text-blue-600" />
-                            LAPORAN SHIFT
+            <div className="flex-1 min-w-0 flex flex-col lg:overflow-hidden">
+                <header className="bg-white border-b border-slate-200/80 px-4 sm:px-6 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-3.5 sm:py-4 sticky top-0 z-10 shrink-0 shadow-xs">
+                    <div className="flex justify-between items-center">
+                        <h1 className="text-lg sm:text-xl font-black flex items-center gap-2.5 text-slate-900 tracking-tight">
+                            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                                <FileText className="w-4.5 h-4.5" />
+                            </div>
+                            <span>LAPORAN SHIFT</span>
                         </h1>
                         <div className="flex items-center gap-3">
                             <CustomUserButton />
                         </div>
                     </div>
-                </div>
+                </header>
 
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                <div className="flex-1 min-w-0 p-3.5 sm:p-4 md:p-6 space-y-4 pb-32 lg:pb-8 lg:overflow-y-auto touch-pan-y [-webkit-overflow-scrolling:touch]">
                     {/* Header & Date Picker */}
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                         <div>
@@ -250,7 +264,80 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                         <div className="p-4 border-b flex items-center justify-between">
                             <h3 className="font-bold text-sm">Riwayat Transaksi: <span className="text-blue-600 font-semibold">{formatDateIndonesian(selectedDate)}</span></h3>
                         </div>
-                        <div className="overflow-x-auto">
+                        {/* Tampilan Mobile: 1 Layar Penuh Bebas Geser Kiri-Kanan */}
+                        <div className="block sm:hidden divide-y divide-slate-100">
+                            {(isFetching || (!activeData && !error)) ? (
+                                <div className="px-4 py-8 text-center text-slate-500">
+                                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
+                                    Memuat data transaksi {formatDateIndonesian(selectedDate)}...
+                                </div>
+                            ) : transactions.length === 0 ? (
+                                <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                                    <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                                    Belum ada transaksi pada {formatDateIndonesian(selectedDate)}.
+                                </div>
+                            ) : (
+                                transactions.map((tx: any) => {
+                                    const time = new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+                                    const isCash = tx.method?.toLowerCase() === 'cash' || tx.method?.toLowerCase() === 'tunai';
+                                    return (
+                                        <div
+                                            key={tx.id}
+                                            onClick={() => setSelectedTx(tx)}
+                                            className="p-3.5 hover:bg-slate-50 active:bg-blue-50/50 transition-colors cursor-pointer flex items-center justify-between gap-3"
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                                                    <span className="font-bold text-slate-800 text-sm truncate max-w-[150px]">
+                                                        {tx.customerName || "Pelanggan Umum"}
+                                                    </span>
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                                                        isCash ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-800'
+                                                    }`}>
+                                                        {tx.method}
+                                                    </span>
+                                                    {tx.status === 'partial' && (
+                                                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 shrink-0">
+                                                            BELUM LUNAS
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3 text-slate-400" />
+                                                        {time} WIB
+                                                    </span>
+                                                    <span>•</span>
+                                                    <span className="font-mono text-[11px] text-slate-500 truncate max-w-[110px]">
+                                                        #{tx.id.slice(-6)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-right shrink-0 flex items-center gap-2">
+                                                <div className="font-black text-sm text-slate-900">
+                                                    {formatRupiah(tx.total)}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedTx(tx);
+                                                    }}
+                                                    className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 active:scale-95 rounded-xl transition-all shrink-0"
+                                                    title="Lihat Detail Transaksi"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {/* Tampilan Desktop & Tablet: Full Table */}
+                        <div className="hidden sm:block overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-slate-50 text-slate-500 text-xs">
                                     <tr>

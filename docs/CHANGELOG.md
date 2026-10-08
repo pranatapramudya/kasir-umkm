@@ -7,6 +7,32 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### ⚡ 2026-10-08 — Pagination Dinamis Layar (Desktop 12 / Mobile 10) & Stabilitas Import Produk Massal
+- **Pagination Dinamis Desktop vs Mobile (`app/page-client.tsx` & `app/(protected)/admin/products/page-client.tsx`):**
+  - **Desktop (≥ 1024px):** Ditetapkan **12 item per halaman** (`itemsPerPage = 12`), mengisi penuh grid 4-kolom POS (3 baris x 4 kolom) dan grid 3-kolom Admin Produk (4 baris x 3 kolom) secara presisi tanpa slot gantung.
+  - **Mobile (< 1024px):** Ditetapkan **10 item per halaman** (`itemsPerPage = 10`), mengisi penuh grid 2-kolom mobile secara rapi.
+  - Paginasi otomatis aktif saat total produk melebihi batas layar (> 12 di desktop, > 10 di mobile).
+  - Ditambahkan listener otomatis `resize` layar dan reset halaman ke `1` saat breakpoint berubah.
+  - Proactive Adjacent Page Preloading (`preload` halaman sebelum & sesudah) untuk navigasi instan 0ms (Zero-Delay Pagination).
+  - Auto-scroll ke atas saat berpindah halaman produk.
+- **SSR Initial Fetching Presisi (`app/(protected)/admin/pos/page.tsx` & `app/(protected)/admin/products/page.tsx`):**
+  - Query awal produk diatur mengambil `take: 12` dan `totalPages: Math.max(1, Math.ceil(totalCount / 12))` serta menyertakan `totalCount` ke client component untuk sinkronisasi fallbackData yang presisi.
+- **Penyempurnaan Seluruh Template Excel ke 15 Contoh Data (`app/api/onboarding/download-template/route.ts` & `lib/excel-template.ts`):**
+  - Menambah baris sampel menjadi 15 item pada seluruh template vertikal bisnis (Retail, F&B Cafe, F&B Resto, F&B Generic, Jasa/Servis, Rental Mobil/Motor, Minibus & Bus Pariwisata, Properti/Kamar, dan Sewa Alat).
+  - Memastikan pengguna baru yang mengimpor template langsung membuka halaman 2 dan mengaktifkan tombol *Next* baik pada layar desktop maupun mobile.
+- **Pencegahan Timeout Transaksi pada Import Ulang Data Massal (`app/api/products/bulk/route.ts`):**
+  - Mengatasi error Prisma P2028 (*"Transaction API error: A commit cannot be executed on an expired transaction. The timeout for this transaction was 5000 ms"*) yang memicu toast error *"Sistem sedang sibuk, mohon coba beberapa saat lagi."* saat melakukan import ulang.
+  - Mengganti transaksi sekuensial tunggal dengan **Chunked Concurrent Updates (`Promise.all` batch 10 item)**, mempercepat pembaruan 20 item menjadi ~3.4 detik tanpa pernah mengalami timeout.
+  - Membersihkan `userId` dari payload pembaruan agar database terbebas dari validasi relasi berlebih.
+- **Perbaikan UI Flicker Header Action Buttons (`app/(protected)/admin/products/page-client.tsx`):**
+  - Menghapus kondisi pembungkus `{(isLoading || (products && products.length > 0)) && (` pada tombol aksi header (`Import Data`, `Export Data`, dan `+ Tambah Unit Sewa / Armada`).
+  - Tombol aksi kini permanen dan stabil di header, meniadakan kedip/hilang seketika saat hard refresh pada kondisi produk kosong.
+- **Optimasi UX & Tata Letak Mobile (`app/(protected)/laporan-kasir/LaporanKasirClient.tsx` & `components/PricingSection.tsx`):**
+  - Memberikan margin & spacing lega pada Laporan Shift mobile agar menu tidak menabrak status bar atau berdempetan.
+  - Memastikan navigasi touch swipe / drag scroll mulus di layar sewa.
+  - Memastikan posisi layar stay di paling atas saat memilih paket langganan.
+
+
 ### 🔔 2026-10-08 — Perbaikan Notifikasi Real-Time Push: Service Worker & Fallback VAPID Keys
 - **Penyebab Masalah (Root Cause):**
   - Berkas `public/sw.js` sempat terhapus pada riwayat commit sebelumnya, dan konfigurasi Serwist di-disable pada mode development (`NODE_ENV !== 'production'`), sehingga browser mendapatkan error 404 saat mendaftarkan Service Worker (`/sw.js`) dan gagal mengaktifkan notifikasi.

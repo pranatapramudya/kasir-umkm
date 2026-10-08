@@ -2,8 +2,8 @@
 
 import { parseProductImages, serializeProductImages } from '@/lib/product-images';
 
-import React, { useState, useMemo } from 'react';
-import useSWR from 'swr';
+import React, { useState, useMemo, useEffect } from 'react';
+import useSWR, { preload } from 'swr';
 import { toast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
@@ -53,7 +53,7 @@ export default function AdminProductsClientPage({
   initialData,
 }: {
   kategoriUsaha: string;
-  initialData?: { products: Product[]; totalPages: number };
+  initialData?: { products: Product[]; totalPages: number; totalCount?: number };
 }) {
   const { user } = useUser();
   const currentTenantId = user?.publicMetadata?.role === 'CASHIER' ? user?.publicMetadata?.tenantId : user?.id;
@@ -126,7 +126,23 @@ export default function AdminProductsClientPage({
   const [quickRestockAmount, setQuickRestockAmount] = useState<string>('');
   const [isRestocking, setIsRestocking] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+
+  const itemsPerPage = isDesktop ? 12 : 10;
+
+  // Reset ke halaman 1 saat itemsPerPage berubah (misal breakpoint berubah)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
   const [searchQuery, setSearchQuery] = useState("");
     const [selectedFilterTab, setSelectedFilterTab] = useState("ALL");
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
@@ -138,13 +154,23 @@ export default function AdminProductsClientPage({
   const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=`;
     const isInitialPage = currentPage === 1 && !searchQuery && selectedFilterTab === "ALL";
 
-  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number }>(
+  const initialDataForScreen = useMemo(() => {
+    if (!initialData) return undefined;
+    const limit = isDesktop ? 12 : 10;
+    const count = initialData.totalCount ?? initialData.products.length;
+    return {
+      products: initialData.products.slice(0, limit),
+      totalPages: Math.max(1, Math.ceil(count / limit))
+    };
+  }, [initialData, isDesktop]);
+
+  const { data, error, isLoading, mutate } = useSWR<{ products: Product[], totalPages: number, totalCount?: number }>(
     queryUrl && currentTenantId ? [queryUrl, currentTenantId as string] : null,
     fetcher,
     {
-      fallbackData: isInitialPage ? initialData : undefined,
+      fallbackData: isInitialPage ? initialDataForScreen : undefined,
       keepPreviousData: true,
-      revalidateIfStale: false,
+      revalidateIfStale: true,
       revalidateOnFocus: false,
       revalidateOnReconnect: false
     }
@@ -152,6 +178,32 @@ export default function AdminProductsClientPage({
 
   const rawProducts = data?.products || [];
   const totalPages = data?.totalPages || 1;
+
+  // Reset ke halaman 1 saat search atau filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedFilterTab]);
+
+  // Scroll ke atas saat berpindah halaman
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentPage]);
+
+  // Proactive Adjacent Page Preloading (Zero-Delay Pagination)
+  useEffect(() => {
+    if (!currentTenantId) return;
+    if (currentPage < totalPages) {
+      const nextPageUrl = `/api/products?page=${currentPage + 1}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=`;
+      preload([nextPageUrl, currentTenantId as string], fetcher);
+    }
+    if (currentPage > 1) {
+      const prevPageUrl = `/api/products?page=${currentPage - 1}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=`;
+      preload([prevPageUrl, currentTenantId as string], fetcher);
+    }
+  }, [currentPage, totalPages, searchQuery, currentTenantId, itemsPerPage]);
+
 
   // Instant Client-side Filter untuk Respons 0ms (Kategori + Search)
     const filteredProducts = useMemo(() => {
@@ -868,34 +920,32 @@ export default function AdminProductsClientPage({
           </h1>
           <p className="text-slate-500 text-sm mt-1">Kelola daftar {isPureJasa ? "layanan" : isFNB ? "menu" : isRental ? "unit & properti" : "produk"}, harga, dan {isPureJasa ? "ketersediaan" : isRental ? "ketersediaan" : "stok"} Anda.</p>
         </div>
-        {(isLoading || (products && products.length > 0)) && (
-                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <button
-                      onClick={() => setIsImportModalOpen(true)}
-                      className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
-                      title="Import Data: Memasukkan banyak produk/layanan dari file Excel ke kasir (Input Massal)"
-                    >
-                      <Upload className="w-5 h-5 text-gray-500" />
-                      <span>Import Data</span>
-                    </button>
-                    <button
-                      onClick={handleExportCatalog}
-                      disabled={isExporting}
-                      className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0 disabled:opacity-50"
-                      title="Export Data: Mengunduh & membackup daftar produk/layanan yang saat ini tersimpan di kasir ke file Excel"
-                    >
-                      {isExporting ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" /> : <FileDown className="w-5 h-5 text-gray-500" />}
-                                            <span>Export Data</span>
-                                          </button>
-                                          <button
-                                            onClick={() => openModal()}
-                                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
-                                          >
-                                            <Plus className="w-5 h-5" />
-                                            {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
-                                          </button>
-                                        </div>
-                                      )}
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
+            title="Import Data: Memasukkan banyak produk/layanan dari file Excel ke kasir (Input Massal)"
+          >
+            <Upload className="w-5 h-5 text-gray-500" />
+            <span>Import Data</span>
+          </button>
+          <button
+            onClick={handleExportCatalog}
+            disabled={isExporting}
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm transition-all duration-200 ease-in-out px-4 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0 disabled:opacity-50"
+            title="Export Data: Mengunduh & membackup daftar produk/layanan yang saat ini tersimpan di kasir ke file Excel"
+          >
+            {isExporting ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" /> : <FileDown className="w-5 h-5 text-gray-500" />}
+            <span>Export Data</span>
+          </button>
+          <button
+            onClick={() => openModal()}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm border-0 transition-all duration-200 ease-in-out px-5 py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 w-full sm:w-auto shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+            {isRental ? "Tambah Unit Sewa / Armada" : isPureJasa ? "Tambah Layanan" : isFNB ? "Tambah Menu" : "Tambah Barang"}
+          </button>
+        </div>
       </div>
 
       {/* Search Bar & Kategori */}

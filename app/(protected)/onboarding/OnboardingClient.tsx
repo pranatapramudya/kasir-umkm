@@ -18,6 +18,13 @@ export default function OnboardingClient() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
+    // Memastikan posisi layar selalu presisi stay di paling atas saat step berubah
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [step]);
+
+  useEffect(() => {
     if (isLoaded && !user) {
       router.push("/sign-in");
     } else if (isLoaded && user) {
@@ -45,6 +52,11 @@ export default function OnboardingClient() {
       const result = await completeOnboarding(formData);
       if (result?.success) {
         setStep(2);
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        }
       }
     } catch (err: any) {
       setError(err.message || "Gagal menyimpan data toko");
@@ -55,7 +67,7 @@ export default function OnboardingClient() {
 
   if (step === 2) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div id="subscription-selection-root" className="min-h-screen bg-slate-50 flex flex-col justify-start py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-5xl">
           <PricingSection onSuccessRedirect="/admin" />
         </div>
@@ -69,7 +81,7 @@ export default function OnboardingClient() {
 
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div id="onboarding-step1-root" className="min-h-screen bg-slate-50 flex flex-col justify-start py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
             <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/30 bg-blue-600 flex items-center justify-center">
