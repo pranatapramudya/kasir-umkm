@@ -396,97 +396,110 @@ export default function LandingPageClient() {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Dropdown Menu Drawer (Fixed Overlay & Background Locked) */}
         {mobileMenuOpen && (
-          <div className={`md:hidden border-b px-4 pt-3 pb-6 space-y-4 shadow-xl ${
-            isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-          }`}>
-            {/* Quick Install Button for Mobile */}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setInstallModalOpen(true);
-              }}
-              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-xs"
+          <>
+            {/* Backdrop Overlay */}
+            <div
+              className="fixed inset-0 top-20 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden animate-fade-in"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+
+            {/* Mobile Drawer Panel */}
+            <div
+              className={`fixed top-20 left-0 right-0 bottom-0 z-50 md:hidden overflow-y-auto overscroll-contain px-4 pt-3 pb-24 space-y-4 shadow-2xl border-b transition-all ${
+                isDark ? 'bg-slate-900/98 border-slate-800 text-white' : 'bg-white/98 border-slate-200 text-slate-900'
+              }`}
+              style={{ touchAction: 'pan-y' }}
             >
-              <Smartphone className="w-4 h-4 text-blue-600" />
-              <span>📱 Panduan Install Android & iPhone</span>
-            </button>
-
-            <div className="space-y-1">
-              <p className={`text-xs font-bold uppercase tracking-wider px-3 py-1 ${
-                isDark ? 'text-slate-400' : 'text-slate-500'
-              }`}>Solusi Vertikal</p>
-              <Link href="/solusi/retail" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>🛒 Retail & Toko</Link>
-              <Link href="/solusi/fnb" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>🍳 F&B & Kuliner</Link>
-              <Link href="/solusi/jasa" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>🔧 Jasa & Servis</Link>
-              <Link href="/solusi/rental" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>🚗 Rental, Properti & Alat</Link>
-            </div>
-            <div className={`border-t pt-3 space-y-1.5 font-bold ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-              <Link href="/comparison" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>Perbandingan POS</Link>
-              <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>Blog & Panduan</Link>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>Paket Harga</a>
-              <a href="#faq" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
-                isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
-              }`}>FAQ</a>
-            </div>
-            <div className={`border-t pt-4 flex flex-col gap-2.5 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-              {/* Masuk (Owner) */}
-              <Link
-                href="/sign-in?redirect_url=/auth-callback"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm ${
-                  isDark
-                    ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
-                }`}
+              {/* Quick Install Button for Mobile */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setInstallModalOpen(true);
+                }}
+                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-xs"
               >
-                <Building2 className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>Masuk (Owner)</span>
-              </Link>
+                <Smartphone className="w-4 h-4 text-blue-600" />
+                <span>📱 Panduan Install Android & iPhone</span>
+              </button>
 
-              {/* Login sebagai Karyawan - HIGH CONTRAST */}
-              <Link
-                href="/sign-in?redirect_url=/auth-callback"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm ${
-                  isDark
-                    ? 'bg-slate-800/80 hover:bg-slate-700 text-white border-2 border-slate-700'
-                    : 'bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-300 shadow-sm'
-                }`}
-              >
-                <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className={isDark ? 'text-white font-bold' : 'text-slate-900 font-bold'}>
-                  Login sebagai Karyawan
-                </span>
-              </Link>
+              <div className="space-y-1">
+                <p className={`text-xs font-bold uppercase tracking-wider px-3 py-1 ${
+                  isDark ? 'text-slate-400' : 'text-slate-500'
+                }`}>Solusi Vertikal</p>
+                <Link href="/solusi/retail" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>🛒 Retail & Toko</Link>
+                <Link href="/solusi/fnb" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>🍳 F&B & Kuliner</Link>
+                <Link href="/solusi/jasa" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>🔧 Jasa & Servis</Link>
+                <Link href="/solusi/rental" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg font-bold transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>🚗 Rental, Properti & Alat</Link>
+              </div>
+              <div className={`border-t pt-3 space-y-1.5 font-bold ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+                <Link href="/comparison" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>Perbandingan POS</Link>
+                <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>Blog & Panduan</Link>
+                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>Paket Harga</a>
+                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg transition-colors ${
+                  isDark ? 'text-slate-100 hover:bg-slate-800' : 'text-slate-800 hover:bg-slate-100'
+                }`}>FAQ</a>
+              </div>
+              <div className={`border-t pt-4 flex flex-col gap-2.5 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+                {/* Masuk (Owner) */}
+                <Link
+                  href="/sign-in?redirect_url=/auth-callback"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm ${
+                    isDark
+                      ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                      : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>Masuk (Owner)</span>
+                </Link>
 
-              {/* Primary CTA */}
-              <Link
-                href="/sign-up?redirect_url=/onboarding"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all duration-200"
-              >
-                <span>Coba Gratis 14 Hari</span>
-                <ArrowRight className="w-4 h-4 shrink-0" />
-              </Link>
+                {/* Login sebagai Karyawan - HIGH CONTRAST */}
+                <Link
+                  href="/sign-in?redirect_url=/auth-callback"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm ${
+                    isDark
+                      ? 'bg-slate-800/80 hover:bg-slate-700 text-white border-2 border-slate-700'
+                      : 'bg-white hover:bg-slate-50 text-slate-900 border-2 border-slate-300 shadow-sm'
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className={isDark ? 'text-white font-bold' : 'text-slate-900 font-bold'}>
+                    Login sebagai Karyawan
+                  </span>
+                </Link>
+
+                {/* Primary CTA */}
+                <Link
+                  href="/sign-up?redirect_url=/onboarding"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all duration-200"
+                >
+                  <span>Coba Gratis 14 Hari</span>
+                  <ArrowRight className="w-4 h-4 shrink-0" />
+                </Link>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </header>
 
