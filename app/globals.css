@@ -26,9 +26,22 @@ body {
 }
 
 /* Clean Mobile Touch: Menghilangkan efek highlight tap tanpa memblokir gestur scroll */
+/* Clean Mobile Touch & Native App Lock: Cegah zoom cubit/double-tap agar stay seperti APK native */
 html,
 body {
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: contain;
+}
+
+/* Cegah auto-zoom saat fokus input di mobile iOS Safari */
+@media screen and (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Native Momentum Scrolling Container */

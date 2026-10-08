@@ -191,8 +191,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
   themeColor: '#2563eb',
 };
 
@@ -213,6 +214,18 @@ export default function RootLayout({
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://api.clerk.com" />
           <link rel="dns-prefetch" href="https://clerk.pjtechumkm.com" />
+        {/* Kunci Zoom Layaknya Native APK (Cegah pinch zoom iOS Safari) */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if (typeof window !== 'undefined') {
+                  document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+                  document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
+                  document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
+                }
+              `,
+            }}
+          />
         </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
