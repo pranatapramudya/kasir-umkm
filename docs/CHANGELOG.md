@@ -7,6 +7,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### 🚀 2026-10-08 — Perbaikan Mobile Drawer Sidebar Landing Page: Mengatasi Bug Ketutup Hero
+- **Mobile Menu Drawer Independen (`components/landing/LandingPageClient.tsx`):**
+  - Mengeluarkan drawer navigasi mobile dari dalam tag `<header>` ke root level dengan `fixed inset-0 z-[100]`.
+  - **Penyebab Bug Sebelumnya:** Properti `backdrop-blur-md` (`backdrop-filter`) pada `<header>` membentuk containing block CSS yang membatasi tinggi elemen `position: fixed` di dalamnya, sehingga drawer terpotong dan tertutup oleh elemen Hero Section di bawahnya.
+  - **Solusi Tuntas:** Drawer mobile kini berdiri mandiri sebagai overlay layar penuh (`fixed inset-0 z-[100] flex flex-col`) dengan top bar terpadu yang memuat logo, tombol toggle tema, dan tombol [X] penutup, serta area menu yang dapat di-scroll mulus dan latar solid yang anti-bocor.
+  - **Scroll Lock Background:** Menambahkan `useEffect` untuk mengunci `document.body.style.overflow = 'hidden'` saat drawer terbuka agar latar belakang halaman tidak bergeser.
+
 ### 📱 2026-10-08 — Perbaikan Tombol Tutup (X) & Navigasi Panduan Install Mobile (Android & iOS)
 - **Modal Panduan Install di Landing Page (`components/landing/LandingPageClient.tsx`):**
   - Menghilangkan tombol close `absolute top-5 right-5` yang sebelumnya menimpa teks judul *"Panduan Install PJTECH di HP"* pada viewport layar smartphone Android & iOS.
