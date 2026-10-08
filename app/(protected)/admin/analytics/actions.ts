@@ -27,13 +27,15 @@ export async function getAnalyticsData(fromStr?: string, toStr?: string) {
     let toDate: Date;
     
     if (fromStr && toStr) {
-      fromDate = new Date(fromStr);
-      toDate = new Date(toStr);
-      toDate.setHours(23, 59, 59, 999);
+      // Presisi waktu WIB UTC+7: awal hari 00:00:00 sampai akhir hari 23:59:59.999
+      fromDate = new Date(`${fromStr}T00:00:00+07:00`);
+      toDate = new Date(`${toStr}T23:59:59.999+07:00`);
     } else {
       const now = new Date();
-      fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      toDate = new Date();
+      const wibDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now);
+      const [year, month] = wibDateStr.split('-');
+      fromDate = new Date(`${year}-${month}-01T00:00:00+07:00`);
+      toDate = new Date(`${wibDateStr}T23:59:59.999+07:00`);
     }
 
     const dateFilter = {

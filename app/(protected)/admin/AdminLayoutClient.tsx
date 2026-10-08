@@ -120,7 +120,7 @@ export default function AdminLayoutClient({
 
         {/* HEADER */}
         {!pathname.startsWith("/admin/pos") && (
-          <header className="bg-white border-b px-4 sm:px-6 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-3.5 sm:py-4 flex items-center justify-between shadow-sm sticky top-0 z-10 print:hidden">
+          <header className="bg-white/95 backdrop-blur-md border-b px-4 sm:px-6 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-3.5 sm:py-4 flex items-center justify-between shadow-xs sticky top-0 z-30 print:hidden">
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-bold text-gray-800 tracking-tight">
                 Sistem Manajemen

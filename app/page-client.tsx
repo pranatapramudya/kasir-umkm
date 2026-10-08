@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat, Package, Fuel
+  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat, Package, Fuel, QrCode, Copy, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -102,6 +102,7 @@ const OnboardingWizard = nextDynamic(() => import('@/components/OnboardingWizard
   ssr: false,
 });
 import InvoiceRentalA4 from '@/components/InvoiceRentalA4';
+import ModernTimePicker from '@/components/ModernTimePicker';
 
 export const dynamic = 'force-dynamic';
 
@@ -344,7 +345,29 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
   );
 }
 
-export default function POSApp({ sidebar, isExpired = false, initialData, tenantName, tenantCategory, tenantPhone, tenantSlug }: { sidebar: React.ReactNode; isExpired?: boolean; initialData?: { products: Product[], totalPages: number, totalCount?: number }, tenantName?: string, tenantCategory?: string, tenantPhone?: string, tenantSlug?: string | null }) {
+export default function POSApp({
+  sidebar,
+  isExpired = false,
+  initialData,
+  tenantName,
+  tenantCategory,
+  tenantPhone,
+  tenantSlug,
+  tenantBankName,
+  tenantBankAccount,
+  tenantBankAccountName
+}: {
+  sidebar: React.ReactNode;
+  isExpired?: boolean;
+  initialData?: { products: Product[]; totalPages: number; totalCount?: number };
+  tenantName?: string;
+  tenantCategory?: string;
+  tenantPhone?: string;
+  tenantSlug?: string | null;
+  tenantBankName?: string | null;
+  tenantBankAccount?: string | null;
+  tenantBankAccountName?: string | null;
+}) {
   const router = useRouter();
   const { isLoaded, userId } = useAuth();
   const { user } = useUser();
@@ -1926,22 +1949,96 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
 
           {/* Metode Pembayaran */}
           <div>
-            <label className="text-xs font-bold text-gray-500 mb-1 block">Metode Pembayaran</label>
+            <label className="text-xs font-bold text-gray-500 mb-1.5 block">Metode Pembayaran</label>
             <div className="grid grid-cols-2 gap-2">
               <button
+                type="button"
                 onClick={() => setPaymentMethod('cash')}
-                className={`py-2 text-sm font-bold rounded-lg border transition-all ${paymentMethod === 'cash' ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                className={`py-2 px-2.5 text-xs sm:text-sm font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${paymentMethod === 'cash' ? 'bg-blue-600 text-white border-blue-600 shadow-xs' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
               >
-                Tunai
+                <span>💵</span>
+                <span>Tunai</span>
               </button>
               <button
+                type="button"
                 onClick={() => setPaymentMethod('qris')}
-                className={`py-2 text-sm font-bold rounded-lg border transition-all ${paymentMethod === 'qris' ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                className={`py-2 px-2.5 text-xs sm:text-sm font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${paymentMethod === 'qris' ? 'bg-blue-600 text-white border-blue-600 shadow-xs' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
               >
-                QRIS
+                <QrCode className="w-3.5 h-3.5" />
+                <span>QRIS / Non-Tunai</span>
               </button>
             </div>
           </div>
+
+          {/* Petunjuk & Informasi Pembayaran QRIS / Non-Tunai (Manual) */}
+          {paymentMethod === 'qris' && cart.length > 0 && (
+            <div className="p-3 bg-blue-50/90 border border-blue-200 rounded-xl space-y-2.5 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-blue-900 font-bold text-xs">
+                  <QrCode className="w-4 h-4 text-blue-600" />
+                  <span>Petunjuk Pembayaran Non-Tunai</span>
+                </div>
+                <span className="text-[10px] bg-blue-200/80 text-blue-800 font-bold px-1.5 py-0.5 rounded">
+                  Manual
+                </span>
+              </div>
+
+              {/* Tagihan yang harus dibayar */}
+              <div className="p-2.5 bg-white rounded-lg border border-blue-100 flex items-center justify-between">
+                <span className="text-[11px] font-medium text-gray-600">Nominal Tagihan:</span>
+                <span className="text-sm sm:text-base font-black text-blue-700">
+                  {formatRupiah(currentTotalToPay)}
+                </span>
+              </div>
+
+              {/* Data Rekening Toko jika ada */}
+              {tenantBankAccount ? (
+                <div className="p-2.5 bg-white rounded-lg border border-blue-100 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500 font-medium">Bank Tujuan:</span>
+                    <span className="font-bold text-gray-800">{tenantBankName || "Bank"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500 font-medium">No. Rekening:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-gray-900 font-mono tracking-wide">{tenantBankAccount}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(tenantBankAccount || '');
+                            toast.success('Nomor rekening disalin!');
+                          }
+                        }}
+                        className="p-1 hover:bg-gray-100 text-blue-600 rounded transition-colors"
+                        title="Salin No Rekening"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  {tenantBankAccountName && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500 font-medium">Atas Nama:</span>
+                      <span className="font-semibold text-gray-700 truncate">{tenantBankAccountName}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-[11px] text-gray-600 leading-relaxed bg-white/80 p-2.5 rounded-lg border border-blue-100">
+                  💡 Arahkan pelanggan untuk <strong>scan stiker QRIS fisik toko Anda</strong> yang terpasang di kasir/meja, atau lakukan transfer digital.
+                </div>
+              )}
+
+              {/* Peringatan Kasir */}
+              <div className="flex items-start gap-1.5 text-[10px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200/80">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Panduan Kasir:</strong> Pastikan dana sudah masuk dan terverifikasi di mutasi rekening bank / e-wallet Anda sebelum menekan tombol bayar.
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Input Kembalian Jika Tunai */}
                     {paymentMethod === 'cash' && cart.length > 0 && (
@@ -3111,18 +3208,15 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                     </div>
                                     <div>
                                       <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jam Ambil *</label>
-                                      <select
+                                      <ModernTimePicker
+                                        id="rental-pickupTime-equip"
                                         value={rentalInfo.pickupTime || "08:00"}
-                                        onChange={(e) => setRentalInfo(prev => ({ ...prev, pickupTime: e.target.value }))}
+                                        onChange={(val) => setRentalInfo(prev => ({ ...prev, pickupTime: val }))}
                                         title="Jam Ambil (WIB 24 Jam)"
-                                        className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 font-bold transition-all appearance-none cursor-pointer"
-                                      >
-                                        {INDONESIAN_TIME_SLOTS.map(t => (
-                                          <option key={t.value} value={t.value}>
-                                            {t.label}
-                                          </option>
-                                        ))}
-                                      </select>
+                                        label="Jam Ambil (WIB)"
+                                        theme="emerald"
+                                        className="w-full"
+                                      />
                                     </div>
                                   </div>
 
@@ -3150,18 +3244,15 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <label className="text-sm font-bold text-gray-700 mb-1.5 block">Jam Kembali *</label>
-                                      <select
+                                      <ModernTimePicker
+                                        id="rental-returnTime-equip"
                                         value={rentalInfo.returnTime || "17:00"}
-                                        onChange={(e) => setRentalInfo(prev => ({ ...prev, returnTime: e.target.value }))}
+                                        onChange={(val) => setRentalInfo(prev => ({ ...prev, returnTime: val }))}
                                         title="Jam Kembali (WIB 24 Jam)"
-                                        className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 font-bold transition-all appearance-none cursor-pointer"
-                                      >
-                                        {INDONESIAN_TIME_SLOTS.map(t => (
-                                          <option key={t.value} value={t.value}>
-                                            {t.label}
-                                          </option>
-                                        ))}
-                                      </select>
+                                        label="Jam Kembali (WIB)"
+                                        theme="emerald"
+                                        className="w-full"
+                                      />
                                     </div>
                                     <div>
                                       <label className="text-sm font-bold text-gray-700 mb-1.5 block">Deposit / Jaminan <span className="font-normal text-gray-400">(opsional)</span></label>
@@ -3279,18 +3370,15 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                           onChange={(e) => setRentalInfo(prev => ({ ...prev, startDate: e.target.value }))}
                           className="flex-1 min-w-0 p-2.5 sm:p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 transition-all font-medium"
                         />
-                        <select
+                        <ModernTimePicker
+                          id="rental-pickupTime"
                           value={rentalInfo.pickupTime || "08:00"}
-                          onChange={(e) => setRentalInfo(prev => ({ ...prev, pickupTime: e.target.value }))}
+                          onChange={(val) => setRentalInfo(prev => ({ ...prev, pickupTime: val }))}
                           title="Jam Berangkat / Ambil (WIB 24 Jam)"
-                          className="w-28 sm:w-32 shrink-0 px-2 py-2.5 sm:py-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 font-bold transition-all cursor-pointer text-center"
-                        >
-                          {INDONESIAN_TIME_SLOTS.map(t => (
-                            <option key={t.value} value={t.value}>
-                              {t.value} WIB
-                            </option>
-                          ))}
-                        </select>
+                          label="Jam Berangkat / Ambil (WIB)"
+                          theme="amber"
+                          className="w-32 sm:w-36 shrink-0"
+                        />
                       </div>
                     </div>
 
@@ -3306,18 +3394,15 @@ export default function POSApp({ sidebar, isExpired = false, initialData, tenant
                           onChange={(e) => setRentalInfo(prev => ({ ...prev, endDate: e.target.value }))}
                           className="flex-1 min-w-0 p-2.5 sm:p-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 transition-all font-medium"
                         />
-                        <select
+                        <ModernTimePicker
+                          id="rental-returnTime"
                           value={rentalInfo.returnTime || "20:00"}
-                          onChange={(e) => setRentalInfo(prev => ({ ...prev, returnTime: e.target.value }))}
+                          onChange={(val) => setRentalInfo(prev => ({ ...prev, returnTime: val }))}
                           title="Jam Pulang / Selesai (WIB 24 Jam)"
-                          className="w-28 sm:w-32 shrink-0 px-2 py-2.5 sm:py-3 bg-white border border-gray-300 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-200 rounded-xl text-xs sm:text-sm text-gray-900 font-bold transition-all cursor-pointer text-center"
-                        >
-                          {INDONESIAN_TIME_SLOTS.map(t => (
-                            <option key={t.value} value={t.value}>
-                              {t.value} WIB
-                            </option>
-                          ))}
-                        </select>
+                          label="Jam Pulang / Selesai (WIB)"
+                          theme="amber"
+                          className="w-32 sm:w-36 shrink-0"
+                        />
                       </div>
                     </div>
                   </div>

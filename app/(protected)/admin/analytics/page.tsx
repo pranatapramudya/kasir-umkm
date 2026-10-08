@@ -23,12 +23,13 @@ export default async function AnalyticsPage() {
     redirect('/sign-in');
   }
 
-  // Default range: First day of current month to today
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  // Default range: First day of current month to today (WIB UTC+7)
+  const now = new Date();
+  const wibDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now);
+  const [year, month] = wibDateStr.split('-');
   
-  const fromStr = getLocalDateString(firstDay);
-  const toStr = getLocalDateString(today);
+  const fromStr = `${year}-${month}-01`;
+  const toStr = wibDateStr;
 
   // Ambil data langsung dari Database via Server Action
   const initialData = await getAnalyticsData(fromStr, toStr);

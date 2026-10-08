@@ -68,6 +68,8 @@ export default function SmartRouteFuelCalculator({
 
   // Fuel configuration overrides
   const [selectedFuelId, setSelectedFuelId] = useState(profile.defaultFuelId);
+  const [isFuelDropdownOpen, setIsFuelDropdownOpen] = useState(false);
+  const currentFuel = FUEL_TYPES[selectedFuelId] || FUEL_TYPES.biosolar;
   const [customKmPerLiter, setCustomKmPerLiter] = useState<number | ''>(profile.defaultKmPerLiter);
   const [customFuelPrice, setCustomFuelPrice] = useState<number | ''>(FUEL_TYPES[profile.defaultFuelId]?.defaultPrice || 6800);
 
@@ -397,23 +399,66 @@ export default function SmartRouteFuelCalculator({
 
             {showAdvancedFuel && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 mt-2 bg-slate-50 rounded-xl border border-slate-200 animate-in fade-in duration-150">
-                <div>
+                                <div className="relative">
                   <label className="text-[10px] font-bold text-slate-500 block mb-1">Jenis Bahan Bakar</label>
-                  <select
-                    value={selectedFuelId}
-                    onChange={(e) => {
-                      setSelectedFuelId(e.target.value);
-                      const newFuel = FUEL_TYPES[e.target.value];
-                      if (newFuel) setCustomFuelPrice(newFuel.defaultPrice);
-                    }}
-                    className="w-full p-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 text-xs focus:outline-none focus:border-amber-500"
+                  <button
+                    type="button"
+                    onClick={() => setIsFuelDropdownOpen(!isFuelDropdownOpen)}
+                    className="w-full p-2 bg-white border border-slate-200 hover:border-amber-400 focus:border-amber-500 rounded-xl font-bold text-slate-700 text-xs flex items-center justify-between gap-1.5 transition-all shadow-xs cursor-pointer text-left"
                   >
-                    {Object.values(FUEL_TYPES).map(f => (
-                      <option key={f.id} value={f.id}>
-                        {f.name} ({formatRupiah(f.defaultPrice)}/L)
-                      </option>
-                    ))}
-                  </select>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
+                        currentFuel?.category === 'diesel' ? 'bg-emerald-100 text-emerald-800' : 'bg-teal-100 text-teal-800'
+                      }`}>
+                        {currentFuel?.category === 'diesel' ? 'Diesel' : 'Bensin'}
+                      </span>
+                      <span className="truncate font-bold text-slate-800 text-xs">
+                        {currentFuel?.name}
+                      </span>
+                    </div>
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform ${isFuelDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isFuelDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsFuelDropdownOpen(false)} />
+                      <div className="absolute left-0 right-0 sm:right-auto sm:w-72 top-full mt-1.5 z-50 bg-white rounded-xl shadow-xl border border-slate-200 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                        {Object.values(FUEL_TYPES).map((f) => {
+                          const isSelected = f.id === selectedFuelId;
+                          const isDiesel = f.category === 'diesel';
+                          return (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedFuelId(f.id);
+                                setCustomFuelPrice(f.defaultPrice);
+                                setIsFuelDropdownOpen(false);
+                              }}
+                              className={`w-full p-2 rounded-lg text-left transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                                isSelected 
+                                  ? 'bg-amber-50 border border-amber-300 text-amber-950 font-bold shadow-xs' 
+                                  : 'hover:bg-slate-50 border border-transparent text-slate-700'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded shrink-0 ${
+                                  isDiesel ? 'bg-emerald-100 text-emerald-800' : 'bg-teal-100 text-teal-800'
+                                }`}>
+                                  {isDiesel ? 'Diesel' : 'Bensin'}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold truncate text-slate-900">{f.name}</div>
+                                  <div className="text-[10px] text-slate-500 font-semibold">{formatRupiah(f.defaultPrice)} / Liter</div>
+                                </div>
+                              </div>
+                              {isSelected && <Check className="w-4 h-4 text-amber-600 shrink-0 font-bold" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div>

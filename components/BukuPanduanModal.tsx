@@ -142,7 +142,7 @@ export function BukuPanduanModal({ isOpen, onClose, category, tenantName }: Prop
               <div className="space-y-4">
                 {businessType === 'FNB' && (
                   <>
-                    <Step num="1" title="Tambah Menu & Kategori" businessType={businessType}>Buka menu <b>Produk</b>, masukkan daftar makanan/minuman beserta harganya.</Step>
+                    <Step num="1" title="Tambah Menu & Kategori" businessType={businessType}>Buka menu <b>Daftar Menu</b>, masukkan daftar makanan/minuman beserta harganya.</Step>
                     <Step num="2" title="Atur Meja (Opsional)" businessType={businessType}>Jika melayani <i>Dine-in</i> (makan di tempat), buka <b>Manajemen Meja</b> untuk mengatur nomor dan kapasitas meja.</Step>
                     <Step num="3" title="Buka Kasir Resto & Opsi Takeaway" businessType={businessType}>
                       Masuk ke menu <b>Kasir Resto</b>, pilih menu pesanan pelanggan, lalu tentukan opsi meja/antrean:
@@ -181,7 +181,7 @@ export function BukuPanduanModal({ isOpen, onClose, category, tenantName }: Prop
 
                 {businessType === 'JASA' && (
                   <>
-                    <Step num="1" title="Daftar Layanan & Tarif Jasa" businessType={businessType}>Buka menu <b>Produk / Layanan</b>, masukkan nama jasa, paket layanan, dan tarif harga.</Step>
+                    <Step num="1" title="Daftar Layanan & Tarif Jasa" businessType={businessType}>Buka menu <b>Layanan</b>, masukkan nama jasa, paket layanan, dan tarif harga.</Step>
                     <Step num="2" title="Booking & Reservasi Jadwal" businessType={businessType}>
                       Pelanggan dapat melakukan booking via link online atau dicatat langsung oleh resepsionis di menu <b>Kalender Reservasi</b>.
                     </Step>
@@ -199,20 +199,20 @@ export function BukuPanduanModal({ isOpen, onClose, category, tenantName }: Prop
 
                 {businessType === 'RENTAL' && (
                   <>
-                    <Step num="1" title="Input Master Armada, Properti & Alat Sewa" businessType={businessType}>
-                      Buka menu <b>Produk</b>, masukkan unit sewa (Mobil/Motor, Villa/Kamar/Homestay, Alat Camping/Kamera/Peralatan). Masukkan tarif per 24 jam/hari/minggu.
+                    <Step num="1" title="Input Master Unit / Properti / Armada" businessType={businessType}>
+                      Buka menu <b>Unit / Properti / Armada</b>, masukkan unit sewa fisik (Mobil/Motor, Bus Pariwisata, Villa/Kamar/Homestay, Alat Camping/Kamera/Peralatan). Tentukan tarif sewa per 24 jam/hari/minggu serta biaya operasional (B. Ops) jika ada.
                     </Step>
                     <Step num="2" title="Pengaturan Jadwal Booking Online & Syarat Sewa" businessType={businessType}>
-                      Buka menu <b>Pengaturan Toko</b> untuk mengaktifkan link reservasi mandiri pelanggan. Anda dapat mengatur nominal minimal DP booking dan ketentuan jaminan sewa (KTP/SIM/Deposit).
+                      Buka menu <b>Informasi Toko</b> untuk mengaktifkan link reservasi mandiri pelanggan. Anda dapat mengatur rekening penerima transfer DP 50%, minimal DP booking, serta ketentuan jaminan sewa (KTP/SIM/Deposit).
                     </Step>
                     <Step num="3" title="Pelanggan Booking Online (Link Mandiri)" businessType={businessType}>
                       Pelanggan membuka link web rental Anda, memilih unit dan durasi tanggal sewa, mengunggah kartu identitas & bukti transfer DP secara mandiri tanpa repot chat manual.
                     </Step>
                     <Step num="4" title="Konfirmasi Reservasi Online (ACC Jadwal)" businessType={businessType}>
-                      Buka menu <b>Kalender Rental & Reservasi</b> untuk melihat pesanan masuk dari link online. Periksa bukti transfer DP pelanggan, lalu klik tombol <b>"Terima & ACC"</b> untuk mengunci jadwal unit agar anti-bentrok.
+                      Buka menu <b>Kalender Sewa</b> untuk melihat pesanan masuk dari link online. Periksa bukti transfer DP pelanggan, lalu klik tombol <b>"Terima & ACC"</b> untuk mengunci jadwal unit agar anti-bentrok.
                     </Step>
-                    <Step num="5" title="Transaksi Kasir POS & Cetak Dokumen / Surat Jalan A4" businessType={businessType}>
-                      Saat pelanggan datang langsung atau jadwal sewa dimulai, buka <b>Kasir POS</b>:
+                    <Step num="5" title="Transaksi Sewa Kasir & Cetak Dokumen / Surat Jalan A4" businessType={businessType}>
+                      Saat pelanggan datang langsung atau jadwal sewa dimulai, buka menu <b>Transaksi Sewa</b> (Kasir):
                       <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600 dark:text-slate-400">
                         <li><b>Identitas Unit:</b> Isi Plat Nomor (kendaraan), No. Kamar (properti), atau Serial Number (alat sewa).</li>
                         <li><b>Jaminan & Uang Deposit:</b> Catat jaminan KTP/SIM atau nominal uang deposit pelanggan.</li>
@@ -220,7 +220,7 @@ export function BukuPanduanModal({ isOpen, onClose, category, tenantName }: Prop
                       </ul>
                     </Step>
                     <Step num="6" title="Monitoring Kalender & Penyelesaian Sewa (Hitung Denda / Deposit)" businessType={businessType} isLast>
-                      Pantau pergerakan unit di <b>Kalender Rental</b>. Saat masa sewa selesai dan unit/kunci/alat dikembalikan pelanggan:
+                      Pantau pergerakan unit di <b>Kalender Sewa</b>. Saat masa sewa selesai dan unit/kunci/alat dikembalikan pelanggan:
                       <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-slate-600 dark:text-slate-400">
                         <li>Klik tombol <b>"Penyelesaian Sewa"</b> (Terima Armada / Check-out & Selesai / Terima Alat).</li>
                         <li>Sistem otomatis menyediakan kalkulasi <b>Denda Keterlambatan (Overtime)</b> jika ada telat pengembalian, serta pencatatan pengembalian <b>Uang Deposit Jaminan</b> pelanggan sebelum menutup pesanan menjadi <b>Selesai</b>.</li>

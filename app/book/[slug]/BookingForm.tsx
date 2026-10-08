@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { RentalDatePicker } from "@/components/RentalDatePicker";
+import ModernTimePicker from "@/components/ModernTimePicker";
 import { isRentalTravelCategory, detectRentalItemType } from "@/lib/business-category";
 import { parseProductImages } from "@/lib/product-images";
 import { ChevronDown, Check } from "lucide-react";
@@ -1466,42 +1467,29 @@ export default function BookingForm({
                                       <label htmlFor="hourly-checkInTime" className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                                         Jam Masuk (Check-in) *
                                       </label>
-                                      <select
+                                      <ModernTimePicker
                                         id="hourly-checkInTime"
                                         value={hourlyData.checkInTime}
-                                        onChange={async (e) => {
-                                          setHourlyData(prev => ({ ...prev, checkInTime: e.target.value }));
+                                        onChange={async (val) => {
+                                          setHourlyData(prev => ({ ...prev, checkInTime: val }));
                                           setError(null);
-                                          // Check if this specific time slot is already booked
                                           const dateToCheck = hourlyData.checkInDate;
                                           if (dateToCheck) {
                                             const res = await fetch(`/api/booking/check-slots?date=${encodeURIComponent(dateToCheck)}&slug=${encodeURIComponent(slug)}&productId=${encodeURIComponent(formData.productId)}`);
                                             if (res.ok) {
                                               const data = await res.json();
                                               const booked = data.bookedSlots ?? [];
-                                              if (booked.includes(e.target.value)) {
-                                                setError(`Jam ${e.target.value} sudah dipesan pada tanggal tersebut. Pilih jam lain.`);
+                                              if (booked.includes(val)) {
+                                                setError(`Jam ${val} sudah dipesan pada tanggal tersebut. Pilih jam lain.`);
                                               }
                                             }
                                           }
                                         }}
-                                        required
-                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                                      >
-                                        {rentalTimeSlots.map((slot) => {
-                                          const isBooked = bookedSlots.includes(slot);
-                                          return (
-                                            <option
-                                              key={slot}
-                                              value={slot}
-                                              disabled={isBooked}
-                                              className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
-                                            >
-                                              {formatIndoTimeSlot(slot)} {isBooked ? "(Terisi / Penuh)" : ""}
-                                            </option>
-                                          );
-                                        })}
-                                      </select>
+                                        disabledSlots={bookedSlots}
+                                        label="Jam Masuk (Check-in)"
+                                        theme="amber"
+                                        className="w-full"
+                                      />
                                     </div>
 
                   {/* Durasi Jam Transit */}
@@ -1565,30 +1553,18 @@ export default function BookingForm({
                                       <label htmlFor="rental-pickupTime" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                         Jam Check-in *
                                       </label>
-                                      <select
+                                      <ModernTimePicker
                                         id="rental-pickupTime"
                                         value={rentalData.pickupTime}
-                                        onChange={(e) => {
-                                          setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                                        onChange={(val) => {
+                                          setRentalData((prev) => ({ ...prev, pickupTime: val }));
                                           setError(null);
                                         }}
-                                        required
-                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                                      >
-                                        {rentalTimeSlots.map((time) => {
-                                          const isBooked = bookedSlots.includes(time);
-                                          return (
-                                            <option
-                                              key={time}
-                                              value={time}
-                                              disabled={isBooked}
-                                              className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
-                                            >
-                                              {formatIndoTimeSlot(time)} {isBooked ? "(Terisi / Penuh)" : ""}
-                                            </option>
-                                          );
-                                        })}
-                                      </select>
+                                        disabledSlots={bookedSlots}
+                                        label="Jam Check-in (WIB)"
+                                        theme="amber"
+                                        className="w-full"
+                                      />
                                     </div>
                 </div>
               )}
@@ -1614,52 +1590,35 @@ export default function BookingForm({
                                       <label htmlFor="rental-pickupTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                         Jam Ambil *
                                       </label>
-                                      <select
-                                        id="rental-pickupTime"
+                                      <ModernTimePicker
+                                        id="rental-pickupTime-equip"
                                         value={rentalData.pickupTime}
-                                        onChange={(e) => {
-                                          setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                                        onChange={(val) => {
+                                          setRentalData((prev) => ({ ...prev, pickupTime: val }));
                                           setError(null);
                                         }}
-                                        required
-                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                                      >
-                                        {rentalTimeSlots.map((time) => {
-                                          const isBooked = bookedSlots.includes(time);
-                                          return (
-                                            <option
-                                              key={time}
-                                              value={time}
-                                              disabled={isBooked}
-                                              className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
-                                            >
-                                              {formatIndoTimeSlot(time)} {isBooked ? "(Terisi / Penuh)" : ""}
-                                            </option>
-                                          );
-                                        })}
-                                      </select>
+                                        disabledSlots={bookedSlots}
+                                        label="Jam Ambil (WIB)"
+                                        theme="amber"
+                                        className="w-full"
+                                      />
                                     </div>
 
                                     <div className="space-y-1.5">
                                       <label htmlFor="rental-returnTime" className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                         Jam Kembali *
                                       </label>
-                                      <select
-                                        id="rental-returnTime"
+                                      <ModernTimePicker
+                                        id="rental-returnTime-equip"
                                         value={rentalData.returnTime || "17:00"}
-                                        onChange={(e) => {
-                                          setRentalData((prev) => ({ ...prev, returnTime: e.target.value }));
+                                        onChange={(val) => {
+                                          setRentalData((prev) => ({ ...prev, returnTime: val }));
                                           setError(null);
                                         }}
-                                        required
-                                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all appearance-none"
-                                      >
-                                        {rentalTimeSlots.map((time) => (
-                                          <option key={time} value={time}>
-                                            {formatIndoTimeSlot(time)}
-                                          </option>
-                                        ))}
-                                      </select>
+                                        label="Jam Kembali (WIB)"
+                                        theme="amber"
+                                        className="w-full"
+                                      />
                                     </div>
                                   </div>
 
@@ -1868,30 +1827,18 @@ export default function BookingForm({
                     <span>Jam Berangkat / Jemput *</span>
                     <span className="text-[10px] text-amber-600 font-bold lowercase">24 jam wib</span>
                   </label>
-                  <select
-                    id="rental-pickupTime"
+                  <ModernTimePicker
+                    id="rental-pickupTime-veh"
                     value={rentalData.pickupTime || "08:00"}
-                    onChange={(e) => {
-                      setRentalData((prev) => ({ ...prev, pickupTime: e.target.value }));
+                    onChange={(val) => {
+                      setRentalData((prev) => ({ ...prev, pickupTime: val }));
                       setError(null);
                     }}
-                    required
-                    className="w-full bg-white border border-slate-200 hover:border-amber-400 focus:border-amber-500 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all appearance-none cursor-pointer"
-                  >
-                    {rentalTimeSlots.map((time) => {
-                      const isBooked = bookedSlots.includes(time);
-                      return (
-                        <option
-                          key={time}
-                          value={time}
-                          disabled={isBooked}
-                          className={isBooked ? "text-slate-400 bg-slate-100" : "text-slate-900"}
-                        >
-                          {formatIndoTimeSlot(time)} {isBooked ? "(Terisi)" : ""}
-                        </option>
-                      );
-                    })}
-                  </select>
+                    disabledSlots={bookedSlots}
+                    label="Jam Berangkat / Jemput (WIB)"
+                    theme="amber"
+                    className="w-full"
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -1899,22 +1846,17 @@ export default function BookingForm({
                     <span>Jam Pulang / Selesai *</span>
                     <span className="text-[10px] text-amber-600 font-bold lowercase">24 jam wib</span>
                   </label>
-                  <select
-                    id="rental-returnTime"
+                  <ModernTimePicker
+                    id="rental-returnTime-veh"
                     value={rentalData.returnTime || "20:00"}
-                    onChange={(e) => {
-                      setRentalData((prev) => ({ ...prev, returnTime: e.target.value }));
+                    onChange={(val) => {
+                      setRentalData((prev) => ({ ...prev, returnTime: val }));
                       setError(null);
                     }}
-                    required
-                    className="w-full bg-white border border-slate-200 hover:border-amber-400 focus:border-amber-500 rounded-xl px-3 py-3 text-slate-900 text-[13px] sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all appearance-none cursor-pointer"
-                  >
-                    {rentalTimeSlots.map((time) => (
-                      <option key={time} value={time}>
-                        {formatIndoTimeSlot(time)}
-                      </option>
-                    ))}
-                  </select>
+                    label="Jam Pulang / Selesai (WIB)"
+                    theme="amber"
+                    className="w-full"
+                  />
                 </div>
               </div>
 

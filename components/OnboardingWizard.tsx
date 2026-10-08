@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, CheckCircle2, Printer, Package, Loader2, AlertCircle, Sparkles, Download, Upload } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, CheckCircle2, Printer, Package, Loader2, AlertCircle, Download, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 

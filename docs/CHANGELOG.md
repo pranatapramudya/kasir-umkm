@@ -5,7 +5,32 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [Unreleased]
+
+### ⚡ 2026-10-08 — Modernisasi UI Waktu & BBM, Presisi Analitik WIB, & Panduan Pembayaran Multi-Tenant
+- **Modern Time Picker Enterprise (`components/ModernTimePicker.tsx`):**
+  - Menggantikan elemen `<select>` bawaan 48 slot yang kaku dengan pemilih waktu modern berdesain responsif (bottom-sheet di mobile dan dialog tengah di desktop).
+  - Dilengkapi tab filter periode cepat (*Semua Jam, Pagi, Siang, Sore, Malam, Subuh / Dini Hari*).
+  - Tampilan tombol pemicu (*trigger*) yang proporsional dan sejajar secara presisi dengan kotak input tanggal (`py-2.5 sm:py-3`), bebas dari teks/badge bertumpuk (`whitespace-nowrap`).
+  - Render menggunakan React Portal (`document.body`) sehingga kebal dari pemotongan kontainer scroll (`overflow-hidden` / `overflow-y-auto`).
+  - Mendukung prop `disabledSlots` untuk pencegahan bentrok jadwal (*anti double-booking*) pada slot yang sudah penuh.
+  - Diterapkan pada seluruh modul POS kasir sewa alat & kendaraan (`app/page-client.tsx`) serta formulir reservasi publik (`app/book/[slug]/BookingForm.tsx`).
+- **Modern Fuel Type Selector (`components/SmartRouteFuelCalculator.tsx`):**
+  - Menggantikan select native yang teksnya terpotong dengan custom dropdown popover elegan.
+  - Menampilkan badge kategori BBM (*Diesel* hijau / *Bensin* toska), nama BBM lengkap, harga per liter, indikator aktif warna amber, dan centang verifikasi dengan backdrop overlay penutup otomatis.
+- **Pembersihan Ikon Generic AI (`Sparkles`):**
+  - Menghapus seluruh ikon sparkle generik pada pemilih waktu dan komponen administrasi, menggantikannya dengan ikon jam enterprise (`Clock`) netral untuk menjaga kredibilitas tampilan bisnis.
+- **Perbaikan Stacking Header Admin & Analitik Mobile (`app/(protected)/admin/AdminLayoutClient.tsx` & `AnalyticsClient.tsx`):**
+  - Meningkatkan header *Sistem Manajemen* ke `sticky top-0 z-30 bg-white/95 backdrop-blur-md` sehingga konten kartu analitik yang discroll ke atas meluncur bersih di bawah header tanpa menimpa teks maupun avatar.
+  - Memperbarui antarmuka filter tanggal analitik di layar mobile dengan tombol preset cepat 1-tap (*Hari Ini, 7 Hari, Bulan Ini, 30 Hari, Bulan Lalu*) serta sekat kotak input terpisah (*Dari* dan *Sampai*) yang nyaman di Chrome Android.
+- **Presisi Waktu WIB pada Analitik & Ekspor Data (`actions.ts`, `app/api/export/route.ts`, `page.tsx`):**
+  - Mengunci rentang waktu query Prisma ke zona waktu Indonesia (`+07:00` WIB) dari jam 00:00:00 hingga 23:59:59.999 tanpa ada kebocoran waktu akibat selisih UTC server cloud.
+- **Panduan Pembayaran QRIS / Transfer Manual Toko (Opsi C):**
+  - Menambahkan panel instruksi transfer dan nomor rekening toko saat kasir memilih metode QRIS di POS, lengkap dengan tombol salin nomor rekening dan konfirmasi mutasi bank/e-wallet.
+- **Copywriting Buku Panduan Multi-Tenant (`components/BukuPanduanModal.tsx`):**
+  - Penyesuaian istilah dinamis menjadi "Unit / Properti / Armada", "Transaksi Sewa", dan "Kalender Sewa" khusus kategori rental, travel, properti, dan sewa alat/barang.
+- **Ekspor Pajak & Template Transaksi (`components/TaxExportModal.tsx` & `lib/tax-export.ts`):**
+  - Format CSV UTF-8 BOM rapi untuk Mekari & Accurate, perbaikan teks responsif di mobile, accordion panduan pajak, serta tombol unduh template sampel pajak.
 
 ### ⚡ 2026-10-08 — Pagination Dinamis Layar (Desktop 12 / Mobile 10) & Stabilitas Import Produk Massal
 - **Pagination Dinamis Desktop vs Mobile (`app/page-client.tsx` & `app/(protected)/admin/products/page-client.tsx`):**

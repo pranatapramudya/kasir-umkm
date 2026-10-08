@@ -42,17 +42,13 @@ export async function GET(req: Request) {
     const now = new Date();
 
     if (!from && !to) {
-      // Default to current month if no params
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      dateFilter.gte = firstDay;
-      dateFilter.lte = now;
+      const wibDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now);
+      const [year, month] = wibDateStr.split('-');
+      dateFilter.gte = new Date(`${year}-${month}-01T00:00:00+07:00`);
+      dateFilter.lte = new Date(`${wibDateStr}T23:59:59.999+07:00`);
     } else {
-      if (from) dateFilter.gte = new Date(from);
-      if (to) {
-        const toDate = new Date(to);
-        toDate.setHours(23, 59, 59, 999);
-        dateFilter.lte = toDate;
-      }
+      if (from) dateFilter.gte = new Date(`${from}T00:00:00+07:00`);
+      if (to) dateFilter.lte = new Date(`${to}T23:59:59.999+07:00`);
     }
 
     const transactions = await prisma.transaction.findMany({

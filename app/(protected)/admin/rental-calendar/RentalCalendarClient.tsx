@@ -24,7 +24,6 @@ import {
   MessageCircle,
   LogIn,
   LogOut,
-  Sparkles,
   Copy,
   ExternalLink,
   Share2
@@ -904,6 +903,17 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                     📱 Transfer / QRIS
                   </button>
                 </div>
+
+                {finishPaymentMethod !== "TUNAI" && (
+                  <div className="mt-2.5 p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 leading-relaxed">
+                    <p className="font-bold flex items-center gap-1 text-emerald-950 mb-0.5">
+                      <span>📱</span> Verifikasi Pembayaran Digital / QRIS
+                    </p>
+                    <p>
+                      Pastikan bukti transfer atau mutasi pembayaran QRIS dari penyewa sudah berhasil masuk ke rekening sebelum menyelesaikan sewa.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2">

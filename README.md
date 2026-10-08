@@ -20,6 +20,11 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 - **Production-Ready Enterprise Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.
 - **Sistem Pembayaran & Subscription Dinamis:** Terintegrasi dengan payment gateway (Mayar) via webhook untuk aktivasi otomatis paket langganan (Pro 1 Bulan, 6 Bulan, 1 Tahun) secara real-time, beserta alur pendaftaran *Manual ACC* yang dikelola via Dasbor Superadmin.
 - **Optimasi SEO & UI Enterprise:** Injeksi SEO pada *Landing Page* untuk pencarian organik maksimal, dipadukan dengan desain *glassmorphism* modern, profesional, dan responsif.
+- **Komponen Pemilih Jam Modern (Modern Time Picker Suite) & Estimator BBM:**
+  - Pemilih jam 24 jam WIB adaptif untuk POS kasir dan formulir reservasi online publik (`/book/[slug]`), dilengkapi filter waktu cepat (*Pagi, Siang, Sore, Malam, Subuh*), render portal bebas overflow, dan perlindungan bentrok jadwal sewa unit/armada.
+  - Estimator BBM & Jarak Tempuh Rute cerdas dengan pemilih jenis bahan bakar modern (Diesel & Bensin) berdesain popover elegan.
+- **Ekspor Laporan Pajak Standar Akuntansi Indonesia (Tax Export Suite):**
+  - Ekspor laporan pajak berformat CSV UTF-8 BOM yang kompatibel langsung dengan Mekari Jurnal & Accurate Online, dilengkapi modul unduh template sampel dan panduan pelaporan SPT UMKM.
 - **Dukungan Multi-Bisnis 100% Universal:** Logika dinamis adaptif untuk:
   - **Retail:** Manajemen SKU/Barcode, HPP, stok otomatis, dan POS kasir cepat langsung transaksi.
   - **F&B (Kuliner):** Label sidebar adaptif *"Daftar Menu"*, denah meja & status *Takeaway/Bungkus*, serta cetak tiket dapur terpisah.
