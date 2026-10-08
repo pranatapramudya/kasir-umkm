@@ -151,7 +151,8 @@ export default function AdminProductsClientPage({
   const [isExporting, setIsExporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=`;
+  const serverCategory = selectedFilterTab && selectedFilterTab !== "ALL" && selectedFilterTab !== "Semua" ? encodeURIComponent(selectedFilterTab) : "";
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${serverCategory}`;
     const isInitialPage = currentPage === 1 && !searchQuery && selectedFilterTab === "ALL";
 
   const initialDataForScreen = useMemo(() => {
@@ -195,14 +196,14 @@ export default function AdminProductsClientPage({
   useEffect(() => {
     if (!currentTenantId) return;
     if (currentPage < totalPages) {
-      const nextPageUrl = `/api/products?page=${currentPage + 1}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=`;
+      const nextPageUrl = `/api/products?page=${currentPage + 1}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${serverCategory}`;
       preload([nextPageUrl, currentTenantId as string], fetcher);
     }
     if (currentPage > 1) {
-      const prevPageUrl = `/api/products?page=${currentPage - 1}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=`;
+      const prevPageUrl = `/api/products?page=${currentPage - 1}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&category=${serverCategory}`;
       preload([prevPageUrl, currentTenantId as string], fetcher);
     }
-  }, [currentPage, totalPages, searchQuery, currentTenantId, itemsPerPage]);
+  }, [currentPage, totalPages, searchQuery, currentTenantId, itemsPerPage, serverCategory]);
 
 
   // Instant Client-side Filter untuk Respons 0ms (Kategori + Search)

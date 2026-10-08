@@ -119,12 +119,28 @@ export async function POST(req: Request) {
       const normalizedCategory = isService ? (isJasaMurni ? 'Jasa / Servis' : 'Produk / Barang') : finalCategory;
 
       // --- Rental-specific logic ---
-      const isLayananTambahan = finalCategory === 'Layanan Tambahan' || 
-        finalCategory.toLowerCase().includes('layanan') || 
-        finalCategory.toLowerCase().includes('tambahan') || 
-        finalCategory.toLowerCase().includes('operator') ||
-        p._sheetName?.toLowerCase().includes('layanan') ||
-        p._sheetName?.toLowerCase().includes('operator');
+      const catStr = finalCategory.toLowerCase();
+      const sheetStr = (p._sheetName || "").toLowerCase();
+      const isLayananTambahan = finalCategory === "Layanan Tambahan" ||
+        catStr.includes("layanan") ||
+        catStr.includes("tambahan") ||
+        catStr.includes("operator") ||
+        catStr.includes("supir") ||
+        catStr.includes("driver") ||
+        catStr.includes("kenek") ||
+        catStr.includes("kru") ||
+        catStr.includes("bbm") ||
+        catStr.includes("solar") ||
+        catStr.includes("bensin") ||
+        catStr.includes("asuransi") ||
+        catStr.includes("addon") ||
+        catStr.includes("extra") ||
+        sheetStr.includes("layanan") ||
+        sheetStr.includes("operator") ||
+        sheetStr.includes("tambahan") ||
+        sheetStr.includes("supir") ||
+        sheetStr.includes("driver") ||
+        Boolean(isService);
       const isRentalItem = isRental && !isLayananTambahan;
       const isLayananItem = isRental && isLayananTambahan;
 

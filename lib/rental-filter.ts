@@ -51,7 +51,7 @@ export const RENTAL_NICHE_CONFIG: Record<RentalNiche, RentalNicheConfig> = {
     tabs: [
       { value: "ALL", label: "Semua" },
       { value: "UNIT", label: "Unit Fisik (Kamar)", filter: (p: any) => !p.isService },
-      { value: "ADDON", label: "Layanan & Tambahan (Addon)", filter: (p: any) => p.isService },
+      { value: "ADDON", label: "Layanan & Tambahan (Addon)", filter: (p: any) => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("tambahan") || (p.category || "").toLowerCase().includes("addon") },
     ],
   },
   vehicle: {
@@ -76,7 +76,7 @@ export const RENTAL_NICHE_CONFIG: Record<RentalNiche, RentalNicheConfig> = {
     tabs: [
       { value: "ALL", label: "Semua" },
       { value: "UNIT", label: "Unit Fisik (Kendaraan)", filter: (p: any) => !p.isService },
-      { value: "ADDON", label: "Layanan & Supir", filter: (p: any) => p.isService },
+      { value: "ADDON", label: "Layanan & Supir", filter: (p: any) => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("supir") || (p.category || "").toLowerCase().includes("driver") || (p.category || "").toLowerCase().includes("tambahan") },
     ],
   },
   equipment: {
@@ -101,7 +101,7 @@ export const RENTAL_NICHE_CONFIG: Record<RentalNiche, RentalNicheConfig> = {
     tabs: [
       { value: "ALL", label: "Semua" },
       { value: "UNIT", label: "Unit Fisik (Alat)", filter: (p: any) => !p.isService },
-      { value: "ADDON", label: "Layanan & Operator", filter: (p: any) => p.isService },
+      { value: "ADDON", label: "Layanan & Operator", filter: (p: any) => p.isService || (p.category || "").toLowerCase().includes("layanan") || (p.category || "").toLowerCase().includes("operator") || (p.category || "").toLowerCase().includes("tambahan") },
     ],
   },
 };

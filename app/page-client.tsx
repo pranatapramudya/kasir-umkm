@@ -555,7 +555,8 @@ export default function POSApp({
     return res.json();
   };
 
-  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=`;
+  const serverCategory = selectedFilterTab && selectedFilterTab !== "ALL" && selectedFilterTab !== "Semua" ? encodeURIComponent(selectedFilterTab) : "";
+  const queryUrl = `/api/products?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${serverCategory}`;
   const isInitialPage = currentPage === 1 && !search && (!selectedFilterTab || selectedFilterTab === "ALL");
   const initialDataForScreen = useMemo(() => {
     if (!initialData) return undefined;
@@ -600,16 +601,16 @@ export default function POSApp({
     
     // Preload halaman berikutnya jika ada
     if (currentPage < totalPages) {
-      const nextPageUrl = `/api/products?page=${currentPage + 1}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=`;
+      const nextPageUrl = `/api/products?page=${currentPage + 1}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${serverCategory}`;
       preload([nextPageUrl, currentTenantId as string], fetcher);
     }
     
     // Preload halaman sebelumnya jika ada
     if (currentPage > 1) {
-      const prevPageUrl = `/api/products?page=${currentPage - 1}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=`;
+      const prevPageUrl = `/api/products?page=${currentPage - 1}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${serverCategory}`;
       preload([prevPageUrl, currentTenantId as string], fetcher);
     }
-  }, [currentPage, totalPages, search, currentTenantId]);
+  }, [currentPage, totalPages, search, currentTenantId, serverCategory]);
 
         // Resolve rental niche from tenant category / catalog / tenant name
         const niche = useMemo(() => resolveRentalNiche(tenantCategory, tenantName, rawProducts), [tenantCategory, tenantName, rawProducts]);
