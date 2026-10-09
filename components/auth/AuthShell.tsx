@@ -2,17 +2,18 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
+  Store,
+  Utensils,
+  Wrench,
   Car,
   Building2,
   Package,
-  Utensils,
-  Store,
   ShieldCheck,
   Lock,
   CheckCircle2,
   Receipt,
   Smartphone,
-  Server
+  Server,
 } from "lucide-react";
 
 interface AuthShellProps {
@@ -20,13 +21,92 @@ interface AuthShellProps {
   children: React.ReactNode;
 }
 
+// 6 Sektor Inti Ekosistem PJTECH UMKM
+const SECTORS = [
+  {
+    name: "Retail & Toko",
+    shortName: "Retail",
+    subtitle:
+      "Scan barcode kilat, thermal 58/80mm, stok multi-satuan & grosir.",
+    icon: Store,
+    href: "/solusi/retail",
+    theme: {
+      bg: "bg-blue-50/90",
+      text: "text-blue-600",
+      border: "border-blue-200/80 hover:border-blue-400",
+    },
+  },
+  {
+    name: "F&B, Kafe & Resto",
+    shortName: "F&B",
+    subtitle: "Denah meja, kitchen display KDS, split bill & modifier pesanan.",
+    icon: Utensils,
+    href: "/solusi/fnb",
+    theme: {
+      bg: "bg-rose-50/90",
+      text: "text-rose-600",
+      border: "border-rose-200/80 hover:border-rose-400",
+    },
+  },
+  {
+    name: "Jasa & Servis",
+    shortName: "Jasa",
+    subtitle:
+      "Antrean servis, tracking WhatsApp pelanggan, nota sparepart & komisi.",
+    icon: Wrench,
+    href: "/solusi/jasa",
+    theme: {
+      bg: "bg-purple-50/90",
+      text: "text-purple-600",
+      border: "border-purple-200/80 hover:border-purple-400",
+    },
+  },
+  {
+    name: "Rental & Travel",
+    shortName: "Rental",
+    subtitle:
+      "Kalender armada anti-bentrok, rute BBM & invoice A4 DP/lunas resmi.",
+    icon: Car,
+    href: "/solusi/rental",
+    theme: {
+      bg: "bg-amber-50/90",
+      text: "text-amber-600",
+      border: "border-amber-200/80 hover:border-amber-400",
+    },
+  },
+  {
+    name: "Properti & Kamar",
+    shortName: "Properti",
+    subtitle: "Sewa harian/jam, sinkronisasi okupansi kos, villa & guesthouse.",
+    icon: Building2,
+    href: "/solusi/rental",
+    theme: {
+      bg: "bg-teal-50/90",
+      text: "text-teal-600",
+      border: "border-teal-200/80 hover:border-teal-400",
+    },
+  },
+  {
+    name: "Alat & Barang",
+    shortName: "Alat",
+    subtitle: "Sewa sound, tenda, kamera, delivery fee & deposit jaminan aman.",
+    icon: Package,
+    href: "/solusi/rental",
+    theme: {
+      bg: "bg-indigo-50/90",
+      text: "text-indigo-600",
+      border: "border-indigo-200/80 hover:border-indigo-400",
+    },
+  },
+];
+
 export function AuthShell({ mode, children }: AuthShellProps) {
   const isSignIn = mode === "sign-in";
 
   return (
     <div className="min-h-screen w-full bg-slate-50 font-sans selection:bg-blue-500 selection:text-white text-slate-800">
       {/* ========================================================================= */}
-      {/* DESKTOP LAYOUT (lg:grid split-screen) — Professional Light SaaS Theme    */}
+      {/* DESKTOP LAYOUT (lg:grid split-screen) — Professional Light SaaS Theme     */}
       {/* ========================================================================= */}
       <div className="hidden lg:grid lg:grid-cols-12 min-h-screen w-full">
         {/* Left Column: Brand & Ecosystem Showcase */}
@@ -76,14 +156,16 @@ export function AuthShell({ mode, children }: AuthShellProps) {
           </div>
 
           {/* Desktop Showcase Content */}
-          <div className="relative z-10 my-auto py-6 xl:py-10 space-y-5 max-w-xl">
+          <div className="relative z-10 my-auto py-6 xl:py-8 space-y-4 max-w-xl">
             {/* Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold shadow-2xs">
               <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>Ekosistem Kasir & Operasional Bisnis Terlengkap</span>
+              <span>
+                Ekosistem Kasir & Operasional 6 Sektor Bisnis Terlengkap
+              </span>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
                 Tingkatkan Skala Bisnis Anda dengan{" "}
                 <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-600 bg-clip-text text-transparent">
@@ -91,76 +173,37 @@ export function AuthShell({ mode, children }: AuthShellProps) {
                 </span>
               </h1>
               <p className="text-sm xl:text-base text-slate-600 leading-relaxed">
-                Mulai dari kasir kilat, kalender sewa armada, kamar & alat, hingga invoice A4 resmi dan pembukuan akuntansi laba-rugi multi-tenant yang aman.
+                Mulai dari kasir kilat, antrean servis, kalender sewa armada,
+                kamar & alat, hingga invoice A4 resmi dan pembukuan akuntansi
+                laba-rugi multi-tenant yang aman.
               </p>
             </div>
 
-            {/* 5 Sektor Bisnis Matrix Cards */}
+            {/* 6 Sektor Bisnis Matrix Cards (Balanced 2x3 Grid) */}
             <div className="grid grid-cols-2 gap-2.5 pt-1">
-              {/* 1. Rental & Travel */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-md transition-all shadow-xs">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shadow-2xs">
-                    <Car className="w-4 h-4" />
+              {SECTORS.map((sector) => (
+                <Link
+                  key={sector.name}
+                  href={sector.href}
+                  className="group p-3 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 hover:shadow-md transition-all shadow-xs flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div
+                        className={`w-7 h-7 rounded-lg ${sector.theme.bg} ${sector.theme.text} flex items-center justify-center border border-slate-100 shadow-2xs group-hover:scale-105 transition-transform`}
+                      >
+                        <sector.icon className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {sector.name}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-snug">
+                      {sector.subtitle}
+                    </p>
                   </div>
-                  <span className="text-xs font-bold text-slate-900">Rental & Travel</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Kalender armada, rute BBM & invoice A4 DP/lunas resmi.
-                </p>
-              </div>
-
-              {/* 2. Properti & Kamar */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-md transition-all shadow-xs">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100 shadow-2xs">
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900">Properti & Kamar</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Sewa harian/jam, sinkronisasi okupansi kos & villa.
-                </p>
-              </div>
-
-              {/* 3. Alat & Barang */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-md transition-all shadow-xs">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-2xs">
-                    <Package className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900">Alat & Barang</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Sewa sound, tenda, kamera, delivery fee & deposit.
-                </p>
-              </div>
-
-              {/* 4. F&B, Kafe & Resto */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-md transition-all shadow-xs">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shadow-2xs">
-                    <Utensils className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900">F&B, Kafe & Resto</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Manajemen meja, monitor dapur KDS, & split bill.
-                </p>
-              </div>
-
-              {/* 5. Retail & Jasa Servis */}
-              <div className="col-span-2 p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-md transition-all shadow-xs">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-2xs">
-                    <Store className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900">Retail, Toko & Servis Jasa</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  Scan barcode kilat, thermal Bluetooth 58/80mm, stok multi-satuan, & booking antrean servis.
-                </p>
-              </div>
+                </Link>
+              ))}
             </div>
 
             {/* Social Proof & Guarantees */}
@@ -170,17 +213,22 @@ export function AuthShell({ mode, children }: AuthShellProps) {
                   <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
                   <span>100% Data Multi-Tenant Terisolasi Aman</span>
                 </div>
-                <span className="text-blue-600/80 text-[11px] font-semibold">Cloud Native</span>
+                <span className="text-blue-600/80 text-[11px] font-semibold">
+                  Cloud Native
+                </span>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-600 pt-1 border-t border-blue-200/60">
                 <span className="flex items-center gap-1">
-                  <Smartphone className="w-3.5 h-3.5 text-slate-500" /> Siap di HP & Komputer
+                  <Smartphone className="w-3.5 h-3.5 text-slate-500" /> Siap di
+                  HP & Komputer
                 </span>
                 <span className="flex items-center gap-1">
-                  <Receipt className="w-3.5 h-3.5 text-slate-500" /> Struk Thermal & A4
+                  <Receipt className="w-3.5 h-3.5 text-slate-500" /> Struk
+                  Thermal & A4
                 </span>
                 <span className="flex items-center gap-1">
-                  <Server className="w-3.5 h-3.5 text-slate-500" /> Bebas Biaya Server
+                  <Server className="w-3.5 h-3.5 text-slate-500" /> Bebas Biaya
+                  Server
                 </span>
               </div>
             </div>
@@ -190,9 +238,13 @@ export function AuthShell({ mode, children }: AuthShellProps) {
           <div className="relative z-10 flex items-center justify-between text-xs text-slate-500 pt-4 border-t border-slate-200">
             <span>&copy; 2026 PJTECH UMKM (pjtechumkm.com)</span>
             <div className="flex items-center gap-4">
-              <span className="hover:text-slate-800 cursor-pointer">Privasi & Keamanan</span>
+              <span className="hover:text-slate-800 cursor-pointer">
+                Privasi & Keamanan
+              </span>
               <span>•</span>
-              <span className="hover:text-slate-800 cursor-pointer">Bantuan</span>
+              <span className="hover:text-slate-800 cursor-pointer">
+                Bantuan
+              </span>
             </div>
           </div>
         </div>
@@ -219,9 +271,7 @@ export function AuthShell({ mode, children }: AuthShellProps) {
 
           {/* Clerk Component */}
           <div className="relative z-10 w-full max-w-md mx-auto my-auto flex flex-col items-center">
-            <div className="w-full flex justify-center">
-              {children}
-            </div>
+            <div className="w-full flex justify-center">{children}</div>
           </div>
 
           {/* Security & Trust Badges */}
@@ -249,7 +299,7 @@ export function AuthShell({ mode, children }: AuthShellProps) {
       {/* ========================================================================= */}
       {/* MOBILE LAYOUT (lg:hidden) — 3D Lightweight Header ALL-IN-ONE (Tanpa Geser)*/}
       {/* ========================================================================= */}
-      <div className="lg:hidden min-h-screen w-full bg-slate-50 flex flex-col justify-between p-3.5 sm:p-5 relative overflow-x-hidden font-sans">
+      <div className="lg:hidden min-h-screen w-full bg-slate-50 flex flex-col justify-between p-3 sm:p-4 relative overflow-x-hidden font-sans">
         {/* Soft Ambient Background Glows */}
         <div className="absolute -top-16 -right-16 w-64 h-64 bg-blue-100/70 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 -left-16 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
@@ -261,10 +311,10 @@ export function AuthShell({ mode, children }: AuthShellProps) {
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-400/40 to-transparent pointer-events-none" />
 
             {/* Top Bar: 3D Logo + Identity & Verified Portal Badge */}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-2.5">
               <Link href="/" className="flex items-center gap-2.5 min-w-0">
                 {/* 3D App Emblem with Bevel & Drop Shadow */}
-                <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 p-0.5 shadow-[0_6px_14px_-2px_rgba(37,99,235,0.4),inset_0_1px_1px_rgba(255,255,255,0.5)] shrink-0 flex items-center justify-center">
+                <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-b from-blue-500 via-blue-600 to-indigo-700 p-0.5 shadow-[0_6px_14px_-2px_rgba(37,99,235,0.4),inset_0_1px_1px_rgba(255,255,255,0.5)] shrink-0 flex items-center justify-center">
                   <div className="w-full h-full bg-white rounded-[13px] flex items-center justify-center overflow-hidden shadow-inner">
                     <Image
                       src="/logo-app.png"
@@ -293,77 +343,59 @@ export function AuthShell({ mode, children }: AuthShellProps) {
               </Link>
 
               {/* Status Badge: Enterprise Security Verification */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-extrabold text-emerald-700 shadow-2xs shrink-0">
+              <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-extrabold text-emerald-700 shadow-2xs shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Portal Resmi</span>
               </div>
             </div>
 
-            {/* 5 SEKTOR USAHA ALL-IN-ONE GRID — KELIHATAN SEMUA TANPA GESER */}
-            <div className="mt-2.5 pt-2 border-t border-slate-100/90 grid grid-cols-5 gap-1 sm:gap-1.5">
-              {/* 1. Rental */}
-              <div className="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl bg-white border border-amber-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-amber-300 transition-colors">
-                <div className="w-5 h-5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Car className="w-3 h-3" />
-                </div>
-                <span className="text-[9.5px] font-black text-slate-800 mt-0.5 tracking-tight truncate w-full text-center">Rental</span>
-              </div>
-
-              {/* 2. Properti */}
-              <div className="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl bg-white border border-teal-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-teal-300 transition-colors">
-                <div className="w-5 h-5 rounded-md bg-teal-50 text-teal-600 flex items-center justify-center">
-                  <Building2 className="w-3 h-3" />
-                </div>
-                <span className="text-[9.5px] font-black text-slate-800 mt-0.5 tracking-tight truncate w-full text-center">Properti</span>
-              </div>
-
-              {/* 3. Alat & Barang */}
-              <div className="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl bg-white border border-indigo-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-indigo-300 transition-colors">
-                <div className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Package className="w-3 h-3" />
-                </div>
-                <span className="text-[9.5px] font-black text-slate-800 mt-0.5 tracking-tight truncate w-full text-center">Alat</span>
-              </div>
-
-              {/* 4. F&B */}
-              <div className="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl bg-white border border-rose-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-rose-300 transition-colors">
-                <div className="w-5 h-5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <Utensils className="w-3 h-3" />
-                </div>
-                <span className="text-[9.5px] font-black text-slate-800 mt-0.5 tracking-tight truncate w-full text-center">F&B</span>
-              </div>
-
-              {/* 5. Retail & Jasa */}
-              <div className="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl bg-white border border-blue-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-blue-300 transition-colors">
-                <div className="w-5 h-5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <Store className="w-3 h-3" />
-                </div>
-                <span className="text-[9.5px] font-black text-slate-800 mt-0.5 tracking-tight truncate w-full text-center">Retail</span>
-              </div>
+            {/* 6 SEKTOR USAHA ALL-IN-ONE GRID — KELIHATAN SEMUA TANPA GESER */}
+            <div className="mt-2.5 pt-2 border-t border-slate-100/90 grid grid-cols-6 gap-1 sm:gap-1.5">
+              {SECTORS.map((sector) => (
+                <Link
+                  key={sector.shortName}
+                  href={sector.href}
+                  title={`Solusi ${sector.name}`}
+                  className={`group flex flex-col items-center justify-center py-1 px-0.5 rounded-xl bg-white border ${sector.theme.border} shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-xs active:scale-95 transition-all text-center select-none`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-md ${sector.theme.bg} ${sector.theme.text} flex items-center justify-center transition-transform group-hover:scale-110`}
+                  >
+                    <sector.icon className="w-3 h-3" />
+                  </div>
+                  <span className="text-[9px] sm:text-[9.5px] font-black text-slate-800 mt-0.5 tracking-tight truncate w-full text-center group-hover:text-blue-600 transition-colors">
+                    {sector.shortName}
+                  </span>
+                </Link>
+              ))}
             </div>
           </div>
         </header>
 
         {/* 2. FORMULIR CLERK — PRESISI DI TENGAH-TENGAH */}
-        <main className="relative z-10 w-full max-w-md mx-auto my-auto py-3 flex flex-col items-center justify-center space-y-3">
+        <main className="relative z-10 w-full max-w-md mx-auto my-auto py-2.5 sm:py-3 flex flex-col items-center justify-center space-y-3">
           {/* Clerk Form Injection */}
-          <div className="w-full flex justify-center">
-            {children}
-          </div>
+          <div className="w-full flex justify-center">{children}</div>
 
           {/* Switch Mode Prompt for Mobile */}
           <div className="text-center text-xs font-semibold text-slate-600 pt-0.5">
             {isSignIn ? (
               <p>
                 Belum memiliki akun?{" "}
-                <Link href="/sign-up" className="text-blue-600 hover:text-blue-700 font-bold underline ml-1">
+                <Link
+                  href="/sign-up"
+                  className="text-blue-600 hover:text-blue-700 font-bold underline ml-1"
+                >
                   Daftar Sekarang
                 </Link>
               </p>
             ) : (
               <p>
                 Sudah memiliki akun?{" "}
-                <Link href="/sign-in" className="text-blue-600 hover:text-blue-700 font-bold underline ml-1">
+                <Link
+                  href="/sign-in"
+                  className="text-blue-600 hover:text-blue-700 font-bold underline ml-1"
+                >
                   Masuk di Sini
                 </Link>
               </p>
