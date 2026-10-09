@@ -212,7 +212,7 @@ export default function BookingScheduleForm({
               <div className="flex items-center gap-3">
                 <ModernTimePicker
                   id="booking-open-time"
-                  currentTime={openTime}
+                  value={openTime}
                   onChange={(val) => {
                     setOpenTime(val);
                     setError(null);
@@ -245,7 +245,7 @@ export default function BookingScheduleForm({
               <div className="flex items-center gap-3">
                 <ModernTimePicker
                   id="booking-close-time"
-                  currentTime={closeTime}
+                  value={closeTime}
                   onChange={(val) => {
                     setCloseTime(val);
                     setError(null);
