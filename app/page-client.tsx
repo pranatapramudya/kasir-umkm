@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  ShoppingCart, Plus, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat, Package, Fuel, QrCode, Copy, AlertCircle
+  ShoppingCart, Plus, Calendar, Clock, Minus, Store, User, Search, Trash2, CheckCircle, Pencil, Loader2, X, Check, Filter, Menu, Car, FileText, Bed, Barcode, Printer, FileSpreadsheet, ChefHat, Package, Fuel, QrCode, Copy, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -872,6 +872,21 @@ export default function POSApp({
       localStorage.setItem('pos_transactions', JSON.stringify(transactions));
     }
   }, [cart, transactions, isClient, isInitialized]);
+
+  // Auto-set serviceDate ke waktu WIB sekarang saat form jasa aktif & serviceDate masih kosong
+  useEffect(() => {
+    if (!isPureJasa || !isClient) return;
+    if (serviceDate) return; // sudah di-set, jangan override
+
+    // Dapatkan waktu sekarang dalam WIB (UTC+7)
+    const nowWIB = new Date(Date.now() + (7 * 60 * 60 * 1000));
+    const yyyy = nowWIB.getUTCFullYear();
+    const mm   = String(nowWIB.getUTCMonth() + 1).padStart(2, '0');
+    const dd   = String(nowWIB.getUTCDate()).padStart(2, '0');
+    const hh   = String(nowWIB.getUTCHours()).padStart(2, '0');
+    const min  = String(nowWIB.getUTCMinutes()).padStart(2, '0');
+    setServiceDate(`${yyyy}-${mm}-${dd}T${hh}:${min}`);
+  }, [isPureJasa, isClient, serviceDate]);
 
   // --- HELPER KALKULASI STOK ---
     const getRemainingStock = (product: Product) => {
@@ -1908,24 +1923,72 @@ export default function POSApp({
             </div>
           )}
 
-          {/* Form Jasa Waktu Layanan (Khursus Jasa Murni) */}
-                    {isPureJasa && (
-            <div className="space-y-2.5 bg-blue-50 border border-blue-200 rounded-xl p-3">
-              <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1">
-                🗓️ Jadwal Layanan
-              </p>
-              <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Waktu Layanan *</label>
-                <input
-                  type="datetime-local"
-                  min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
-                  value={serviceDate}
-                  onChange={(e) => setServiceDate(e.target.value)}
-                  className="w-full p-2.5 bg-white border border-blue-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-lg text-sm transition-all"
-                />
+          {/* Form Jasa Waktu Layanan (Khusus Jasa Murni - Modern Indonesia WIB) */}
+          {isPureJasa && (() => {
+            const currentDatePart = serviceDate ? serviceDate.split('T')[0] : '';
+            const currentTimePart = serviceDate ? (serviceDate.split('T')[1]?.slice(0, 5) || '09:00') : '09:00';
+            const todayStr = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+            return (
+              <div className="space-y-2.5 bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-white border border-blue-200/90 rounded-2xl p-3.5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-extrabold text-blue-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                    🗓️ Jadwal Layanan Kunjungan
+                  </p>
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-100/70 px-2 py-0.5 rounded-full border border-blue-200">
+                    WIB (24 Jam)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Tanggal Layanan */}
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Tanggal Layanan *</span>
+                    </label>
+                    <input
+                      type="date"
+                      min={todayStr}
+                      value={currentDatePart || todayStr}
+                      onChange={(e) => {
+                        const newDate = e.target.value;
+                        const time = currentTimePart || '09:00';
+                        setServiceDate(`${newDate}T${time}`);
+                      }}
+                      className="w-full px-3 py-2.5 bg-white border border-slate-200/90 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 rounded-xl text-xs sm:text-sm font-bold text-slate-800 transition-all shadow-2xs cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Jam Layanan (Set Timer Indonesia WIB 24 Jam) */}
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Jam Layanan (WIB) *</span>
+                    </label>
+                    <ModernTimePicker
+                      id="pos-service-time"
+                      value={currentTimePart}
+                      onChange={(val) => {
+                        const date = currentDatePart || todayStr;
+                        setServiceDate(`${date}T${val}`);
+                      }}
+                      title="Pilih Jam Layanan (Format Indonesia 24 Jam WIB)"
+                      label="Jam Layanan (WIB)"
+                      theme="blue"
+                      size="md"
+                      className="w-full !rounded-xl !border-slate-200/90 hover:!border-blue-400 !bg-white !py-2.5 !shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-blue-100/70">
+                  <span>Terpilih: <b className="text-blue-900 font-extrabold">{currentDatePart || todayStr}</b> jam <b className="text-blue-900 font-extrabold">{currentTimePart} WIB</b></span>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Tombol Lengkapi Data Sewa Khusus Rental */}
           {isRental && (
