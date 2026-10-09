@@ -64,10 +64,13 @@ export function BottomNavClient({ kategoriUsaha: rawKategori, role: serverRole, 
     const name = item.name.toLowerCase();
     return (
       item.href === "/admin/orders" ||
+      item.href === "/admin/booking" ||
       item.href === "/admin/rental-calendar" ||
       name === "pesanan online" ||
+      name === "jadwal booking" ||
       name.includes("pesanan") ||
-      name.includes("inbox")
+      name.includes("inbox") ||
+      name.includes("booking")
     );
   };
 

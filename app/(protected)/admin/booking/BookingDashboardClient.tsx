@@ -259,9 +259,9 @@ export default function BookingDashboardClient({
         productName: booking.product.name,
         productPrice: booking.product.hargaJual.toString(),
       });
-      router.push(`/?${params.toString()}`);
+      router.push(`/admin/pos?${params.toString()}`);
     } else {
-      router.push(`/?customerName=${encodeURIComponent(booking.customerName)}`);
+      router.push(`/admin/pos?customerName=${encodeURIComponent(booking.customerName)}`);
     }
     setSelectedBooking(null);
   }

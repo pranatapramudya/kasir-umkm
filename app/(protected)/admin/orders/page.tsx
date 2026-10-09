@@ -30,6 +30,9 @@ export default async function PesananOnlinePage() {
     select: { category: true }
   });
   const isJasa = tenant?.category === "Jasa / Servis" || tenant?.category === "Jasa/Servis" || tenant?.category === "JASA";
+  if (isJasa) {
+    redirect("/admin/booking");
+  }
 
   const rawBookings = await prisma.booking.findMany({
     where: {

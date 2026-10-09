@@ -31,7 +31,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
             { name: "Manajemen Meja", href: "/admin/manajemen-meja", icon: LayoutDashboard }
           ] : []),
           ...(isRentalTravel ? [{ name: "Kalender Sewa", href: "/admin/rental-calendar", icon: CalendarCheck }] : []),
-          ...(isJasa ? [{ name: "Pesanan Online", href: "/admin/orders", icon: Inbox }] : []),
+          ...(isJasa ? [{ name: "Jadwal Booking", href: "/admin/booking", icon: CalendarCheck }] : []),
           { name: "Laporan Shift", href: "/laporan-kasir", icon: Wallet },
         ]
       },

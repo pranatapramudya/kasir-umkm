@@ -160,7 +160,7 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
                                     <Icon className={`w-5 h-5 transition-colors duration-75 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
                                     {item.name}
                                   </div>
-                                  {(item.name === "Pesanan Online" || item.href === "/admin/orders" || item.href === "/admin/rental-calendar") && pendingCount > 0 && (
+                                  {(item.name === "Pesanan Online" || item.name === "Jadwal Booking" || item.href === "/admin/orders" || item.href === "/admin/booking" || item.href === "/admin/rental-calendar") && pendingCount > 0 && (
                                     <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center animate-in zoom-in duration-200">
                                       {pendingCount > 99 ? "99+" : pendingCount}
                                     </span>
