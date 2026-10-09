@@ -1,5 +1,5 @@
 import { LayoutDashboard, PackageSearch, BarChart, Settings, ShoppingCart, Wallet, Users, CreditCard, CalendarCheck, ShieldCheck, Printer, Inbox, ChefHat } from "lucide-react";
-import { isRentalTravelCategory, isServiceBusinessCategory, getFnbSubType } from "@/lib/business-category";
+import { isRentalTravelCategory, isServiceBusinessCategory, isPureServiceCategory, getFnbSubType } from "@/lib/business-category";
 
 export type FnbSubType = "cafe" | "resto" | "generic";
 
@@ -15,7 +15,7 @@ export function getNavigationMenu(kategoriUsaha: string, role: string | undefine
   const isServiceBusiness = isServiceBusinessCategory(kategoriUsaha);
   const isRentalTravel = isRentalTravelCategory(kategoriUsaha);
   const isFnB = isFnBCategory(kategoriUsaha);
-  const isJasa = kategoriUsaha === "JASA" || kategoriUsaha === "Jasa / Servis" || kategoriUsaha === "Jasa/Servis";
+  const isJasa = isPureServiceCategory(kategoriUsaha);
   const isCashier = role === 'CASHIER';
 
   const kasirLabel = isFnB ? "Kasir Resto" : isRentalTravel ? "Transaksi Sewa" : isServiceBusiness ? "Kasir Jasa" : "Kasir POS";

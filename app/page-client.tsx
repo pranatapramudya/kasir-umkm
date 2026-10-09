@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
@@ -137,6 +137,7 @@ type Transaction = {
   time: string;
   timestamp: number;
   customerName: string;
+  customerPhone?: string;
   items: CartItem[];
   total: number;
   method: 'cash' | 'qris';
@@ -161,7 +162,21 @@ type Transaction = {
 };
 
 
-function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean, onClose: () => void, onProcess: (b: any) => void, isRental?: boolean }) {
+function QueueModal({
+  isOpen,
+  onClose,
+  onProcess,
+  isRental,
+  tenantCategory,
+  niche
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onProcess: (b: any) => void;
+  isRental?: boolean;
+  tenantCategory?: string;
+  niche?: "property" | "vehicle" | "equipment" | null;
+}) {
   const [selectedQueueDate, setSelectedQueueDate] = useState(() => {
     const today = new Date();
     const year = today.getFullYear();
@@ -199,10 +214,22 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-3xl">
           <div>
             <h2 className="text-lg font-black text-gray-900 truncate flex items-center gap-2">
-              📋 {isRental ? "Tarik Pesanan Sewa / Travel" : "Tarik Antrean Online"}
+              {isRental
+                ? (niche === "property"
+                    ? "🏨 Tarik Reservasi Properti / Kamar"
+                    : niche === "equipment"
+                      ? "📦 Tarik Pesanan Sewa Alat & Barang"
+                      : "🚗 Tarik Pesanan Sewa Kendaraan / Travel")
+                : "📋 Tarik Antrean Layanan Online"}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              {isRental ? "Pilih pesanan online pelanggan untuk diproses ke Kasir POS" : "Antrean layanan pelanggan yang mendaftar online"}
+              {isRental
+                ? (niche === "property"
+                    ? "Pilih reservasi kamar online pelanggan untuk diproses ke Kasir POS"
+                    : niche === "equipment"
+                      ? "Pilih pesanan sewa alat online pelanggan untuk diproses ke Kasir POS"
+                      : "Pilih pesanan sewa kendaraan online pelanggan untuk diproses ke Kasir POS")
+                : "Antrean layanan pelanggan yang mendaftar online"}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full shrink-0">
@@ -259,7 +286,9 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
               <span className="text-3xl">📭</span>
               <p className="font-bold text-sm text-slate-700">Belum Ada Pesanan Masuk</p>
               <p className="text-xs text-slate-400">
-                {filterMode === 'all' ? 'Belum ada pelanggan yang membuat reservasi sewa.' : 'Tidak ada jadwal sewa pada tanggal yang dipilih.'}
+                {filterMode === 'all'
+                  ? (isRental ? 'Belum ada pelanggan yang membuat reservasi sewa.' : 'Belum ada antrean layanan online yang masuk.')
+                  : (isRental ? 'Tidak ada jadwal sewa pada tanggal yang dipilih.' : 'Tidak ada antrean layanan pada tanggal ini.')}
               </p>
             </div>
           )}
@@ -270,7 +299,7 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
                 const isInProgress = booking.status === 'IN_PROGRESS';
                 const isFinished = booking.status === 'FINISHED' || booking.status === 'COMPLETED';
 
-                const statusLabel = isInProgress ? '⚙️ Sedang Jalan' : (isFinished ? '✅ Selesai' : '⏳ Menunggu Kasir');
+                const statusLabel = isInProgress ? '⚙️ Sedang Dikerjakan' : (isFinished ? '✅ Selesai' : '⏳ Menunggu Kasir');
                 const statusBadgeBg = isInProgress ? 'bg-purple-50 text-purple-700 border-purple-200' : (isFinished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200');
 
                 const formatTgl = (dStr: string) => {
@@ -278,6 +307,28 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
                   const d = new Date(dStr);
                   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                 };
+
+                const itemRentalType = isRental
+                  ? (detectRentalItemType(booking.product?.name) !== "unknown"
+                      ? detectRentalItemType(booking.product?.name)
+                      : (niche || getTenantRentalType(tenantCategory) || "vehicle"))
+                  : null;
+
+                const itemIcon = !isRental
+                  ? "📋"
+                  : itemRentalType === "property"
+                    ? "🏨"
+                    : itemRentalType === "equipment"
+                      ? "📦"
+                      : "🚗";
+
+                const itemFallback = !isRental
+                  ? "Layanan Custom"
+                  : itemRentalType === "property"
+                    ? "Unit Kamar / Properti"
+                    : itemRentalType === "equipment"
+                      ? "Unit Alat / Barang"
+                      : "Armada Kendaraan";
 
                 return (
                   <div key={booking.id} className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-blue-400 shadow-sm flex flex-col gap-3 transition-all">
@@ -289,8 +340,9 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
                             {statusLabel}
                           </span>
                         </div>
-                        <p className="text-xs font-bold text-blue-700 flex items-center gap-1">
-                          🚗 {booking.product ? booking.product.name : 'Armada / Layanan Custom'}
+                        <p className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
+                          <span className="shrink-0">{itemIcon}</span>
+                          <span className="truncate">{booking.product ? booking.product.name : itemFallback}</span>
                         </p>
                       </div>
 
@@ -308,7 +360,7 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
                         <div className="flex items-center justify-between text-[11px]">
                           <span className="text-slate-500 font-medium">Jadwal:</span>
                           <span className="font-bold text-slate-900">
-                            {formatTgl(booking.startDate)} ({booking.pickupTime || '08:00'} WIB) ➜ {formatTgl(booking.endDate)} ({booking.returnTime || '20:00'} WIB)
+                            {formatTgl(booking.startDate)} ({booking.pickupTime || (itemRentalType === 'property' ? '14:00' : '08:00')} WIB) ➜ {formatTgl(booking.endDate)} ({booking.returnTime || (itemRentalType === 'property' ? '12:00' : '20:00')} WIB)
                           </span>
                         </div>
                         {booking.dropoffLocation && (
@@ -330,8 +382,18 @@ function QueueModal({ isOpen, onClose, onProcess, isRental }: { isOpen: boolean,
                         )}
                       </div>
                     ) : (
-                      <div className="text-xs text-slate-500">
-                        Jam Kunjungan: {new Date(booking.bookingDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 text-xs text-slate-700 flex flex-col gap-1">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500 font-medium">Waktu Booking:</span>
+                          <span className="font-bold text-slate-900">
+                            {booking.bookingDate ? new Date(booking.bookingDate).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'} WIB
+                          </span>
+                        </div>
+                        {booking.notes && (
+                          <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200">
+                            <span className="font-medium text-slate-500">Catatan:</span> {booking.notes}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -380,6 +442,7 @@ export default function POSApp({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [search, setSearch] = useState("");
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const [selectedFilterTab, setSelectedFilterTab] = useState("ALL");
@@ -1137,6 +1200,7 @@ export default function POSApp({
     if (confirm("Apakah Anda yakin ingin mengosongkan keranjang?")) {
       setCart([]);
       setCustomerName("");
+      setCustomerPhone("");
       setTableId("");
       setCashGiven("");
       toast.info("Keranjang dikosongkan");
@@ -1215,11 +1279,11 @@ export default function POSApp({
       if (isCashInsufficient) return toast.error("Uang diterima kurang dari total belanja!");
       if (isPureJasa && cart.some(item => !item.workerId)) return toast.error("Pastikan semua layanan telah memilih Staf / Teknisi / Kapster!");
       // Validasi Rental
-      if (isRental && rentalMode === 'property' && !rentalInfo.driverName.trim()) return toast.error("Isi No. WhatsApp / Kontak Tamu untuk transaksi sewa!");
+      if (isRental && rentalMode === 'property' && !customerPhone.trim()) return toast.error("Isi No. WhatsApp / Kontak Tamu untuk transaksi sewa!");
       if (isRental && rentalMode === 'property' && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Kamar / Kode Unit untuk transaksi sewa!");
       if (isRental && rentalMode === 'vehicle' && !rentalInfo.driverName.trim()) return toast.error("Isi Operator / Driver / Supir untuk transaksi sewa!");
       if (isRental && rentalMode === 'vehicle' && !rentalInfo.licensePlate.trim()) return toast.error("Isi No. Seri / Kode Unit / Plat Nomor untuk transaksi sewa!");
-      if (isRental && rentalMode === 'equipment' && !rentalInfo.driverName.trim()) return toast.error("Isi No. WhatsApp / Kontak Penyewa untuk transaksi sewa alat!");
+      if (isRental && rentalMode === 'equipment' && !customerPhone.trim()) return toast.error("Isi No. WhatsApp / Kontak Penyewa untuk transaksi sewa alat!");
       if (isRental && rentalMode === 'equipment' && !rentalInfo.licensePlate.trim()) return toast.error("Isi Kode Unit / Nama Alat untuk transaksi sewa alat!");
       if (isRental && rentalMode === 'equipment' && !rentalInfo.returnTime) return toast.error("Isi Jam Kembali untuk transaksi sewa alat!");
 
@@ -1232,6 +1296,7 @@ export default function POSApp({
       time: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       timestamp: now.getTime(),
       customerName: customerName.trim(),
+      customerPhone: isRental && customerPhone.trim() ? customerPhone.trim() : undefined,
       items: [...cart],
       total: Math.round(grandTotal),
       method: paymentMethod,
@@ -1347,7 +1412,8 @@ export default function POSApp({
     setIsMobileCartOpen(false); // Tutup juga modal keranjang mobile jika sedang terbuka
     setCart([]);
     setCustomerName("");
-        setTableId("");
+    setCustomerPhone("");
+    setTableId("");
         setCashGiven("");
         setServiceDate("");
         setIsDownPayment(false);
@@ -1573,6 +1639,7 @@ export default function POSApp({
 
   const handleProcessQueue = (booking: any) => {
     setCustomerName(booking.customerName);
+    setCustomerPhone(booking.customerPhone || '');
     setActiveBookingId(booking.id);
 
     if (isPureJasa && booking.bookingDate) {
@@ -1780,7 +1847,15 @@ export default function POSApp({
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
               {!isRental && <ShoppingCart className="w-16 h-16 opacity-30" />}
-              <p className="text-sm font-medium text-center px-4">{isRental ? "Belum ada armada dipilih. Silakan pilih armada atau tarik pesanan online." : `Keranjang masih kosong, silakan pilih ${isPureJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}`}</p>
+              <p className="text-sm font-medium text-center px-4">
+                {isRental
+                  ? (niche === "property"
+                      ? "Belum ada kamar/unit dipilih. Silakan pilih kamar atau tarik reservasi online."
+                      : niche === "equipment"
+                        ? "Belum ada alat/barang dipilih. Silakan pilih alat atau tarik pesanan sewa online."
+                        : "Belum ada armada dipilih. Silakan pilih armada atau tarik pesanan online.")
+                  : `Keranjang masih kosong, silakan pilih ${isPureJasa ? 'layanan' : isFNB ? 'menu' : 'produk'}`}
+              </p>
             </div>
           ) : (
             cart.map(item => (
@@ -2019,23 +2094,37 @@ export default function POSApp({
             <div className="mb-2">
               <button
                 onClick={() => setIsRentalFormModalOpen(true)}
-                className={`w-full py-2.5 rounded-xl border-2 font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${rentalInfo.driverName && rentalInfo.licensePlate && rentalInfo.guarantee
+                className={`w-full py-2.5 rounded-xl border-2 font-bold flex items-center justify-center gap-2 transition-all shadow-sm ${(rentalMode === 'vehicle' ? rentalInfo.driverName : customerPhone) && rentalInfo.licensePlate && rentalInfo.guarantee
                   ? "bg-emerald-50 text-emerald-700 border-emerald-400 hover:bg-emerald-100"
                   : "bg-amber-50 text-amber-800 border-amber-400 hover:bg-amber-100"
                   }`}
               >
                 <FileText className="w-5 h-5" />
-                {rentalInfo.driverName && rentalInfo.licensePlate && rentalInfo.guarantee
+                {(rentalMode === 'vehicle' ? rentalInfo.driverName : customerPhone) && rentalInfo.licensePlate && rentalInfo.guarantee
                   ? "Data Sewa Terisi (Ubah)"
                   : "📝 Lengkapi Data Sewa / Check-in *"}
               </button>
             </div>
           )}
 
-          {/* Input Nama Pelanggan */}
-          <div>
-            <label className="text-xs font-bold text-gray-500 mb-1 block">Nama Pelanggan</label>
-            <input type="text" placeholder="Masukkan nama..." className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+          {/* Input Nama Pelanggan & No. WhatsApp */}
+          <div className={isRental ? "grid grid-cols-1 sm:grid-cols-2 gap-2" : ""}>
+            <div>
+              <label className="text-xs font-bold text-gray-500 mb-1 block">Nama Pelanggan</label>
+              <input type="text" placeholder="Masukkan nama..." className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+            </div>
+            {isRental && (
+              <div>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">No. WhatsApp</label>
+                <input
+                  type="tel"
+                  placeholder="08123456789"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg text-sm transition-all"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Metode Pembayaran */}
@@ -2280,8 +2369,8 @@ export default function POSApp({
           <button
                       id="checkout-btn"
                       onClick={handleCheckout}
-                      disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isPureJasa && employees.length > 0 && cart.some(item => !item.workerId))}
-                      className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && (!rentalInfo.driverName.trim() || !rentalInfo.licensePlate.trim())) || (isPureJasa && employees.length > 0 && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
+                      disabled={cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && ( (rentalMode === 'vehicle' ? !rentalInfo.driverName.trim() : !customerPhone.trim()) || !rentalInfo.licensePlate.trim() )) || (isPureJasa && employees.length > 0 && cart.some(item => !item.workerId))}
+                      className={`w-full py-3.5 rounded-xl font-bold shadow-sm transition-all duration-200 ease-in-out flex items-center justify-center gap-2 ${(cart.length === 0 || isCashInsufficient || isCheckoutLoading || isExpired || (isFNB && !tableId) || (isRental && ( (rentalMode === 'vehicle' ? !rentalInfo.driverName.trim() : !customerPhone.trim()) || !rentalInfo.licensePlate.trim() )) || (isPureJasa && employees.length > 0 && cart.some(item => !item.workerId))) ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-blue-600/30 active:scale-[0.98]'}`}
                     >
             {isCheckoutLoading && <Loader2 className="w-5 h-5 animate-spin" />}
             {isExpired ? 'PAKET KEDALUWARSA' : isCheckoutLoading ? 'MEMPROSES...' :
@@ -2898,6 +2987,7 @@ export default function POSApp({
                 <p>Waktu : {lastTransaction.date} {lastTransaction.time}</p>
                 <p>Kasir : {user?.fullName || user?.firstName || 'Admin'}</p>
                 <p>Pelanggan : {lastTransaction.customerName}</p>
+                {lastTransaction.customerPhone && <p>No. WhatsApp : {lastTransaction.customerPhone}</p>}
                 {lastTransaction.tableId && <p>No. Meja : {getTableName(lastTransaction.tableId)}</p>}
                 {lastTransaction.licensePlate && (
                   <p>{lastTransaction.rentalMode === 'property' ? 'No. Kamar' : lastTransaction.rentalMode === 'equipment' ? 'Kode Unit' : 'Unit / Plat'} : {lastTransaction.licensePlate}</p>
@@ -3130,7 +3220,7 @@ export default function POSApp({
                                                                                                             />
 
       {/* Queue Modal */}
-      <QueueModal isOpen={isQueueModalOpen} onClose={() => setIsQueueModalOpen(false)} onProcess={handleProcessQueue} isRental={isRental} />
+      <QueueModal isOpen={isQueueModalOpen} onClose={() => setIsQueueModalOpen(false)} onProcess={handleProcessQueue} isRental={isRental} tenantCategory={tenantCategory} niche={niche} />
 
       {/* Modal F&B */}
       {fnbSelectedProduct && (
@@ -3208,8 +3298,8 @@ export default function POSApp({
                       <input
                         type="tel"
                         placeholder="contoh: 081234567890"
-                        value={rentalInfo.driverName}
-                        onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
                         className="w-full p-3 bg-white border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
                       />
                     </div>
@@ -3269,8 +3359,8 @@ export default function POSApp({
                                       <input
                                         type="tel"
                                         placeholder="contoh: 081234567890"
-                                        value={rentalInfo.driverName}
-                                        onChange={(e) => setRentalInfo(prev => ({ ...prev, driverName: e.target.value }))}
+                                        value={customerPhone}
+                                        onChange={(e) => setCustomerPhone(e.target.value)}
                                         className="w-full p-3 bg-white border border-gray-300 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all"
                                       />
                                     </div>

@@ -186,6 +186,12 @@ export default function InvoiceRentalA4({
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">Nama</td>
                 <td className="py-1 font-bold text-slate-900 break-words">: {transaction.customerName || '-'}</td>
               </tr>
+              {Boolean(!isProperty && !isEquipment && transaction.customerPhone) && (
+                <tr className="break-inside-avoid print:break-inside-avoid">
+                  <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">No. WhatsApp / HP</td>
+                  <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.customerPhone}</td>
+                </tr>
+              )}
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">
                   {isProperty
@@ -196,7 +202,9 @@ export default function InvoiceRentalA4({
                         ? 'Kontak / Catatan'
                         : 'Operator / Supir'}
                 </td>
-                <td className="py-1 font-semibold text-slate-800 break-words">: {transaction.driverName || '-'}</td>
+                <td className="py-1 font-semibold text-slate-800 break-words">
+                  : {(isProperty || isEquipment ? (transaction.customerPhone || transaction.driverName) : transaction.driverName) || '-'}
+                </td>
               </tr>
               <tr className="break-inside-avoid print:break-inside-avoid">
                 <td className="py-1 text-slate-500 w-28 whitespace-nowrap font-medium">

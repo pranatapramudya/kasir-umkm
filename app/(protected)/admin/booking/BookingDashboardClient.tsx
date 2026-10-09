@@ -1,6 +1,6 @@
 "use client";
 
-import { isRentalTravelCategory, detectRentalItemType } from "@/lib/business-category";
+import { isRentalTravelCategory } from "@/lib/business-category";
 
 import { useState, useEffect, useCallback } from "react";
 import useSWR from "swr";
@@ -25,9 +25,7 @@ import {
   CalendarDays,
   X,
   Loader2,
-  Bed,
-  Car,
-  Key,
+  Sparkles,
 } from "lucide-react";
 import { Calendar, dateFnsLocalizer, type Event as CalendarEvent } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
@@ -126,13 +124,13 @@ function getStatusMap(isJasa: boolean): Record<
       icon: <Clock className="w-3.5 h-3.5" />,
     },
     IN_PROGRESS: {
-      label: isJasa ? "Sedang Dikerjakan" : "Sedang Disewa",
+      label: "Sedang Dikerjakan",
       color: "text-purple-600",
       bg: "bg-purple-50 border-purple-200",
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     },
     COMPLETED: {
-      label: isJasa ? "Siap Diambil / Bayar" : "Selesai Sewa",
+      label: "Siap Diambil / Bayar",
       color: "text-blue-600",
       bg: "bg-blue-50 border-blue-200",
       icon: <ShoppingCart className="w-3.5 h-3.5" />,
@@ -173,11 +171,18 @@ export default function BookingDashboardClient({
   tenantCategory,
   tenantId,
 }: Props) {
-  const isJasa = tenantCategory === "Jasa / Servis" || tenantCategory === "Jasa/Servis" || tenantCategory === "JASA";
+  const isRental = isRentalTravelCategory(tenantCategory);
+  const isJasa = !isRental;
   const statusMap = getStatusMap(isJasa);
 
   const router = useRouter();
   
+  useEffect(() => {
+    if (isRental) {
+      router.replace("/admin/rental-calendar");
+    }
+  }, [isRental, router]);
+
   const [origin, setOrigin] = useState("");
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -547,14 +552,9 @@ export default function BookingDashboardClient({
                             </div>
                             {booking.product && (
                               <div className="col-span-2 bg-blue-50 border border-blue-100 rounded-xl p-2.5">
-                                <p className="text-xs text-blue-400 mb-0.5 flex items-center gap-1">
-                                  {!isJasa && (() => {
-                                    const type = detectRentalItemType(booking.product.name);
-                                    if (type === "property") return <Bed className="w-3 h-3 text-blue-500 shrink-0" />;
-                                    if (type === "vehicle") return <Car className="w-3 h-3 text-blue-500 shrink-0" />;
-                                    return <Key className="w-3 h-3 text-blue-500 shrink-0" />;
-                                  })()}
-                                  <span>{isJasa ? "Layanan" : "Unit / Layanan"}</span>
+                                <p className="text-xs text-blue-500 mb-0.5 flex items-center gap-1">
+                                  <Sparkles className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                  <span>Layanan</span>
                                 </p>
                                 <div className="flex justify-between items-center">
                                   <p className="text-sm font-semibold text-blue-700">
@@ -588,7 +588,7 @@ export default function BookingDashboardClient({
                                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
                                 >
                                   <CheckCircle2 className="w-4 h-4" />
-                                  {actionLoading === booking.id + "IN_PROGRESS" ? "Memproses..." : (isJasa ? "Mulai Pengerjaan" : "Mulai Rental")}
+                                  {actionLoading === booking.id + "IN_PROGRESS" ? "Memproses..." : "Mulai Pengerjaan"}
                                 </button>
                                 <button
                                   id={`proses-kasir-${booking.id}`}
@@ -721,14 +721,9 @@ export default function BookingDashboardClient({
 
               {selectedBooking.product && (
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                  <p className="text-xs text-blue-400 mb-1 flex items-center gap-1">
-                    {!isJasa && (() => {
-                      const type = detectRentalItemType(selectedBooking.product.name);
-                      if (type === "property") return <Bed className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
-                      if (type === "vehicle") return <Car className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
-                      return <Key className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
-                    })()}
-                    <span>{isJasa ? "Layanan" : "Unit / Layanan"}</span>
+                  <p className="text-xs text-blue-500 mb-1 flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span>Layanan</span>
                   </p>
                   <div className="flex justify-between items-center">
                     <p className="text-sm font-semibold text-blue-700">
@@ -763,7 +758,7 @@ export default function BookingDashboardClient({
                     className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-60"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    {actionLoading === selectedBooking.id + "IN_PROGRESS" ? "Memproses..." : (isJasa ? "Mulai Pengerjaan" : "Mulai Rental")}
+                    {actionLoading === selectedBooking.id + "IN_PROGRESS" ? "Memproses..." : "Mulai Pengerjaan"}
                   </button>
                   <button
                     id={`modal-proses-kasir-${selectedBooking.id}`}

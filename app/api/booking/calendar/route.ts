@@ -141,7 +141,7 @@ export async function GET() {
       return {
         id: tx.id,
         customerName: tx.customerName || "Pelanggan POS",
-        customerPhone: undefined,
+        customerPhone: tx.customerPhone || undefined,
         itemName: tx.items.map(i => productMap.get(i.productId) || `Produk ${i.productId}`).join(", ") || "Transaksi POS",
         startDate: startDateObj.toISOString(),
         endDate: endDateObj.toISOString(),

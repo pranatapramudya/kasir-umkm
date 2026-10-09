@@ -1,7 +1,7 @@
 const SERVICE_BUSINESS_CATEGORIES = ["JASA", "Jasa / Servis", "Jasa/Servis", "Jasa Properti", "Jasa Sewa", "Jasa Rental"];
 const RENTAL_TRAVEL_CATEGORIES = [
-  "RENTAL", 
-  "Rental & Travel", 
+  "RENTAL",
+  "Rental & Travel",
   "Rental/Travel",
   "Rental/Travel/Properti",
   "Rental Travel Properti",
@@ -21,14 +21,25 @@ const RENTAL_TRAVEL_CATEGORIES = [
 ];
 
 export function isServiceBusinessCategory(category?: string | null) {
-  return SERVICE_BUSINESS_CATEGORIES.includes(category ?? "");
+  const cat = (category ?? "").toLowerCase().trim();
+  if (!cat) return false;
+  return (
+    SERVICE_BUSINESS_CATEGORIES.some(c => c.toLowerCase() === cat) ||
+    cat === "jasa" ||
+    cat === "servis" ||
+    cat === "service" ||
+    cat === "jasa / servis" ||
+    cat === "jasa/servis" ||
+    cat.startsWith("jasa ") ||
+    cat.startsWith("servis ")
+  );
 }
 
 export function isRentalTravelCategory(category?: string | null) {
   const cat = category ?? "";
   // Exact match only - no loose substring matching to avoid false positives
   // (e.g., "Jasa Properti" = property services/brokerage, NOT rental)
-  return RENTAL_TRAVEL_CATEGORIES.includes(cat) || 
+  return RENTAL_TRAVEL_CATEGORIES.includes(cat) ||
     cat.toUpperCase().startsWith("RENTAL");
 }
 
@@ -82,7 +93,7 @@ export function getFnbSubType(category?: string | null): "cafe" | "resto" | "gen
 
 export function detectRentalItemType(name?: string | null, description?: string | null, category?: string | null): "property" | "vehicle" | "equipment" | "unknown" {
   const cat = (category || "").toLowerCase();
-  
+
   if (
     cat.includes("alat") ||
     cat.includes("peralatan") ||
@@ -172,7 +183,7 @@ export function getTenantRentalType(
   products?: { name?: string | null; description?: string | null; category?: string | null }[] | null
 ): "property" | "vehicle" | "equipment" | null {
   const cat = (category || "").toLowerCase();
-  
+
   // 1. Cek langsung dari string kategori
   if (
     cat.includes("alat") ||
@@ -230,7 +241,7 @@ export function getTenantRentalType(
     let propCount = 0;
     let equipCount = 0;
     let vehCount = 0;
-    
+
     for (const p of products) {
       const detected = detectRentalItemType(p.name, p.description, p.category);
       if (detected === "property") propCount++;

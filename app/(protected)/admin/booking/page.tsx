@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/url";
+import { isRentalTravelCategory } from "@/lib/business-category";
 import BookingDashboardClient from "./BookingDashboardClient";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,11 @@ export default async function BookingDashboardPage() {
 
   if (!tenant) {
     redirect("/onboarding");
+  }
+
+  // Jika bisnis Rental/Travel/Properti/Alat, arahkan ke kalender sewa khusus rental
+  if (isRentalTravelCategory(tenant.category)) {
+    redirect("/admin/rental-calendar");
   }
 
   // Query awal: booking milik tenant ini saja (Multi-Tenant Isolation)

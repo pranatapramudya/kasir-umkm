@@ -199,6 +199,28 @@ Buka [http://localhost:3000](http://localhost:3000) di *browser* Anda untuk meli
 
 ---
 
+### v2.6.0 - Rental Calendar UI Overhaul, Dynamic Pagination & Cross-Vertical Isolation (Okt 9, 2026)
+- **Kalender Sewa UI/UX Overhaul & Dual Responsive Pagination:**
+  - **Limit Dinamis Perangkat:** Pembagian kuota kartu adaptif: maksimal **4 orderan** di perangkat mobile (< 1024px) untuk mencegah scrolling panjang melelahkan (~4.000px scroll), dan maksimal **6 orderan** di desktop (≥ 1024px) agar simetris dengan grid kalender bulanan.
+  - **Dual Pagination Bar (Atas & Bawah):** Dilengkapi quick bar di atas dan bar navigasi penuh di bawah kartu dengan smooth scroll otomatis ke posisi teratas agenda saat berpindah halaman.
+  - **Peningkatan Tombol Edit:** Ikon `Pencil` diperbesar ke ukuran nyaman sentuh (`w-5 h-5`) dengan label teks `Edit` tebal di bawahnya dalam kotak tombol interaktif berstandar antarmuka modern.
+- **Cross-Vertical Isolation & Emoticon Sanitization:**
+  - **Sanitasi Kasir POS (`QueueModal` Tarik Antrean Online):** Menghapus hardcode emot mobil `🚗` dan label *"Armada"*. Kini terisolasi dinamis per vertikal:
+    - ✂️ **Jasa / Servis:** Menampilkan `📋 {nama_layanan}` & teks *"Layanan Custom"* (judul: *"📋 Tarik Antrean Layanan Online"*).
+    - 🏨 **Rental Properti:** Menampilkan `🏨 {nama_kamar}` & teks *"Unit Kamar / Properti"* (judul: *"🏨 Tarik Reservasi Properti / Kamar"*).
+    - 📦 **Rental Alat & Barang:** Menampilkan `📦 {nama_alat}` & teks *"Unit Alat / Barang"* (judul: *"📦 Tarik Pesanan Sewa Alat & Barang"*).
+    - 🚗 **Rental Kendaraan:** Menampilkan `🚗 {nama_kendaraan}` & teks *"Armada Kendaraan"* (judul: *"🚗 Tarik Pesanan Sewa Kendaraan / Travel"*).
+  - **Pesan Keranjang Kosong Khusus Niche:** Keranjang kosong POS kini adaptif menyebut *"kamar"*, *"alat"*, atau *"armada"* sesuai jenis unit tenant.
+  - **Pembersihan Dashboard Jadwal Booking (`/admin/booking`):** Menghapus seluruh ikon rental (`<Car />`, `<Bed />`, `<Key />`) dan istilah sewa pada halaman booking Jasa/Servis, digantikan ikon `<Sparkles />` dan alur status murni jasa (*"Mulai Pengerjaan"*, *"Sedang Dikerjakan"*, *"Siap Diambil / Bayar"*).
+  - **Proteksi Rute Antar-Halaman:** Pengalihan URL otomatis (*mutual redirect*) di mana tenant rental yang mengakses `/admin/booking` langsung diarahkan ke `/admin/rental-calendar`, dan tenant jasa yang mengakses `/admin/rental-calendar` langsung diarahkan ke `/admin/booking`.
+  - **Normalisasi Deteksi Kategori:** Fungsi `isServiceBusinessCategory` dan `isPureServiceCategory` kini dinormalisasi case-insensitive (`toLowerCase().trim()`) untuk mencegah salah klasifikasi kategori usaha.
+- **Keamanan & Secrets Hygiene:**
+  - Pembersihan hardcoded VAPID keys pada `lib/webpush.ts`, kini terisolasi sepenuhnya ke environment variables (`NEXT_PUBLIC_VAPID_PUBLIC_KEY` & `VAPID_PRIVATE_KEY`).
+- **Penyelarasan Skema Prisma & POS Checkout:**
+  - Sinkronisasi field `rentalPaymentType` pada model `Transaction` di `prisma/schema.prisma` dan perbaikan alur checkout sewa/rental di POS kasir.
+
+---
+
 ### v2.5.0 - Multi-Vertical Rental, Booking Redesign & Enterprise Light Auth Overhaul (Okt 8, 2026)
 - **Multi-Photo Unit Showcase (Neon DB Free Tier Optimized):**
   - Mendukung upload hingga 5 foto per unit untuk kategori Rental Kendaraan, Properti & Kamar, dan Alat/Barang.

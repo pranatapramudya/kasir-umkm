@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { isRentalTravelCategory } from "@/lib/business-category";
 import RentalCalendarClient from "./RentalCalendarClient";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +34,11 @@ export default async function RentalCalendarPage() {
 
   if (!tenant) {
     redirect("/onboarding");
+  }
+
+  // Jika bukan bisnis rental (misal Jasa/Servis), arahkan ke jadwal booking layanan
+  if (!isRentalTravelCategory(tenant.category)) {
+    redirect("/admin/booking");
   }
 
   const rawBookings = await prisma.booking.findMany({
@@ -153,6 +159,7 @@ export default async function RentalCalendarPage() {
     return {
       id: tx.id,
       customerName: tx.customerName || "Pelanggan POS",
+      customerPhone: tx.customerPhone || undefined,
       itemName: tx.items.map(i => productMap.get(i.productId) || `Produk ${i.productId}`).join(", ") || "Transaksi POS",
       startDate: startDateObj.toISOString(),
       endDate: endDateObj.toISOString(),

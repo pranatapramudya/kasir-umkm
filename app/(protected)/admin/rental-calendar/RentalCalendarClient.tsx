@@ -7,20 +7,20 @@ import {
   addMonths, subMonths, eachDayOfInterval
 } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  CalendarDays, 
-  Clock, 
-  User, 
-  CarFront, 
-  Bed, 
-  Key, 
-  CheckCircle, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+  Clock,
+  User,
+  CarFront,
+  Bed,
+  Key,
+  CheckCircle,
   CheckCircle2,
   Printer,
   FileText,
-  XCircle, 
+  XCircle,
   Loader2,
   Package,
   AlertTriangle,
@@ -87,10 +87,10 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string, bg: string }> = {
 export default function RentalCalendarClient({ initialBookings, tenantId, tenantCategory, tenantSlug, tenantName, tenantPhone }: Props) {
   const router = useRouter();
   const [copiedLink, setCopiedLink] = useState(false);
-  
+
   // Realtime hook
   useSupabaseRealtime(tenantId);
-  
+
   // SWR for fetching calendar data with auto-refresh fallback
   const { data, mutate, isLoading } = useSWR<{ bookings: Booking[] }>(
     tenantId ? ["/api/booking/calendar", tenantId] : null,
@@ -104,7 +104,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
       refreshInterval: 10000,
     }
   );
-  
+
   // Deteksi kategori rental untuk terminologi agenda otomatis
   const rentalNiche = React.useMemo(() => {
     return getTenantRentalType(tenantCategory) || "property";
@@ -168,8 +168,8 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
       startLabel: "Waktu Pengambilan",
       endLabel: "Batas Waktu Pengembalian",
       finishedText: "Alat Diterima & Sewa Selesai (Lunas)",
-        finishModalTitle: "Pengembalian Alat & Selesai",
-        overtimeFeeLabel: "Denda Keterlambatan / Biaya Kerusakan Alat (Opsional)",
+      finishModalTitle: "Pengembalian Alat & Selesai",
+      overtimeFeeLabel: "Denda Keterlambatan / Biaya Kerusakan Alat (Opsional)",
     };
   };
 
@@ -268,13 +268,21 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
     return () => window.removeEventListener("resize", updateScale);
   }, [invoiceOrderModal, invoicePaperSize]);
   const [isMounted, setIsMounted] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [orderPage, setOrderPage] = useState(1);
   const agendaTopRef = React.useRef<HTMLDivElement>(null);
-  const ORDERS_PER_PAGE = 10;
 
   React.useEffect(() => {
     setIsMounted(true);
+    const checkWidth = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkWidth();
+    window.addEventListener("resize", checkWidth);
+    return () => window.removeEventListener("resize", checkWidth);
   }, []);
+
+  const ordersPerPage = isDesktop ? 6 : 4;
 
   // Reset pagination ke halaman 1 jika tanggal yang dipilih atau filter berubah
   React.useEffect(() => {
@@ -345,19 +353,19 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   };
 
   const handleCancelOrder = async (id: string, name: string) => {
-      if (!confirm(`Yakin ingin membatalkan reservasi oleh ${name}?`)) return;
-      toast.loading("Membatalkan...", { id: `cancel-${id}` });
-      const res = await rejectOrder(id);
-      if (res.success) {
-        toast.success("Reservasi dibatalkan", { id: `cancel-${id}` });
-        await mutate();
-        router.refresh();
-      } else {
-        toast.error("Gagal membatalkan reservasi", { id: `cancel-${id}` });
-      }
-    };
+    if (!confirm(`Yakin ingin membatalkan reservasi oleh ${name}?`)) return;
+    toast.loading("Membatalkan...", { id: `cancel-${id}` });
+    const res = await rejectOrder(id);
+    if (res.success) {
+      toast.success("Reservasi dibatalkan", { id: `cancel-${id}` });
+      await mutate();
+      router.refresh();
+    } else {
+      toast.error("Gagal membatalkan reservasi", { id: `cancel-${id}` });
+    }
+  };
 
-    const handleStart = async (id: string) => {
+  const handleStart = async (id: string) => {
     toast.loading("Memulai sewa...", { id: `start-${id}` });
     const res = await startOrder(id);
     if (res.success) {
@@ -370,18 +378,18 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   };
 
   const handleApprove = async (id: string) => {
-      toast.loading("Memproses...", { id: "approve" });
-      const res = await approveOrder(id);
-      if (res.success) {
-        toast.success("Disetujui!", { id: "approve" });
-        await mutate();
-        router.refresh();
-      } else {
-        toast.error("Gagal menyetujui", { id: "approve" });
-      }
-    };
+    toast.loading("Memproses...", { id: "approve" });
+    const res = await approveOrder(id);
+    if (res.success) {
+      toast.success("Disetujui!", { id: "approve" });
+      await mutate();
+      router.refresh();
+    } else {
+      toast.error("Gagal menyetujui", { id: "approve" });
+    }
+  };
 
-    const monthStart = startOfMonth(currentDate);
+  const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
@@ -408,10 +416,10 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   };
 
   const selectedDateBookings = getBookingsForDate(selectedDate);
-  const totalOrderPages = Math.max(1, Math.ceil(selectedDateBookings.length / ORDERS_PER_PAGE));
+  const totalOrderPages = Math.max(1, Math.ceil(selectedDateBookings.length / ordersPerPage));
   const safeCurrentPage = Math.min(orderPage, totalOrderPages);
-  const startIndex = (safeCurrentPage - 1) * ORDERS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ORDERS_PER_PAGE, selectedDateBookings.length);
+  const startIndex = (safeCurrentPage - 1) * ordersPerPage;
+  const endIndex = Math.min(startIndex + ordersPerPage, selectedDateBookings.length);
   const paginatedBookings = selectedDateBookings.slice(startIndex, endIndex);
 
   return (
@@ -446,9 +454,8 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
             <button
               key={f.value}
               onClick={() => setFilter(f.value as "ALL" | BookingStatus)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                filter === f.value ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${filter === f.value ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
             >
               {f.label}
             </button>
@@ -504,24 +511,22 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                   <div
                     key={i}
                     onClick={() => onDateClick(day)}
-                    className={`flex flex-col p-1.5 sm:p-2 min-h-[75px] sm:min-h-[95px] cursor-pointer transition-all ${
-                      isSelected
-                        ? "bg-blue-50/90 ring-2 ring-blue-500 ring-inset z-10"
-                        : "bg-white hover:bg-slate-50"
-                    }`}
+                    className={`flex flex-col p-1.5 sm:p-2 min-h-[75px] sm:min-h-[95px] cursor-pointer transition-all ${isSelected
+                      ? "bg-blue-50/90 ring-2 ring-blue-500 ring-inset z-10"
+                      : "bg-white hover:bg-slate-50"
+                      }`}
                   >
                     {/* Date Number */}
                     <div className="flex justify-end mb-1">
                       <div
-                        className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
-                          isSelected
-                            ? "bg-blue-600 text-white shadow-sm shadow-blue-500/40"
-                            : isToday
+                        className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs font-bold transition-all ${isSelected
+                          ? "bg-blue-600 text-white shadow-sm shadow-blue-500/40"
+                          : isToday
                             ? "bg-blue-100 text-blue-700 font-extrabold"
                             : isCurrentMonth
-                            ? "text-slate-700"
-                            : "text-slate-300"
-                        }`}
+                              ? "text-slate-700"
+                              : "text-slate-300"
+                          }`}
                       >
                         {format(day, dateFormat)}
                       </div>
@@ -574,8 +579,8 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
             </div>
           </div>
 
-          {/* Quick Pagination Bar di atas jika orderan > 10 */}
-          {selectedDateBookings.length > ORDERS_PER_PAGE && (
+          {/* Quick Pagination Bar di atas jika orderan > ordersPerPage */}
+          {selectedDateBookings.length > ordersPerPage && (
             <div className="bg-white border border-slate-200/80 px-3.5 py-2 rounded-xl flex items-center justify-between text-xs text-slate-500 shadow-xs">
               <span>
                 Menampilkan <strong className="text-slate-800">{startIndex + 1} - {endIndex}</strong> dari <strong className="text-slate-800">{selectedDateBookings.length}</strong> orderan
@@ -618,399 +623,419 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
               <p className="text-slate-400 text-xs mt-1">Belum ada reservasi atau sewa untuk tanggal ini.</p>
             </div>
           ) : (
-          paginatedBookings.map((b) => {
-            const badge = getStatusBadge(b.status, rentalNiche);
-            const itemType = detectRentalItemType(b.itemName);
+            paginatedBookings.map((b) => {
+              const badge = getStatusBadge(b.status, rentalNiche);
+              const itemType = detectRentalItemType(b.itemName);
+              const cardActionLabels = getActionLabels(itemType !== "unknown" ? itemType : rentalNiche);
 
-            // Cek collision / jadwal beririsan dengan booking lain di unit yang sama
-            const bStart = new Date(b.startDate).getTime();
-            const bEnd = new Date(b.endDate).getTime();
-            const hasConflict = selectedDateBookings.some(other => {
-              if (other.id === b.id || other.itemName !== b.itemName || other.status === "FINISHED") return false;
-              const oStart = new Date(other.startDate).getTime();
-              const oEnd = new Date(other.endDate).getTime();
-              return bStart <= oEnd && bEnd >= oStart;
-            });
+              // Cek collision / jadwal beririsan dengan booking lain di unit yang sama
+              const bStart = new Date(b.startDate).getTime();
+              const bEnd = new Date(b.endDate).getTime();
+              const hasConflict = selectedDateBookings.some(other => {
+                if (other.id === b.id || other.itemName !== b.itemName || other.status === "FINISHED") return false;
+                const oStart = new Date(other.startDate).getTime();
+                const oEnd = new Date(other.endDate).getTime();
+                return bStart <= oEnd && bEnd >= oStart;
+              });
 
-            return (
-              <div key={b.id} className={`bg-white rounded-2xl p-4 border transition-all ${
-                hasConflict ? "border-rose-300 shadow-sm shadow-rose-100 ring-1 ring-rose-300" : "border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)]"
-              } flex flex-col gap-3`}>
-                
-                {/* Conflict Alert Banner */}
-                {hasConflict && (
-                  <div className="bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 flex items-center gap-2 text-rose-700 text-xs font-semibold animate-pulse">
-                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
-                    <span>⚠️ Peringatan: Jam sewa unit ini bertabrakan dengan jadwal lain!</span>
-                  </div>
-                )}
+              return (
+                <div key={b.id} className={`bg-white rounded-2xl border transition-all overflow-hidden ${hasConflict ? "border-rose-300 shadow-sm shadow-rose-100 ring-1 ring-rose-300" : "border-slate-200 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)]"
+                  } flex flex-col`}>
 
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1">
+                  {/* Conflict Alert Banner */}
+                  {hasConflict && (
+                    <div className="bg-rose-50 border-b border-rose-200 px-4 py-2 flex items-center gap-2 text-rose-700 text-xs font-semibold animate-pulse">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
+                      <span>Peringatan: Jam sewa unit ini bertabrakan dengan jadwal lain!</span>
+                    </div>
+                  )}
+
+                  {/* ── HEADER ── */}
+                  <div className="p-4 flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${itemType === "property" ? "bg-purple-100" : itemType === "equipment" ? "bg-amber-100" : "bg-blue-100"
+                      }`}>
                       {itemType === "property" ? (
-                        <Bed className="w-4 h-4 text-purple-600 shrink-0" />
+                        <Bed className="w-5 h-5 text-purple-600" />
                       ) : itemType === "equipment" ? (
-                        <Package className="w-4 h-4 text-amber-600 shrink-0" />
+                        <Package className="w-5 h-5 text-amber-600" />
                       ) : (
-                        <CarFront className="w-4 h-4 text-blue-600 shrink-0" />
+                        <CarFront className="w-5 h-5 text-blue-600" />
                       )}
-                      <h4 className="font-bold text-slate-800 text-sm leading-snug">{b.itemName || "Menunggu Info Unit"}</h4>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="flex items-center gap-1">
-                        <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <p className="text-xs text-slate-700 font-semibold">{b.customerName || "Pelanggan Baru"}</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-slate-900 text-sm leading-tight truncate">{b.itemName || "Menunggu Info Unit"}</h4>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className="flex items-center gap-1 text-xs text-slate-600 font-medium">
+                          <User className="w-3 h-3 text-slate-400 shrink-0" />
+                          {b.customerName || "Pelanggan Baru"}
+                        </span>
+                        {b.customerPhone && (
+                          <a
+                            href={`https://wa.me/${b.customerPhone.replace(/\D/g, "").replace(/^0/, "62")}?text=${encodeURIComponent(
+                              `Halo Kak ${b.customerName}, konfirmasi jadwal sewa ${b.itemName} pada ${format(safeDate(b.startDate), "dd MMM yyyy, HH:mm", { locale: idLocale })} WIB.`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full transition-colors"
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                            Chat WA
+                          </a>
+                        )}
                       </div>
-                      {b.customerPhone && (
-                        <a
-                          href={`https://wa.me/${b.customerPhone.replace(/\D/g, "").replace(/^0/, "62")}?text=${encodeURIComponent(
-                            `Halo Kak ${b.customerName}, konfirmasi jadwal sewa armada ${b.itemName} pada ${format(safeDate(b.startDate), "dd MMM yyyy, HH:mm", { locale: idLocale })} WIB.`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-lg transition-colors"
-                        >
-                          <MessageCircle className="w-3 h-3" />
-                          Chat WA
-                        </a>
-                      )}
-                      {b.source === "ONLINE" ? (
-                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
-                          🌐 Booking Online
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
-                          🏪 Kasir Manual POS
-                        </span>
-                      )}
+                    </div>
+                    <div className="flex items-start gap-2 shrink-0">
+                      <div className="flex flex-col items-end gap-1.5">
+                        <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${badge.bg} whitespace-nowrap`}>
+                          {badge.label}
+                        </div>
+                        {b.source === "ONLINE" ? (
+                          <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-full">🌐 Online</span>
+                        ) : (
+                          <span className="text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">🏪 POS</span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(b)}
+                        className="flex flex-col items-center justify-center min-w-[44px] px-2 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 text-slate-600 hover:text-blue-600 transition-all shadow-xs group"
+                        title="Edit / Koreksi Data Sewa"
+                      >
+                        <Pencil className="w-5 h-5 text-slate-500 group-hover:text-blue-600 transition-colors" />
+                        <span className="text-[10px] font-bold mt-0.5 leading-none text-slate-600 group-hover:text-blue-600">Edit</span>
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${badge.bg}`}>
-                      {badge.label}
-                    </div>
-                    {/* Tombol Edit Universal (POS & Online) */}
-                    <button
-                      type="button"
-                      onClick={() => openEditModal(b)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 transition-colors shadow-2xs"
-                      title="Edit / Koreksi Data Sewa (Supir, Plat, DP, Nama, Jaminan)"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Box Waktu Berangkat & Kembali */}
-                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <LogIn className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                    <div className="flex-1 flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-medium">{actionLabels.startLabel}</span>
-                      <span className="font-bold text-slate-800">
-                        {format(safeDate(b.startDate), "dd MMM yyyy, HH:mm", { locale: idLocale })} WIB
+                  {/* ── TIMELINE SEWA ── */}
+                  <div className="mx-4 mb-3 border border-slate-200 bg-slate-50 rounded-xl overflow-hidden">
+                    <div className="grid grid-cols-2 divide-x divide-slate-200">
+                      <div className="p-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <LogIn className="w-3 h-3 text-amber-500 shrink-0" />
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{cardActionLabels.startLabel}</span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-800 leading-snug">
+                          {format(safeDate(b.startDate), "dd MMM yyyy", { locale: idLocale })}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {format(safeDate(b.startDate), "HH:mm", { locale: idLocale })} WIB
+                        </p>
+                      </div>
+                      <div className="p-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <LogOut className="w-3 h-3 text-blue-500 shrink-0" />
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{cardActionLabels.endLabel}</span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-800 leading-snug">
+                          {format(safeDate(b.endDate), "dd MMM yyyy", { locale: idLocale })}
+                        </p>
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {format(safeDate(b.endDate), "HH:mm", { locale: idLocale })} WIB
+                        </p>
+                      </div>
+                    </div>
+                    <div className="border-t border-slate-200 px-3 py-2 flex items-center justify-between">
+                      <span className="text-[11px] text-slate-500 font-medium">Durasi Total</span>
+                      <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">
+                        ⏱ {Math.max(1, Math.round((safeDate(b.endDate).getTime() - safeDate(b.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)} Hari Sewa
                       </span>
                     </div>
                   </div>
-                  <div className="border-t border-slate-200 border-dashed" />
-                  <div className="flex items-center gap-2">
-                    <LogOut className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <div className="flex-1 flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-medium">{actionLabels.endLabel}</span>
-                      <span className="font-bold text-slate-800">
-                        {format(safeDate(b.endDate), "dd MMM yyyy, HH:mm", { locale: idLocale })} WIB
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-t border-slate-200 border-dashed" />
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Total Durasi Perjalanan:</span>
-                    <span className="font-bold text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-300 text-[11px]">
-                      ⏱️ {Math.max(1, Math.round((safeDate(b.endDate).getTime() - safeDate(b.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)} Hari Sewa
-                    </span>
-                  </div>
-                </div>
 
-                {/* Rute & Lokasi (Penjemputan & Tujuan) — Teks Lengkap Tanpa Terpotong */}
-                {(b.pickupLocation || b.dropoffLocation) && (
-                  <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex flex-col gap-2 text-xs">
-                    {b.pickupLocation && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-base shrink-0 mt-0.5">📍</span>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-[10px] text-amber-900 font-bold uppercase tracking-wider block">Titik Jemput / Lokasi Kumpul:</span>
-                          <span className="text-slate-900 font-semibold leading-relaxed break-words">{b.pickupLocation}</span>
+                  {/* ── RUTE & LOKASI ── */}
+                  {(b.pickupLocation || b.dropoffLocation) && (
+                    <div className="mx-4 mb-3 border border-amber-200 bg-amber-50 rounded-xl overflow-hidden">
+                      {b.pickupLocation && (
+                        <div className="flex items-start gap-2.5 px-3 py-2.5">
+                          <span className="text-sm shrink-0 mt-px">📍</span>
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wide mb-0.5">
+                              {itemType === "property" ? "Alamat / Lokasi Properti" : itemType === "equipment" ? "Lokasi Ambil Alat" : "Titik Jemput / Kumpul"}
+                            </p>
+                            <p className="text-xs font-semibold text-slate-800 break-words leading-relaxed">{b.pickupLocation}</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {b.pickupLocation && b.dropoffLocation && (
-                      <div className="border-t border-amber-200/60" />
-                    )}
-                    {b.dropoffLocation && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-base shrink-0 mt-0.5">🏁</span>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-[10px] text-amber-900 font-bold uppercase tracking-wider block">Destinasi / Rute Tujuan:</span>
-                          <span className="text-slate-900 font-semibold leading-relaxed break-words">{b.dropoffLocation}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Catatan / Request Khusus Rombongan */}
-                {(b.notes || b.conditionNotes) && (
-                  <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs flex flex-col gap-1.5">
-                    {b.notes && (
-                      <div>
-                        <span className="text-[10px] text-blue-900 font-bold uppercase tracking-wider block">📝 Catatan / Request Rombongan:</span>
-                        <p className="text-slate-800 italic leading-relaxed break-words mt-0.5 bg-white p-2.5 rounded-lg border border-blue-100">"{b.notes}"</p>
-                      </div>
-                    )}
-                    {b.notes && b.conditionNotes && (
-                      <div className="border-t border-blue-200/60 my-0.5" />
-                    )}
-                    {b.conditionNotes && (
-                      <div>
-                        <span className="text-[10px] text-blue-900 font-bold uppercase tracking-wider block">🔧 Catatan Armada / Unit:</span>
-                        <p className="text-slate-700 leading-relaxed break-words mt-0.5">{b.conditionNotes}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Info Driver, Plat Nomor & Jaminan Dokumen (Khusus Kasir POS) */}
-                {(b.driverName || b.licensePlate || b.guarantee) && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-2 gap-2 text-xs">
-                    {b.driverName && (
-                      <div>
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Supir / Driver:</span>
-                        <span className="text-slate-900 font-bold">{b.driverName}</span>
-                      </div>
-                    )}
-                    {b.licensePlate && (
-                      <div>
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Plat Nomor:</span>
-                        <span className="text-slate-900 font-bold font-mono bg-white px-2 py-0.5 rounded border border-slate-200">{b.licensePlate}</span>
-                      </div>
-                    )}
-                    {b.guarantee && (
-                      <div className="col-span-2 pt-1.5 border-t border-slate-200">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Jaminan Titipan (KTP/SIM/Paspor):</span>
-                        <span className="text-slate-800 font-medium">{b.guarantee}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Rincian Finansial / Pembayaran */}
-                {(Boolean(b.deposit && b.deposit > 0) || Boolean(b.downPayment && b.downPayment > 0) || Boolean(b.total && b.total > 0)) && (
-                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between text-xs flex-wrap gap-2">
-                    {b.total ? (
-                      <div>
-                        <span className="text-[10px] text-emerald-900 font-bold uppercase tracking-wider block">Total Biaya:</span>
-                        <span className="font-bold text-emerald-700">Rp {new Intl.NumberFormat("id-ID").format(b.total)}</span>
-                      </div>
-                    ) : null}
-                    {b.downPayment ? (
-                      <div>
-                        <span className="text-[10px] text-emerald-900 font-bold uppercase tracking-wider block">DP / Tanda Jadi:</span>
-                        <span className="font-semibold text-emerald-700">Rp {new Intl.NumberFormat("id-ID").format(b.downPayment)}</span>
-                      </div>
-                    ) : null}
-                    {b.remainingBalance && b.remainingBalance > 0 ? (
-                      <div className="bg-rose-100/90 border border-rose-300 rounded-lg px-2 py-0.5">
-                        <span className="text-[10px] text-rose-900 font-extrabold uppercase tracking-wider block">Sisa Pelunasan:</span>
-                        <span className="font-black text-rose-700 text-xs">Rp {new Intl.NumberFormat("id-ID").format(b.remainingBalance)} (BELUM LUNAS)</span>
-                      </div>
-                    ) : b.downPayment && b.downPayment > 0 ? (
-                      <div className="bg-emerald-100/90 border border-emerald-300 rounded-lg px-2 py-0.5">
-                        <span className="text-[10px] text-emerald-900 font-extrabold uppercase tracking-wider block">Pelunasan DP:</span>
-                        <span className="font-bold text-emerald-700 text-xs flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          LUNAS
-                        </span>
-                      </div>
-                    ) : null}
-                    {b.deposit && b.deposit > 0 ? (
-                      <div>
-                        <span className="text-[10px] text-amber-900 font-bold uppercase tracking-wider block">Deposit:</span>
-                        <span className="font-semibold text-amber-700">Rp {new Intl.NumberFormat("id-ID").format(b.deposit)}</span>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
-                
-                {/* Action Buttons: Berfase Step-by-Step sesuai Status */}
-                <div className="flex flex-wrap items-center gap-2 mt-1 pt-2 border-t border-slate-100">
-                  {/* FASE 4: SEWA SELESAI (BISA LUNAS ATAU MASIH ADA PIUTANG) */}
-                  {b.status === "FINISHED" && (
-                    b.remainingBalance && b.remainingBalance > 0 ? (
-                      <>
-                        <div className="flex-1 min-w-[180px] py-2 px-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 font-bold text-xs flex items-center justify-between gap-1 shadow-2xs">
-                          <span className="flex items-center gap-1.5 truncate">
-                            <CheckCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                            Unit Kembali (Piutang)
-                          </span>
-                          <span className="font-black text-rose-600 bg-white px-1.5 py-0.5 rounded border border-rose-200 shrink-0">
-                            Rp {new Intl.NumberFormat("id-ID").format(b.remainingBalance)}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSettleOrderModal(b);
-                            setSettlePaymentMethod("TUNAI");
-                            setSettleCompleteRental(true);
-                            setSettleOvertimeFee("0");
-                          }}
-                          className="px-3 py-2 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm flex items-center gap-1 shrink-0"
-                          title="Terima Pelunasan Sisa Hutang"
-                        >
-                          💰 Lunasi
-                        </button>
-                      </>
-                    ) : (
-                      <div className="flex-1 min-w-[180px] py-2.5 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2 shadow-2xs">
-                        <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>{actionLabels.finishedText || "Sewa Selesai & Lunas"}</span>
-                      </div>
-                    )
-                  )}
-
-                  {/* FASE 1: BOOKING BARU MASUK DARI ONLINE (PENDING) */}
-                  {b.status === "PENDING" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleApprove(b.id)}
-                        className="flex-1 min-w-[140px] px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        <span>✓ ACC / Setujui Jadwal</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")}
-                        className="px-3 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors shadow-2xs"
-                      >
-                        Tolak
-                      </button>
-                    </>
-                  )}
-
-                  {/* FASE 2: SUDAH DISETUJUI / TERJADWAL (COMPLETED) */}
-                  {b.status === "COMPLETED" && (
-                    <>
-                      {/* Tombol Mulai Sewa / Serah Unit */}
-                      <button
-                        type="button"
-                        onClick={() => handleStart(b.id)}
-                        className="flex-1 min-w-[130px] px-3.5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
-                      >
-                        <LogIn className="w-3.5 h-3.5" />
-                        <span>{actionLabels.start}</span>
-                      </button>
-
-                      {/* Tombol Tarik ke POS jika booking online ingin diproses di meja kasir */}
-                      {b.source === "ONLINE" && (
-                        <button
-                          type="button"
-                          onClick={() => router.push(`/admin/pos?bookingId=${b.id}`)}
-                          className="px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors shadow-2xs flex items-center justify-center gap-1"
-                          title="Tarik data pesanan online ke kasir POS untuk pembayaran & cetak struk"
-                        >
-                          📥 Tarik POS
-                        </button>
                       )}
+                      {b.pickupLocation && b.dropoffLocation && (
+                        <div className="border-t border-amber-200/70 mx-3" />
+                      )}
+                      {b.dropoffLocation && (
+                        <div className="flex items-start gap-2.5 px-3 py-2.5">
+                          <span className="text-sm shrink-0 mt-px">
+                            {itemType === "property" ? "🏢" : itemType === "equipment" ? "📦" : "🏁"}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wide mb-0.5">
+                              {itemType === "property" ? "Cabang / Area Properti" : itemType === "equipment" ? "Lokasi Pengembalian Alat" : "Destinasi / Rute Tujuan"}
+                            </p>
+                            <p className="text-xs font-semibold text-slate-800 break-words leading-relaxed">{b.dropoffLocation}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                      {/* Tombol Pelunasan DP jika masih ada sisa */}
-                      {b.remainingBalance && b.remainingBalance > 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSettleOrderModal(b);
-                            setSettlePaymentMethod("TUNAI");
-                            setSettleCompleteRental(false);
-                            setSettleOvertimeFee("0");
-                          }}
-                          className="px-3 py-2 text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-colors shadow-2xs flex items-center justify-center gap-1"
-                          title="Terima pelunasan pembayaran DP dari penyewa"
-                        >
-                          💰 Pelunasan DP
-                        </button>
+                  {/* ── CATATAN ── */}
+                  {(b.notes || b.conditionNotes) && (
+                    <div className="mx-4 mb-3 bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
+                      {b.notes && (
+                        <div className="px-3 py-2.5">
+                          <p className="text-[10px] font-bold text-blue-800 uppercase tracking-wide mb-1">📝 Catatan / Request</p>
+                          <p className="text-xs text-slate-700 italic leading-relaxed break-words bg-white px-2.5 py-2 rounded-lg border border-blue-100">"{b.notes}"</p>
+                        </div>
+                      )}
+                      {b.notes && b.conditionNotes && <div className="border-t border-blue-200/60 mx-3" />}
+                      {b.conditionNotes && (
+                        <div className="px-3 py-2.5">
+                          <p className="text-[10px] font-bold text-blue-800 uppercase tracking-wide mb-1">
+                            {itemType === "property" ? "🏨 Catatan Kamar / Unit" : itemType === "equipment" ? "📦 Catatan Kondisi Alat" : "🚗 Catatan Unit / Armada"}
+                          </p>
+                          <p className="text-xs text-slate-700 leading-relaxed break-words">{b.conditionNotes}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── INFO DRIVER & JAMINAN ── */}
+                  {(b.driverName || b.licensePlate || b.guarantee) && (
+                    <div className="mx-4 mb-3 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                        {b.driverName && (
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-0.5">
+                              {itemType === "equipment" ? "Operator / Kru" : itemType === "property" ? "Penanggung Jawab" : "Supir / Driver"}
+                            </p>
+                            <p className="text-xs font-bold text-slate-800">{b.driverName}</p>
+                          </div>
+                        )}
+                        {b.licensePlate && (
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-0.5">
+                              {itemType === "equipment" ? "No. Seri / Kode Alat" : itemType === "property" ? "No. Kamar / Unit" : "Plat Nomor"}
+                            </p>
+                            <p className="text-xs font-bold font-mono text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded-lg inline-block">{b.licensePlate}</p>
+                          </div>
+                        )}
+                        {b.guarantee && (
+                          <div className="col-span-2">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-0.5">Jaminan (KTP/SIM/Paspor)</p>
+                            <p className="text-xs font-semibold text-slate-800">{b.guarantee}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── FINANSIAL ── */}
+                  {(Boolean(b.deposit && b.deposit > 0) || Boolean(b.downPayment && b.downPayment > 0) || Boolean(b.total && b.total > 0)) && (
+                    <div className="mx-4 mb-3 border border-emerald-200 rounded-xl overflow-hidden">
+                      {b.total ? (
+                        <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-600">
+                          <span className="text-[11px] font-bold text-emerald-100 uppercase tracking-wide">Total Biaya</span>
+                          <span className="text-sm font-black text-white">Rp {new Intl.NumberFormat("id-ID").format(b.total)}</span>
+                        </div>
                       ) : null}
+                      <div className="bg-white divide-y divide-slate-100">
+                        {b.downPayment && b.downPayment > 0 ? (
+                          <div className="flex items-center justify-between px-3 py-2">
+                            <span className="text-[11px] text-slate-500 font-medium">DP / Tanda Jadi</span>
+                            <span className="text-xs font-bold text-slate-800">Rp {new Intl.NumberFormat("id-ID").format(b.downPayment)}</span>
+                          </div>
+                        ) : null}
+                        {b.deposit && b.deposit > 0 ? (
+                          <div className="flex items-center justify-between px-3 py-2">
+                            <span className="text-[11px] text-slate-500 font-medium">Deposit</span>
+                            <span className="text-xs font-bold text-amber-700">Rp {new Intl.NumberFormat("id-ID").format(b.deposit)}</span>
+                          </div>
+                        ) : null}
+                        {b.remainingBalance && b.remainingBalance > 0 ? (
+                          <div className="flex items-center justify-between px-3 py-2 bg-rose-50">
+                            <span className="text-[11px] font-bold text-rose-700">Sisa Pelunasan</span>
+                            <span className="text-xs font-black text-rose-700">Rp {new Intl.NumberFormat("id-ID").format(b.remainingBalance)}</span>
+                          </div>
+                        ) : b.downPayment && b.downPayment > 0 ? (
+                          <div className="flex items-center justify-between px-3 py-2 bg-emerald-50">
+                            <span className="text-[11px] font-bold text-emerald-700">Status Bayar</span>
+                            <span className="text-xs font-bold text-emerald-700 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> LUNAS</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
 
-                      {b.source === "ONLINE" && (
+                  {/* ── ACTION BUTTONS (fase per status) ── */}
+                  <div className="px-4 pb-4 flex flex-col gap-2">
+                    {/* FASE 4: SELESAI */}
+                    {b.status === "FINISHED" && (
+                      b.remainingBalance && b.remainingBalance > 0 ? (
+                        <div className="flex gap-2">
+                          <div className="flex-1 py-2.5 px-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 font-bold text-xs flex items-center gap-1.5 min-w-0">
+                            <CheckCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span className="truncate">Unit Kembali — Ada Piutang</span>
+                            <span className="ml-auto font-black text-rose-600 bg-white px-1.5 py-0.5 rounded border border-rose-200 shrink-0 text-[11px]">
+                              Rp {new Intl.NumberFormat("id-ID").format(b.remainingBalance)}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => { setSettleOrderModal(b); setSettlePaymentMethod("TUNAI"); setSettleCompleteRental(true); setSettleOvertimeFee("0"); }}
+                            className="px-4 py-2.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm shrink-0"
+                          >
+                            💰 Lunasi
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>{actionLabels.finishedText || "Sewa Selesai & Lunas"}</span>
+                        </div>
+                      )
+                    )}
+
+                    {/* FASE 1: PENDING */}
+                    {b.status === "PENDING" && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleApprove(b.id)}
+                          className="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          ACC / Setujui Jadwal
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")}
-                          className="px-2.5 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors shadow-2xs"
-                          title="Batalkan Booking"
+                          className="px-3 py-2.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors"
                         >
-                          Batal
+                          Tolak
                         </button>
-                      )}
-                    </>
-                  )}
+                      </div>
+                    )}
 
-                  {/* FASE 3: SEDANG DIGUNAKAN / OVERDUE (IN_PROGRESS / OVERDUE) */}
-                  {(b.status === "IN_PROGRESS" || b.status === "OVERDUE") && (
-                    <>
-                      {/* Tombol Pelunasan DP jika masih ada sisa */}
-                      {b.remainingBalance && b.remainingBalance > 0 ? (
+                    {/* FASE 2: TERJADWAL (COMPLETED) */}
+                    {b.status === "COMPLETED" && (
+                      <>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleStart(b.id)}
+                            className="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+                          >
+                            <LogIn className="w-3.5 h-3.5" />
+                            {cardActionLabels.start}
+                          </button>
+                          {b.remainingBalance && b.remainingBalance > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => { setSettleOrderModal(b); setSettlePaymentMethod("TUNAI"); setSettleCompleteRental(false); setSettleOvertimeFee("0"); }}
+                              className="px-3 py-2.5 text-xs font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-colors"
+                            >
+                              💰 Pelunasan DP
+                            </button>
+                          ) : null}
+                        </div>
+                        {b.source === "ONLINE" && (
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => router.push(`/admin/pos?bookingId=${b.id}`)}
+                              className="flex-1 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center justify-center gap-1"
+                            >
+                              📥 Tarik ke POS
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelOrder(b.id, b.customerName || "Pelanggan Baru")}
+                              className="px-3 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors"
+                            >
+                              Batal
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* FASE 3: AKTIF / OVERDUE */}
+                    {(b.status === "IN_PROGRESS" || b.status === "OVERDUE") && (
+                      <div className="flex gap-2">
+                        {b.remainingBalance && b.remainingBalance > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => { setSettleOrderModal(b); setSettlePaymentMethod("TUNAI"); setSettleCompleteRental(b.status === "OVERDUE"); setSettleOvertimeFee("0"); }}
+                            className="flex-1 px-4 py-2.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+                          >
+                            💰 Bayar Pelunasan DP
+                          </button>
+                        ) : null}
                         <button
                           type="button"
-                          onClick={() => {
-                            setSettleOrderModal(b);
-                            setSettlePaymentMethod("TUNAI");
-                            setSettleCompleteRental(b.status === "OVERDUE");
-                            setSettleOvertimeFee("0");
-                          }}
-                          className="flex-1 min-w-[130px] px-3.5 py-2.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm shadow-emerald-600/20 flex items-center justify-center gap-1.5"
-                        >
-                          💰 Bayar Pelunasan DP
-                        </button>
-                      ) : null}
-
-                      {/* Tombol Terima Armada & Selesai */}
-                      <button 
-                        type="button"
-                        onClick={() => { 
-                          setFinishingOrder(b); 
-                          setOvertimeFee("0"); 
-                          setFinishPaymentMethod("TUNAI");
-                        }} 
-                        className={`px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 ${
-                          b.remainingBalance && b.remainingBalance > 0
+                          onClick={() => { setFinishingOrder(b); setOvertimeFee("0"); setFinishPaymentMethod("TUNAI"); }}
+                          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 ${b.remainingBalance && b.remainingBalance > 0
                             ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
                             : "flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                        }`}
-                      >
-                        {actionLabels.finish}
-                      </button>
-                    </>
-                  )}
+                            }`}
+                        >
+                          {cardActionLabels.finish}
+                        </button>
+                      </div>
+                    )}
 
-                  {/* Tombol Cetak Invoice Resmi (A4/A5) - Selalu Bisa Diakses */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInvoiceOrderModal(b);
-                      setInvoicePaperSize("A4");
-                    }}
-                    className="px-3 py-2.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0"
-                    title="Cetak Invoice / Bukti Sewa Resmi (A4/A5)"
-                  >
-                    <FileText className="w-3.5 h-3.5 text-blue-600" />
-                    <span>📄 Invoice</span>
-                  </button>
+                    {/* Invoice — selalu di baris paling bawah */}
+                    <button
+                      type="button"
+                      onClick={() => { setInvoiceOrderModal(b); setInvoicePaperSize("A4"); }}
+                      className="w-full px-4 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      📄 Cetak Invoice
+                    </button>
+                  </div>
                 </div>
+              );
+            })
+          )}
+
+          {/* Bottom Pagination Bar jika total orderan > ordersPerPage */}
+          {selectedDateBookings.length > ordersPerPage && (
+            <div className="bg-white border border-slate-200/80 px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-600 shadow-xs mt-1">
+              <span className="font-medium text-center sm:text-left">
+                Menampilkan <strong className="text-slate-900">{startIndex + 1} - {endIndex}</strong> dari <strong className="text-slate-900">{selectedDateBookings.length}</strong> orderan (Hal. {safeCurrentPage} dari {totalOrderPages})
+              </span>
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrderPage(p => Math.max(1, p - 1));
+                    agendaTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  disabled={safeCurrentPage <= 1}
+                  className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-all"
+                  title="Halaman Sebelumnya"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Sebelumnya</span>
+                </button>
+                <span className="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 font-bold border border-blue-200 text-xs shrink-0">
+                  {safeCurrentPage} / {totalOrderPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrderPage(p => Math.min(totalOrderPages, p + 1));
+                    agendaTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  disabled={safeCurrentPage >= totalOrderPages}
+                  className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs shadow-blue-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-all"
+                  title="Halaman Sesudah"
+                >
+                  <span>Berikutnya</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            );
-          })
-        )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1028,9 +1053,9 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                   <p className="text-xs text-slate-500">Terima sisa tagihan dari penyewa</p>
                 </div>
               </div>
-              <button 
-                type="button" 
-                onClick={() => setSettleOrderModal(null)} 
+              <button
+                type="button"
+                onClick={() => setSettleOrderModal(null)}
                 className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-200 rounded-full"
               >
                 <XCircle className="w-5 h-5" />
@@ -1116,9 +1141,9 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                   <p className="text-xs text-slate-500">{editBookingModal.itemName} ({editBookingModal.source === "ONLINE" ? "Booking Online" : "Kasir Manual POS"})</p>
                 </div>
               </div>
-              <button 
-                type="button" 
-                onClick={() => setEditBookingModal(null)} 
+              <button
+                type="button"
+                onClick={() => setEditBookingModal(null)}
                 className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-200 rounded-full"
               >
                 <XCircle className="w-5 h-5" />
@@ -1251,9 +1276,9 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                     </p>
                   </div>
                 </div>
-                <button 
+                <button
                   type="button"
-                  onClick={() => setInvoiceOrderModal(null)} 
+                  onClick={() => setInvoiceOrderModal(null)}
                   className="sm:hidden text-gray-400 hover:text-gray-600 p-1.5 hover:bg-gray-200 rounded-full"
                 >
                   <XCircle className="w-5 h-5" />
@@ -1309,9 +1334,9 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                   <span>🖨️ Cetak</span>
                 </button>
 
-                <button 
+                <button
                   type="button"
-                  onClick={() => setInvoiceOrderModal(null)} 
+                  onClick={() => setInvoiceOrderModal(null)}
                   className="hidden sm:inline-flex text-gray-400 hover:text-gray-600 p-1.5 hover:bg-gray-200 rounded-full"
                 >
                   <XCircle className="w-5 h-5" />
@@ -1320,34 +1345,34 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
             </div>
 
             {/* Print Area Preview dengan Smooth Scroll & Zoom */}
-            <div 
+            <div
               ref={previewContainerRef}
               className="flex-1 overflow-x-auto overflow-y-auto p-2 sm:p-6 bg-slate-200/80 overscroll-contain touch-pan-x touch-pan-y flex justify-center items-start"
             >
-              <div 
+              <div
                 className="mx-auto transition-all duration-200"
                 style={
                   invoiceZoomMode === "fit" && previewScale < 1
                     ? {
-                        width: `${(invoicePaperSize === "A5" ? 560 : 794) * previewScale}px`,
-                        height: "auto",
-                      }
+                      width: `${(invoicePaperSize === "A5" ? 560 : 794) * previewScale}px`,
+                      height: "auto",
+                    }
                     : {
-                        width: invoicePaperSize === "A5" ? "148mm" : "210mm",
-                        minWidth: invoicePaperSize === "A5" ? "148mm" : "210mm",
-                      }
+                      width: invoicePaperSize === "A5" ? "148mm" : "210mm",
+                      minWidth: invoicePaperSize === "A5" ? "148mm" : "210mm",
+                    }
                 }
               >
-                <div 
-                  id="rental-invoice-print-area" 
+                <div
+                  id="rental-invoice-print-area"
                   className="bg-white shadow-xl border border-slate-300 rounded-lg origin-top-left"
                   style={
                     invoiceZoomMode === "fit" && previewScale < 1
                       ? {
-                          transform: `scale(${previewScale})`,
-                          transformOrigin: "top left",
-                          width: invoicePaperSize === "A5" ? "560px" : "794px",
-                        }
+                        transform: `scale(${previewScale})`,
+                        transformOrigin: "top left",
+                        width: invoicePaperSize === "A5" ? "560px" : "794px",
+                      }
                       : undefined
                   }
                 >
@@ -1424,13 +1449,13 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                   </div>
                 ) : null}
               </div>
-              
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">{actionLabels.overtimeFeeLabel}</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">Rp</span>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={overtimeFee}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, "");
@@ -1462,11 +1487,10 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                     <button
                       type="button"
                       onClick={() => setFinishPaymentType("lunas")}
-                      className={`p-2.5 rounded-xl border text-left transition-all ${
-                        finishPaymentType === "lunas"
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-950 font-bold shadow-xs ring-1 ring-emerald-500"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${finishPaymentType === "lunas"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-950 font-bold shadow-xs ring-1 ring-emerald-500"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        }`}
                     >
                       <div className="text-xs font-bold mb-0.5">💰 Lunasi Sekarang</div>
                       <div className="text-[10px] text-slate-500">Pelanggan membayar sisa tagihan sekarang.</div>
@@ -1474,11 +1498,10 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
                     <button
                       type="button"
                       onClick={() => setFinishPaymentType("hutang")}
-                      className={`p-2.5 rounded-xl border text-left transition-all ${
-                        finishPaymentType === "hutang"
-                          ? "border-amber-500 bg-amber-50 text-amber-950 font-bold shadow-xs ring-1 ring-amber-500"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${finishPaymentType === "hutang"
+                        ? "border-amber-500 bg-amber-50 text-amber-950 font-bold shadow-xs ring-1 ring-amber-500"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        }`}
                     >
                       <div className="text-xs font-bold mb-0.5">📋 Catat Piutang (Hutang)</div>
                       <div className="text-[10px] text-slate-500">Unit diterima kembali, sisa dilunasi nanti.</div>
@@ -1520,14 +1543,13 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
               </div>
 
               <div className="pt-2">
-                <button 
+                <button
                   type="submit"
                   disabled={isFinishing}
-                  className={`w-full text-white transition-colors px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm text-xs sm:text-sm ${
-                    finishPaymentType === "hutang" && finishingOrder?.remainingBalance && finishingOrder.remainingBalance > 0
-                      ? "bg-amber-600 hover:bg-amber-700 shadow-amber-600/30"
-                      : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30"
-                  }`}
+                  className={`w-full text-white transition-colors px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm text-xs sm:text-sm ${finishPaymentType === "hutang" && finishingOrder?.remainingBalance && finishingOrder.remainingBalance > 0
+                    ? "bg-amber-600 hover:bg-amber-700 shadow-amber-600/30"
+                    : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30"
+                    }`}
                 >
                   {isFinishing && <Loader2 className="w-4 h-4 animate-spin" />}
                   {finishPaymentType === "hutang" && finishingOrder?.remainingBalance && finishingOrder.remainingBalance > 0

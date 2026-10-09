@@ -1,23 +1,20 @@
 import webpush from "web-push";
 
-// Fallback VAPID keys agar notifikasi selalu siap pakai baik di local maupun production
-const DEFAULT_VAPID_PUBLIC_KEY =
-  "[REDACTED_VAPID_PUBLIC_KEY]";
-const DEFAULT_VAPID_PRIVATE_KEY =
-  "[REDACTED_VAPID_KEY]";
-const DEFAULT_VAPID_SUBJECT = "mailto:pranatachain@gmail.com";
+// VAPID keys wajib dari environment variables — JANGAN hardcode di sini
+// Generate key baru: npx web-push generate-vapid-keys
+// Simpan ke .env.local (dev) dan Vercel Dashboard (production)
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+const vapidSubject = process.env.VAPID_SUBJECT || "mailto:pranatachain@gmail.com";
 
-const vapidPublicKey =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
-const vapidPrivateKey =
-  process.env.VAPID_PRIVATE_KEY || DEFAULT_VAPID_PRIVATE_KEY;
-const vapidSubject =
-  process.env.VAPID_SUBJECT || DEFAULT_VAPID_SUBJECT;
-
-try {
-  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-} catch (err) {
-  console.warn("[webpush] Failed to set VAPID details:", err);
+if (!vapidPublicKey || !vapidPrivateKey) {
+  console.warn("[webpush] VAPID keys tidak ditemukan di environment variables. Push notification dinonaktifkan.");
+} else {
+  try {
+    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+  } catch (err) {
+    console.warn("[webpush] Failed to set VAPID details:", err);
+  }
 }
 
 export interface PushPayload {

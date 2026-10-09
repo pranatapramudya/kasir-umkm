@@ -155,6 +155,7 @@ export async function POST(request: Request) {
           userId: activeTenantId, // Multi-tenant isolation
           timestamp: safeInt(body.timestamp, Date.now()),
           customerName: body.customerName ? String(body.customerName).trim() : "Pelanggan",
+          customerPhone: body.customerPhone ? String(body.customerPhone).trim() : null,
           tableId: validTableId,
           total: rawTotal,
           discount: rawDiscount,

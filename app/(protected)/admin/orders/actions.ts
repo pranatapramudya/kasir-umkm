@@ -336,6 +336,7 @@ export async function updateRentalBookingDetails({
         where: { id: tx.id },
         data: {
           customerName: customerName?.trim() || tx.customerName,
+          customerPhone: customerPhone !== undefined ? (customerPhone?.trim() || null) : tx.customerPhone,
           downPayment: dp,
           remainingBalance: remaining,
           conditionNotes: conditionNotes !== undefined ? conditionNotes : tx.conditionNotes,

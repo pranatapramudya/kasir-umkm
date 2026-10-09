@@ -39,6 +39,7 @@ model Transaction {
   userId           String
   timestamp        BigInt
   customerName     String
+  customerPhone    String?
   cashierId        String?
   tableId          String?
   discount         Int               @default(0)

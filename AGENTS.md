@@ -1,4 +1,4 @@
-﻿# kasir-umkm — AI Agent Context
+# kasir-umkm — AI Agent Context
 
 ## Apa ini?
 SaaS POS (Point of Sale) multi-tenant untuk UMKM Indonesia. Stack: Next.js, Prisma, Neon PostgreSQL, Clerk Auth, Tailwind CSS. Deploy di Vercel. Harga: Rp 990.000/tahun.
@@ -8,8 +8,8 @@ SaaS POS (Point of Sale) multi-tenant untuk UMKM Indonesia. Stack: Next.js, Pris
 |----------|----------------|
 | Retail | Offline-first (IndexedDB), Bluetooth thermal printer auto-detect, CSV/Jurnal export |
 | F&B | Table grid, Split Bill, KDS (Kitchen Display), Kitchen/Bar ticket routing |
-| Jasa/Servis | (WIP) |
-| Rental/Travel/Properti | (WIP) |
+| Jasa/Servis | Jadwal Booking, komisi staf/teknisi, slot jam fleksibel, antrean online murni |
+| Rental/Travel/Properti/Alat | Kalender Sewa (anti collision), DP & Pelunasan, Surat Jalan/Invoice A4/A5, Niche Adaptive (Kendaraan/Properti/Alat) |
 
 ## Arsitektur
 ```
