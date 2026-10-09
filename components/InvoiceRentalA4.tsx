@@ -38,6 +38,7 @@ export interface InvoiceRentalA4Props {
   user: any;
   transaction: any;
   paperSize?: 'A4' | 'A5';
+  rentalMode?: 'property' | 'vehicle' | 'equipment';
 }
 
 export default function InvoiceRentalA4({

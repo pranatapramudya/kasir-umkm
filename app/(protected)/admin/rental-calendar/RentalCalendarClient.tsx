@@ -144,6 +144,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
         endLabel: "Waktu Check-out",
         finishedText: "Check-out Selesai & Lunas",
         finishModalTitle: "Check-out Kamar & Selesai",
+        overtimeFeeLabel: "Biaya Tambahan / Denda Keterlambatan (Opsional)",
       };
     }
     if (niche === "vehicle") {
@@ -156,6 +157,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
         startLabel: "Mulai Sewa / Ambil",
         endLabel: "Jadwal Kembali",
         finishModalTitle: "Pengembalian Armada & Selesai",
+        overtimeFeeLabel: "Denda Overtime / Biaya Kerusakan (Opsional)",
       };
     }
     return {
@@ -167,6 +169,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
       endLabel: "Batas Waktu Pengembalian",
       finishedText: "Alat Diterima & Sewa Selesai (Lunas)",
         finishModalTitle: "Pengembalian Alat & Selesai",
+        overtimeFeeLabel: "Denda Keterlambatan / Biaya Kerusakan Alat (Opsional)",
     };
   };
 

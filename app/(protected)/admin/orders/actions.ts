@@ -338,7 +338,6 @@ export async function updateRentalBookingDetails({
           customerName: customerName?.trim() || tx.customerName,
           downPayment: dp,
           remainingBalance: remaining,
-          notes: notes !== undefined ? notes : tx.notes,
           conditionNotes: conditionNotes !== undefined ? conditionNotes : tx.conditionNotes,
           licensePlate: licensePlate !== undefined ? licensePlate : tx.licensePlate,
           driverName: driverName !== undefined ? driverName : tx.driverName,
