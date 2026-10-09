@@ -7,7 +7,6 @@ import {
   AlertCircle,
   Loader2,
   Calendar,
-  Sparkles,
   ChevronRight,
   Sun,
   Sunset,
@@ -152,7 +151,7 @@ export default function BookingScheduleForm({
                   Jadwal & Jam Kunjungan Booking
                 </h2>
                 <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100/80 text-emerald-800 border border-emerald-200">
-                  <Sparkles className="w-3 h-3" /> Jasa & Servis
+                  Jasa & Servis
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
