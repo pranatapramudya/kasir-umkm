@@ -17,6 +17,10 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 
 ## ✨ Fitur & Arsitektur Utama
 
+- **Alur Sewa & Pelunasan DP End-to-End Multi-Niche (Kendaraan, Properti, & Alat):**
+  - Pengelolaan transaksi uang muka (DP) dan sisa pelunasan terpadu di Kalender Sewa dan Laporan Kasir.
+  - Preview & cetak dokumen/surat jalan instan (A4/A5) berlabel adaptif (*Surat Jalan & Tanda Terima DP* vs *Invoice Resmi Lunas*).
+  - Dialog SOP serah terima jaminan modern (KTP/SIM/Paspor) sebelum pelunasan di Laporan Kasir bebas dialog browser kaku.
 - **Production-Ready Enterprise Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.
 - **Sistem Pembayaran & Subscription Dinamis:** Terintegrasi dengan payment gateway (Mayar) via webhook untuk aktivasi otomatis paket langganan (Pro 1 Bulan, 6 Bulan, 1 Tahun) secara real-time, beserta alur pendaftaran *Manual ACC* yang dikelola via Dasbor Superadmin.
 - **Optimasi SEO & UI Enterprise:** Injeksi SEO pada *Landing Page* untuk pencarian organik maksimal, dipadukan dengan desain *glassmorphism* modern, profesional, dan responsif.

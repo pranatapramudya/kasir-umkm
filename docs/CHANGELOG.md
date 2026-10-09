@@ -5,7 +5,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [Unreleased]
+
+
+### ⚡ 2026-10-09 — Alur End-to-End Pelunasan DP, Invoice Universal Multi-Niche & Modernisasi Dialog SOP Jaminan
+- **Alur Pelunasan DP & Invoice Adaptif Multi-Niche (dmin/rental-calendar & components/InvoiceRentalA4.tsx):**
+  - Mengintegrasikan alur pembayaran DP (*Down Payment*) hingga pelunasan penuh secara *end-to-end* tanpa redundansi untuk seluruh kategori rental: **Rental Mobil/Travel, Properti/Villa/Kos, serta Sewa Alat/Kamera/Tenda**.
+  - Tombol **[📄 Invoice]** kini selalu dapat diakses langsung sejak transaksi dicatat (baik terjadwal, sedang jalan, maupun selesai), menampilkan cap dokumen resmi yang adaptif:
+    - Status DP: Bertajuk *Surat Jalan & Tanda Terima DP* dengan badge peringatan **⚠️ BELUM LUNAS (DP)**.
+    - Status Lunas: Bertajuk *Invoice Resmi Sewa (Kendaraan / Properti / Alat)* dengan badge **✓ LUNAS (PAID)**.
+  - Memperbaiki penentuan status transaksi di kalender (/api/booking/calendar/route.ts dan page.tsx) agar transaksi masa depan dari POS kasir berstatus DP tetap terjaga sebagai COMPLETED (Terjadwal), bukan prematurely FINISHED (Selesai).
+  - Menghadirkan tombol aksi langsung **[💰 Bayar Pelunasan DP]** pada kartu jadwal berstatus DP, yang membuka modal pelunasan (Tunai / QRIS) dan otomatis memicu preview invoice lunas siap cetak (A4/A5).
+  - Tombol **[✏️ Edit]** universal di setiap kartu memungkinkan koreksi nomor kontak, plat nomor, driver, barang jaminan, dan catatan tanpa membatalkan transaksi.
+- **Modernisasi Modal Konfirmasi SOP Pengembalian Jaminan (pp/(protected)/laporan-kasir/LaporanKasirClient.tsx):**
+  - Menggantikan dialog native browser (window.confirm) yang kaku dengan modal pop-up konfirmasi interaktif bertema modern (*Tailwind CSS, glassmorphism, dan aksen gradient*).
+  - Dilengkapi banner kartu SOP Serah Terima Jaminan berikon ShieldAlert, menyorot nama dokumen/barang jaminan (KTP, SIM, dsb.) serta rincian finansial pelunasan secara realtime sebelum status pesanan diubah menjadi Lunas.
 
 ### ⚡ 2026-10-08 — Presisi Filter Tanggal Pengeluaran & Perbaikan Stacking Laporan Shift Mobile
 - **Presisi Filter Tanggal Modul Pengeluaran (`app/(protected)/admin/pengeluaran/PengeluaranClient.tsx` & `app/api/expenses/route.ts`):**

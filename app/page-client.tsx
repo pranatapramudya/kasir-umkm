@@ -865,6 +865,30 @@ export default function POSApp({
       }
     }, []);
 
+  // Auto-tarik pesanan online sewa jika dibuka via parameter ?bookingId=...
+  useEffect(() => {
+    if (!isClient || !isInitialized || !isRental) return;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bId = urlParams.get('bookingId');
+      if (bId && bId !== activeBookingId) {
+        fetch('/api/booking/today?date=all')
+          .then(res => res.json())
+          .then((items) => {
+            if (Array.isArray(items)) {
+              const matched = items.find((x: any) => x.id === bId);
+              if (matched) {
+                handleProcessQueue(matched);
+                // Bersihkan URL query parameter agar tidak reload berulang
+                window.history.replaceState({}, '', window.location.pathname);
+              }
+            }
+          })
+          .catch(err => console.error('Gagal auto-tarik booking dari URL:', err));
+      }
+    } catch {}
+  }, [isClient, isInitialized, isRental, activeBookingId]);
+
   // --- LOGIC LAINNYA ---
   useEffect(() => {
     if (isClient && isInitialized) {

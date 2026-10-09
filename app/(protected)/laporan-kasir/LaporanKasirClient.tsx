@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import useSWR, { preload } from 'swr';
 import { useUser } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package, Loader2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { Store, Calendar, Wallet, CreditCard, Clock, FileText, Eye, X, Package, Loader2, ChevronLeft, ChevronRight, RotateCcw, ShieldAlert, CheckCircle2, AlertTriangle, Banknote } from 'lucide-react';
 import { CustomUserButton } from '@/components/CustomUserButton';
 import { Pagination } from '@/components/Pagination';
 import { isRentalTravelCategory, isPureServiceCategory } from '@/lib/business-category';
@@ -21,6 +21,32 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
     const [selectedDate, setSelectedDate] = useState(initialDate);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedTx, setSelectedTx] = useState<any>(null);
+    const [confirmGuaranteeModal, setConfirmGuaranteeModal] = useState<any>(null);
+    const [isSettlingTx, setIsSettlingTx] = useState<boolean>(false);
+
+    const handleConfirmSettle = async (tx: any) => {
+        setIsSettlingTx(true);
+        const toastId = toast.loading("Memproses pelunasan...");
+        try {
+            const res = await settleRentalBalance({
+                id: tx.id,
+                paymentMethod: tx.method || "TUNAI",
+                completeRental: true
+            });
+            if (res.success) {
+                toast.success("Transaksi berhasil dilunasi serta jaminan telah diserahkan!", { id: toastId });
+                setConfirmGuaranteeModal(null);
+                setSelectedTx(null);
+                window.location.reload();
+            } else {
+                toast.error(res.error || "Gagal memproses pelunasan", { id: toastId });
+            }
+        } catch (err: any) {
+            toast.error(err?.message || "Terjadi kesalahan", { id: toastId });
+        } finally {
+            setIsSettlingTx(false);
+        }
+    };
 
     const getTodayStr = () => new Date().toLocaleString("en-CA", { timeZone: "Asia/Jakarta" }).split(",")[0];
     const isToday = selectedDate === getTodayStr();
@@ -458,24 +484,118 @@ export default function LaporanKasirClient({ sidebar, initialDate, initialData, 
                                     <span className="text-xl font-black text-blue-600">{formatRupiah(selectedTx.total)}</span>
                                 </div>
                                 {selectedTx.status === 'partial' && (
-                                    <button 
-                                        onClick={() => {
-                                            if (selectedTx.guarantee) {
-                                                if (!window.confirm(`PENTING: Pastikan Anda telah mengembalikan jaminan (${selectedTx.guarantee}) kepada pelanggan. Lanjutkan pelunasan?`)) return;
-                                            } else {
-                                                if (!window.confirm("Lanjutkan pelunasan transaksi ini?")) return;
-                                            }
-                                            // TODO: Call API to update status to 'completed'
-                                            alert("Simulasi pelunasan berhasil di sisi frontend.");
-                                        }}
-                                        className="w-full mt-2 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-lg shadow-sm hover:from-blue-700 hover:to-indigo-700 transition-all"
+                                    <button
+                                        type="button"
+                                        onClick={() => setConfirmGuaranteeModal(selectedTx)}
+                                        className="w-full mt-2 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-98 text-white font-bold rounded-xl shadow-sm shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm"
                                     >
-                                        Ubah Status Menjadi Lunas
+                                        <Banknote className="w-4 h-4" />
+                                        <span>Proses Pelunasan & Serahkan Jaminan</span>
                                     </button>
                                 )}
                             </div>
                         </div>
                     </div>
+
+            {/* Modal Konfirmasi Pengembalian Jaminan & Pelunasan yang Modern */}
+            {confirmGuaranteeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="relative bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="relative p-5 bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white overflow-hidden">
+                            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+                            <div className="flex items-center gap-3 relative z-10">
+                                <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner shrink-0">
+                                    <ShieldAlert className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="min-w-0">
+                                    <span className="text-[10px] font-black tracking-widest uppercase bg-white/20 px-2 py-0.5 rounded-md inline-block mb-1">
+                                        SOP Serah Terima Jaminan
+                                    </span>
+                                    <h3 className="text-base sm:text-lg font-black leading-tight truncate">
+                                        Konfirmasi Pengembalian Jaminan
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-5 sm:p-6 space-y-4">
+                            {confirmGuaranteeModal.guarantee ? (
+                                <div className="bg-amber-50/90 border-2 border-amber-300/80 rounded-2xl p-4 shadow-2xs">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="p-2.5 bg-amber-200/80 rounded-2xl text-amber-900 shrink-0">
+                                            <AlertTriangle className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wide">
+                                                Dokumen / Barang Jaminan:
+                                            </p>
+                                            <p className="text-base font-black text-rose-700 mt-0.5 uppercase tracking-wide">
+                                                {confirmGuaranteeModal.guarantee}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-amber-950 font-medium leading-relaxed bg-white/60 p-2.5 rounded-xl border border-amber-200/60">
+                                        PENTING: Pastikan fisik <strong>{confirmGuaranteeModal.guarantee}</strong> milik <strong>{confirmGuaranteeModal.customerName || "pelanggan"}</strong> sudah diserahkan kembali kepada penyewa sebelum menyelesaikan pelunasan.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="bg-blue-50/80 border border-blue-200 rounded-2xl p-3.5 flex items-center gap-3 text-xs text-blue-900 font-medium">
+                                    <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0" />
+                                    <span>Tidak ada jaminan fisik khusus yang tercatat pada pesanan ini. Anda dapat langsung melanjutkan pelunasan.</span>
+                                </div>
+                            )}
+                            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-2 text-xs">
+                                <div className="flex justify-between items-center text-slate-600">
+                                    <span>Pelanggan</span>
+                                    <span className="font-bold text-slate-800">{confirmGuaranteeModal.customerName || "-"}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-slate-600">
+                                    <span>No. Transaksi</span>
+                                    <span className="font-mono font-bold text-slate-700">{confirmGuaranteeModal.id}</span>
+                                </div>
+                                {confirmGuaranteeModal.remainingBalance && confirmGuaranteeModal.remainingBalance > 0 ? (
+                                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                                        <span className="font-bold text-rose-700 uppercase tracking-wide text-[11px]">Sisa Tagihan Dilunasi:</span>
+                                        <span className="font-black text-rose-600 text-sm">{formatRupiah(confirmGuaranteeModal.remainingBalance)}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                                        <span className="font-bold text-slate-700 text-[11px]">Total Transaksi:</span>
+                                        <span className="font-black text-emerald-600 text-sm">{formatRupiah(confirmGuaranteeModal.total)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex items-center gap-2.5">
+                            <button
+                                type="button"
+                                disabled={isSettlingTx}
+                                onClick={() => setConfirmGuaranteeModal(null)}
+                                className="flex-1 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs sm:text-sm transition-all"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isSettlingTx}
+                                onClick={() => handleConfirmSettle(confirmGuaranteeModal)}
+                                className="flex-[1.6] px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm shadow-emerald-600/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-70"
+                            >
+                                {isSettlingTx ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Menyimpan...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        <span>Sudah Dikembalikan & Lunasi</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
                 </div>
             )}
 

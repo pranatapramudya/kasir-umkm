@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const { userId, sessionClaims } = await auth();
 
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     }
 
     // Resolve tenantId (same pattern as other pages)
-    let tenantId = (sessionClaims?.metadata as any)?.tenantId || userId;
+    let tenantId = (sessionClaims?.metadata as unknown as { tenantId?: string })?.tenantId || userId;
     const employee = await prisma.employee.findUnique({ where: { clerkUserId: userId } });
     if (employee) {
       tenantId = employee.tenantId;
@@ -61,7 +61,7 @@ export async function GET(req: Request) {
       const endDateObj = end ? new Date(end) : now;
 
       // Status otomatis berbasis waktu:
-      if (b.status === "FINISHED" || (b.status as any) === "CANCELLED") {
+      if (b.status === "FINISHED" || (b.status as unknown as string) === "CANCELLED") {
         derivedStatus = "FINISHED";
       } else if (b.status === "PENDING") {
         // Reservasi Baru Masuk Online: Tetap PENDING agar admin/owner bisa klik ACC / Setujui!
@@ -93,6 +93,9 @@ export async function GET(req: Request) {
         deposit: b.deposit || undefined,
         downPayment: b.downPayment || undefined,
         total: b.product?.hargaJual || undefined,
+        remainingBalance: (b.product?.hargaJual && b.downPayment && b.downPayment > 0)
+          ? Math.max(0, b.product.hargaJual - b.downPayment)
+          : (b.notes?.includes('[PELUNASAN_DP_LUNAS') ? 0 : undefined),
         conditionNotes: b.conditionNotes || undefined,
         source: "ONLINE" as const
       };
@@ -124,12 +127,15 @@ export async function GET(req: Request) {
       let derivedStatus: "PENDING" | "COMPLETED" | "IN_PROGRESS" | "FINISHED" | "OVERDUE" = "FINISHED";
 
       // Transaksi POS kasir:
-      if (now >= startDateObj && now <= endDateObj) {
-        derivedStatus = "IN_PROGRESS";
-      } else if (tx.status !== "completed" && now > endDateObj) {
-        derivedStatus = "OVERDUE";
-      } else {
+      // Jika status transaksi sudah completed/FINISHED, status KALENDER adalah FINISHED (Selesai & Lunas)!
+      if (tx.status === "FINISHED" || (tx.conditionNotes && tx.conditionNotes.includes("[RENTAL_SELESAI]"))) {
         derivedStatus = "FINISHED";
+      } else if (now > endDateObj) {
+        derivedStatus = "OVERDUE";
+      } else if (now >= startDateObj && now <= endDateObj) {
+        derivedStatus = "IN_PROGRESS";
+      } else {
+        derivedStatus = "COMPLETED";
       }
 
       return {
@@ -152,7 +158,8 @@ export async function GET(req: Request) {
         remainingBalance: tx.remainingBalance || undefined,
         total: tx.total || undefined,
         conditionNotes: tx.conditionNotes || undefined,
-        source: "POS" as const
+        method: tx.method || undefined,
+      source: "POS" as const
       };
     }).filter((b): b is NonNullable<typeof b> => b !== null);
 

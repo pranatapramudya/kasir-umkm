@@ -1,12 +1,14 @@
 import React from 'react';
 import { detectRentalItemType } from '@/lib/business-category';
 
-const formatRupiah = (num: number) =>
-  new Intl.NumberFormat('id-ID', {
+const formatRupiah = (num: any) => {
+  const val = Number(num);
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
-  }).format(num);
+  }).format(isNaN(val) ? 0 : val);
+};
 
 const formatDisplayDate = (val?: string | null, fallbackTime?: string | null) => {
   if (!val) return '-';
@@ -159,7 +161,7 @@ export default function InvoiceRentalA4({
             No. TRX: <span className="text-slate-900 font-mono font-bold">{transaction.id}</span>
           </p>
           <p className="text-xs text-slate-500">
-            Tanggal: {transaction.date} {transaction.time}
+            Tanggal: {transaction.date || formatDisplayDate(transaction.startDate)} {transaction.time || ''}
           </p>
         </div>
       </div>
@@ -271,19 +273,27 @@ export default function InvoiceRentalA4({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {transaction.items?.map((item: any, i: number) => (
-              <tr key={i} className="break-inside-avoid print:break-inside-avoid hover:bg-slate-50">
-                <td className="px-3.5 py-2 font-semibold text-slate-800">
-                  {item.name}
-                  {item.note && <p className="text-[11px] text-slate-500 mt-0.5 italic">* {item.note}</p>}
-                </td>
-                <td className="px-3.5 py-2 text-right text-slate-600 whitespace-nowrap">{getQtyLabel(item.qty)}</td>
-                <td className="px-3.5 py-2 text-right text-slate-600 whitespace-nowrap">{formatRupiah(item.hargaJual)}</td>
-                <td className="px-3.5 py-2 text-right font-bold text-slate-800 whitespace-nowrap">
-                  {formatRupiah(item.qty * item.hargaJual)}
-                </td>
-              </tr>
-            ))}
+            {transaction.items?.map((item: any, i: number) => {
+              const qty = Number(item.qty || 1);
+              const itemPrice = Number(
+                item.price ?? 
+                item.hargaJual ?? 
+                (transaction.total && (!transaction.items || transaction.items.length === 1) ? Math.round(Number(transaction.total) / qty) : 0)
+              );
+              return (
+                <tr key={i} className="break-inside-avoid print:break-inside-avoid hover:bg-slate-50">
+                  <td className="px-3.5 py-2 font-semibold text-slate-800">
+                    {item.name}
+                    {item.note && <p className="text-[11px] text-slate-500 mt-0.5 italic">* {item.note}</p>}
+                  </td>
+                  <td className="px-3.5 py-2 text-right text-slate-600 whitespace-nowrap">{getQtyLabel(qty)}</td>
+                  <td className="px-3.5 py-2 text-right text-slate-600 whitespace-nowrap">{formatRupiah(itemPrice)}</td>
+                  <td className="px-3.5 py-2 text-right font-bold text-slate-800 whitespace-nowrap">
+                    {formatRupiah(qty * itemPrice)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -301,18 +311,23 @@ export default function InvoiceRentalA4({
                 <span className="text-slate-600">Uang Muka (DP Diterima)</span>
                 <span className="font-semibold text-emerald-600">-{formatRupiah(transaction.downPayment)}</span>
               </div>
-              {transaction.remainingBalance > 0 && (
+              {transaction.remainingBalance > 0 ? (
                 <div className="flex justify-between py-1 border-t-2 border-rose-300 mt-1.5 pt-1.5 bg-rose-50/80 px-2 rounded-lg items-center">
                   <span className="text-rose-900 font-extrabold text-[11px] uppercase">SISA BELUM LUNAS:</span>
                   <span className="font-black text-rose-600 text-sm">{formatRupiah(transaction.remainingBalance || 0)}</span>
+                </div>
+              ) : (
+                <div className="flex justify-between py-1 border-t border-emerald-300 mt-1.5 pt-1.5 bg-emerald-50/80 px-2 rounded-lg items-center">
+                  <span className="text-emerald-900 font-extrabold text-[11px] uppercase">PELUNASAN SISA:</span>
+                  <span className="font-bold text-emerald-700 text-xs">LUNAS ({formatRupiah(Math.max(0, (transaction.total || 0) - (transaction.downPayment || 0)))})</span>
                 </div>
               )}
             </>
           )}
           <div className="flex justify-between py-1 border-t border-slate-200 mt-1 pt-1 items-center">
-            <span className="text-slate-800 font-bold">Total Bayar</span>
+            <span className="text-slate-800 font-bold">{isPaidOff ? "Total Pembayaran (Lunas)" : "Total Bayar Saat Ini (DP)"}</span>
             <span className="font-black text-blue-700 text-base">
-              {formatRupiah(transaction.downPayment > 0 ? transaction.downPayment : transaction.total)}
+              {formatRupiah(isPaidOff ? (transaction.total || 0) : ((transaction.downPayment && transaction.downPayment > 0) ? transaction.downPayment : (transaction.total || 0)))}
             </span>
           </div>
           <div className="flex justify-between py-0.5 mt-0.5 items-center">
