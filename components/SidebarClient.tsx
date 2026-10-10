@@ -5,9 +5,10 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getNavigationMenu } from "@/lib/navigation";
-import { Store, HelpCircle, ChefHat } from "lucide-react";
+import { HelpCircle, ChefHat } from "lucide-react";
 import { BukuPanduanModal } from "./BukuPanduanModal";
 import { usePendingBookingCount } from "@/hooks/usePendingBookingCount";
+import { isRentalTravelCategory, isServiceBusinessCategory, getTenantRentalType } from "@/lib/business-category";
 
 function isFnBCategory(category: string): boolean {
   const normalized = category?.toLowerCase().trim();
@@ -108,9 +109,25 @@ export function SidebarClient({ role, plan, endsAt, kategoriUsaha: rawKategoriUs
           </div>
           <div className="flex flex-col">
             <h2 className="text-base font-black text-slate-900 tracking-tight leading-tight">
-              KASIR POS
+              {(() => {
+                if (isFnBCategory(kategoriUsaha)) return "POS RESTO & KAFE";
+                if (isRentalTravelCategory(kategoriUsaha)) {
+                  const niche = getTenantRentalType(kategoriUsaha);
+                  if (niche === "vehicle") return "RENTAL ARMADA";
+                  if (niche === "property") return "PROPERTI & VILLA";
+                  if (niche === "equipment") return "SEWA ALAT & GEAR";
+                  return "RENTAL & SEWA";
+                }
+                if (isServiceBusinessCategory(kategoriUsaha)) return "POS JASA & SERVIS";
+                return "KASIR POS";
+              })()}
             </h2>
-            <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">by PJTECH</span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">by PJTECH</span>
+              <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold border border-slate-200 uppercase truncate max-w-[90px]">
+                {kategoriUsaha.replace(/_/g, " ")}
+              </span>
+            </div>
           </div>
         </div>
       </div>

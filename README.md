@@ -19,6 +19,9 @@ Proyek ini dikembangkan menggunakan teknologi modern terkini:
 
 - **Alur Sewa & Pelunasan DP End-to-End Multi-Niche (Kendaraan, Properti, & Alat):**
   - Pengelolaan transaksi uang muka (DP) dan sisa pelunasan terpadu di Kalender Sewa dan Laporan Kasir.
+  - Filter Status Pembayaran Terintegrasi (*Semua Bayar*, *✓ Lunas*, *⚠️ Belum Lunas / DP*) yang tersinkronisasi langsung antara kalender bulanan, daftar riwayat sewa, dan pencarian.
+  - Pencarian Cerdas Multi-Kriteria Adaptif (Nama Pelanggan, Plat Nomor Armada, Nama Kamar/Properti, Nama Alat/Barang, Nomor WhatsApp, Sopir, Catatan/Jaminan) dengan prioritas relevansi tinggi.
+  - Antarmuka *Mobile-First* Presisi: Panel filter terstruktur dan modal popup *Tarik Pesanan Online* di POS kasir yang responsif, rapi, dan mudah dioperasikan pada layar seluler.
   - Preview & cetak dokumen/surat jalan instan (A4/A5) berlabel adaptif (*Surat Jalan & Tanda Terima DP* vs *Invoice Resmi Lunas*).
   - Dialog SOP serah terima jaminan modern (KTP/SIM/Paspor) sebelum pelunasan di Laporan Kasir bebas dialog browser kaku.
 - **Production-Ready Enterprise Architecture:** Siap menangani skalabilitas dengan mitigasi *database connection pooling*, perlindungan *webhook* autentikasi Clerk (sinkronisasi penghapusan akun otomatis ke DB), dan arsitektur *multi-tenant* yang ketat.

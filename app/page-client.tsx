@@ -209,20 +209,32 @@ function QueueModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden max-h-[85vh]">
-        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-3xl">
-          <div>
-            <h2 className="text-lg font-black text-gray-900 truncate flex items-center gap-2">
-              {isRental
-                ? (niche === "property"
-                    ? "🏨 Tarik Reservasi Properti / Kamar"
-                    : niche === "equipment"
-                      ? "📦 Tarik Pesanan Sewa Alat & Barang"
-                      : "🚗 Tarik Pesanan Sewa Kendaraan / Travel")
-                : "📋 Tarik Antrean Layanan Online"}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2.5 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden max-h-[90vh]">
+        {/* Modal Header */}
+        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-start justify-between gap-3 bg-white rounded-t-2xl sm:rounded-t-3xl">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base sm:text-lg font-black text-gray-900 leading-snug flex items-center gap-2">
+              <span className="shrink-0">
+                {isRental
+                  ? (niche === "property"
+                      ? "🏨"
+                      : niche === "equipment"
+                        ? "📦"
+                        : "🚗")
+                  : "📋"}
+              </span>
+              <span className="break-words">
+                {isRental
+                  ? (niche === "property"
+                      ? "Tarik Reservasi Properti / Kamar"
+                      : niche === "equipment"
+                        ? "Tarik Pesanan Sewa Alat & Barang"
+                        : "Tarik Pesanan Sewa Kendaraan")
+                  : "Tarik Antrean Layanan Online"}
+              </span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-normal">
               {isRental
                 ? (niche === "property"
                     ? "Pilih reservasi kamar online pelanggan untuk diproses ke Kasir POS"
@@ -232,26 +244,31 @@ function QueueModal({
                 : "Antrean layanan pelanggan yang mendaftar online"}
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full shrink-0">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="text-gray-400 hover:text-gray-700 transition-colors p-1.5 sm:p-2 hover:bg-gray-100 rounded-full shrink-0 -mr-1 -mt-1 active:scale-95"
+            aria-label="Tutup"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Filter (Semua Pesanan Masuk vs Pilih Tanggal) */}
-        <div className="px-5 pt-3 pb-2 bg-slate-50 border-b border-gray-100 flex flex-col gap-2">
+        <div className="px-3.5 sm:px-5 pt-3 pb-2.5 bg-slate-50 border-b border-gray-100 flex flex-col gap-2">
           {isRental && (
             <div className="flex bg-slate-200/80 p-1 rounded-xl gap-1 text-xs font-bold">
               <button
                 type="button"
                 onClick={() => setFilterMode('all')}
-                className={`flex-1 py-1.5 px-3 rounded-lg transition-all ${filterMode === 'all' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`flex-1 py-1.5 px-2.5 sm:px-3 rounded-lg text-center transition-all ${filterMode === 'all' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 ⏳ Semua Pesanan Masuk
               </button>
               <button
                 type="button"
                 onClick={() => setFilterMode('date')}
-                className={`flex-1 py-1.5 px-3 rounded-lg transition-all ${filterMode === 'date' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`flex-1 py-1.5 px-2.5 sm:px-3 rounded-lg text-center transition-all ${filterMode === 'date' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 📅 Filter Tanggal
               </button>
@@ -271,7 +288,7 @@ function QueueModal({
           )}
         </div>
 
-        <div className="p-4 overflow-y-auto bg-slate-50 space-y-3">
+        <div className="p-3 sm:p-4 overflow-y-auto bg-slate-50 space-y-3">
           {(!data && !error) && (
             <div className="flex flex-col justify-center items-center p-10 gap-2">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -331,11 +348,12 @@ function QueueModal({
                       : "Armada Kendaraan";
 
                 return (
-                  <div key={booking.id} className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-blue-400 shadow-sm flex flex-col gap-3 transition-all">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-slate-900 text-sm truncate">{booking.customerName}</span>
+                  <div key={booking.id} className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 hover:border-blue-400 shadow-sm flex flex-col gap-3 transition-all">
+                    {/* Header Bar Kartu Pesanan */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                          <span className="font-bold text-slate-900 text-sm break-words">{booking.customerName}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${statusBadgeBg}`}>
                             {statusLabel}
                           </span>
@@ -348,7 +366,7 @@ function QueueModal({
 
                       <button
                         onClick={() => onProcess(booking)}
-                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 text-xs shrink-0 flex items-center gap-1"
+                        className="w-full sm:w-auto px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 text-xs shrink-0 flex items-center justify-center gap-1.5"
                       >
                         📥 Tarik ke Kasir
                       </button>
@@ -356,15 +374,17 @@ function QueueModal({
 
                     {/* Informasi Detail Khusus Rental & Travel */}
                     {isRental ? (
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 text-xs text-slate-700 flex flex-col gap-1.5">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-slate-500 font-medium">Jadwal:</span>
-                          <span className="font-bold text-slate-900">
-                            {formatTgl(booking.startDate)} ({booking.pickupTime || (itemRentalType === 'property' ? '14:00' : '08:00')} WIB) ➜ {formatTgl(booking.endDate)} ({booking.returnTime || (itemRentalType === 'property' ? '12:00' : '20:00')} WIB)
-                          </span>
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 text-xs text-slate-700 flex flex-col gap-1.5">
+                        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-0.5 sm:gap-1 text-[11px]">
+                          <span className="text-slate-500 font-medium shrink-0">Jadwal:</span>
+                          <div className="font-bold text-slate-900 flex flex-wrap items-center gap-1">
+                            <span>{formatTgl(booking.startDate)} ({booking.pickupTime || (itemRentalType === 'property' ? '14:00' : '08:00')} WIB)</span>
+                            <span className="text-blue-600 font-black">➔</span>
+                            <span>{formatTgl(booking.endDate)} ({booking.returnTime || (itemRentalType === 'property' ? '12:00' : '20:00')} WIB)</span>
+                          </div>
                         </div>
                         {booking.dropoffLocation && (
-                          <div className="flex items-start gap-1.5 text-[11px] pt-1 border-t border-slate-200">
+                          <div className="flex items-start gap-1.5 text-[11px] pt-1.5 border-t border-slate-200">
                             <span className="text-slate-500 shrink-0 font-medium">Tujuan:</span>
                             <span className="font-semibold text-slate-800 break-words flex-1">{booking.dropoffLocation}</span>
                           </div>
@@ -376,13 +396,13 @@ function QueueModal({
                           </div>
                         )}
                         {booking.notes && (
-                          <div className="text-[11px] text-blue-800 italic bg-blue-50/70 p-1.5 rounded-lg border border-blue-100 mt-0.5">
+                          <div className="text-[11px] text-blue-800 italic bg-blue-50/70 p-2 rounded-lg border border-blue-100 mt-0.5 break-words">
                             "{booking.notes}"
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 text-xs text-slate-700 flex flex-col gap-1">
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 text-xs text-slate-700 flex flex-col gap-1">
                         <div className="flex items-center justify-between text-[11px]">
                           <span className="text-slate-500 font-medium">Waktu Booking:</span>
                           <span className="font-bold text-slate-900">
@@ -390,7 +410,7 @@ function QueueModal({
                           </span>
                         </div>
                         {booking.notes && (
-                          <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200">
+                          <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200 break-words">
                             <span className="font-medium text-slate-500">Catatan:</span> {booking.notes}
                           </div>
                         )}

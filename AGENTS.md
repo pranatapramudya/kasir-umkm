@@ -9,7 +9,7 @@ SaaS POS (Point of Sale) multi-tenant untuk UMKM Indonesia. Stack: Next.js, Pris
 | Retail | Offline-first (IndexedDB), Bluetooth thermal printer auto-detect, CSV/Jurnal export |
 | F&B | Table grid, Split Bill, KDS (Kitchen Display), Kitchen/Bar ticket routing |
 | Jasa/Servis | Jadwal Booking, komisi staf/teknisi, slot jam fleksibel, antrean online murni |
-| Rental/Travel/Properti/Alat | Kalender Sewa (anti collision), DP & Pelunasan, Surat Jalan/Invoice A4/A5, Niche Adaptive (Kendaraan/Properti/Alat) |
+| Rental/Travel/Properti/Alat | Kalender Sewa (anti collision), DP & Pelunasan, Surat Jalan/Invoice A4/A5, Niche Adaptive (Kendaraan/Properti/Alat), Filter Lunas/Belum Lunas & Pencarian Universal Cerdas, Tarik Pesanan Online Mobile Responsive |
 
 ## Arsitektur
 ```

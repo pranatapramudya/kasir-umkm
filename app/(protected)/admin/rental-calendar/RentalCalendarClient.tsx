@@ -30,7 +30,10 @@ import {
   Copy,
   ExternalLink,
   Share2,
-  Pencil
+  Pencil,
+  Search,
+  Filter,
+  SlidersHorizontal
 } from "lucide-react";
 import { startOrder, finishOrder, approveOrder, rejectOrder, settleRentalBalance, updateRentalBookingDetails } from "../orders/actions";
 import InvoiceRentalA4 from "@/components/InvoiceRentalA4";
@@ -185,6 +188,9 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filter, setFilter] = useState<"ALL" | BookingStatus>("ALL");
+  const [paymentFilter, setPaymentFilter] = useState<"ALL" | "LUNAS" | "BELUM_LUNAS">("ALL");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [finishingOrder, setFinishingOrder] = useState<Booking | null>(null);
   const [overtimeFee, setOvertimeFee] = useState<string>("0");
   const [finishPaymentMethod, setFinishPaymentMethod] = useState<string>("TUNAI");
@@ -403,11 +409,37 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
   // Check if a date has any active booking
   // Removed hasBooking as getBookingsForDate handles both logic
 
-  // Get bookings for selected date
+  // Get bookings for selected date (dengan filter status, pembayaran & pencarian penyewa / unit)
   const getBookingsForDate = (day: Date) => {
     return calendarBookings.filter(b => {
       if (!b?.startDate || !b?.endDate) return false;
       if (filter !== "ALL" && b.status !== filter) return false;
+
+      // Filter status pembayaran
+      if (paymentFilter === "BELUM_LUNAS") {
+        if (!b.remainingBalance || b.remainingBalance <= 0) return false;
+      } else if (paymentFilter === "LUNAS") {
+        if (b.remainingBalance && b.remainingBalance > 0) return false;
+      }
+
+      // Filter pencarian nama penyewa, nama unit/kamar, plat nomor, nomor WhatsApp, supir, catatan, lokasi
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = b.customerName?.toLowerCase().includes(q);
+        const matchItem = b.itemName?.toLowerCase().includes(q);
+        const matchPlate = b.licensePlate?.toLowerCase().includes(q);
+        const qDigits = q.replace(/\D/g, "");
+        const matchPhone = qDigits.length >= 3 && b.customerPhone ? b.customerPhone.replace(/\D/g, "").includes(qDigits) : false;
+        const matchDriver = b.driverName?.toLowerCase().includes(q);
+        const matchNotes = b.notes?.toLowerCase().includes(q) || b.conditionNotes?.toLowerCase().includes(q);
+        const matchLocation = b.pickupLocation?.toLowerCase().includes(q) || b.dropoffLocation?.toLowerCase().includes(q);
+        const matchGuarantee = b.guarantee?.toLowerCase().includes(q);
+
+        if (!matchName && !matchItem && !matchPlate && !matchPhone && !matchDriver && !matchNotes && !matchLocation && !matchGuarantee) {
+          return false;
+        }
+      }
+
       const start = new Date(b.startDate).setHours(0, 0, 0, 0);
       const end = new Date(b.endDate).setHours(0, 0, 0, 0);
       const check = new Date(day).setHours(0, 0, 0, 0);
@@ -415,12 +447,71 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
     });
   };
 
+  // Filter global untuk riwayat & hasil pencarian seluruh jadwal
+  const allFilteredBookings = (() => {
+    const list = calendarBookings.filter(b => {
+      if (!b?.startDate || !b?.endDate) return false;
+      if (filter !== "ALL" && b.status !== filter) return false;
+
+      // Filter status pembayaran
+      if (paymentFilter === "BELUM_LUNAS") {
+        if (!b.remainingBalance || b.remainingBalance <= 0) return false;
+      } else if (paymentFilter === "LUNAS") {
+        if (b.remainingBalance && b.remainingBalance > 0) return false;
+      }
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = b.customerName?.toLowerCase().includes(q);
+        const matchItem = b.itemName?.toLowerCase().includes(q);
+        const matchPlate = b.licensePlate?.toLowerCase().includes(q);
+        const qDigits = q.replace(/\D/g, "");
+        const matchPhone = qDigits.length >= 3 && b.customerPhone ? b.customerPhone.replace(/\D/g, "").includes(qDigits) : false;
+        const matchDriver = b.driverName?.toLowerCase().includes(q);
+        const matchNotes = b.notes?.toLowerCase().includes(q) || b.conditionNotes?.toLowerCase().includes(q);
+        const matchLocation = b.pickupLocation?.toLowerCase().includes(q) || b.dropoffLocation?.toLowerCase().includes(q);
+        const matchGuarantee = b.guarantee?.toLowerCase().includes(q);
+
+        if (!matchName && !matchItem && !matchPlate && !matchPhone && !matchDriver && !matchNotes && !matchLocation && !matchGuarantee) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      return [...list].sort((a, b) => {
+        // Prioritas 1: Nama Customer cocok langsung
+        const aNameMatch = a.customerName?.toLowerCase().includes(q) ? 1 : 0;
+        const bNameMatch = b.customerName?.toLowerCase().includes(q) ? 1 : 0;
+        if (aNameMatch !== bNameMatch) return bNameMatch - aNameMatch;
+
+        // Prioritas 2: Plat nomor atau Unit cocok
+        const aUnitMatch = (a.itemName?.toLowerCase().includes(q) || a.licensePlate?.toLowerCase().includes(q)) ? 1 : 0;
+        const bUnitMatch = (b.itemName?.toLowerCase().includes(q) || b.licensePlate?.toLowerCase().includes(q)) ? 1 : 0;
+        if (aUnitMatch !== bUnitMatch) return bUnitMatch - aUnitMatch;
+
+        // Urutan tanggal mulai
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      });
+    }
+
+    return list;
+  })();
+
   const selectedDateBookings = getBookingsForDate(selectedDate);
-  const totalOrderPages = Math.max(1, Math.ceil(selectedDateBookings.length / ordersPerPage));
+
+  // Jika sedang mencari (searchQuery terisi), tampilkan semua hasil temuan pencarian.
+  // Jika tidak sedang mencari, tampilkan orderan untuk tanggal yang diklik di kalender.
+  const isSearching = searchQuery.trim().length > 0;
+  const activeDisplayedBookings: Booking[] = isSearching ? allFilteredBookings : selectedDateBookings;
+
+  const totalOrderPages = Math.max(1, Math.ceil(activeDisplayedBookings.length / ordersPerPage));
   const safeCurrentPage = Math.min(orderPage, totalOrderPages);
   const startIndex = (safeCurrentPage - 1) * ordersPerPage;
-  const endIndex = Math.min(startIndex + ordersPerPage, selectedDateBookings.length);
-  const paginatedBookings = selectedDateBookings.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + ordersPerPage, activeDisplayedBookings.length);
+  const paginatedBookings = activeDisplayedBookings.slice(startIndex, endIndex);
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-20">
@@ -441,25 +532,147 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
           </span>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-          {([
-            { value: "ALL", label: "Semua" },
-            { value: "PENDING", label: "Menunggu ACC" },
-            { value: "COMPLETED", label: "Terjadwal" },
-            { value: "IN_PROGRESS", label: rentalNiche === "property" ? "Tamu Menginap" : rentalNiche === "vehicle" ? "Sedang Digunakan" : "Sedang Disewa" },
-            { value: "OVERDUE", label: rentalNiche === "property" ? "Lewat Check-out" : "Terlambat" },
-            { value: "FINISHED", label: "Selesai" }
-          ] as const).map(f => (
+        {/* Search Bar & Filter Controls */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setOrderPage(1);
+                }}
+                placeholder={
+                  rentalNiche === "property"
+                    ? "Cari nama tamu, no. kamar / villa, nomor WA..."
+                    : rentalNiche === "vehicle"
+                      ? "Cari nama penyewa, plat nomor armada, nama mobil/bus, nomor WA..."
+                      : "Cari nama penyewa, nama alat/barang, nomor WA..."
+                }
+                className="w-full text-xs pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium transition-all shadow-xs"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1"
+                  title="Hapus pencarian"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Filter Toggle Button (Icon Filter) */}
             <button
-              key={f.value}
-              onClick={() => setFilter(f.value as "ALL" | BookingStatus)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${filter === f.value ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              type="button"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl border text-xs font-bold transition-all shrink-0 shadow-xs ${filter !== "ALL" || paymentFilter !== "ALL" || isFilterOpen
+                ? "bg-blue-600 text-white border-blue-600 shadow-blue-500/25 ring-2 ring-blue-500/20"
+                : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
                 }`}
+              title="Filter Status Jadwal & Pembayaran"
             >
-              {f.label}
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline">Filter</span>
+              {(filter !== "ALL" || paymentFilter !== "ALL") && (
+                <span className="w-2 h-2 rounded-full bg-amber-400 ring-2 ring-white animate-pulse" />
+              )}
             </button>
-          ))}
+          </div>
+
+          {/* Collapsible Filter Bar */}
+          {isFilterOpen && (
+            <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1 duration-150 shadow-inner">
+              {/* Header Filter Panel */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+                  Filter Kalender & Riwayat
+                </span>
+                {(filter !== "ALL" || paymentFilter !== "ALL") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFilter("ALL");
+                      setPaymentFilter("ALL");
+                      setOrderPage(1);
+                    }}
+                    className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline px-2 py-0.5 rounded-lg hover:bg-rose-50 transition-colors"
+                  >
+                    Reset Filter
+                  </button>
+                )}
+              </div>
+
+              {/* Group 1: Status Jadwal */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Status Jadwal
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {([
+                    { value: "ALL", label: "Semua" },
+                    { value: "PENDING", label: "Menunggu ACC" },
+                    { value: "COMPLETED", label: "Terjadwal" },
+                    { value: "IN_PROGRESS", label: rentalNiche === "property" ? "Tamu Menginap" : rentalNiche === "vehicle" ? "Sedang Digunakan" : "Sedang Disewa" },
+                    { value: "OVERDUE", label: rentalNiche === "property" ? "Lewat Check-out" : "Terlambat" },
+                    { value: "FINISHED", label: "Selesai" }
+                  ] as const).map(f => (
+                    <button
+                      key={f.value}
+                      type="button"
+                      onClick={() => {
+                        setFilter(f.value as "ALL" | BookingStatus);
+                        setOrderPage(1);
+                      }}
+                      className={`px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${filter === f.value
+                        ? "bg-blue-600 text-white shadow-xs shadow-blue-500/30 ring-1 ring-blue-600"
+                        : "bg-white hover:bg-slate-100 text-slate-600 border border-slate-200"
+                        }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Group 2: Status Pembayaran (Lunas / Belum Lunas) */}
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-200/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Status Pembayaran
+                </span>
+                <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap">
+                  {[
+                    { value: "ALL", label: "Semua Bayar" },
+                    { value: "LUNAS", label: "✓ Lunas" },
+                    { value: "BELUM_LUNAS", label: "⚠️ Belum Lunas" },
+                  ].map(p => (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => {
+                        setPaymentFilter(p.value as "ALL" | "LUNAS" | "BELUM_LUNAS");
+                        setOrderPage(1);
+                      }}
+                      className={`px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold text-center transition-all ${paymentFilter === p.value
+                        ? p.value === "LUNAS"
+                          ? "bg-emerald-600 text-white shadow-xs shadow-emerald-500/30 ring-1 ring-emerald-600"
+                          : p.value === "BELUM_LUNAS"
+                            ? "bg-rose-600 text-white shadow-xs shadow-rose-500/30 ring-1 ring-rose-600"
+                            : "bg-slate-800 text-white shadow-xs ring-1 ring-slate-800"
+                        : "bg-white hover:bg-slate-100 text-slate-600 border border-slate-200"
+                        }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -558,18 +771,22 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
           </div>
         </div>
 
-        {/* Right Column: Agenda / Selected Date Bookings */}
+        {/* Right Column: Agenda / Selected Date Bookings atau Hasil Pencarian Global */}
         <div ref={agendaTopRef} className="lg:col-span-5 xl:col-span-5 flex flex-col gap-3.5 scroll-mt-24">
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Jadwal Tanggal</span>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                {isSearching ? "Hasil Pencarian Jadwal" : "Jadwal Tanggal"}
+              </span>
               <h3 className="font-bold text-slate-800 text-sm sm:text-base capitalize">
-                {format(selectedDate, "EEEE, dd MMM yyyy", { locale: idLocale })}
+                {isSearching
+                  ? `Kata Kunci: "${searchQuery}"`
+                  : format(selectedDate, "EEEE, dd MMM yyyy", { locale: idLocale })}
               </h3>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-bold shrink-0">
-                {selectedDateBookings.length} Orderan
+                {activeDisplayedBookings.length} Orderan
               </span>
               {totalOrderPages > 1 && (
                 <span className="text-xs bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-full font-bold shrink-0">
@@ -580,10 +797,10 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
           </div>
 
           {/* Quick Pagination Bar di atas jika orderan > ordersPerPage */}
-          {selectedDateBookings.length > ordersPerPage && (
+          {activeDisplayedBookings.length > ordersPerPage && (
             <div className="bg-white border border-slate-200/80 px-3.5 py-2 rounded-xl flex items-center justify-between text-xs text-slate-500 shadow-xs">
               <span>
-                Menampilkan <strong className="text-slate-800">{startIndex + 1} - {endIndex}</strong> dari <strong className="text-slate-800">{selectedDateBookings.length}</strong> orderan
+                Menampilkan <strong className="text-slate-800">{startIndex + 1} - {endIndex}</strong> dari <strong className="text-slate-800">{activeDisplayedBookings.length}</strong> orderan
               </span>
               <div className="flex items-center gap-1.5">
                 <button
@@ -616,14 +833,20 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
             </div>
           )}
 
-          {selectedDateBookings.length === 0 ? (
+          {activeDisplayedBookings.length === 0 ? (
             <div className="bg-white border border-slate-200 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-xs">
               <CalendarDays className="w-10 h-10 text-slate-300 mb-2" />
-              <p className="text-slate-600 text-sm font-bold">Tidak Ada Jadwal</p>
-              <p className="text-slate-400 text-xs mt-1">Belum ada reservasi atau sewa untuk tanggal ini.</p>
+              <p className="text-slate-600 text-sm font-bold">
+                {isSearching ? "Tidak Ditemukan Jadwal yang Cocok" : "Tidak Ada Jadwal"}
+              </p>
+              <p className="text-slate-400 text-xs mt-1">
+                {isSearching
+                  ? `Tidak ada reservasi yang cocok dengan kata kunci "${searchQuery}". Coba kata kunci lain.`
+                  : "Belum ada reservasi atau sewa untuk tanggal ini."}
+              </p>
             </div>
           ) : (
-            paginatedBookings.map((b) => {
+            paginatedBookings.map((b: Booking) => {
               const badge = getStatusBadge(b.status, rentalNiche);
               const itemType = detectRentalItemType(b.itemName);
               const cardActionLabels = getActionLabels(itemType !== "unknown" ? itemType : rentalNiche);
@@ -631,7 +854,7 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
               // Cek collision / jadwal beririsan dengan booking lain di unit yang sama
               const bStart = new Date(b.startDate).getTime();
               const bEnd = new Date(b.endDate).getTime();
-              const hasConflict = selectedDateBookings.some(other => {
+              const hasConflict = activeDisplayedBookings.some((other: Booking) => {
                 if (other.id === b.id || other.itemName !== b.itemName || other.status === "FINISHED") return false;
                 const oStart = new Date(other.startDate).getTime();
                 const oEnd = new Date(other.endDate).getTime();
@@ -998,10 +1221,10 @@ export default function RentalCalendarClient({ initialBookings, tenantId, tenant
           )}
 
           {/* Bottom Pagination Bar jika total orderan > ordersPerPage */}
-          {selectedDateBookings.length > ordersPerPage && (
+          {activeDisplayedBookings.length > ordersPerPage && (
             <div className="bg-white border border-slate-200/80 px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-600 shadow-xs mt-1">
               <span className="font-medium text-center sm:text-left">
-                Menampilkan <strong className="text-slate-900">{startIndex + 1} - {endIndex}</strong> dari <strong className="text-slate-900">{selectedDateBookings.length}</strong> orderan (Hal. {safeCurrentPage} dari {totalOrderPages})
+                Menampilkan <strong className="text-slate-900">{startIndex + 1} - {endIndex}</strong> dari <strong className="text-slate-900">{activeDisplayedBookings.length}</strong> orderan (Hal. {safeCurrentPage} dari {totalOrderPages})
               </span>
               <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <button
