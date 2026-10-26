@@ -1201,7 +1201,7 @@ export default function ComparisonPage() {
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl transition-all shadow-xl text-base sm:text-lg hover:scale-105 active:scale-95"
             >
               <MessageSquare className="w-5 h-5 fill-current" />
-              <span>Tanya via WhatsApp (0857-2325-6427)</span>
+              <span>Konsultasi via WhatsApp</span>
             </a>
           </div>
           <p className="mt-6 text-blue-200 text-sm">

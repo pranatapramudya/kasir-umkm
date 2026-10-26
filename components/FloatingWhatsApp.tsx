@@ -84,7 +84,7 @@ export default function FloatingWhatsApp() {
         target="_blank"
         rel="noopener noreferrer"
         className="group relative flex items-center gap-2 px-3.5 py-3 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 transition-all duration-300 hover:scale-105 active:scale-95 touch-manipulation"
-        aria-label="Hubungi Customer Support PJTech via WhatsApp di 085723256427"
+        aria-label="Hubungi Customer Support PJTech via WhatsApp"
       >
         {/* Radar Pulse Effect */}
         <span className="absolute -inset-0.5 rounded-full bg-emerald-400 opacity-40 group-hover:opacity-60 blur-sm animate-pulse pointer-events-none" />

@@ -850,7 +850,7 @@ export default function LandingPageClient() {
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/25 active:scale-[0.98] transition-all duration-200"
               >
                 <MessageSquare className="w-4 h-4 fill-current" />
-                <span>Chat WhatsApp: 0857-2325-6427</span>
+                <span>Konsultasi via WhatsApp</span>
               </a>
             </div>
           </div>
@@ -2156,7 +2156,7 @@ export default function LandingPageClient() {
                 className="shrink-0 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
               >
                 <MessageSquare className="w-4 h-4 fill-current" />
-                <span>Chat WhatsApp: 0857-2325-6427</span>
+                <span>Konsultasi via WhatsApp</span>
               </a>
             </div>
           </div>
@@ -2375,7 +2375,7 @@ export default function LandingPageClient() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all text-xs font-bold"
               >
                 <MessageSquare className="w-3.5 h-3.5 fill-current" />
-                <span>WhatsApp: 0857-2325-6427 (Fast Response)</span>
+                <span>Hubungi via WhatsApp (Fast Response)</span>
               </a>
             </div>
           </div>
